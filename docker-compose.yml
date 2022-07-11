@@ -1,0 +1,12 @@
+---
+version: "3.8"
+services:
+  backend:
+    build: .
+    init: true
+    command: ["sleep", "infinity"]
+    volumes:
+      - ".:/src"
+      - "go_cache:/go/pkg"
+volumes:
+  go_cache:
