@@ -1,13 +1,19 @@
 NAME ?= terraform-provider-leaseweb
 VERSION ?= 0.0.1
-GOOS ?= darwin
-GOARCH ?= arm64
+GOOS ?= linux
+GOARCH ?= amd64
 BINARY = $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH)
 
 default: install
 
 build:
 	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY)
+
+ci:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	golangci-lint run --disable-all -E gofmt
+	golangci-lint run --disable-all -E whitespace
+	golangci-lint run --disable-all -E errcheck
 
 release:
 	$(MAKE) build GOOS=darwin GOARCH=amd64
