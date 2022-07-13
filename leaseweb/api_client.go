@@ -40,6 +40,7 @@ type Server struct {
 type IP struct {
 	IP            string
 	ReverseLookup string
+	NullRouted    bool
 }
 
 // DHCPLease -

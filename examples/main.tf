@@ -10,5 +10,5 @@ terraform {
 provider "leaseweb" {}
 
 resource "leaseweb_dedicatedserver" "web01" {
-  # reference = "web01"
+  # main_ip_nulled = false
 }

@@ -103,7 +103,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	d.Set("reverse_lookup", ip.ReverseLookup)
-	d.Set("main_ip_nulled", ip.nullRouted)
+	d.Set("main_ip_nulled", ip.NullRouted)
 
 	// 3) get leases info from /v2/servers/{id}/leases
 	lease, err := getServerLease(serverID)
@@ -176,7 +176,7 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			}
 			d.Set("main_ip_nulled", true)
 		} else {
-			if err := unNullIP(serverID, mainIP); err != nil {
+			if err := unnullIp(serverID, mainIP); err != nil {
 				return diag.FromErr(err)
 			}
 			d.Set("main_ip_nulled", false)
