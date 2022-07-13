@@ -38,6 +38,11 @@ func resourceDedicatedServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"public_network_interface_opened": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"site": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -110,6 +115,10 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	powerInfo, err := getPowerInfo(serverID)
 	d.Set("powered_on", powerInfo.IsPoweredOn())
 
+	// 5) get public network interface info from /v2/servers/{serverId}/networkInterfaces/{networkType}
+	publicNetworkInterfaceInfo, err := getNetworkInterfaceInfo(serverID, "public")
+	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.IsOpened())
+
 	return diags
 }
 
@@ -159,6 +168,20 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 				return diag.FromErr(err)
 			}
 			d.Set("powered_on", false)
+		}
+	}
+
+	if d.HasChange("public_network_interface_opened") {
+		if d.Get("public_network_interface_opened").(bool) {
+			if err := openNetworkInterface(serverID, "public"); err != nil {
+				return diag.FromErr(err)
+			}
+			d.Set("public_network_interface_opened", true)
+		} else {
+			if err := closeNetworkInterface(serverID, "public"); err != nil {
+				return diag.FromErr(err)
+			}
+			d.Set("public_network_interface_opened", false)
 		}
 	}
 
