@@ -9,6 +9,10 @@ terraform {
 
 provider "leaseweb" {}
 
-resource "leaseweb_dedicatedserver" "web01" {
+resource "leaseweb_dedicatedserver" "my-test" {
+  # reference = "web01"
+  # reverse_lookup = "web02.example.com"
+  # dhcp_lease = "https://boot.netboot.xyz"
+  # powered_on = true
   # main_ip_nulled = false
 }
