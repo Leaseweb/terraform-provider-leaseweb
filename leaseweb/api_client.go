@@ -402,7 +402,7 @@ func closeNetworkInterface(serverID string, networkType string) error {
 	return nil
 }
 
-func nullIp(serverID string, IP string) error {
+func nullIP(serverID string, IP string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP), nil)
 	if err != nil {
 		return err
@@ -421,7 +421,7 @@ func nullIp(serverID string, IP string) error {
 	return nil
 }
 
-func unnullIp(serverID string, IP string) error {
+func unnullIP(serverID string, IP string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP), nil)
 	if err != nil {
 		return err

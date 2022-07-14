@@ -1,0 +1,5 @@
+// Avoid checking for errors when using defer response.Body.Close()
+(io.Closer).Close
+
+// Avoid checking for errors when setting terraform state
+(*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
