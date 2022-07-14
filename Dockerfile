@@ -4,6 +4,7 @@ RUN apk add --no-cache \
 WORKDIR /src
 
 FROM gobase as goci
+ENV GOLANGCI_LINT_CACHE=/tmp
 RUN apk add --no-cache \
         gcc musl-dev make \
     && true
