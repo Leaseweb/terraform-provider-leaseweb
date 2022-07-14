@@ -7,24 +7,17 @@ BINARY = $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH)
 default: install
 
 build:
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY)
+	mkdir -p dist
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -a -tags netgo -ldflags '-w' -o dist/$(BINARY)
 
 ci:
 	golangci-lint run --disable-all -E gofmt -E whitespace -E errcheck
 
 release:
 	$(MAKE) build GOOS=darwin GOARCH=amd64
-	$(MAKE) build GOOS=darwin GOARCH=amd64
-	$(MAKE) build GOOS=freebsd GOARCH=386
+	$(MAKE) build GOOS=darwin GOARCH=arm64
 	$(MAKE) build GOOS=freebsd GOARCH=amd64
-	$(MAKE) build GOOS=freebsd GOARCH=arm
-	$(MAKE) build GOOS=linux GOARCH=386
 	$(MAKE) build GOOS=linux GOARCH=amd64
-	$(MAKE) build GOOS=linux GOARCH=arm
-	$(MAKE) build GOOS=openbsd GOARCH=386
-	$(MAKE) build GOOS=openbsd GOARCH=amd64
-	$(MAKE) build GOOS=solaris GOARCH=amd64
-	$(MAKE) build GOOS=windows GOARCH=386
 	$(MAKE) build GOOS=windows GOARCH=amd64
 
 install: build
