@@ -40,6 +40,7 @@ type Server struct {
 type IP struct {
 	IP            string
 	ReverseLookup string
+	NullRouted    bool
 }
 
 // DHCPLease -
@@ -396,6 +397,44 @@ func closeNetworkInterface(serverID string, networkType string) error {
 
 	if response.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("error closing network interface, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func nullIp(serverID string, IP string) error {
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("error nulling ip of the server, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func unnullIp(serverID string, IP string) error {
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("error unnulling server ip of the server, api response %v", response.StatusCode)
 	}
 
 	return nil
