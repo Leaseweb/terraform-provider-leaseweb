@@ -69,9 +69,19 @@ type PowerInfo struct {
 	}
 }
 
-//IsPoweredOn -
+// IsPoweredOn -
 func (p *PowerInfo) IsPoweredOn() bool {
 	return p.PDU.Status == "on" // TODO also take ipmi into account
+}
+
+// NetworkInterfaceInfo -
+type NetworkInterfaceInfo struct {
+	Status string
+}
+
+// IsOpened -
+func (n *NetworkInterfaceInfo) IsOpened() bool {
+	return n.Status == "OPEN"
 }
 
 func getServer(serverID string) (*Server, error) {
@@ -179,6 +189,32 @@ func getPowerInfo(serverID string) (*PowerInfo, error) {
 	}
 
 	return &powerInfo, nil
+}
+
+func getNetworkInterfaceInfo(serverID string, networkType string) (*NetworkInterfaceInfo, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s", leasewebAPIURL, serverID, networkType), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting network interface info, api response %v", response.StatusCode)
+	}
+
+	var networkInterfaceInfo NetworkInterfaceInfo
+	err = json.NewDecoder(response.Body).Decode(&networkInterfaceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &networkInterfaceInfo, nil
 }
 
 func updateReference(serverID string, reference string) error {
@@ -323,6 +359,44 @@ func removeDHCPLease(serverID string) error {
 
 	if response.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("error removing dhcp lease, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func openNetworkInterface(serverID string, networkType string) error {
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/open", leasewebAPIURL, serverID, networkType), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error opening network interface, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func closeNetworkInterface(serverID string, networkType string) error {
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/close", leasewebAPIURL, serverID, networkType), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error closing network interface, api response %v", response.StatusCode)
 	}
 
 	return nil

@@ -44,7 +44,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	leasewebAPIURL = baseURL
 	leasewebAPIToken = apiToken
-	leasewebClient = &http.Client{Timeout: 10 * time.Second}
+	leasewebClient = &http.Client{Timeout: 60 * time.Second}
 
 	return nil, diags
 }
