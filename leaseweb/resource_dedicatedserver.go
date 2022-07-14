@@ -194,12 +194,12 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("main_ip_nulled") {
 		mainIP := d.Get("main_ip").(string)
 		if d.Get("main_ip_nulled").(bool) {
-			if err := nullIp(serverID, mainIP); err != nil {
+			if err := nullIP(serverID, mainIP); err != nil {
 				return diag.FromErr(err)
 			}
 			d.Set("main_ip_nulled", true)
 		} else {
-			if err := unnullIp(serverID, mainIP); err != nil {
+			if err := unnullIP(serverID, mainIP); err != nil {
 				return diag.FromErr(err)
 			}
 			d.Set("main_ip_nulled", false)
