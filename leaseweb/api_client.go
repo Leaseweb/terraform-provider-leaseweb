@@ -84,6 +84,14 @@ func (n *NetworkInterfaceInfo) IsOpened() bool {
 	return n.Status == "OPEN"
 }
 
+// NotificationSetting -
+type NotificationSetting struct {
+	ID        string `json:"id,omitempty"`
+	Frequency string `json:"frequency"`
+	Threshold string `json:"threshold"`
+	Unit      string `json:"unit"`
+}
+
 func getServer(serverID string) (*Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID), nil)
 	if err != nil {
@@ -435,6 +443,118 @@ func unnullIP(serverID string, IP string) error {
 
 	if response.StatusCode != http.StatusAccepted {
 		return fmt.Errorf("error unnulling server ip of the server, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func createDedicatedServerNotificationSettingBandwidth(serverID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(notificationSetting)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth", leasewebAPIURL, serverID), requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("error creating server notification setting, api response %v", response.StatusCode)
+	}
+
+	var createdNotificationSetting NotificationSetting
+	err = json.NewDecoder(response.Body).Decode(&createdNotificationSetting)
+	if err != nil {
+		return nil, err
+	}
+
+	return &createdNotificationSetting, nil
+}
+
+func getDedicatedServerNotificationSettingBandwidth(serverID string, notificationSettingID string) (*NotificationSetting, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth/%s", leasewebAPIURL, serverID, notificationSettingID), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting server notification setting, api response %v", response.StatusCode)
+	}
+
+	var notificationSetting NotificationSetting
+	err = json.NewDecoder(response.Body).Decode(&notificationSetting)
+	if err != nil {
+		return nil, err
+	}
+
+	return &notificationSetting, nil
+}
+
+func updateDedicatedServerNotificationSettingBandwidth(serverID string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(notificationSetting)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth/%s", leasewebAPIURL, serverID, notificationSettingID), requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error updating server notification setting, api response %v", response.StatusCode)
+	}
+
+	var updatedNotificationSetting NotificationSetting
+	err = json.NewDecoder(response.Body).Decode(&updatedNotificationSetting)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedNotificationSetting, nil
+}
+
+func deleteDedicatedServerNotificationSettingBandwidth(serverID string, notificationSettingID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth/%s", leasewebAPIURL, serverID, notificationSettingID), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error deleting server notification setting, api response %v", response.StatusCode)
 	}
 
 	return nil
