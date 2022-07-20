@@ -2,6 +2,8 @@ package leaseweb
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -34,6 +36,20 @@ func resourceDedicatedServerNotificationSettingBandwidth() *schema.Resource {
 			"unit": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+		},
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				parts := strings.SplitN(d.Id(), ":", 2)
+
+				if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+					return nil, fmt.Errorf("Invalid ID format (%s), expected dedicated_server_id:notification_setting_id", d.Id())
+				}
+
+				d.Set("dedicated_server_id", parts[0])
+				d.SetId(parts[1])
+
+				return []*schema.ResourceData{d}, nil
 			},
 		},
 	}
