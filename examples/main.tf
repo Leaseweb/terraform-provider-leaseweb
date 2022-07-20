@@ -20,6 +20,6 @@ resource "leaseweb_dedicatedserver" "my-test" {
 resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   frequency = "DAILY"
-  threshold = 1
+  threshold = 1.5
   unit = "Gbps"
 }

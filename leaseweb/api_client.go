@@ -86,10 +86,10 @@ func (n *NetworkInterfaceInfo) IsOpened() bool {
 
 // NotificationSetting -
 type NotificationSetting struct {
-	ID        string `json:"id,omitempty"`
-	Frequency string `json:"frequency"`
-	Threshold string `json:"threshold"`
-	Unit      string `json:"unit"`
+	ID        string  `json:"id,omitempty"`
+	Frequency string  `json:"frequency"`
+	Threshold float64 `json:"threshold,string"`
+	Unit      string  `json:"unit"`
 }
 
 func getServer(serverID string) (*Server, error) {

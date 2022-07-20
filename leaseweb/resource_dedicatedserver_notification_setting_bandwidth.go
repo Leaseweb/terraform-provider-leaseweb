@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -28,14 +29,53 @@ func resourceDedicatedServerNotificationSettingBandwidth() *schema.Resource {
 			"frequency": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
+					value := v.(string)
+					var diags diag.Diagnostics
+					if value != "DAILY" && value != "WEEKLY" && value != "MONTHLY" {
+						diag := diag.Diagnostic{
+							Severity: diag.Error,
+							Summary:  "Incorrect attribute value",
+							Detail:   `Inappropriate value for attribute "frequency": valid values are "DAILY", "WEEKLY", "MONTHLY"`,
+						}
+						diags = append(diags, diag)
+					}
+					return diags
+				},
 			},
 			"threshold": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeFloat,
 				Required: true,
+				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
+					value := v.(float64)
+					var diags diag.Diagnostics
+					if value <= 0 {
+						diag := diag.Diagnostic{
+							Severity: diag.Error,
+							Summary:  "Incorrect attribute value",
+							Detail:   `Inappropriate value for attribute "threshold": strictly positive float required`,
+						}
+						diags = append(diags, diag)
+					}
+					return diags
+				},
 			},
 			"unit": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
+					value := v.(string)
+					var diags diag.Diagnostics
+					if value != "Gbps" && value != "Mbps" {
+						diag := diag.Diagnostic{
+							Severity: diag.Error,
+							Summary:  "Incorrect attribute value",
+							Detail:   `Inappropriate value for attribute "unit": valid values are "Gbps", "Mbps"`,
+						}
+						diags = append(diags, diag)
+					}
+					return diags
+				},
 			},
 		},
 		Importer: &schema.ResourceImporter{
@@ -60,7 +100,7 @@ func resourceDedicatedServerNotificationSettingBandwidthCreate(ctx context.Conte
 
 	var notificationSetting = NotificationSetting{
 		Frequency: d.Get("frequency").(string),
-		Threshold: d.Get("threshold").(string),
+		Threshold: d.Get("threshold").(float64),
 		Unit:      d.Get("unit").(string),
 	}
 
@@ -98,7 +138,7 @@ func resourceDedicatedServerNotificationSettingBandwidthUpdate(ctx context.Conte
 	if d.HasChange("frequency") || d.HasChange("threshold") || d.HasChange("unit") {
 		var notificationSetting = NotificationSetting{
 			Frequency: d.Get("frequency").(string),
-			Threshold: d.Get("threshold").(string),
+			Threshold: d.Get("threshold").(float64),
 			Unit:      d.Get("unit").(string),
 		}
 
