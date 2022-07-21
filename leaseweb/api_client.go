@@ -448,14 +448,14 @@ func unnullIP(serverID string, IP string) error {
 	return nil
 }
 
-func createDedicatedServerNotificationSettingBandwidth(serverID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+func createDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth", leasewebAPIURL, serverID), requestBody)
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s", leasewebAPIURL, serverID, notificationType), requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -481,8 +481,8 @@ func createDedicatedServerNotificationSettingBandwidth(serverID string, notifica
 	return &createdNotificationSetting, nil
 }
 
-func getDedicatedServerNotificationSettingBandwidth(serverID string, notificationSettingID string) (*NotificationSetting, error) {
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth/%s", leasewebAPIURL, serverID, notificationSettingID), nil)
+func getDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -507,14 +507,14 @@ func getDedicatedServerNotificationSettingBandwidth(serverID string, notificatio
 	return &notificationSetting, nil
 }
 
-func updateDedicatedServerNotificationSettingBandwidth(serverID string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+func updateDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth/%s", leasewebAPIURL, serverID, notificationSettingID), requestBody)
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID), requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -540,8 +540,8 @@ func updateDedicatedServerNotificationSettingBandwidth(serverID string, notifica
 	return &updatedNotificationSetting, nil
 }
 
-func deleteDedicatedServerNotificationSettingBandwidth(serverID string, notificationSettingID string) error {
-	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/bandwidth/%s", leasewebAPIURL, serverID, notificationSettingID), nil)
+func deleteDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSettingID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID), nil)
 	if err != nil {
 		return err
 	}

@@ -104,7 +104,7 @@ func resourceDedicatedServerNotificationSettingBandwidthCreate(ctx context.Conte
 		Unit:      d.Get("unit").(string),
 	}
 
-	createdNotificationSetting, err := createDedicatedServerNotificationSettingBandwidth(serverID, &notificationSetting)
+	createdNotificationSetting, err := createDedicatedServerNotificationSetting(serverID, "bandwidth", &notificationSetting)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -120,7 +120,7 @@ func resourceDedicatedServerNotificationSettingBandwidthRead(ctx context.Context
 
 	var diags diag.Diagnostics
 
-	notificationSetting, err := getDedicatedServerNotificationSettingBandwidth(serverID, notificationSettingID)
+	notificationSetting, err := getDedicatedServerNotificationSetting(serverID, "bandwidth", notificationSettingID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -142,7 +142,7 @@ func resourceDedicatedServerNotificationSettingBandwidthUpdate(ctx context.Conte
 			Unit:      d.Get("unit").(string),
 		}
 
-		if _, err := updateDedicatedServerNotificationSettingBandwidth(serverID, notificationSettingID, &notificationSetting); err != nil {
+		if _, err := updateDedicatedServerNotificationSetting(serverID, "bandwidth", notificationSettingID, &notificationSetting); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -156,7 +156,7 @@ func resourceDedicatedServerNotificationSettingBandwidthDelete(ctx context.Conte
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	if err := deleteDedicatedServerNotificationSettingBandwidth(serverID, notificationSettingID); err != nil {
+	if err := deleteDedicatedServerNotificationSetting(serverID, "bandwidth", notificationSettingID); err != nil {
 		return diag.FromErr(err)
 	}
 
