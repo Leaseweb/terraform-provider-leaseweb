@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDedicatedServerNotificationSettingDatatraffic() *schema.Resource {
@@ -27,55 +27,19 @@ func resourceDedicatedServerNotificationSettingDatatraffic() *schema.Resource {
 				ForceNew: true,
 			},
 			"frequency": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
-					value := v.(string)
-					var diags diag.Diagnostics
-					if value != "DAILY" && value != "WEEKLY" && value != "MONTHLY" {
-						diag := diag.Diagnostic{
-							Severity: diag.Error,
-							Summary:  "Incorrect attribute value",
-							Detail:   `Inappropriate value for attribute "frequency": valid values are "DAILY", "WEEKLY", "MONTHLY"`,
-						}
-						diags = append(diags, diag)
-					}
-					return diags
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"DAILY", "WEEKLY", "MONTHLY"}, false),
 			},
 			"threshold": {
-				Type:     schema.TypeFloat,
-				Required: true,
-				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
-					value := v.(float64)
-					var diags diag.Diagnostics
-					if value <= 0 {
-						diag := diag.Diagnostic{
-							Severity: diag.Error,
-							Summary:  "Incorrect attribute value",
-							Detail:   `Inappropriate value for attribute "threshold": strictly positive float required`,
-						}
-						diags = append(diags, diag)
-					}
-					return diags
-				},
+				Type:         schema.TypeFloat,
+				Required:     true,
+				ValidateFunc: validation.FloatAtLeast(0),
 			},
 			"unit": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
-					value := v.(string)
-					var diags diag.Diagnostics
-					if value != "MB" && value != "GB" && value != "TB" {
-						diag := diag.Diagnostic{
-							Severity: diag.Error,
-							Summary:  "Incorrect attribute value",
-							Detail:   `Inappropriate value for attribute "unit": valid values are "MB", "GB", "TB"`,
-						}
-						diags = append(diags, diag)
-					}
-					return diags
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"MB", "GB", "TB"}, false),
 			},
 		},
 		Importer: &schema.ResourceImporter{
