@@ -16,3 +16,17 @@ resource "leaseweb_dedicatedserver" "my-test" {
   # powered_on = true
   # main_ip_nulled = false
 }
+
+resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  frequency = "DAILY"
+  threshold = 1.5
+  unit = "Gbps"
+}
+
+resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  frequency = "WEEKLY"
+  threshold = 2
+  unit = "TB"
+}
