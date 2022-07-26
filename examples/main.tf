@@ -30,3 +30,13 @@ resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   threshold = 2
   unit = "TB"
 }
+
+data "leaseweb_operating_systems" "all_os" {
+}
+
+output "latest_ubuntu_os" {
+    value = reverse(sort([
+        for id, name in data.leaseweb_operating_systems.all_os.names: name
+        if length(regexall("^UBUNTU_.*", id)) > 0
+    ]))[0]
+}
