@@ -20,6 +20,13 @@ func dataSourceOperatingSystems() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -33,12 +40,18 @@ func dataSourceOperatingSystemsRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	operatingSystemsNames := make(map[string]string)
+	operatingSystemsIds := make([]string, len(operatingSystems))
 
-	for _, os := range operatingSystems {
+	for i, os := range operatingSystems {
 		operatingSystemsNames[os.ID] = os.Name
+		operatingSystemsIds[i] = os.ID
 	}
 
 	if err := d.Set("names", operatingSystemsNames); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("ids", operatingSystemsIds); err != nil {
 		return diag.FromErr(err)
 	}
 

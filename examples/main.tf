@@ -34,9 +34,13 @@ resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
 data "leaseweb_operating_systems" "all_os" {
 }
 
-output "latest_ubuntu_os" {
-    value = reverse(sort([
-        for id, name in data.leaseweb_operating_systems.all_os.names: name
-        if length(regexall("^UBUNTU_.*", id)) > 0
-    ]))[0]
+locals {
+  latest_ubuntu_os_id = reverse(sort([
+    for id in data.leaseweb_operating_systems.all_os.ids: id
+    if length(regexall("^UBUNTU_.*", id)) > 0
+  ]))[0]
+}
+
+output "latest_ubuntu_os_name" {
+  value = data.leaseweb_operating_systems.all_os.names[local.latest_ubuntu_os_id]
 }
