@@ -31,16 +31,16 @@ resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   unit = "TB"
 }
 
-data "leaseweb_operating_systems" "all_os" {
+data "leaseweb_dedicatedserver_operating_systems" "all_os" {
 }
 
 locals {
   latest_ubuntu_os_id = reverse(sort([
-    for id in data.leaseweb_operating_systems.all_os.ids: id
+    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids: id
     if length(regexall("^UBUNTU_.*", id)) > 0
   ]))[0]
 }
 
 output "latest_ubuntu_os_name" {
-  value = data.leaseweb_operating_systems.all_os.names[local.latest_ubuntu_os_id]
+  value = data.leaseweb_dedicatedserver_operating_systems.all_os.names[local.latest_ubuntu_os_id]
 }

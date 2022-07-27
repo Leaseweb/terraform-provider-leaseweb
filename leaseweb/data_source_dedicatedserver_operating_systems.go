@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceOperatingSystems() *schema.Resource {
+func dataSourceDedicatedServerOperatingSystems() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceOperatingSystemsRead,
+		ReadContext: dataSourceDedicatedServerOperatingSystemsRead,
 		Schema: map[string]*schema.Schema{
 			"names": {
 				Type:     schema.TypeMap,
@@ -31,7 +31,7 @@ func dataSourceOperatingSystems() *schema.Resource {
 	}
 }
 
-func dataSourceOperatingSystemsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceDedicatedServerOperatingSystemsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	operatingSystems, err := getOperatingSystems()

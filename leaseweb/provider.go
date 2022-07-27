@@ -30,7 +30,7 @@ func Provider() *schema.Provider {
 			"leaseweb_dedicatedserver_notification_setting_datatraffic": resourceDedicatedServerNotificationSettingDatatraffic(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"leaseweb_operating_systems": dataSourceOperatingSystems(),
+			"leaseweb_dedicatedserver_operating_systems": dataSourceDedicatedServerOperatingSystems(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
