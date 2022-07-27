@@ -17,6 +17,11 @@ resource "leaseweb_dedicatedserver" "my-test" {
   # main_ip_nulled = false
 }
 
+resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
+    dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+    operating_system_id = local.latest_ubuntu_os_id
+}
+
 resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   frequency = "DAILY"
