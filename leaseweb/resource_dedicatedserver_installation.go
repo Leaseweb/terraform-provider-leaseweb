@@ -23,6 +23,17 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"job_uuid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("dedicated_server_id", d.Id())
+
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 	}
 }
@@ -39,7 +50,8 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		return diag.FromErr(err)
 	}
 
-	d.SetId(installationJob.UUID)
+	d.Set("job_uuid", installationJob.UUID)
+	d.SetId(serverID)
 
 	return resourceDedicatedServerInstallationRead(ctx, d, m)
 }
@@ -53,6 +65,7 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	d.Set("job_uuid", installationJob.UUID)
 	d.Set("operating_system_id", installationJob.Payload.OperatingSystemID)
 
 	return diags
