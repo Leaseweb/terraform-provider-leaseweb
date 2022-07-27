@@ -92,6 +92,12 @@ type NotificationSetting struct {
 	Unit      string  `json:"unit"`
 }
 
+// OperatingSystem -
+type OperatingSystem struct {
+	ID   string
+	Name string
+}
+
 func getServer(serverID string) (*Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID), nil)
 	if err != nil {
@@ -558,4 +564,33 @@ func deleteDedicatedServerNotificationSetting(serverID string, notificationType 
 	}
 
 	return nil
+}
+
+func getOperatingSystems() ([]OperatingSystem, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/operatingSystems", leasewebAPIURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting operating systems, api response %v", response.StatusCode)
+	}
+
+	var operatingSystems struct {
+		OperatingSystems []OperatingSystem
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&operatingSystems)
+
+	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
+	// but with the default offset and limit values we already get the full list at the moment
+
+	return operatingSystems.OperatingSystems, nil
 }
