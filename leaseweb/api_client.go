@@ -106,6 +106,7 @@ type InstallationJobPayload struct {
 // InstallationJob -
 type InstallationJob struct {
 	UUID    string
+	Status  string
 	Payload InstallationJobPayload
 }
 
@@ -665,4 +666,28 @@ func getLatestInstallationJob(serverID string) (*InstallationJob, error) {
 	err = json.NewDecoder(response.Body).Decode(&jobs)
 
 	return &jobs.Jobs[0], nil
+}
+
+func getInstallationJobStatus(serverID string, jobUUID string) (string, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID), nil)
+	if err != nil {
+		return "UNKNOWN", err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return "UNKNOWN", err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "UNKNOWN", fmt.Errorf("error getting job status, api response %v", response.StatusCode)
+	}
+
+	var job InstallationJob
+
+	err = json.NewDecoder(response.Body).Decode(&job)
+
+	return job.Status, nil
 }
