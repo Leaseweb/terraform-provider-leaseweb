@@ -3,6 +3,7 @@ package leaseweb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -36,6 +37,9 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 
 				return []*schema.ResourceData{d}, nil
 			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
 		},
 	}
 }

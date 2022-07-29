@@ -20,6 +20,10 @@ resource "leaseweb_dedicatedserver" "my-test" {
 resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
     dedicated_server_id = leaseweb_dedicatedserver.my-test.id
     operating_system_id = local.latest_ubuntu_os_id
+
+    timeouts {
+        create = "30m"
+    }
 }
 
 resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
