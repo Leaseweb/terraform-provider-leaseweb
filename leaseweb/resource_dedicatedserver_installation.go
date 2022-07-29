@@ -2,7 +2,6 @@ package leaseweb
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -59,23 +58,18 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	d.Set("job_uuid", installationJob.UUID)
 	d.SetId(serverID)
 
-	err = resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		status, err := getInstallationJobStatus(serverID, installationJob.UUID)
-
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if status == "ACTIVE" {
-			return resource.RetryableError(fmt.Errorf("Expected installation to be FINISHED but was in state %s", status))
-		}
-
-		if status != "FINISHED" {
-			return resource.NonRetryableError(fmt.Errorf("The installation failed with status %s", status))
-		}
-
-		return nil
-	})
+	createStateConf := &resource.StateChangeConf{
+		Pending: []string{"ACTIVE"},
+		Target:  []string{"FINISHED"},
+		Refresh: func() (interface{}, string, error) {
+			status, err := getInstallationJobStatus(serverID, installationJob.UUID)
+			return status, status, err
+		},
+		Timeout:      d.Timeout(schema.TimeoutCreate) - time.Minute,
+		Delay:        5 * time.Minute,
+		PollInterval: 30 * time.Second,
+	}
+	_, err = createStateConf.WaitForStateContext(ctx)
 
 	if err != nil {
 		return diag.FromErr(err)
