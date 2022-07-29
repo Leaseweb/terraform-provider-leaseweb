@@ -46,8 +46,8 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
 
-	var payload = InstallationJobPayload{
-		OperatingSystemID: d.Get("operating_system_id").(string),
+	var payload = Payload{
+		"operatingSystemId": d.Get("operating_system_id").(string),
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -62,8 +62,8 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		Pending: []string{"ACTIVE"},
 		Target:  []string{"FINISHED"},
 		Refresh: func() (interface{}, string, error) {
-			status, err := getInstallationJobStatus(serverID, installationJob.UUID)
-			return status, status, err
+			job, err := getJob(serverID, installationJob.UUID)
+			return job, job.Status, err
 		},
 		Timeout:      d.Timeout(schema.TimeoutCreate) - time.Minute,
 		Delay:        5 * time.Minute,
@@ -88,7 +88,7 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 	d.Set("job_uuid", installationJob.UUID)
-	d.Set("operating_system_id", installationJob.Payload.OperatingSystemID)
+	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
 
 	return diags
 }

@@ -98,16 +98,14 @@ type OperatingSystem struct {
 	Name string
 }
 
-// InstallationJobPayload -
-type InstallationJobPayload struct {
-	OperatingSystemID string `json:"operatingSystemId"`
-}
+// Payload -
+type Payload map[string]interface{}
 
-// InstallationJob -
-type InstallationJob struct {
+// Job -
+type Job struct {
 	UUID    string
 	Status  string
-	Payload InstallationJobPayload
+	Payload Payload
 }
 
 func getServer(serverID string) (*Server, error) {
@@ -607,7 +605,7 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	return operatingSystems.OperatingSystems, nil
 }
 
-func launchInstallationJob(serverID string, payload *InstallationJobPayload) (*InstallationJob, error) {
+func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(payload)
 	if err != nil {
@@ -631,14 +629,14 @@ func launchInstallationJob(serverID string, payload *InstallationJobPayload) (*I
 		return nil, fmt.Errorf("error launching installation job, api response %v", response.StatusCode)
 	}
 
-	var installationJob InstallationJob
+	var installationJob Job
 
 	err = json.NewDecoder(response.Body).Decode(&installationJob)
 
 	return &installationJob, nil
 }
 
-func getLatestInstallationJob(serverID string) (*InstallationJob, error) {
+func getLatestInstallationJob(serverID string) (*Job, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return nil, err
@@ -660,7 +658,7 @@ func getLatestInstallationJob(serverID string) (*InstallationJob, error) {
 	}
 
 	var jobs struct {
-		Jobs []InstallationJob
+		Jobs []Job
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&jobs)
@@ -668,26 +666,26 @@ func getLatestInstallationJob(serverID string) (*InstallationJob, error) {
 	return &jobs.Jobs[0], nil
 }
 
-func getInstallationJobStatus(serverID string, jobUUID string) (string, error) {
+func getJob(serverID string, jobUUID string) (*Job, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID), nil)
 	if err != nil {
-		return "UNKNOWN", err
+		return nil, err
 	}
 	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
 
 	response, err := leasewebClient.Do(request)
 	if err != nil {
-		return "UNKNOWN", err
+		return nil, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return "UNKNOWN", fmt.Errorf("error getting job status, api response %v", response.StatusCode)
+		return nil, fmt.Errorf("error getting job status, api response %v", response.StatusCode)
 	}
 
-	var job InstallationJob
+	var job Job
 
 	err = json.NewDecoder(response.Body).Decode(&job)
 
-	return job.Status, nil
+	return &job, nil
 }
