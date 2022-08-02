@@ -63,6 +63,9 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		Target:  []string{"FINISHED"},
 		Refresh: func() (interface{}, string, error) {
 			job, err := getJob(serverID, installationJob.UUID)
+			if err != nil {
+				return nil, "error", err
+			}
 			return job, job.Status, err
 		},
 		Timeout:      d.Timeout(schema.TimeoutCreate) - time.Minute,
