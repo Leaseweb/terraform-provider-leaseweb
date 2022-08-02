@@ -94,9 +94,9 @@ type NotificationSetting struct {
 
 // Credential -
 type Credential struct {
-	Type 	  string  `json:"type"`
-	Username  string  `json:"username"`
-	Password  string  `json:"password"`
+	Type     string `json:"type"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 // OperatingSystem -

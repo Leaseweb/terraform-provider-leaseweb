@@ -29,13 +29,13 @@ func resourceDedicatedServerCredential() *schema.Resource {
 				ForceNew:     true,
 			},
 			"username": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew: 	  true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"password": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 		},
 		Importer: &schema.ResourceImporter{
@@ -49,7 +49,7 @@ func resourceDedicatedServerCredential() *schema.Resource {
 				d.Set("dedicated_server_id", parts[0])
 				d.Set("type", parts[1])
 				d.Set("username", parts[2])
-				d.SetId(parts[0]+parts[1]+parts[2])
+				d.SetId(parts[0] + parts[1] + parts[2])
 
 				return []*schema.ResourceData{d}, nil
 			},
@@ -61,9 +61,9 @@ func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.Reso
 	serverID := d.Get("dedicated_server_id").(string)
 
 	var credential = Credential{
-		Type: d.Get("type").(string),
+		Type:     d.Get("type").(string),
 		Username: d.Get("username").(string),
-		Password:      d.Get("password").(string),
+		Password: d.Get("password").(string),
 	}
 
 	createdCredential, err := createDedicatedServerCredential(serverID, &credential)
@@ -71,7 +71,7 @@ func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	d.SetId(serverID+createdCredential.Type+createdCredential.Username)
+	d.SetId(serverID + createdCredential.Type + createdCredential.Username)
 
 	return resourceDedicatedServerCredentialRead(ctx, d, m)
 }
@@ -118,11 +118,10 @@ func resourceDedicatedServerCredentialDelete(ctx context.Context, d *schema.Reso
 	serverID := d.Get("dedicated_server_id").(string)
 
 	var credential = Credential{
-		Type: d.Get("type").(string),
+		Type:     d.Get("type").(string),
 		Username: d.Get("username").(string),
-		Password:      d.Get("password").(string),
+		Password: d.Get("password").(string),
 	}
-
 
 	if err := deleteDedicatedServerCredential(serverID, &credential); err != nil {
 		return diag.FromErr(err)
