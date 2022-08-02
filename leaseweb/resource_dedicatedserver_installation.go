@@ -29,6 +29,12 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"hostname": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -48,6 +54,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	var payload = Payload{
 		"operatingSystemId": d.Get("operating_system_id").(string),
+	}
+
+	if d.Get("hostname") != "" {
+		payload["hostname"] = d.Get("hostname").(string)
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -92,6 +102,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	}
 	d.Set("job_uuid", installationJob.UUID)
 	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
+
+	if hostname, ok := installationJob.Payload["hostname"]; ok {
+		d.Set("hostname", hostname)
+	}
 
 	return diags
 }

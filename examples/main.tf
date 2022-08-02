@@ -31,6 +31,8 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
     dedicated_server_id = leaseweb_dedicatedserver.my-test.id
     operating_system_id = local.latest_ubuntu_os_id
 
+    hostname = "web01.example.org"
+
     timeouts {
         create = "30m"
     }
