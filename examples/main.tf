@@ -14,7 +14,7 @@ data "leaseweb_dedicatedserver_operating_systems" "all_os" {
 
 locals {
   latest_ubuntu_os_id = reverse(sort([
-    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids: id
+    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids : id
     if length(regexall("^UBUNTU_.*", id)) > 0
   ]))[0]
 }
@@ -28,43 +28,33 @@ resource "leaseweb_dedicatedserver" "my-test" {
 }
 
 resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
-    dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-    operating_system_id = local.latest_ubuntu_os_id
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  operating_system_id = local.latest_ubuntu_os_id
 
-    timeouts {
-        create = "30m"
-    }
+  timeouts {
+    create = "30m"
+  }
 }
 
 resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-  frequency = "DAILY"
-  threshold = 1.5
-  unit = "Gbps"
+  frequency           = "DAILY"
+  threshold           = 1.5
+  unit                = "Gbps"
 }
 
 resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-  frequency = "WEEKLY"
-  threshold = 2
-  unit = "TB"
+  frequency           = "WEEKLY"
+  threshold           = 2
+  unit                = "TB"
 }
 
 resource "leaseweb_dedicatedserver_credential" "cp" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-  type = "CONTROLPANEL"
-  username = "test"
-  password = "abcdef"
-}
-
-data "leaseweb_dedicatedserver_operating_systems" "all_os" {
-}
-
-locals {
-  latest_ubuntu_os_id = reverse(sort([
-    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids: id
-    if length(regexall("^UBUNTU_.*", id)) > 0
-  ]))[0]
+  type                = "CONTROLPANEL"
+  username            = "test"
+  password            = "abcdef"
 }
 
 output "latest_ubuntu_os_name" {
