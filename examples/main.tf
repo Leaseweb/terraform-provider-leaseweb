@@ -9,6 +9,16 @@ terraform {
 
 provider "leaseweb" {}
 
+data "leaseweb_dedicatedserver_operating_systems" "all_os" {
+}
+
+locals {
+  latest_ubuntu_os_id = reverse(sort([
+    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids: id
+    if length(regexall("^UBUNTU_.*", id)) > 0
+  ]))[0]
+}
+
 resource "leaseweb_dedicatedserver" "my-test" {
   # reference = "web01"
   # reverse_lookup = "web02.example.com"
@@ -38,16 +48,6 @@ resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   frequency = "WEEKLY"
   threshold = 2
   unit = "TB"
-}
-
-data "leaseweb_dedicatedserver_operating_systems" "all_os" {
-}
-
-locals {
-  latest_ubuntu_os_id = reverse(sort([
-    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids: id
-    if length(regexall("^UBUNTU_.*", id)) > 0
-  ]))[0]
 }
 
 output "latest_ubuntu_os_name" {
