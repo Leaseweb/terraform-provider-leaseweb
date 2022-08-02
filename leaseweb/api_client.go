@@ -598,6 +598,9 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&operatingSystems)
+	if err != nil {
+		return nil, err
+	}
 
 	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
 	// but with the default offset and limit values we already get the full list at the moment
@@ -632,6 +635,9 @@ func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {
 	var installationJob Job
 
 	err = json.NewDecoder(response.Body).Decode(&installationJob)
+	if err != nil {
+		return nil, err
+	}
 
 	return &installationJob, nil
 }
@@ -662,6 +668,9 @@ func getLatestInstallationJob(serverID string) (*Job, error) {
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&jobs)
+	if err != nil {
+		return nil, err
+	}
 
 	return &jobs.Jobs[0], nil
 }
@@ -686,6 +695,9 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	var job Job
 
 	err = json.NewDecoder(response.Body).Decode(&job)
+	if err != nil {
+		return nil, err
+	}
 
 	return &job, nil
 }
