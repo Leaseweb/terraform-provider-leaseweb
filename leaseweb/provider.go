@@ -28,6 +28,7 @@ func Provider() *schema.Provider {
 			"leaseweb_dedicatedserver":                                  resourceDedicatedServer(),
 			"leaseweb_dedicatedserver_notification_setting_bandwidth":   resourceDedicatedServerNotificationSettingBandwidth(),
 			"leaseweb_dedicatedserver_notification_setting_datatraffic": resourceDedicatedServerNotificationSettingDatatraffic(),
+			"leaseweb_dedicatedserver_credential": resourceDedicatedServerCredential(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"leaseweb_dedicatedserver_operating_systems": dataSourceDedicatedServerOperatingSystems(),
