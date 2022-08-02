@@ -593,7 +593,7 @@ func createDedicatedServerCredential(serverID string, credential *Credential) (*
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusCreated {
+	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("error creating server credential, api response %v", response.StatusCode)
 	}
 
@@ -620,7 +620,7 @@ func getDedicatedServerCredential(serverID string, credentialType string, userna
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting server dredential, api response %v", response.StatusCode)
+		return nil, fmt.Errorf("error getting server credential, api response %v", response.StatusCode)
 	}
 
 	var credential Credential

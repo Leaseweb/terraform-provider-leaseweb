@@ -2,6 +2,8 @@ package leaseweb
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,10 +26,12 @@ func resourceDedicatedServerCredential() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"OPERATING_SYSTEM", "CONTROL_PANEL", "REMOTE_MANAGEMENT", "RESCUE_MODE", "SWITCH", "PDU", "FIREWALL", "LOAD_BALANCER"}, false),
+				ForceNew:     true,
 			},
 			"username": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew: 	  true,
 			},
 			"password": {
 				Type:         schema.TypeString,
@@ -35,7 +39,20 @@ func resourceDedicatedServerCredential() *schema.Resource {
 			},
 		},
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				parts := strings.SplitN(d.Id(), ":", 3)
+
+				if len(parts) != 3 || parts[0] == "" || parts[1] == "" || parts[2] == "" {
+					return nil, fmt.Errorf("Invalid ID format (%s), expected dedicated_server_id:credential_type:credential_username", d.Id())
+				}
+
+				d.Set("dedicated_server_id", parts[0])
+				d.Set("type", parts[1])
+				d.Set("username", parts[2])
+				d.SetId(parts[0]+parts[1]+parts[2])
+
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 	}
 }
@@ -49,9 +66,12 @@ func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.Reso
 		Password:      d.Get("password").(string),
 	}
 
-	if _, err := createDedicatedServerCredential(serverID, &credential); err != nil {
+	createdCredential, err := createDedicatedServerCredential(serverID, &credential)
+	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	d.SetId(serverID+createdCredential.Type+createdCredential.Username)
 
 	return resourceDedicatedServerCredentialRead(ctx, d, m)
 }

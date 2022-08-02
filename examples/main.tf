@@ -31,6 +31,13 @@ resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   unit = "TB"
 }
 
+resource "leaseweb_dedicatedserver_credential" "cp" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  type = "CONTROLPANEL"
+  username = "test"
+  password = "abcdef"
+}
+
 data "leaseweb_dedicatedserver_operating_systems" "all_os" {
 }
 
