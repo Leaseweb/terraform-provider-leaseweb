@@ -98,6 +98,16 @@ type OperatingSystem struct {
 	Name string
 }
 
+// Payload -
+type Payload map[string]interface{}
+
+// Job -
+type Job struct {
+	UUID    string
+	Status  string
+	Payload Payload
+}
+
 func getServer(serverID string) (*Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID), nil)
 	if err != nil {
@@ -588,9 +598,106 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&operatingSystems)
+	if err != nil {
+		return nil, err
+	}
 
 	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
 	// but with the default offset and limit values we already get the full list at the moment
 
 	return operatingSystems.OperatingSystems, nil
+}
+
+func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/install", leasewebAPIURL, serverID), requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		return nil, fmt.Errorf("error launching installation job, api response %v", response.StatusCode)
+	}
+
+	var installationJob Job
+
+	err = json.NewDecoder(response.Body).Decode(&installationJob)
+	if err != nil {
+		return nil, err
+	}
+
+	return &installationJob, nil
+}
+
+func getLatestInstallationJob(serverID string) (*Job, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	q := request.URL.Query()
+	q.Add("type", "install")
+	request.URL.RawQuery = q.Encode()
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting latest installation job, api response %v", response.StatusCode)
+	}
+
+	var jobs struct {
+		Jobs []Job
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&jobs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &jobs.Jobs[0], nil
+}
+
+func getJob(serverID string, jobUUID string) (*Job, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting job status, api response %v", response.StatusCode)
+	}
+
+	var job Job
+
+	err = json.NewDecoder(response.Body).Decode(&job)
+	if err != nil {
+		return nil, err
+	}
+
+	return &job, nil
 }
