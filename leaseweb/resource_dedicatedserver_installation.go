@@ -35,6 +35,12 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"timezone": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -58,6 +64,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	if d.Get("hostname") != "" {
 		payload["hostname"] = d.Get("hostname").(string)
+	}
+
+	if d.Get("timezone") != "" {
+		payload["timezone"] = d.Get("timezone").(string)
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -105,6 +115,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if hostname, ok := installationJob.Payload["hostname"]; ok {
 		d.Set("hostname", hostname)
+	}
+
+	if timezone, ok := installationJob.Payload["timezone"]; ok {
+		d.Set("timezone", timezone)
 	}
 
 	return diags

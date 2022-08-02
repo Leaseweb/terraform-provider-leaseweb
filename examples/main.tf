@@ -32,6 +32,7 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
     operating_system_id = local.latest_ubuntu_os_id
 
     hostname = "web01.example.org"
+    timezone = "Europe/Amsterdam"
 
     timeouts {
         create = "30m"
