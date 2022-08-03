@@ -14,7 +14,7 @@ data "leaseweb_dedicatedserver_operating_systems" "all_os" {
 
 locals {
   latest_ubuntu_os_id = reverse(sort([
-    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids: id
+    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids : id
     if length(regexall("^UBUNTU_.*", id)) > 0
   ]))[0]
 }
@@ -27,27 +27,45 @@ resource "leaseweb_dedicatedserver" "my-test" {
   # main_ip_nulled = false
 }
 
-resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
-    dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-    operating_system_id = local.latest_ubuntu_os_id
+resource "leaseweb_dedicatedserver_credential" "os" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  type                = "OPERATING_SYSTEM"
+  username            = "root"
+  password            = "abcdef"
+}
 
-    timeouts {
-        create = "30m"
-    }
+resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  operating_system_id = local.latest_ubuntu_os_id
+
+  timeouts {
+    create = "30m"
+  }
 }
 
 resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-  frequency = "DAILY"
-  threshold = 1.5
-  unit = "Gbps"
+  frequency           = "DAILY"
+  threshold           = 1.5
+  unit                = "Gbps"
 }
 
 resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-  frequency = "WEEKLY"
-  threshold = 2
-  unit = "TB"
+  frequency           = "WEEKLY"
+  threshold           = 2
+  unit                = "TB"
+}
+
+resource "leaseweb_dedicatedserver_credential" "firewall" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  type                = "FIREWALL"
+  username            = "admin"
+  password            = "abcdef"
+
+  depends_on = [
+    leaseweb_dedicatedserver_installation.my-ubuntu
+  ]
 }
 
 output "latest_ubuntu_os_name" {
