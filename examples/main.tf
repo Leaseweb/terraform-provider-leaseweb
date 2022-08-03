@@ -38,6 +38,11 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
         "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPyQ01ld53VQyp/ie9md6XNvT+Ix1AAyFykNDXg6z6aMDe/LLzNhR9cDsxzIEaypMrS283R3H8nv7c/TKkVME3ACwYjlB6sq9aWOSEHIHQ451DC0vLtTA3ZYu3dP7E7ygKGgqSHjBaItm9ettWLhU4Ffa8z55vIIIAP6qFdiq7z4FOIGrWEBG9DO9ulr0foWm5tUvqQJh38zH3FU96RvQu4q9+K99XYEJA/ib6tfuLCwpBBBkou1T9hX4ChHqeNcg5EwuKitcW7xm7OFjv0RqDgzsbmyIWeB3ZmRcTwglz+ZMUgnxql1xxhQyJnmjY8dgauLF8Q5zXBox3ZMHYiD0EOwpi/oEoVOiQsk95hYqrdssqNEDksW/UwA70yvQoaBheDDxmXsQCf5aZz1kU4DMVjSEiR0k1xX3i5tugfClr5oaqFQwGsqBeyKOwdbUp0CKF/Bs8F5SnY0G2/j5TMir4y9vWscg7AMmbc50OKiQxvWg10+Qpnmw9ewZXjxmlzSE= user2@example.org",
     ]
 
+    post_install_script = <<-EOS
+        #!/bin/sh
+        apt install nginx -y -qq
+    EOS
+
     timeouts {
         create = "30m"
     }

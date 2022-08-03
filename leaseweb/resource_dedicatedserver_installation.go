@@ -2,6 +2,7 @@ package leaseweb
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 	"time"
 
@@ -50,6 +51,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"post_install_script": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -86,6 +92,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 			sshKeys[i] = sshKey.(string)
 		}
 		payload["sshKeys"] = strings.Join(sshKeys, "\n")
+	}
+
+	if d.Get("post_install_script") != "" {
+		payload["postInstallScript"] = base64.StdEncoding.EncodeToString([]byte(d.Get("post_install_script").(string)))
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
