@@ -2,6 +2,7 @@ package leaseweb
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -41,6 +42,14 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"ssh_keys": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -68,6 +77,15 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	if d.Get("timezone") != "" {
 		payload["timezone"] = d.Get("timezone").(string)
+	}
+
+	sshKeysIf := d.Get("ssh_keys").([]interface{})
+	if len(sshKeysIf) != 0 {
+		sshKeys := make([]string, len(sshKeysIf))
+		for i, sshKey := range sshKeysIf {
+			sshKeys[i] = sshKey.(string)
+		}
+		payload["sshKeys"] = strings.Join(sshKeys, "\n")
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -119,6 +137,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if timezone, ok := installationJob.Payload["timezone"]; ok {
 		d.Set("timezone", timezone)
+	}
+
+	if sshKeys, ok := installationJob.Payload["sshKeys"]; ok {
+		d.Set("ssh_keys", strings.Split(sshKeys.(string), "\n"))
 	}
 
 	return diags
