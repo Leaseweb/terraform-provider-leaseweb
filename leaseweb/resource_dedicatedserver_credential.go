@@ -97,16 +97,14 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 func resourceDedicatedServerCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
 
-	if d.HasChange("password") {
-		var credential = Credential{
-			Type:     d.Get("type").(string),
-			Username: d.Get("username").(string),
-			Password: d.Get("password").(string),
-		}
+	var credential = Credential{
+		Type:     d.Get("type").(string),
+		Username: d.Get("username").(string),
+		Password: d.Get("password").(string),
+	}
 
-		if _, err := updateDedicatedServerCredential(serverID, &credential); err != nil {
-			return diag.FromErr(err)
-		}
+	if _, err := updateDedicatedServerCredential(serverID, &credential); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return resourceDedicatedServerCredentialRead(ctx, d, m)

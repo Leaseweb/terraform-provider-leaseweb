@@ -27,6 +27,13 @@ resource "leaseweb_dedicatedserver" "my-test" {
   # main_ip_nulled = false
 }
 
+resource "leaseweb_dedicatedserver_credential" "os" {
+  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+  type                = "OPERATING_SYSTEM"
+  username            = "root"
+  password            = "abcdef"
+}
+
 resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
@@ -50,11 +57,15 @@ resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
   unit                = "TB"
 }
 
-resource "leaseweb_dedicatedserver_credential" "cp" {
+resource "leaseweb_dedicatedserver_credential" "firewall" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
-  type                = "CONTROLPANEL"
-  username            = "test"
+  type                = "FIREWALL"
+  username            = "admin"
   password            = "abcdef"
+
+  depends_on = [
+    leaseweb_dedicatedserver_installation.my-ubuntu
+  ]
 }
 
 output "latest_ubuntu_os_name" {
