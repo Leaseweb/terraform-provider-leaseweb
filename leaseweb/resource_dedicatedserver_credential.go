@@ -87,8 +87,7 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.Set("type", credential.Type)
-	d.Set("username", credential.Username)
+
 	d.Set("password", credential.Password)
 
 	return diags
