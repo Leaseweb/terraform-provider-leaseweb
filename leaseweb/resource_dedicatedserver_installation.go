@@ -57,10 +57,10 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				ForceNew: true,
 			},
 			"password": {
-                Type:     schema.TypeString,
-                Optional: true,
-                ForceNew: true,
-            },
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -105,7 +105,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	if d.Get("password") != "" {
 		payload["password"] = d.Get("password").(string)
-    }
+	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
 	if err != nil {
