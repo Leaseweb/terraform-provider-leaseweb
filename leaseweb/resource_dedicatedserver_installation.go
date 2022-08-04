@@ -104,7 +104,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	}
 
 	if d.Get("password") != "" {
-        payload["password"] = d.Get("password").(string)
+		payload["password"] = d.Get("password").(string)
     }
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -161,10 +161,6 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	if sshKeys, ok := installationJob.Payload["sshKeys"]; ok {
 		d.Set("ssh_keys", strings.Split(sshKeys.(string), "\n"))
 	}
-
-	if password, ok := installationJob.Payload["password"]; ok {
-        d.Set("password", password)
-    }
 
 	return diags
 }

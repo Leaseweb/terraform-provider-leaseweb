@@ -77,6 +77,7 @@ resource "leaseweb_dedicatedserver_credential" "firewall" {
   username            = "admin"
   password            = "abcdef"
 
+# Installation will delete all credentials, so this resource needs to be created afterwards
   depends_on = [
     leaseweb_dedicatedserver_installation.my-ubuntu
   ]
