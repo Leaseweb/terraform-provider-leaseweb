@@ -56,6 +56,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"password": {
+                Type:     schema.TypeString,
+                Optional: true,
+                ForceNew: true,
+            },
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -97,6 +102,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	if d.Get("post_install_script") != "" {
 		payload["postInstallScript"] = base64.StdEncoding.EncodeToString([]byte(d.Get("post_install_script").(string)))
 	}
+
+	if d.Get("password") != "" {
+        payload["password"] = d.Get("password").(string)
+    }
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
 	if err != nil {
@@ -152,6 +161,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	if sshKeys, ok := installationJob.Payload["sshKeys"]; ok {
 		d.Set("ssh_keys", strings.Split(sshKeys.(string), "\n"))
 	}
+
+	if password, ok := installationJob.Payload["password"]; ok {
+        d.Set("password", password)
+    }
 
 	return diags
 }
