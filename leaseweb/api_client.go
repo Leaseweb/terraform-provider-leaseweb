@@ -92,6 +92,13 @@ type NotificationSetting struct {
 	Unit      string  `json:"unit"`
 }
 
+// Credential -
+type Credential struct {
+	Type     string `json:"type"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // OperatingSystem -
 type OperatingSystem struct {
 	ID   string
@@ -571,6 +578,122 @@ func deleteDedicatedServerNotificationSetting(serverID string, notificationType 
 
 	if response.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("error deleting server notification setting, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func createDedicatedServerCredential(serverID string, credential *Credential) (*Credential, error) {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(credential)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials", leasewebAPIURL, serverID), requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error creating server credential, api response %v", response.StatusCode)
+	}
+
+	var createdCredential Credential
+	err = json.NewDecoder(response.Body).Decode(&createdCredential)
+	if err != nil {
+		return nil, err
+	}
+
+	return &createdCredential, nil
+}
+
+func getDedicatedServerCredential(serverID string, credentialType string, username string) (*Credential, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credentialType, username), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting server credential, api response %v", response.StatusCode)
+	}
+
+	var credential Credential
+	err = json.NewDecoder(response.Body).Decode(&credential)
+	if err != nil {
+		return nil, err
+	}
+
+	return &credential, nil
+}
+
+func updateDedicatedServerCredential(serverID string, credential *Credential) (*Credential, error) {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(struct {
+		Password string `json:"password"`
+	}{
+		Password: credential.Password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username), requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error updating server credential, api response %v", response.StatusCode)
+	}
+
+	var updatedCredential Credential
+	err = json.NewDecoder(response.Body).Decode(&updatedCredential)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedCredential, nil
+}
+
+func deleteDedicatedServerCredential(serverID string, credential *Credential) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error deleting server credential, api response %v", response.StatusCode)
 	}
 
 	return nil
