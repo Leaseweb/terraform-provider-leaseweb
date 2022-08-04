@@ -17,6 +17,7 @@ locals {
     for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids : id
     if length(regexall("^UBUNTU_.*", id)) > 0
   ]))[0]
+  hostname = "web01.example.org"
 }
 
 resource "leaseweb_dedicatedserver" "my-test" {
@@ -38,7 +39,7 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
 
-  hostname = "web01.example.org"
+  hostname = local.hostname
   timezone = "Europe/Amsterdam"
   ssh_keys = [
     "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCyA/oHo5JPiWPbXFjnHs06kTGVP5dcx6gfBnB8Fg6NJg5sbnHIywd1kXY0XbS4hDKpvbnEIBBs9kX0ps8Hra0GniJs/FdI+9T+/15VkAdzgSuI+oEi2M2oydwwVwR+YancG7NKpmHa3dtCifRpC0EPvHJUfe4r+aQ+7FSXSXp4PbAhd0zoE8fXS/sUoPflMcMyffxdRCCg8krGk0757FHAGttQRvWST1lv9w42CaInkRgV3ncTZy/buoZJ2YnaonpzoExFaDJU7HDi49yUN3S/PptdF0Ce7f6fCKd826wQBcz9ilmHOiXOYb3RHIXaEdJEuz99EWO09S7aV5dSOhbh4VHZTQESLCvcJXif9aeFY80Nz924k1HiGEtNow96CNwlIm1cWmNFdIK+y/DJVJOoZYZGyT0L8Hp/ggVK9aTn5BAi+4HR4kAZsEMP/6/C65aXvIo3f/L7CkcW0kuQmlisjY8Ak3jsofhKGuLguB7kx2v3BrX1udO4M7p4YdYpjN8= user1@example.org",
@@ -47,6 +48,7 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   post_install_script = <<-EOS
     #!/bin/sh
     apt install nginx -y -qq
+    echo "${local.hostname} on ${leaseweb_dedicatedserver.my-test.main_ip}" > /var/www/html/index.html
   EOS
 
   timeouts {
