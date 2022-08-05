@@ -39,7 +39,6 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
   password = leaseweb_dedicatedserver_credential.os.password
-  do_email_notification = false
 
   hostname = local.hostname
   timezone = "Europe/Amsterdam"
