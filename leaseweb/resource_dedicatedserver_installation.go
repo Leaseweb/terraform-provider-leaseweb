@@ -80,6 +80,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	var payload = Payload{
 		"operatingSystemId": d.Get("operating_system_id").(string),
+		"doEmailNotification": false,
 	}
 
 	if d.Get("hostname") != "" {
