@@ -61,6 +61,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"do_email_notification": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -105,6 +110,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	if d.Get("password") != "" {
 		payload["password"] = d.Get("password").(string)
+	}
+
+	if d.Get("do_email_notification") != "" {
+		payload["doEmailNotification"] = d.Get("do_email_notification").(bool)
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -160,6 +169,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if sshKeys, ok := installationJob.Payload["sshKeys"]; ok {
 		d.Set("ssh_keys", strings.Split(sshKeys.(string), "\n"))
+	}
+
+	if doEmailNotification, ok := installationJob.Payload["doEmailNotification"]; ok {
+		d.Set("do_email_notification", doEmailNotification)
 	}
 
 	return diags
