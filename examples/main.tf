@@ -21,6 +21,7 @@ locals {
 }
 
 resource "leaseweb_dedicatedserver" "my-test" {
+  #private_network_enabled = true
   # reference = "web01"
   # reverse_lookup = "web02.example.com"
   # dhcp_lease = "https://boot.netboot.xyz"

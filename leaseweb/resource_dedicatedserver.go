@@ -48,6 +48,11 @@ func resourceDedicatedServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"private_network_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"site": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -69,6 +74,10 @@ func resourceDedicatedServer() *schema.Resource {
 				Computed: true,
 			},
 			"ipmi_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_network_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -101,6 +110,16 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	d.Set("unit", server.Location.Unit)
 	d.Set("main_ip", server.NetworkInterfaces.Public.IP)
 	d.Set("ipmi_ip", server.NetworkInterfaces.RemoteManagement.IP)
+	d.Set("private_network_enabled", server.IsPrivateNetworkEnabled)
+	if len(server.PrivateNetworks) > 0 {
+		d.Set("private_network_id", server.PrivateNetworks[0].ID)
+	} else {
+		privateNetworks, err := getPrivateNetwork()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		d.Set("private_network_id", privateNetworks[0].ID)
+	}
 
 	// 2) get reverse lookup from /v2/servers/{id}/ips/{ip}
 	ip, err := getServerMainIP(serverID, server.NetworkInterfaces.Public.IP)
@@ -203,6 +222,20 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 				return diag.FromErr(err)
 			}
 			d.Set("main_ip_nulled", false)
+		}
+	}
+
+	if d.HasChange("private_network_enabled") {
+		privateNetworkID := d.Get("private_network_id").(string)
+
+		if d.Get("private_network_enabled").(bool) {
+			if err := addServerToPrivateNetwork(serverID, privateNetworkID); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := removeServerFromPrivateNetwork(serverID, privateNetworkID); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 

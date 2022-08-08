@@ -34,6 +34,15 @@ type Server struct {
 		Rack  string
 		Unit  string
 	}
+	IsPrivateNetworkEnabled bool
+	PrivateNetworks         []struct {
+		ID string
+	}
+}
+
+//PrivateNetwork -
+type PrivateNetwork struct {
+	ID string
 }
 
 // IP -
@@ -142,6 +151,35 @@ func getServer(serverID string) (*Server, error) {
 	server.NetworkInterfaces.RemoteManagement.IP = strings.SplitN(server.NetworkInterfaces.RemoteManagement.IP, "/", 2)[0]
 
 	return &server, nil
+}
+
+func getPrivateNetwork() ([]PrivateNetwork, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/privateNetworks?limit=1&offset=0", leasewebAPIURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting PN data, api response %v", response.StatusCode)
+	}
+
+	var privateNetworks struct {
+		PrivateNetworks []PrivateNetwork
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&privateNetworks)
+	if err != nil {
+		return nil, err
+	}
+
+	return privateNetworks.PrivateNetworks, nil
 }
 
 func getServerMainIP(serverID string, mainIP string) (*IP, error) {
@@ -823,4 +861,55 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	}
 
 	return &job, nil
+}
+
+func addServerToPrivateNetwork(serverID string, privateNetworkID string) error {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(struct {
+		LinkSpeed int `json:"linkSpeed"`
+	}{
+		LinkSpeed: 100,
+	})
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/privateNetworks/%s", leasewebAPIURL, serverID, privateNetworkID), requestBody)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error adding server to private network, api response %v", response.StatusCode)
+	}
+
+	return nil
+}
+
+func removeServerFromPrivateNetwork(serverID string, privateNetworkID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/privateNetworks/%s", leasewebAPIURL, serverID, privateNetworkID), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error remove server from private network, api response %v", response.StatusCode)
+	}
+
+	return nil
 }
