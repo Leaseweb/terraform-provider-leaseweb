@@ -79,7 +79,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	serverID := d.Get("dedicated_server_id").(string)
 
 	var payload = Payload{
-		"operatingSystemId": d.Get("operating_system_id").(string),
+		"operatingSystemId":   d.Get("operating_system_id").(string),
 		"doEmailNotification": false,
 	}
 
@@ -127,7 +127,6 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 			return job, job.Status, err
 		},
 		Timeout:      d.Timeout(schema.TimeoutCreate) - time.Minute,
-		Delay:        5 * time.Minute,
 		PollInterval: 30 * time.Second,
 	}
 	_, err = createStateConf.WaitForStateContext(ctx)
