@@ -32,7 +32,7 @@ resource "leaseweb_dedicatedserver_credential" "os" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   type                = "OPERATING_SYSTEM"
   username            = "root"
-  password            = "abcdef"
+  password            = "Abcdef.123456"
 }
 
 resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
