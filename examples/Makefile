@@ -6,7 +6,7 @@ init:
 	terraform init
 
 update-plugin:
-	sed -i '' -e '/hashes/{N;N;d;}' .terraform.lock.hcl
+	sed -i.bak -e '/hashes/{N;N;d;}' .terraform.lock.hcl && rm -f .terraform.lock.hcl.bak
 	rm -rf .terraform/providers/git.ocom.com
 	$(MAKE) init
 

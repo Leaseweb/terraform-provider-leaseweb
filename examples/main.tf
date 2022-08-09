@@ -9,18 +9,18 @@ terraform {
 
 provider "leaseweb" {}
 
-data "leaseweb_dedicatedserver_operating_systems" "all_os" {
+data "leaseweb_dedicated_server_operating_systems" "all_os" {
 }
 
 locals {
   latest_ubuntu_os_id = reverse(sort([
-    for id in data.leaseweb_dedicatedserver_operating_systems.all_os.ids : id
+    for id in data.leaseweb_dedicated_server_operating_systems.all_os.ids : id
     if length(regexall("^UBUNTU_.*", id)) > 0
   ]))[0]
   hostname = "web01.example.org"
 }
 
-resource "leaseweb_dedicatedserver" "my-test" {
+resource "leaseweb_dedicated_server" "my-test" {
   # reference = "web01"
   # reverse_lookup = "web02.example.com"
   # dhcp_lease = "https://boot.netboot.xyz"
@@ -28,17 +28,17 @@ resource "leaseweb_dedicatedserver" "my-test" {
   # main_ip_nulled = false
 }
 
-resource "leaseweb_dedicatedserver_credential" "os" {
-  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+resource "leaseweb_dedicated_server_credential" "os" {
+  dedicated_server_id = leaseweb_dedicated_server.my-test.id
   type                = "OPERATING_SYSTEM"
   username            = "root"
-  password            = "abcdef"
+  password            = "Abcdef.123456"
 }
 
-resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
-  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
+  dedicated_server_id = leaseweb_dedicated_server.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
-  password = leaseweb_dedicatedserver_credential.os.password
+  password = leaseweb_dedicated_server_credential.os.password
 
   hostname = local.hostname
   timezone = "Europe/Amsterdam"
@@ -49,7 +49,7 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   post_install_script = <<-EOS
     #!/bin/sh
     apt install nginx -y -qq
-    echo "${local.hostname} on ${leaseweb_dedicatedserver.my-test.main_ip}" > /var/www/html/index.html
+    echo "${local.hostname} on ${leaseweb_dedicated_server.my-test.main_ip}" > /var/www/html/index.html
   EOS
 
   timeouts {
@@ -57,32 +57,32 @@ resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   }
 }
 
-resource "leaseweb_dedicatedserver_notification_setting_bandwidth" "alert" {
-  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+resource "leaseweb_dedicated_server_notification_setting_bandwidth" "alert" {
+  dedicated_server_id = leaseweb_dedicated_server.my-test.id
   frequency           = "DAILY"
   threshold           = 1.5
   unit                = "Gbps"
 }
 
-resource "leaseweb_dedicatedserver_notification_setting_datatraffic" "alert" {
-  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+resource "leaseweb_dedicated_server_notification_setting_datatraffic" "alert" {
+  dedicated_server_id = leaseweb_dedicated_server.my-test.id
   frequency           = "WEEKLY"
   threshold           = 2
   unit                = "TB"
 }
 
-resource "leaseweb_dedicatedserver_credential" "firewall" {
-  dedicated_server_id = leaseweb_dedicatedserver.my-test.id
+resource "leaseweb_dedicated_server_credential" "firewall" {
+  dedicated_server_id = leaseweb_dedicated_server.my-test.id
   type                = "FIREWALL"
   username            = "admin"
   password            = "abcdef"
 
 # Installation will delete all credentials, so this resource needs to be created afterwards
   depends_on = [
-    leaseweb_dedicatedserver_installation.my-ubuntu
+    leaseweb_dedicated_server_installation.my-ubuntu
   ]
 }
 
 output "latest_ubuntu_os_name" {
-  value = data.leaseweb_dedicatedserver_operating_systems.all_os.names[local.latest_ubuntu_os_id]
+  value = data.leaseweb_dedicated_server_operating_systems.all_os.names[local.latest_ubuntu_os_id]
 }
