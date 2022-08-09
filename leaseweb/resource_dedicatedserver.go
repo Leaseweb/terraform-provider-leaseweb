@@ -114,11 +114,11 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	if len(server.PrivateNetworks) > 0 {
 		d.Set("private_network_id", server.PrivateNetworks[0].ID)
 	} else {
-		privateNetworks, err := getPrivateNetwork()
+		privateNetwork, err := getPrivateNetwork()
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		d.Set("private_network_id", privateNetworks[0].ID)
+		d.Set("private_network_id", privateNetwork.ID)
 	}
 
 	// 2) get reverse lookup from /v2/servers/{id}/ips/{ip}
@@ -237,6 +237,7 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 				return diag.FromErr(err)
 			}
 		}
+		//NOTE: Confirm whether the addition/removal of server to/from the Private Network is successful by polling the status from the server data.
 	}
 
 	var diags diag.Diagnostics

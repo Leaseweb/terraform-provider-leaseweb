@@ -153,7 +153,7 @@ func getServer(serverID string) (*Server, error) {
 	return &server, nil
 }
 
-func getPrivateNetwork() ([]PrivateNetwork, error) {
+func getPrivateNetwork() (*PrivateNetwork, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/privateNetworks?limit=1&offset=0", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func getPrivateNetwork() ([]PrivateNetwork, error) {
 		return nil, err
 	}
 
-	return privateNetworks.PrivateNetworks, nil
+	return &privateNetworks.PrivateNetworks[0], nil
 }
 
 func getServerMainIP(serverID string, mainIP string) (*IP, error) {

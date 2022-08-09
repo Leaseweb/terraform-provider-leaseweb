@@ -21,7 +21,7 @@ locals {
 }
 
 resource "leaseweb_dedicatedserver" "my-test" {
-  #private_network_enabled = true
+  # private_network_enabled = true
   # reference = "web01"
   # reverse_lookup = "web02.example.com"
   # dhcp_lease = "https://boot.netboot.xyz"
@@ -39,7 +39,7 @@ resource "leaseweb_dedicatedserver_credential" "os" {
 resource "leaseweb_dedicatedserver_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicatedserver.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
-  password = leaseweb_dedicatedserver_credential.os.password
+  password            = leaseweb_dedicatedserver_credential.os.password
 
   hostname = local.hostname
   timezone = "Europe/Amsterdam"
@@ -78,7 +78,7 @@ resource "leaseweb_dedicatedserver_credential" "firewall" {
   username            = "admin"
   password            = "abcdef"
 
-# Installation will delete all credentials, so this resource needs to be created afterwards
+  # Installation will delete all credentials, so this resource needs to be created afterwards
   depends_on = [
     leaseweb_dedicatedserver_installation.my-ubuntu
   ]
