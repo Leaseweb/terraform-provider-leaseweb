@@ -44,7 +44,7 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				ForceNew: true,
 			},
 			"ssh_keys": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
@@ -91,10 +91,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["timezone"] = d.Get("timezone").(string)
 	}
 
-	sshKeysIf := d.Get("ssh_keys").([]interface{})
-	if len(sshKeysIf) != 0 {
-		sshKeys := make([]string, len(sshKeysIf))
-		for i, sshKey := range sshKeysIf {
+	sshKeysSet := d.Get("ssh_keys").(*schema.Set)
+	if sshKeysSet.Len() != 0 {
+		sshKeys := make([]string, sshKeysSet.Len())
+		for i, sshKey := range sshKeysSet.List() {
 			sshKeys[i] = sshKey.(string)
 		}
 		payload["sshKeys"] = strings.Join(sshKeys, "\n")
@@ -159,7 +159,12 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	}
 
 	if sshKeys, ok := installationJob.Payload["sshKeys"]; ok {
-		d.Set("ssh_keys", strings.Split(sshKeys.(string), "\n"))
+		sshKeysList := strings.Split(sshKeys.(string), "\n")
+		sshKeysIf := make([]interface{}, len(sshKeysList))
+		for i, sshKey := range sshKeysList {
+			sshKeysIf[i] = sshKey
+		}
+		d.Set("ssh_keys", schema.NewSet(schema.HashString, sshKeysIf))
 	}
 
 	return diags
