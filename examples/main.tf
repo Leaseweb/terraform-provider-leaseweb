@@ -22,7 +22,7 @@ locals {
 }
 
 data "leaseweb_dedicated_server_control_panels" "all_cp" {
-  # Providing an Operating System Id is optional. If provided, Control Panels supoorted by the provided Operating System will be listed.  
+  # Providing an Operating System Id is optional. If provided, Control Panels supported by the provided Operating System will be listed.
   operating_system_id = reverse(sort([
     for id in data.leaseweb_dedicated_server_operating_systems.all_os.ids : id
     if length(regexall("^UBUNTU_.*", id)) > 0
