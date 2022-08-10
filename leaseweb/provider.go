@@ -33,6 +33,7 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"leaseweb_dedicated_server_operating_systems": dataSourceDedicatedServerOperatingSystems(),
+			"leaseweb_dedicated_server_control_panels":    dataSourceDedicatedServerControlPanels(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
