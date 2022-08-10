@@ -105,6 +105,12 @@ type OperatingSystem struct {
 	Name string
 }
 
+// ControlPanel -
+type ControlPanel struct {
+	ID   string
+	Name string
+}
+
 // Payload -
 type Payload map[string]interface{}
 
@@ -729,6 +735,40 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	// but with the default offset and limit values we already get the full list at the moment
 
 	return operatingSystems.OperatingSystems, nil
+}
+
+func getControlPanels(operatingSystemID string) ([]ControlPanel, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+	if operatingSystemID != "" {
+		q := request.URL.Query()
+		q.Add("operatingSystemId", operatingSystemID)
+		request.URL.RawQuery = q.Encode()
+	}
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting control panels, api response %v", response.StatusCode)
+	}
+
+	var controlPanels struct {
+		ControlPanels []ControlPanel
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&controlPanels)
+	if err != nil {
+		return nil, err
+	}
+
+	return controlPanels.ControlPanels, nil
 }
 
 func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {

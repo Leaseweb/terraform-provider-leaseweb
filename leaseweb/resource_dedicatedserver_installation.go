@@ -27,6 +27,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"control_panel_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"job_uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -81,6 +86,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	var payload = Payload{
 		"operatingSystemId":   d.Get("operating_system_id").(string),
 		"doEmailNotification": false,
+	}
+
+	if d.Get("control_panel_id") != "" {
+		payload["controlPanelId"] = d.Get("control_panel_id").(string)
 	}
 
 	if d.Get("hostname") != "" {
@@ -149,6 +158,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	}
 	d.Set("job_uuid", installationJob.UUID)
 	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
+
+	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {
+		d.Set("control_panel_id", controlPanelID)
+	}
 
 	if hostname, ok := installationJob.Payload["hostname"]; ok {
 		d.Set("hostname", hostname)
