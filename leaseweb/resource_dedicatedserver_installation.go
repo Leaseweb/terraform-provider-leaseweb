@@ -61,6 +61,36 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"partition": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"bootable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"filesystem": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"mountpoint": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"primary": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"size": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -106,6 +136,11 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	if d.Get("password") != "" {
 		payload["password"] = d.Get("password").(string)
+	}
+
+	partitions := d.Get("partition").([]interface{})
+	if len(partitions) != 0 {
+		payload["partitions"] = partitions
 	}
 
 	installationJob, err := launchInstallationJob(serverID, &payload)
@@ -165,6 +200,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 			sshKeysIf[i] = sshKey
 		}
 		d.Set("ssh_keys", schema.NewSet(schema.HashString, sshKeysIf))
+	}
+
+	if partitions, ok := installationJob.Payload["partitions"]; ok {
+		d.Set("partition", partitions)
 	}
 
 	return diags

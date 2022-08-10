@@ -52,6 +52,33 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
     echo "${local.hostname} on ${leaseweb_dedicated_server.my-test.main_ip}" > /var/www/html/index.html
   EOS
 
+  partition {
+    mountpoint = "/boot"
+    size = 1024
+    filesystem = "ext2"
+    bootable = true
+    primary = true
+  }
+
+  partition {
+    size = 4096
+    filesystem = "swap"
+  }
+
+  partition {
+    mountpoint = "/tmp"
+    size = 4096
+    filesystem = "ext4"
+  }
+
+  # order matters: this partition needs to be at the end because of the * size
+  partition {
+    mountpoint = "/"
+    size = "*"
+    filesystem = "ext4"
+    primary = true
+  }
+
   timeouts {
     create = "30m"
   }
