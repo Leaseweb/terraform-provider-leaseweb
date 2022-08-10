@@ -27,14 +27,18 @@ func dataSourceDedicatedServerControlPanels() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"operating_system_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
 
 func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
-	controlPanels, err := getControlPanels()
+	operatingSystemID := d.Get("operating_system_id").(string)
+	controlPanels, err := getControlPanels(operatingSystemID)
 	if err != nil {
 		return diag.FromErr(err)
 	}

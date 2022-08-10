@@ -12,20 +12,21 @@ provider "leaseweb" {}
 data "leaseweb_dedicated_server_operating_systems" "all_os" {
 }
 
-data "leaseweb_dedicated_server_control_panels" "all_cp" {
-}
-
 
 locals {
   latest_ubuntu_os_id = reverse(sort([
     for id in data.leaseweb_dedicated_server_operating_systems.all_os.ids : id
     if length(regexall("^UBUNTU_.*", id)) > 0
   ]))[0]
-  vesta_cp_id = [
-    for id in data.leaseweb_dedicated_server_control_panels.all_cp.ids : id
-    if length(regexall("^VESTA.*", id)) > 0
-  ][0]
   hostname = "web01.example.org"
+}
+
+data "leaseweb_dedicated_server_control_panels" "all_cp" {
+  # Providing an Operating System Id is optional. If provided, Control Panels supoorted by the provided Operating System will be listed.  
+  operating_system_id = reverse(sort([
+    for id in data.leaseweb_dedicated_server_operating_systems.all_os.ids : id
+    if length(regexall("^UBUNTU_.*", id)) > 0
+  ]))[0]
 }
 
 resource "leaseweb_dedicated_server" "my-test" {
@@ -46,8 +47,8 @@ resource "leaseweb_dedicated_server_credential" "os" {
 resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicated_server.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
-  control_panel_id = local.vesta_cp_id
-  password = leaseweb_dedicated_server_credential.os.password
+  control_panel_id    = length(data.leaseweb_dedicated_server_control_panels.all_cp.ids) > 0 ? tolist(data.leaseweb_dedicated_server_control_panels.all_cp.ids)[0] : ""
+  password            = leaseweb_dedicated_server_credential.os.password
 
   hostname = local.hostname
   timezone = "Europe/Amsterdam"
@@ -86,7 +87,7 @@ resource "leaseweb_dedicated_server_credential" "firewall" {
   username            = "admin"
   password            = "abcdef"
 
-# Installation will delete all credentials, so this resource needs to be created afterwards
+  # Installation will delete all credentials, so this resource needs to be created afterwards
   depends_on = [
     leaseweb_dedicated_server_installation.my-ubuntu
   ]
@@ -94,4 +95,8 @@ resource "leaseweb_dedicated_server_credential" "firewall" {
 
 output "latest_ubuntu_os_name" {
   value = data.leaseweb_dedicated_server_operating_systems.all_os.names[local.latest_ubuntu_os_id]
+}
+
+output "control_panels_list" {
+  value = data.leaseweb_dedicated_server_control_panels.all_cp.ids
 }

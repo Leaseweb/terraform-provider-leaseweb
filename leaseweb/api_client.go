@@ -737,12 +737,17 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	return operatingSystems.OperatingSystems, nil
 }
 
-func getControlPanels() ([]ControlPanel, error) {
+func getControlPanels(operatingSystemID string) ([]ControlPanel, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+	if operatingSystemID != "" {
+		q := request.URL.Query()
+		q.Add("operatingSystemId", operatingSystemID)
+		request.URL.RawQuery = q.Encode()
+	}
 
 	response, err := leasewebClient.Do(request)
 	if err != nil {
