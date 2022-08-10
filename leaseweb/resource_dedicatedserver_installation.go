@@ -61,6 +61,12 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"device": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"partition": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -138,6 +144,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["password"] = d.Get("password").(string)
 	}
 
+	if d.Get("device") != "" {
+		payload["device"] = d.Get("device").(string)
+	}
+
 	partitions := d.Get("partition").([]interface{})
 	if len(partitions) != 0 {
 		payload["partitions"] = partitions
@@ -200,6 +210,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 			sshKeysIf[i] = sshKey
 		}
 		d.Set("ssh_keys", schema.NewSet(schema.HashString, sshKeysIf))
+	}
+
+	if device, ok := installationJob.Payload["device"]; ok {
+		d.Set("device", device)
 	}
 
 	if partitions, ok := installationJob.Payload["partitions"]; ok {

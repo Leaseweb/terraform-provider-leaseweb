@@ -52,6 +52,8 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
     echo "${local.hostname} on ${leaseweb_dedicated_server.my-test.main_ip}" > /var/www/html/index.html
   EOS
 
+  device = "SATA_SAS"
+
   partition {
     mountpoint = "/boot"
     size = 1024
