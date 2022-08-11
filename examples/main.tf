@@ -36,6 +36,13 @@ resource "leaseweb_dedicated_server" "my-test" {
   # dhcp_lease = "https://boot.netboot.xyz"
   # powered_on = true
   # main_ip_nulled = false
+  # private_network_enabled = false
+  # private_network_id = leaseweb_private_network.my-pn.id
+}
+
+resource "leaseweb_private_network" "my-pn" {
+  name = "pe-team"
+  dhcp = "ENABLED"
 }
 
 resource "leaseweb_dedicated_server_credential" "os" {

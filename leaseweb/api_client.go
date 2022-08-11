@@ -36,13 +36,9 @@ type Server struct {
 	}
 	IsPrivateNetworkEnabled bool
 	PrivateNetworks         []struct {
-		ID string
+		ID        string
+		LinkSpeed int
 	}
-}
-
-//PrivateNetwork -
-type PrivateNetwork struct {
-	ID string
 }
 
 // IP -
@@ -108,6 +104,13 @@ type Credential struct {
 	Password string `json:"password"`
 }
 
+//PrivateNetwork -
+type PrivateNetwork struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"`
+	Dhcp string `json:"dhcp"`
+}
+
 // OperatingSystem -
 type OperatingSystem struct {
 	ID   string
@@ -157,35 +160,6 @@ func getServer(serverID string) (*Server, error) {
 	server.NetworkInterfaces.RemoteManagement.IP = strings.SplitN(server.NetworkInterfaces.RemoteManagement.IP, "/", 2)[0]
 
 	return &server, nil
-}
-
-func getPrivateNetwork() (*PrivateNetwork, error) {
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/privateNetworks?limit=1&offset=0", leasewebAPIURL), nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	response, err := leasewebClient.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting PN data, api response %v", response.StatusCode)
-	}
-
-	var privateNetworks struct {
-		PrivateNetworks []PrivateNetwork
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&privateNetworks)
-	if err != nil {
-		return nil, err
-	}
-
-	return &privateNetworks.PrivateNetworks[0], nil
 }
 
 func getServerMainIP(serverID string, mainIP string) (*IP, error) {
@@ -901,6 +875,85 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	}
 
 	return &job, nil
+}
+
+func getPrivateNetwork(privateNetworkID string) (*PrivateNetwork, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/privateNetworks/%s", leasewebAPIURL, privateNetworkID), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting private network details, api response %v", response.StatusCode)
+	}
+
+	var privateNetwork PrivateNetwork
+	err = json.NewDecoder(response.Body).Decode(&privateNetwork)
+	if err != nil {
+		return nil, err
+	}
+
+	return &privateNetwork, nil
+}
+
+func updatePrivateNetwork(privateNetworkID string, privateNetwork *PrivateNetwork) (*PrivateNetwork, error) {
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(privateNetwork)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/privateNetworks/%s", leasewebAPIURL, privateNetworkID), requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error updating private network, api response %v", response.StatusCode)
+	}
+
+	var updatedPrivateNetwork PrivateNetwork
+	err = json.NewDecoder(response.Body).Decode(&updatedPrivateNetwork)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedPrivateNetwork, nil
+}
+
+func deletePrivateNetwork(privateNetworkID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/privateNetworks/%s", leasewebAPIURL, privateNetworkID), nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error deleting private network, api response %v", response.StatusCode)
+	}
+
+	return nil
 }
 
 func addServerToPrivateNetwork(serverID string, privateNetworkID string) error {
