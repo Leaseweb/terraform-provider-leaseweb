@@ -99,16 +99,14 @@ func resourceDedicatedServerNotificationSettingBandwidthUpdate(ctx context.Conte
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	if d.HasChange("frequency") || d.HasChange("threshold") || d.HasChange("unit") {
-		var notificationSetting = NotificationSetting{
-			Frequency: d.Get("frequency").(string),
-			Threshold: d.Get("threshold").(float64),
-			Unit:      d.Get("unit").(string),
-		}
+	var notificationSetting = NotificationSetting{
+		Frequency: d.Get("frequency").(string),
+		Threshold: d.Get("threshold").(float64),
+		Unit:      d.Get("unit").(string),
+	}
 
-		if _, err := updateDedicatedServerNotificationSetting(serverID, "bandwidth", notificationSettingID, &notificationSetting); err != nil {
-			return diag.FromErr(err)
-		}
+	if _, err := updateDedicatedServerNotificationSetting(serverID, "bandwidth", notificationSettingID, &notificationSetting); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return resourceDedicatedServerNotificationSettingBandwidthRead(ctx, d, m)

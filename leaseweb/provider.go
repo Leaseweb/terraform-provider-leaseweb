@@ -25,14 +25,15 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"leaseweb_dedicatedserver":                                  resourceDedicatedServer(),
-			"leaseweb_dedicatedserver_installation":                     resourceDedicatedServerInstallation(),
-			"leaseweb_dedicatedserver_notification_setting_bandwidth":   resourceDedicatedServerNotificationSettingBandwidth(),
-			"leaseweb_dedicatedserver_notification_setting_datatraffic": resourceDedicatedServerNotificationSettingDatatraffic(),
-			"leaseweb_dedicatedserver_credential":                       resourceDedicatedServerCredential(),
+			"leaseweb_dedicated_server":                                  resourceDedicatedServer(),
+			"leaseweb_dedicated_server_installation":                     resourceDedicatedServerInstallation(),
+			"leaseweb_dedicated_server_notification_setting_bandwidth":   resourceDedicatedServerNotificationSettingBandwidth(),
+			"leaseweb_dedicated_server_notification_setting_datatraffic": resourceDedicatedServerNotificationSettingDatatraffic(),
+			"leaseweb_dedicated_server_credential":                       resourceDedicatedServerCredential(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"leaseweb_dedicatedserver_operating_systems": dataSourceDedicatedServerOperatingSystems(),
+			"leaseweb_dedicated_server_operating_systems": dataSourceDedicatedServerOperatingSystems(),
+			"leaseweb_dedicated_server_control_panels":    dataSourceDedicatedServerControlPanels(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

@@ -27,6 +27,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"control_panel_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"job_uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -44,7 +49,7 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				ForceNew: true,
 			},
 			"ssh_keys": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Schema{
@@ -79,8 +84,12 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	serverID := d.Get("dedicated_server_id").(string)
 
 	var payload = Payload{
-		"operatingSystemId": d.Get("operating_system_id").(string),
+		"operatingSystemId":   d.Get("operating_system_id").(string),
 		"doEmailNotification": false,
+	}
+
+	if d.Get("control_panel_id") != "" {
+		payload["controlPanelId"] = d.Get("control_panel_id").(string)
 	}
 
 	if d.Get("hostname") != "" {
@@ -91,10 +100,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["timezone"] = d.Get("timezone").(string)
 	}
 
-	sshKeysIf := d.Get("ssh_keys").([]interface{})
-	if len(sshKeysIf) != 0 {
-		sshKeys := make([]string, len(sshKeysIf))
-		for i, sshKey := range sshKeysIf {
+	sshKeysSet := d.Get("ssh_keys").(*schema.Set)
+	if sshKeysSet.Len() != 0 {
+		sshKeys := make([]string, sshKeysSet.Len())
+		for i, sshKey := range sshKeysSet.List() {
 			sshKeys[i] = sshKey.(string)
 		}
 		payload["sshKeys"] = strings.Join(sshKeys, "\n")
@@ -127,7 +136,6 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 			return job, job.Status, err
 		},
 		Timeout:      d.Timeout(schema.TimeoutCreate) - time.Minute,
-		Delay:        5 * time.Minute,
 		PollInterval: 30 * time.Second,
 	}
 	_, err = createStateConf.WaitForStateContext(ctx)
@@ -151,6 +159,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	d.Set("job_uuid", installationJob.UUID)
 	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
 
+	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {
+		d.Set("control_panel_id", controlPanelID)
+	}
+
 	if hostname, ok := installationJob.Payload["hostname"]; ok {
 		d.Set("hostname", hostname)
 	}
@@ -160,7 +172,12 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	}
 
 	if sshKeys, ok := installationJob.Payload["sshKeys"]; ok {
-		d.Set("ssh_keys", strings.Split(sshKeys.(string), "\n"))
+		sshKeysList := strings.Split(sshKeys.(string), "\n")
+		sshKeysIf := make([]interface{}, len(sshKeysList))
+		for i, sshKey := range sshKeysList {
+			sshKeysIf[i] = sshKey
+		}
+		d.Set("ssh_keys", schema.NewSet(schema.HashString, sshKeysIf))
 	}
 
 	return diags
