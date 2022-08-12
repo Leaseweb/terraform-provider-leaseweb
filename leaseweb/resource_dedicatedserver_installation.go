@@ -27,6 +27,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"callback_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"control_panel_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -90,6 +95,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	if d.Get("control_panel_id") != "" {
 		payload["controlPanelId"] = d.Get("control_panel_id").(string)
+	}
+
+	if d.Get("callback_url") != "" {
+		payload["callbackUrl"] = d.Get("callback_url").(string)
 	}
 
 	if d.Get("hostname") != "" {
@@ -161,6 +170,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {
 		d.Set("control_panel_id", controlPanelID)
+	}
+
+	if callbackURL, ok := installationJob.Payload["callbackUrl"]; ok {
+		d.Set("callback_url", callbackURL)
 	}
 
 	if hostname, ok := installationJob.Payload["hostname"]; ok {
