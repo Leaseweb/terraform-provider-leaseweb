@@ -77,6 +77,7 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 						"bootable": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"filesystem": {
@@ -87,11 +88,13 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 						"mountpoint": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"primary": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"size": {
