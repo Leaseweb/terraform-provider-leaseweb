@@ -77,6 +77,7 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -89,12 +90,14 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntInSlice([]int{0, 1, 5, 10}),
 						},
 						"number_of_disks": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
@@ -293,6 +296,12 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if partitions, ok := installationJob.Payload["partitions"]; ok {
 		d.Set("partition", partitions)
+	}
+
+	if raid, ok := installationJob.Payload["raid"]; ok {
+		d.Set("raid", []interface{}{
+			raid,
+		})
 	}
 
 	return diags

@@ -48,8 +48,8 @@ resource "leaseweb_dedicated_server_credential" "os" {
 resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicated_server.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
-  control_panel_id    = local.supported_controlpanel_id
-  password            = leaseweb_dedicated_server_credential.os.password
+  #control_panel_id    = local.supported_controlpanel_id
+  password = leaseweb_dedicated_server_credential.os.password
 
   hostname = local.hostname
   timezone = "Europe/Amsterdam"
@@ -65,35 +65,37 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
 
   device = "SATA_SAS"
 
-  raid{
-    type = "NONE"
-  }
-
   partition {
     mountpoint = "/boot"
-    size = 1024
+    size       = 1024
     filesystem = "ext2"
-    bootable = true
-    primary = true
+    bootable   = true
+    primary    = true
   }
 
   partition {
-    size = 4096
+    size       = 4096
     filesystem = "swap"
   }
 
   partition {
     mountpoint = "/tmp"
-    size = 4096
+    size       = 4096
     filesystem = "ext4"
   }
 
   # order matters: this partition needs to be at the end because of the * size
   partition {
     mountpoint = "/"
-    size = "*"
+    size       = "*"
     filesystem = "ext4"
-    primary = true
+    primary    = true
+  }
+
+  raid {
+    type            = "HW"
+    level           = 1
+    number_of_disks = 2
   }
 
   timeouts {
