@@ -48,8 +48,8 @@ resource "leaseweb_dedicated_server_credential" "os" {
 resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
   dedicated_server_id = leaseweb_dedicated_server.my-test.id
   operating_system_id = local.latest_ubuntu_os_id
-  #control_panel_id    = local.supported_controlpanel_id
-  password = leaseweb_dedicated_server_credential.os.password
+  control_panel_id    = local.supported_controlpanel_id
+  password            = leaseweb_dedicated_server_credential.os.password
 
   hostname = local.hostname
   timezone = "Europe/Amsterdam"

@@ -173,6 +173,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["controlPanelId"] = d.Get("control_panel_id").(string)
 	}
 
+	if d.Get("callback_url") != "" {
+		payload["callbackUrl"] = d.Get("callback_url").(string)
+	}
+
 	if d.Get("hostname") != "" {
 		payload["hostname"] = d.Get("hostname").(string)
 	}
