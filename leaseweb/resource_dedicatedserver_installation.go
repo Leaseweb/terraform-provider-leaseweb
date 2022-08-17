@@ -170,6 +170,10 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["controlPanelId"] = d.Get("control_panel_id").(string)
 	}
 
+	if d.Get("hostname") != "" {
+		payload["hostname"] = d.Get("hostname").(string)
+	}
+
 	if d.Get("timezone") != "" {
 		payload["timezone"] = d.Get("timezone").(string)
 	}
