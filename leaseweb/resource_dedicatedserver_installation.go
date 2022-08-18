@@ -303,8 +303,19 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 	}
 
 	if raid, ok := installationJob.Payload["raid"]; ok {
+		raid := raid.(map[string]interface{})
+		var raidConfig = map[string]interface{}{
+			"type": raid["type"].(string),
+		}
+
+		if raidConfig["type"] != "NONE" {
+			raidConfig["level"] = raid["level"]
+			if numberOfDisks, ok := raid["numberOfDisks"]; ok {
+				raidConfig["number_of_disks"] = numberOfDisks
+			}
+		}
 		d.Set("raid", []interface{}{
-			raid,
+			raidConfig,
 		})
 	}
 
