@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceDedicatedServer() *schema.Resource {
+func dataSourceDedicatedServers() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceDedicatedServerRead,
+		ReadContext: dataSourceDedicatedServersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeSet,
@@ -19,16 +19,16 @@ func dataSourceDedicatedServer() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-			 },
-			 "site": {
+			},
+			"site": {
 				Type:     schema.TypeString,
 				Optional: true,
-			 },
+			},
 		},
 	}
 }
 
-func dataSourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceDedicatedServersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	site := d.Get("site").(string)
