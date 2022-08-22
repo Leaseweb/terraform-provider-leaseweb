@@ -864,3 +864,32 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 
 	return &job, nil
 }
+
+func getServerList() ([]Server, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting server list, api response %v", response.StatusCode)
+	}
+
+	var serverList struct {
+		Servers []Server
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&serverList)
+	if err != nil {
+		return nil, err
+	}
+
+	return serverList.Servers, nil
+}
