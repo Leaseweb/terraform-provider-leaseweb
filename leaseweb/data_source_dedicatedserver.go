@@ -20,6 +20,10 @@ func dataSourceDedicatedServer() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			 },
+			 "site": {
+				Type:     schema.TypeString,
+				Optional: true,
+			 },
 		},
 	}
 }
@@ -27,7 +31,8 @@ func dataSourceDedicatedServer() *schema.Resource {
 func dataSourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	serverList, err := getServerList()
+	site := d.Get("site").(string)
+	serverList, err := getServerList(site)
 	if err != nil {
 		return diag.FromErr(err)
 	}
