@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDedicatedServerInstallation() *schema.Resource {
@@ -25,6 +26,11 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 			"operating_system_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+			},
+			"callback_url": {
+				Type:     schema.TypeString,
+				Optional: true,
 				ForceNew: true,
 			},
 			"control_panel_id": {
@@ -65,6 +71,37 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+			"raid": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice([]string{"HW", "SW", "NONE"}, false),
+						},
+						"level": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntInSlice([]int{0, 1, 5, 10}),
+						},
+						"number_of_disks": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
 			},
 			"device": {
 				Type:     schema.TypeString,
@@ -136,12 +173,33 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["controlPanelId"] = d.Get("control_panel_id").(string)
 	}
 
+	if d.Get("callback_url") != "" {
+		payload["callbackUrl"] = d.Get("callback_url").(string)
+	}
+
 	if d.Get("hostname") != "" {
 		payload["hostname"] = d.Get("hostname").(string)
 	}
 
 	if d.Get("timezone") != "" {
 		payload["timezone"] = d.Get("timezone").(string)
+	}
+
+	raid := d.Get("raid").([]interface{})
+
+	if len(raid) != 0 {
+		raidDetails := raid[0].(map[string]interface{})
+		var raidConfig = map[string]interface{}{
+			"type": raidDetails["type"].(string),
+		}
+
+		if raidConfig["type"] != "NONE" {
+			raidConfig["level"] = raidDetails["level"]
+			if raidDetails["number_of_disks"].(int) != 0 {
+				raidConfig["numberOfDisks"] = raidDetails["number_of_disks"]
+			}
+		}
+		payload["raid"] = raidConfig
 	}
 
 	sshKeysSet := d.Get("ssh_keys").(*schema.Set)
@@ -196,7 +254,6 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	return resourceDedicatedServerInstallationRead(ctx, d, m)
 }
 
@@ -214,6 +271,10 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {
 		d.Set("control_panel_id", controlPanelID)
+	}
+
+	if callbackURL, ok := installationJob.Payload["callbackUrl"]; ok {
+		d.Set("callback_url", callbackURL)
 	}
 
 	if hostname, ok := installationJob.Payload["hostname"]; ok {
@@ -239,6 +300,23 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	if partitions, ok := installationJob.Payload["partitions"]; ok {
 		d.Set("partition", partitions)
+	}
+
+	if raid, ok := installationJob.Payload["raid"]; ok {
+		raid := raid.(map[string]interface{})
+		var raidConfig = map[string]interface{}{
+			"type": raid["type"].(string),
+		}
+
+		if raidConfig["type"] != "NONE" {
+			raidConfig["level"] = raid["level"]
+			if numberOfDisks, ok := raid["numberOfDisks"]; ok {
+				raidConfig["number_of_disks"] = numberOfDisks
+			}
+		}
+		d.Set("raid", []interface{}{
+			raidConfig,
+		})
 	}
 
 	return diags

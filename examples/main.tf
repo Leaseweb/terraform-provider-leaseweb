@@ -67,29 +67,35 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
 
   partition {
     mountpoint = "/boot"
-    size = 1024
+    size       = 1024
     filesystem = "ext2"
-    bootable = true
-    primary = true
+    bootable   = true
+    primary    = true
   }
 
   partition {
-    size = 4096
+    size       = 4096
     filesystem = "swap"
   }
 
   partition {
     mountpoint = "/tmp"
-    size = 4096
+    size       = 4096
     filesystem = "ext4"
   }
 
   # order matters: this partition needs to be at the end because of the * size
   partition {
     mountpoint = "/"
-    size = "*"
+    size       = "*"
     filesystem = "ext4"
-    primary = true
+    primary    = true
+  }
+
+  raid {
+    type            = "HW"
+    level           = 1
+    number_of_disks = 2
   }
 
   timeouts {
