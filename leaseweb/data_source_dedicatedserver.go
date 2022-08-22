@@ -32,18 +32,18 @@ func dataSourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 
 	site := d.Get("site").(string)
-	serverList, err := getServerList(site)
+	servers, err := getServers(site)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	serverListIds := make([]string, len(serverList))
+	serverIds := make([]string, len(servers))
 
-	for i, server := range serverList {
-		serverListIds[i] = server.ID
+	for i, server := range servers {
+		serverIds[i] = server.ID
 	}
 
-	if err := d.Set("ids", serverListIds); err != nil {
+	if err := d.Set("ids", serverIds); err != nil {
 		return diag.FromErr(err)
 	}
 

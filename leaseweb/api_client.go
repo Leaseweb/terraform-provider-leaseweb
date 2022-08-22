@@ -865,7 +865,7 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	return &job, nil
 }
 
-func getServerList(site string) ([]Server, error) {
+func getServers(site string) ([]Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
