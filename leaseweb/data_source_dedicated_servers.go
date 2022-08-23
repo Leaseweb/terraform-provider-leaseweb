@@ -32,7 +32,7 @@ func dataSourceDedicatedServersRead(ctx context.Context, d *schema.ResourceData,
 	var diags diag.Diagnostics
 
 	site := d.Get("site").(string)
-	servers, err := getServers(site)
+	servers, err := getServersBatch(0, 5, site)
 	if err != nil {
 		return diag.FromErr(err)
 	}

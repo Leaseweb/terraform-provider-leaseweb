@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"strconv"
 )
 
 var (
@@ -865,12 +866,24 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	return &job, nil
 }
 
-func getServers(site string) ([]Server, error) {
+func getServersBatch(offset int, limit int, site string) ([]Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	if offset >= 0 {
+		q := request.URL.Query()
+		q.Add("offset", strconv.Itoa(offset))
+		request.URL.RawQuery = q.Encode()
+	}
+
+	if limit >= 0 {
+		q := request.URL.Query()
+		q.Add("limit", strconv.Itoa(limit))
+		request.URL.RawQuery = q.Encode()
+	}
 
 	if site != "" {
 		q := request.URL.Query()
