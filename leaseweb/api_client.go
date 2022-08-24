@@ -912,3 +912,26 @@ func getServersBatch(offset int, limit int, site string) ([]Server, error) {
 
 	return serverList.Servers, nil
 }
+
+func getAllServers(site string) ([]Server, error) {
+	 var allServers []Server
+	 offset := 0
+	 limit := 20
+
+	 serversBatch, err := getServersBatch(offset, limit, site)
+	 if err != nil {
+		return nil, err
+	}
+	   allServers = append(allServers, serversBatch...)
+
+	for len(serversBatch) != 0 {
+	   offset += limit
+	   serversBatch, err = getServersBatch(offset, limit, site)
+		if err != nil {
+			return nil, err
+		  }
+			allServers = append(allServers, serversBatch...)
+	}
+
+	return allServers, nil
+}
