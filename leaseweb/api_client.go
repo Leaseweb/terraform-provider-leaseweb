@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"strconv"
 )
 
 var (
@@ -863,4 +864,74 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	}
 
 	return &job, nil
+}
+
+func getServersBatch(offset int, limit int, site string) ([]Server, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	if offset >= 0 {
+		q := request.URL.Query()
+		q.Add("offset", strconv.Itoa(offset))
+		request.URL.RawQuery = q.Encode()
+	}
+
+	if limit >= 0 {
+		q := request.URL.Query()
+		q.Add("limit", strconv.Itoa(limit))
+		request.URL.RawQuery = q.Encode()
+	}
+
+	if site != "" {
+		q := request.URL.Query()
+		q.Add("site", site)
+		request.URL.RawQuery = q.Encode()
+	}
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting server list, api response %v", response.StatusCode)
+	}
+
+	var serverList struct {
+		Servers []Server
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&serverList)
+	if err != nil {
+		return nil, err
+	}
+
+	return serverList.Servers, nil
+}
+
+func getAllServers(site string) ([]Server, error) {
+	 var allServers []Server
+	 offset := 0
+	 limit := 20
+
+	 serversBatch, err := getServersBatch(offset, limit, site)
+	 if err != nil {
+		return nil, err
+	}
+	   allServers = append(allServers, serversBatch...)
+
+	for len(serversBatch) != 0 {
+	   offset += limit
+	   serversBatch, err = getServersBatch(offset, limit, site)
+		if err != nil {
+			return nil, err
+		  }
+			allServers = append(allServers, serversBatch...)
+	}
+
+	return allServers, nil
 }

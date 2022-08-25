@@ -12,7 +12,6 @@ provider "leaseweb" {}
 data "leaseweb_dedicated_server_operating_systems" "all_os" {
 }
 
-
 locals {
   latest_ubuntu_os_id = reverse(sort([
     for id in data.leaseweb_dedicated_server_operating_systems.all_os.ids : id
@@ -110,8 +109,13 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "alert" {
   unit                = "Gbps"
 }
 
+data "leaseweb_dedicated_servers" "ams-02-servers" {
+   site = "AMS-02"
+}
+
 resource "leaseweb_dedicated_server_notification_setting_datatraffic" "alert" {
-  dedicated_server_id = leaseweb_dedicated_server.my-test.id
+  for_each            = data.leaseweb_dedicated_servers.ams-02-servers.ids
+  dedicated_server_id = each.value
   frequency           = "WEEKLY"
   threshold           = 2
   unit                = "TB"
