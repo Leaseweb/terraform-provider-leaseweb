@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -914,23 +914,23 @@ func getServersBatch(offset int, limit int, site string) ([]Server, error) {
 }
 
 func getAllServers(site string) ([]Server, error) {
-	 var allServers []Server
-	 offset := 0
-	 limit := 20
+	var allServers []Server
+	offset := 0
+	limit := 20
 
-	 serversBatch, err := getServersBatch(offset, limit, site)
-	 if err != nil {
+	serversBatch, err := getServersBatch(offset, limit, site)
+	if err != nil {
 		return nil, err
 	}
-	   allServers = append(allServers, serversBatch...)
+	allServers = append(allServers, serversBatch...)
 
 	for len(serversBatch) != 0 {
-	   offset += limit
-	   serversBatch, err = getServersBatch(offset, limit, site)
+		offset += limit
+		serversBatch, err = getServersBatch(offset, limit, site)
 		if err != nil {
 			return nil, err
-		  }
-			allServers = append(allServers, serversBatch...)
+		}
+		allServers = append(allServers, serversBatch...)
 	}
 
 	return allServers, nil
