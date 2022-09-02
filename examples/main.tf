@@ -68,8 +68,6 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
     mountpoint = "/boot"
     size       = 1024
     filesystem = "ext2"
-    bootable   = true
-    primary    = true
   }
 
   partition {
@@ -88,7 +86,6 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
     mountpoint = "/"
     size       = "*"
     filesystem = "ext4"
-    primary    = true
   }
 
   raid {
