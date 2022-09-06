@@ -151,8 +151,8 @@ func getServer(serverID string) (*Server, error) {
 	return &server, nil
 }
 
-func getServerMainIP(serverID string, mainIP string) (*IP, error) {
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, mainIP), nil)
+func getServerIP(serverID string, ip string) (*IP, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -165,16 +165,16 @@ func getServerMainIP(serverID string, mainIP string) (*IP, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting main ip, api response %v", response.StatusCode)
+		return nil, fmt.Errorf("error getting ip, api response %v", response.StatusCode)
 	}
 
-	var ip IP
-	err = json.NewDecoder(response.Body).Decode(&ip)
+	var ipData IP
+	err = json.NewDecoder(response.Body).Decode(&ipData)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ip, nil
+	return &ipData, nil
 }
 
 func getServerLease(serverID string) (*DHCPLease, error) {
@@ -285,7 +285,7 @@ func updateReference(serverID string, reference string) error {
 	return nil
 }
 
-func updateReverseLookup(serverID string, mainIP string, reverseLookup string) error {
+func updateReverseLookup(serverID string, ip string, reverseLookup string) error {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		ReverseLookup string `json:"reverseLookup"`
@@ -296,7 +296,7 @@ func updateReverseLookup(serverID string, mainIP string, reverseLookup string) e
 		return err
 	}
 
-	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, mainIP), requestBody)
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip), requestBody)
 	if err != nil {
 		return err
 	}

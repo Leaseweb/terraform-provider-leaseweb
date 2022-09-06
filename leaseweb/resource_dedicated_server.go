@@ -43,7 +43,7 @@ func resourceDedicatedServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"main_ip_nulled": {
+			"public_ip_nulled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -55,7 +55,7 @@ func resourceDedicatedServer() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"main_ip": {
+			"public_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -86,7 +86,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	d.Set("reference", server.Contract.Reference)
-	d.Set("main_ip", server.NetworkInterfaces.Public.IP)
+	d.Set("public_ip", server.NetworkInterfaces.Public.IP)
 	d.Set("ipmi_ip", server.NetworkInterfaces.RemoteManagement.IP)
 
 	d.Set("location", map[string]string{
@@ -97,12 +97,12 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	})
 
 	// 2) get reverse lookup from /v2/servers/{id}/ips/{ip}
-	ip, err := getServerMainIP(serverID, server.NetworkInterfaces.Public.IP)
+	ip, err := getServerIP(serverID, server.NetworkInterfaces.Public.IP)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("reverse_lookup", ip.ReverseLookup)
-	d.Set("main_ip_nulled", ip.NullRouted)
+	d.Set("public_ip_nulled", ip.NullRouted)
 
 	// 3) get leases info from /v2/servers/{id}/leases
 	lease, err := getServerLease(serverID)
@@ -134,9 +134,9 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	if d.HasChange("reverse_lookup") {
-		mainIP := d.Get("main_ip").(string)
+		publicIP := d.Get("public_ip").(string)
 		reverseLookup := d.Get("reverse_lookup").(string)
-		if err := updateReverseLookup(serverID, mainIP, reverseLookup); err != nil {
+		if err := updateReverseLookup(serverID, publicIP, reverseLookup); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Set("reverse_lookup", reverseLookup)
@@ -185,18 +185,18 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 	}
 
-	if d.HasChange("main_ip_nulled") {
-		mainIP := d.Get("main_ip").(string)
-		if d.Get("main_ip_nulled").(bool) {
-			if err := nullIP(serverID, mainIP); err != nil {
+	if d.HasChange("public_ip_nulled") {
+		publicIP := d.Get("public_ip").(string)
+		if d.Get("public_ip_nulled").(bool) {
+			if err := nullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("main_ip_nulled", true)
+			d.Set("public_ip_nulled", true)
 		} else {
-			if err := unnullIP(serverID, mainIP); err != nil {
+			if err := unnullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("main_ip_nulled", false)
+			d.Set("public_ip_nulled", false)
 		}
 	}
 

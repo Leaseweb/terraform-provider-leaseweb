@@ -34,7 +34,7 @@ resource "leaseweb_dedicated_server" "my-test" {
   # reverse_lookup = "web02.example.com"
   # dhcp_lease = "https://boot.netboot.xyz"
   # powered_on = true
-  # main_ip_nulled = false
+  # public_ip_nulled = false
 }
 
 resource "leaseweb_dedicated_server_credential" "os" {
@@ -59,7 +59,7 @@ resource "leaseweb_dedicated_server_installation" "my-ubuntu" {
   post_install_script = <<-EOS
     #!/bin/sh
     apt install nginx -y -qq
-    echo "${local.hostname} on ${leaseweb_dedicated_server.my-test.main_ip}" > /var/www/html/index.html
+    echo "${local.hostname} on ${leaseweb_dedicated_server.my-test.public_ip}" > /var/www/html/index.html
   EOS
 
   device = "SATA_SAS"
