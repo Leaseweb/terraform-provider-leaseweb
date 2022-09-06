@@ -59,7 +59,7 @@ func resourceDedicatedServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"ipmi_ip": {
+			"remote_management_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -87,7 +87,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	}
 	d.Set("reference", server.Contract.Reference)
 	d.Set("public_ip", server.NetworkInterfaces.Public.IP)
-	d.Set("ipmi_ip", server.NetworkInterfaces.RemoteManagement.IP)
+	d.Set("remote_management_ip", server.NetworkInterfaces.RemoteManagement.IP)
 
 	d.Set("location", map[string]string{
 		"rack":  server.Location.Rack,
