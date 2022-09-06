@@ -48,21 +48,12 @@ func resourceDedicatedServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"site": {
-				Type:     schema.TypeString,
+			"location": {
+				Type:     schema.TypeMap,
 				Computed: true,
-			},
-			"suite": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rack": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"unit": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"main_ip": {
 				Type:     schema.TypeString,
@@ -95,12 +86,15 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	d.Set("reference", server.Contract.Reference)
-	d.Set("site", server.Location.Site)
-	d.Set("suite", server.Location.Suite)
-	d.Set("rack", server.Location.Rack)
-	d.Set("unit", server.Location.Unit)
 	d.Set("main_ip", server.NetworkInterfaces.Public.IP)
 	d.Set("ipmi_ip", server.NetworkInterfaces.RemoteManagement.IP)
+
+	d.Set("location", map[string]string{
+		"rack":  server.Location.Rack,
+		"site":  server.Location.Site,
+		"suite": server.Location.Suite,
+		"unit":  server.Location.Unit,
+	})
 
 	// 2) get reverse lookup from /v2/servers/{id}/ips/{ip}
 	ip, err := getServerMainIP(serverID, server.NetworkInterfaces.Public.IP)
