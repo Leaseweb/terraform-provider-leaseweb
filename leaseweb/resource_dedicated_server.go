@@ -113,6 +113,9 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 
 	// 4) get power info from /v2/servers/{id}/powerInfo
 	powerInfo, err := getPowerInfo(serverID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	d.Set("powered_on", powerInfo.IsPoweredOn())
 
 	// 5) get public network interface info from /v2/servers/{serverId}/networkInterfaces/{networkType}
