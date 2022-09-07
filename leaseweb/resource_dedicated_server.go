@@ -133,7 +133,6 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if err := updateReference(serverID, reference); err != nil {
 			return diag.FromErr(err)
 		}
-		d.Set("reference", reference)
 	}
 
 	if d.HasChange("reverse_lookup") {
@@ -142,7 +141,6 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if err := updateReverseLookup(serverID, publicIP, reverseLookup); err != nil {
 			return diag.FromErr(err)
 		}
-		d.Set("reverse_lookup", reverseLookup)
 	}
 
 	if d.HasChange("dhcp_lease") {
@@ -151,12 +149,10 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := addDHCPLease(serverID, bootFile); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("dhcp_lease", bootFile)
 		} else {
 			if err := removeDHCPLease(serverID); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("dhcp_lease", "")
 		}
 	}
 
@@ -165,12 +161,10 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := powerOnServer(serverID); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("powered_on", true)
 		} else {
 			if err := powerOffServer(serverID); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("powered_on", false)
 		}
 	}
 
@@ -179,12 +173,10 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := openNetworkInterface(serverID, "public"); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_network_interface_opened", true)
 		} else {
 			if err := closeNetworkInterface(serverID, "public"); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_network_interface_opened", false)
 		}
 	}
 
@@ -194,20 +186,14 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := nullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_ip_null_routed", true)
 		} else {
 			if err := unnullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_ip_null_routed", false)
 		}
 	}
 
-	var diags diag.Diagnostics
-
-	return diags
-
-	// NOTE: return resourceDedicatedServerRead(ctx, d, m)
+	return resourceDedicatedServerRead(ctx, d, m)
 }
 
 func resourceDedicatedServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
