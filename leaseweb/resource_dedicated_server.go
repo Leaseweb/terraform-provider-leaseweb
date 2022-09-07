@@ -2,6 +2,7 @@ package leaseweb
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -133,6 +134,9 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if err := updateReference(serverID, reference); err != nil {
 			return diag.FromErr(err)
 		}
+
+		// Wait a bit for the change to be made available in the contract before reading the resource again
+		time.Sleep(5 * time.Second)
 	}
 
 	if d.HasChange("reverse_lookup") {
