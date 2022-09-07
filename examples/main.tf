@@ -34,7 +34,7 @@ resource "leaseweb_dedicated_server" "my-test" {
   # reverse_lookup = "web02.example.com"
   # dhcp_lease = "https://boot.netboot.xyz"
   # powered_on = true
-  # public_ip_nulled = false
+  # public_ip_null_routed = false
 }
 
 resource "leaseweb_dedicated_server_credential" "os" {

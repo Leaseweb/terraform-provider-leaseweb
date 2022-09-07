@@ -43,7 +43,7 @@ func resourceDedicatedServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"public_ip_nulled": {
+			"public_ip_null_routed": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -102,7 +102,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	d.Set("reverse_lookup", ip.ReverseLookup)
-	d.Set("public_ip_nulled", ip.NullRouted)
+	d.Set("public_ip_null_routed", ip.NullRouted)
 
 	// 3) get leases info from /v2/servers/{id}/leases
 	lease, err := getServerLease(serverID)
@@ -185,18 +185,18 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 	}
 
-	if d.HasChange("public_ip_nulled") {
+	if d.HasChange("public_ip_null_routed") {
 		publicIP := d.Get("public_ip").(string)
-		if d.Get("public_ip_nulled").(bool) {
+		if d.Get("public_ip_null_routed").(bool) {
 			if err := nullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_ip_nulled", true)
+			d.Set("public_ip_null_routed", true)
 		} else {
 			if err := unnullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_ip_nulled", false)
+			d.Set("public_ip_null_routed", false)
 		}
 	}
 
