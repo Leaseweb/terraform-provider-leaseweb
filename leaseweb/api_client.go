@@ -72,7 +72,7 @@ type PowerInfo struct {
 
 // IsPoweredOn -
 func (p *PowerInfo) IsPoweredOn() bool {
-	return p.PDU.Status == "on" // TODO also take ipmi into account
+	return p.PDU.Status != "off" && p.IPMI.Status != "off"
 }
 
 // NetworkInterfaceInfo -
