@@ -81,7 +81,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 
 	var diags diag.Diagnostics
 
-	// 1) get basic data from /v2/servers/{id}
+	// get basic data
 	server, err := getServer(serverID)
 	if err != nil {
 		return diag.FromErr(err)
@@ -97,7 +97,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 		"unit":  server.Location.Unit,
 	})
 
-	// 2) get reverse lookup from /v2/servers/{id}/ips/{ip}
+	// get IP data
 	ip, err := getServerIP(serverID, server.NetworkInterfaces.Public.IP)
 	if err != nil {
 		return diag.FromErr(err)
@@ -105,21 +105,21 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	d.Set("reverse_lookup", ip.ReverseLookup)
 	d.Set("public_ip_null_routed", ip.NullRouted)
 
-	// 3) get leases info from /v2/servers/{id}/leases
+	// get lease data
 	lease, err := getServerLease(serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("dhcp_lease", lease.GetBootfile())
 
-	// 4) get power info from /v2/servers/{id}/powerInfo
+	// get power data
 	powerInfo, err := getPowerInfo(serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("powered_on", powerInfo.IsPoweredOn())
 
-	// 5) get public network interface info from /v2/servers/{serverId}/networkInterfaces/{networkType}
+	// get public network interface data
 	publicNetworkInterfaceInfo, err := getNetworkInterfaceInfo(serverID, "public")
 	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.IsOpened())
 
