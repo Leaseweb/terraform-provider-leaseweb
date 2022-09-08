@@ -35,6 +35,7 @@ resource "leaseweb_dedicated_server" "my-test" {
   # dhcp_lease = "https://boot.netboot.xyz"
   # powered_on = true
   # public_ip_null_routed = false
+  # public_network_interface_opened = true
 }
 
 resource "leaseweb_dedicated_server_credential" "os" {
