@@ -2,6 +2,7 @@ package leaseweb
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -43,32 +44,23 @@ func resourceDedicatedServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"main_ip_nulled": {
+			"public_ip_null_routed": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
-			"site": {
+			"location": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"public_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"suite": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rack": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"unit": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"main_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ipmi_ip": {
+			"remote_management_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -89,39 +81,45 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 
 	var diags diag.Diagnostics
 
-	// 1) get basic data from /v2/servers/{id}
+	// get basic data
 	server, err := getServer(serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("reference", server.Contract.Reference)
-	d.Set("site", server.Location.Site)
-	d.Set("suite", server.Location.Suite)
-	d.Set("rack", server.Location.Rack)
-	d.Set("unit", server.Location.Unit)
-	d.Set("main_ip", server.NetworkInterfaces.Public.IP)
-	d.Set("ipmi_ip", server.NetworkInterfaces.RemoteManagement.IP)
+	d.Set("public_ip", server.NetworkInterfaces.Public.IP)
+	d.Set("remote_management_ip", server.NetworkInterfaces.RemoteManagement.IP)
 
-	// 2) get reverse lookup from /v2/servers/{id}/ips/{ip}
-	ip, err := getServerMainIP(serverID, server.NetworkInterfaces.Public.IP)
+	d.Set("location", map[string]string{
+		"rack":  server.Location.Rack,
+		"site":  server.Location.Site,
+		"suite": server.Location.Suite,
+		"unit":  server.Location.Unit,
+	})
+
+	// get IP data
+	ip, err := getServerIP(serverID, server.NetworkInterfaces.Public.IP)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("reverse_lookup", ip.ReverseLookup)
-	d.Set("main_ip_nulled", ip.NullRouted)
+	d.Set("public_ip_null_routed", ip.NullRouted)
 
-	// 3) get leases info from /v2/servers/{id}/leases
+	// get lease data
 	lease, err := getServerLease(serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("dhcp_lease", lease.GetBootfile())
 
-	// 4) get power info from /v2/servers/{id}/powerInfo
+	// get power data
 	powerInfo, err := getPowerInfo(serverID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	d.Set("powered_on", powerInfo.IsPoweredOn())
 
-	// 5) get public network interface info from /v2/servers/{serverId}/networkInterfaces/{networkType}
+	// get public network interface data
 	publicNetworkInterfaceInfo, err := getNetworkInterfaceInfo(serverID, "public")
 	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.IsOpened())
 
@@ -136,16 +134,17 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if err := updateReference(serverID, reference); err != nil {
 			return diag.FromErr(err)
 		}
-		d.Set("reference", reference)
+
+		// Wait a bit for the change to be made available in the contract before reading the resource again
+		time.Sleep(5 * time.Second)
 	}
 
 	if d.HasChange("reverse_lookup") {
-		mainIP := d.Get("main_ip").(string)
+		publicIP := d.Get("public_ip").(string)
 		reverseLookup := d.Get("reverse_lookup").(string)
-		if err := updateReverseLookup(serverID, mainIP, reverseLookup); err != nil {
+		if err := updateReverseLookup(serverID, publicIP, reverseLookup); err != nil {
 			return diag.FromErr(err)
 		}
-		d.Set("reverse_lookup", reverseLookup)
 	}
 
 	if d.HasChange("dhcp_lease") {
@@ -154,12 +153,10 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := addDHCPLease(serverID, bootFile); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("dhcp_lease", bootFile)
 		} else {
 			if err := removeDHCPLease(serverID); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("dhcp_lease", "")
 		}
 	}
 
@@ -168,12 +165,10 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := powerOnServer(serverID); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("powered_on", true)
 		} else {
 			if err := powerOffServer(serverID); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("powered_on", false)
 		}
 	}
 
@@ -182,35 +177,27 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 			if err := openNetworkInterface(serverID, "public"); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_network_interface_opened", true)
 		} else {
 			if err := closeNetworkInterface(serverID, "public"); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("public_network_interface_opened", false)
 		}
 	}
 
-	if d.HasChange("main_ip_nulled") {
-		mainIP := d.Get("main_ip").(string)
-		if d.Get("main_ip_nulled").(bool) {
-			if err := nullIP(serverID, mainIP); err != nil {
+	if d.HasChange("public_ip_null_routed") {
+		publicIP := d.Get("public_ip").(string)
+		if d.Get("public_ip_null_routed").(bool) {
+			if err := nullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("main_ip_nulled", true)
 		} else {
-			if err := unnullIP(serverID, mainIP); err != nil {
+			if err := unnullIP(serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
-			d.Set("main_ip_nulled", false)
 		}
 	}
 
-	var diags diag.Diagnostics
-
-	return diags
-
-	// NOTE: return resourceDedicatedServerRead(ctx, d, m)
+	return resourceDedicatedServerRead(ctx, d, m)
 }
 
 func resourceDedicatedServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
