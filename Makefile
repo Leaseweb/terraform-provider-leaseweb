@@ -43,6 +43,10 @@ lint-go:
 .PHONY: ci
 ci: lint
 
+.PHONY: doc
+doc:
+	tfplugindocs generate
+
 .PHONY: release
 release:
 	$(MAKE) build GOOS=darwin GOARCH=amd64
