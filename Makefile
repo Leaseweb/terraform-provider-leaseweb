@@ -25,7 +25,7 @@ lint-eol:
 .PHONY: lint-spaces
 lint-spaces:
 	@echo "==> Validating trailing whitespaces in files:"
-	@! git ls-files | xargs grep --files-with-matches --recursive --extended-regexp ' +$$' || ( echo '[ERROR] Above files have trailing whitespace' && exit 1 )
+	@! git ls-files | grep -v '^docs/' | xargs grep --files-with-matches --recursive --extended-regexp ' +$$' || ( echo '[ERROR] Above files have trailing whitespace' && exit 1 )
 	@echo No files have trailing whitespaces
 
 .PHONY: lint-tabs
