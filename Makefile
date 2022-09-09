@@ -47,6 +47,11 @@ ci: lint
 doc:
 	tfplugindocs generate
 
+.PHONY: format
+format:
+	go fmt ./...
+	terraform fmt -recursive examples/
+
 .PHONY: release
 release:
 	$(MAKE) build GOOS=darwin GOARCH=amd64
