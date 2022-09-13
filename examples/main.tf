@@ -108,7 +108,7 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "alert" {
 }
 
 data "leaseweb_dedicated_servers" "ams-02-servers" {
-   site = "AMS-02"
+  site = "AMS-02"
 }
 
 resource "leaseweb_dedicated_server_notification_setting_datatraffic" "alert" {
