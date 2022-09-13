@@ -2,7 +2,7 @@
 page_title: "Leaseweb Provider"
 subcategory: ""
 description: |-
-  The provider to managed Leaseweb resources
+  The provider to manage Leaseweb resources
 ---
 
 # Leaseweb Provider
