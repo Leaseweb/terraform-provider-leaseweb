@@ -10,46 +10,61 @@ import (
 
 func resourceDedicatedServer() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_server`" + ` resource manages several items linked to a dedicated server.
+The resource cannot currently be created automatically, it needs to be imported first.
+`,
 		CreateContext: resourceDedicatedServerCreate,
 		ReadContext:   resourceDedicatedServerRead,
 		UpdateContext: resourceDedicatedServerUpdate,
 		DeleteContext: resourceDedicatedServerDelete,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Description: "The ID of the dedicated server.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"reference": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Description: "The reference of the dedicated server.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
 			},
 			"reverse_lookup": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Description: "The reverse lookup associated with the dedicated server public IP.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
 			},
 			"dhcp_lease": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Description: "The URL of PXE boot the dedicated server is booting from.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
 			},
 			"powered_on": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Description: "Whether the dedicated server is powered on or not.",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Computed:    true,
 			},
 			"public_network_interface_opened": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Description: "Whether the public network interface of the dedicated server is opened or not.",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Computed:    true,
 			},
 			"public_ip_null_routed": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Description: "Whether the public IP of the dedicated server is null routed or not.",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Computed:    true,
 			},
 			"location": {
+				Description: `
+The location of the server.
+Available fields are ` + "`rack`" + `, ` + "`site`" + `, ` + "`suite`" + ` and ` + "`unit`" + `.
+`,
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem: &schema.Schema{
@@ -57,12 +72,14 @@ func resourceDedicatedServer() *schema.Resource {
 				},
 			},
 			"public_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Description: "The public IP of the dedicated server.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"remote_management_ip": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Description: "The remote management IP of the dedicated server.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 		},
 		Importer: &schema.ResourceImporter{
