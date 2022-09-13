@@ -17,7 +17,7 @@ func Provider() *schema.Provider {
 				Description: `
 The base URL of the API endpoint to use.
 By default it takes the value from the ` + "`LEASEWEB_API_URL`" + ` environment variable if present,
- otherwise it defaults to "https://api.leaseweb.com".
+otherwise it defaults to "https://api.leaseweb.com".
 `,
 				Type:        schema.TypeString,
 				Required:    true,

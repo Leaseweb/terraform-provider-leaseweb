@@ -50,4 +50,4 @@ By default it takes the value from the `LEASEWEB_API_TOKEN` environment variable
 
 - `leaseweb_api_url` (String) The base URL of the API endpoint to use.
 By default it takes the value from the `LEASEWEB_API_URL` environment variable if present,
- otherwise it defaults to "https://api.leaseweb.com".
+otherwise it defaults to "https://api.leaseweb.com".
