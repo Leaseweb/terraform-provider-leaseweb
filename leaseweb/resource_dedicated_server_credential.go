@@ -12,30 +12,41 @@ import (
 
 func resourceDedicatedServerCredential() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_server_credential`" + ` resource manages a credential
+linked to a dedicated server.
+`,
 		CreateContext: resourceDedicatedServerCredentialCreate,
 		ReadContext:   resourceDedicatedServerCredentialRead,
 		UpdateContext: resourceDedicatedServerCredentialUpdate,
 		DeleteContext: resourceDedicatedServerCredentialDelete,
 		Schema: map[string]*schema.Schema{
 			"dedicated_server_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The ID of the dedicated server.",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 			"type": {
+				Description: `
+The type of the credential.
+Can be either ` + "`OPERATING_SYSTEM`" + `, ` + "`CONTROL_PANEL`" + `, ` + "`REMOTE_MANAGEMENT`" + `, ` + "`RESCUE_MODE`" + `, ` + "`SWITCH`" + `, ` + "`PDU`" + `, ` + "`FIREWALL`" + ` or ` + "`LOAD_BALANCER`" + `.
+`,
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"OPERATING_SYSTEM", "CONTROL_PANEL", "REMOTE_MANAGEMENT", "RESCUE_MODE", "SWITCH", "PDU", "FIREWALL", "LOAD_BALANCER"}, false),
 				ForceNew:     true,
 			},
 			"username": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The username of the credential.",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 			"password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "The password of the credential.",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 		},
 		Importer: &schema.ResourceImporter{

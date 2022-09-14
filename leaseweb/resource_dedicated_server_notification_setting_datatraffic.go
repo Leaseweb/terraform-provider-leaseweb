@@ -12,31 +12,46 @@ import (
 
 func resourceDedicatedServerNotificationSettingDatatraffic() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_server_notification_setting_datatraffic`" + ` resource manages a datatraffic
+notification setting linked to a dedicated server.
+`,
 		CreateContext: resourceDedicatedServerNotificationSettingDatatrafficCreate,
 		ReadContext:   resourceDedicatedServerNotificationSettingDatatrafficRead,
 		UpdateContext: resourceDedicatedServerNotificationSettingDatatrafficUpdate,
 		DeleteContext: resourceDedicatedServerNotificationSettingDatatrafficDelete,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Description: "The ID of the notification setting.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"dedicated_server_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The ID of the dedicated server.",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 			"frequency": {
+				Description: `
+The frequency of the notification.
+Can be either ` + "`DAILY`" + `, ` + "`WEEKLY`" + `, or ` + "`MONTHLY`" + `.
+`,
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"DAILY", "WEEKLY", "MONTHLY"}, false),
 			},
 			"threshold": {
+				Description:  "The threshold of the notification.",
 				Type:         schema.TypeFloat,
 				Required:     true,
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
 			"unit": {
+				Description: `
+The unit of the notification.
+Can be either ` + "`MB`" + `, ` + "`GB`" + `, or ` + "`TB`" + `.
+`,
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"MB", "GB", "TB"}, false),

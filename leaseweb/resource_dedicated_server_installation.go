@@ -14,79 +14,102 @@ import (
 
 func resourceDedicatedServerInstallation() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_server_installation`" + ` resource is used to define an installation to a dedicated server.
+The resource cannot be updated in place, modifying any data will launch a new installation.
+`,
 		CreateContext: resourceDedicatedServerInstallationCreate,
 		ReadContext:   resourceDedicatedServerInstallationRead,
 		DeleteContext: resourceDedicatedServerInstallationDelete,
 		Schema: map[string]*schema.Schema{
 			"dedicated_server_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The ID of the dedicated server.",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 			"operating_system_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The ID of the operating system to install.",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 			"callback_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Description: "The URL which will receive callbacks when the installation is finished or failed.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
 			},
 			"control_panel_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Description: "The ID of the control panel to install.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
 			},
 			"job_uuid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Description: "The UUID of the installation job.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"hostname": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Description: "The hostname to configure on the dedicated server.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
 			},
 			"timezone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Description: "The timezone to configure on the dedicated server.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
 			},
 			"ssh_keys": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				ForceNew: true,
+				Description: "List of public SSH keys to authorize on the dedicated server.",
+				Type:        schema.TypeSet,
+				Optional:    true,
+				ForceNew:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"post_install_script": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Description: "Script to run right after the installation.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
 			},
 			"password": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Description: "The root password to configure on the dedicated server.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
 			},
 			"raid": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				ForceNew: true,
-				Computed: true,
+				Description: "The RAID configuration to use on the dedicated server.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				ForceNew:    true,
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
+							Description: `
+The RAID type to apply.
+Valid types are ` + "`HW`" + `, ` + "`SW`" + ` and ` + "`NONE`" + `(pass-through).
+`,
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice([]string{"HW", "SW", "NONE"}, false),
 						},
 						"level": {
+							Description: `
+The RAID level to apply (only valid with HW and SW types).
+Valid levels are ` + "`0`" + `, ` + "`1`" + `, ` + "`5`" + ` and ` + "`10`" + `.
+`,
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
@@ -94,6 +117,9 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 							ValidateFunc: validation.IntInSlice([]int{0, 1, 5, 10}),
 						},
 						"number_of_disks": {
+							Description: `
+The number of disks to apply RAID on (only valid with HW and SW types).
+All disks are used if unspecified.`,
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
@@ -104,33 +130,44 @@ func resourceDedicatedServerInstallation() *schema.Resource {
 				},
 			},
 			"device": {
+				Description: `
+Block devices in a disk set in which the partitions will be installed.
+Supported values are any disk set id, ` + "`SATA_SAS`" + ` or ` + "`NVME`" + `.
+`,
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 			"partition": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Description: "The partition configuration to use on the dedicated server.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"filesystem": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Description: "Filesystem of the partition.",
+							Type:        schema.TypeString,
+							Required:    true,
+							ForceNew:    true,
 						},
 						"mountpoint": {
+							Description: `
+Mountpoint of the partition.
+Mandatory for root partition, unnecessary for swap partition.
+`,
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
 						},
 						"size": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Description: "Size of the partition (Normally in MB, but this is OS-specific).",
+							Type:        schema.TypeString,
+							Required:    true,
+							ForceNew:    true,
 						},
 					},
 				},

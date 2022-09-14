@@ -11,18 +11,24 @@ import (
 
 func dataSourceDedicatedServers() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_servers`" + ` data source allows access to the list of
+dedicated servers available in your account.
+`,
 		ReadContext: dataSourceDedicatedServersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Description: "List of the dedicated server IDs available to the account.",
+				Type:        schema.TypeSet,
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"site": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Description: "Filter the list of servers by location site.",
+				Type:        schema.TypeString,
+				Optional:    true,
 			},
 		},
 	}

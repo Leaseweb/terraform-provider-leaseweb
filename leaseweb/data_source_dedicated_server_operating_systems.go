@@ -11,18 +11,24 @@ import (
 
 func dataSourceDedicatedServerOperatingSystems() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_server_operating_systems`" + ` data source allows access to the list of
+operating systems available for installation on a dedicated server.
+`,
 		ReadContext: dataSourceDedicatedServerOperatingSystemsRead,
 		Schema: map[string]*schema.Schema{
 			"names": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Description: "List of the operating system names.",
+				Type:        schema.TypeMap,
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"ids": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Description: "List of the operating system IDs.",
+				Type:        schema.TypeSet,
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

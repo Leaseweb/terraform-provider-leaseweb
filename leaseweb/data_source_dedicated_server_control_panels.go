@@ -11,25 +11,32 @@ import (
 
 func dataSourceDedicatedServerControlPanels() *schema.Resource {
 	return &schema.Resource{
+		Description: `
+The ` + "`dedicated_server_control_panels`" + ` data source allows access to the list of
+control panels available for installation on a dedicated server.
+`,
 		ReadContext: dataSourceDedicatedServerControlPanelsRead,
 		Schema: map[string]*schema.Schema{
 			"names": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Description: "List of the control panel names.",
+				Type:        schema.TypeMap,
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"ids": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Description: "List of the control panel IDs.",
+				Type:        schema.TypeSet,
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"operating_system_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Description: "Filter the list of control panels to return only the ones available to an operating system.",
+				Type:        schema.TypeString,
+				Optional:    true,
 			},
 		},
 	}
