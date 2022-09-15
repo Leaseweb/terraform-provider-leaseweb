@@ -1,10 +1,10 @@
-terraform-provider-leaseweb
+Terraform Leaseweb Provider
 ---------------------------
 
-A leaseweb terraform provider
+A Terraform provider to manage Leaseweb resources.
 
 
-setup for development
+Setup for development
 ---------------------
 
 This setup uses docker so you do not need go (or any of the build tools) on
@@ -16,12 +16,12 @@ your workstation.
 4. Run `docker compose up -d`
 
 
-building the plugin
+Building the plugin
 -------------------
 
 To build the plugin (in docker):
 
     docker compose exec --env GOOS=$GOOS --env GOARCH=$GOARCH backend go build -o terraform-provider-leaseweb
 
-Now you can move the plugin into the `~/.terraform.d/plugins/` directorym (see
+Now you can move the plugin into the `~/.terraform.d/plugins/` directory (see
 the `Makefile` for details) and you are ready to go.
