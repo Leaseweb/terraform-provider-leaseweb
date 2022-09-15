@@ -43,12 +43,12 @@ resource "leaseweb_dedicated_server" "web" {
 
 ### Required
 
-- `leaseweb_api_token` (String) The API token to use.
+- `api_token` (String) The API token to use.
 By default it takes the value from the `LEASEWEB_API_TOKEN` environment variable if present.
 
 ### Optional
 
-- `leaseweb_api_url` (String) The base URL of the API endpoint to use.
+- `api_url` (String) The base URL of the API endpoint to use.
 By default it takes the value from the `LEASEWEB_API_URL` environment variable if present,
 otherwise it defaults to "https://api.leaseweb.com".
 
@@ -71,13 +71,13 @@ terraform {
 }
 
 provider "leaseweb" {
-  alias              = "nl"
-  leaseweb_api_token = "527070ca-8449-4f06-b609-ec6797bd8222"
+  alias     = "nl"
+  api_token = "527070ca-8449-4f06-b609-ec6797bd8222"
 }
 
 provider "leaseweb" {
-  alias              = "us"
-  leaseweb_api_token = "416fa444-5e96-4198-a4f7-297cbbc3cc70"
+  alias     = "us"
+  api_token = "416fa444-5e96-4198-a4f7-297cbbc3cc70"
 }
 
 resource "leaseweb_dedicated_server" "web-nl" {
