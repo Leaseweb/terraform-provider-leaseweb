@@ -51,3 +51,46 @@ By default it takes the value from the `LEASEWEB_API_TOKEN` environment variable
 - `leaseweb_api_url` (String) The base URL of the API endpoint to use.
 By default it takes the value from the `LEASEWEB_API_URL` environment variable if present,
 otherwise it defaults to "https://api.leaseweb.com".
+
+## Multiple accounts
+
+The API token necessary for the configuration of the provider is linked to a
+particular account. In case you want to manage within a single configuration
+resources from different accounts, you'll need to use aliases and the
+[provider meta-argument](https://www.terraform.io/language/meta-arguments/resource-provider)
+in your resources.
+
+```terraform
+terraform {
+  required_providers {
+    leaseweb = {
+      version = "0.0.1"
+      source  = "git.ocom.com/infra/leaseweb"
+    }
+  }
+}
+
+provider "leaseweb" {
+  alias              = "nl"
+  leaseweb_api_token = "527070ca-8449-4f06-b609-ec6797bd8222"
+}
+
+provider "leaseweb" {
+  alias              = "us"
+  leaseweb_api_token = "416fa444-5e96-4198-a4f7-297cbbc3cc70"
+}
+
+resource "leaseweb_dedicated_server" "web-nl" {
+  provider  = leaseweb.nl
+  reference = "web-nl"
+}
+
+resource "leaseweb_dedicated_server" "web-us" {
+  provider  = leaseweb.us
+  reference = "web-us"
+}
+```
+
+->
+The API token are hardcoded in this example for simplicity, you should use
+[input variables](https://www.terraform.io/language/values/variables) instead.
