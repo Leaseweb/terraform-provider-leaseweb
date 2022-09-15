@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDedicatedServer() *schema.Resource {
@@ -37,10 +38,11 @@ The resource cannot currently be created automatically, it needs to be imported 
 				Computed:    true,
 			},
 			"dhcp_lease": {
-				Description: "The URL of PXE boot the dedicated server is booting from.",
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
+				Description:  "The URL of PXE boot the dedicated server is booting from.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 			},
 			"powered_on": {
 				Description: "Whether the dedicated server is powered on or not.",

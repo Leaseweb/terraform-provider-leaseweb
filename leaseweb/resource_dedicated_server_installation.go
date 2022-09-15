@@ -35,10 +35,11 @@ The resource cannot be updated in place, modifying any data will launch a new in
 				ForceNew:    true,
 			},
 			"callback_url": {
-				Description: "The URL which will receive callbacks when the installation is finished or failed.",
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
+				Description:  "The URL which will receive callbacks when the installation is finished or failed.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 			},
 			"control_panel_id": {
 				Description: "The ID of the control panel to install.",
