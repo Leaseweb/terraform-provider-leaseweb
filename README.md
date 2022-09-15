@@ -4,6 +4,14 @@ Terraform Leaseweb Provider
 A Terraform provider to manage Leaseweb resources.
 
 
+Requirements
+------------
+
+Terraform 0.12.0 or later is needed to use this plugin.
+
+Go 1.18 or later is needed to build the plugin.
+
+
 Setup for development
 ---------------------
 
