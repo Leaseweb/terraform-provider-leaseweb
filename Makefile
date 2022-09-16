@@ -62,5 +62,5 @@ release:
 
 .PHONY: install
 install: build
-	mkdir -p ~/.terraform.d/plugins/git.ocom.com/infra/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)
-	mv dist/$(BINARY) ~/.terraform.d/plugins/git.ocom.com/infra/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)/$(NAME)
+	mkdir -p ~/.terraform.d/plugins/terraform.local/local/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)
+	mv dist/$(BINARY) ~/.terraform.d/plugins/terraform.local/local/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)/$(NAME)

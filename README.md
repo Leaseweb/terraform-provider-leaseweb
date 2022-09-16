@@ -17,7 +17,6 @@ Setup for development
 
 This setup uses docker so you do not need go (or any of the build tools) on
 your workstation.
-
 1. You need `docker` and `docker compose`.
 2. Git clone this repository and `cd` into it.
 3. Run `docker compose build`
@@ -31,5 +30,19 @@ To build the plugin (in docker):
 
     docker compose exec --env GOOS=$GOOS --env GOARCH=$GOARCH backend go build -o terraform-provider-leaseweb
 
-Now you can move the plugin into the `~/.terraform.d/plugins/` directory (see
-the `Makefile` for details) and you are ready to go.
+
+Using the plugin locally
+------------------------
+
+Move the plugin into the `~/.terraform.d/plugins/terraform.local/local/leaseweb/$VERSION/$GOOS_$GOARCH/` directory.
+
+It can then be used the following way in your config:
+
+    terraform {
+      required_providers {
+        leaseweb = {
+          source = "terraform.local/local/leaseweb"
+          version = "0.1.0"
+        }
+      }
+    }
