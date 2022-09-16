@@ -26,7 +26,7 @@ terraform {
   required_providers {
     leaseweb = {
       version = "0.1.0"
-      source  = "git.ocom.com/infra/leaseweb"
+      source  = "leaseweb/leaseweb"
     }
   }
 }
@@ -65,7 +65,7 @@ terraform {
   required_providers {
     leaseweb = {
       version = "0.1.0"
-      source  = "git.ocom.com/infra/leaseweb"
+      source  = "leaseweb/leaseweb"
     }
   }
 }
