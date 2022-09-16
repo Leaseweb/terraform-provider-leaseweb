@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.ocom.com/infra/leaseweb-terraform-provider/leaseweb"
+	"git.ocom.com/infra/terraform-provider-leaseweb/leaseweb"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"

@@ -1,4 +1,4 @@
-module git.ocom.com/infra/leaseweb-terraform-provider
+module git.ocom.com/infra/terraform-provider-leaseweb
 
 go 1.18
 
