@@ -45,7 +45,7 @@ ci: lint
 
 .PHONY: doc
 doc:
-	tfplugindocs generate --rendered-provider-name Leaseweb
+	go generate -run tfplugindocs
 
 .PHONY: format
 format:
