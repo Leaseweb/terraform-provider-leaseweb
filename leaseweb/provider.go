@@ -13,7 +13,7 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"leaseweb_api_url": {
+			"api_url": {
 				Description: `
 The base URL of the API endpoint to use.
 By default it takes the value from the ` + "`LEASEWEB_API_URL`" + ` environment variable if present,
@@ -23,7 +23,7 @@ otherwise it defaults to "https://api.leaseweb.com".
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("LEASEWEB_API_URL", "https://api.leaseweb.com"),
 			},
-			"leaseweb_api_token": {
+			"api_token": {
 				Description: `
 The API token to use.
 By default it takes the value from the ` + "`LEASEWEB_API_TOKEN`" + ` environment variable if present.
@@ -50,8 +50,8 @@ By default it takes the value from the ` + "`LEASEWEB_API_TOKEN`" + ` environmen
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	baseURL := d.Get("leaseweb_api_url").(string)
-	apiToken := d.Get("leaseweb_api_token").(string)
+	baseURL := d.Get("api_url").(string)
+	apiToken := d.Get("api_token").(string)
 
 	if baseURL == "" || apiToken == "" {
 		return nil, diag.Errorf("missing leaseweb provider base url or token")

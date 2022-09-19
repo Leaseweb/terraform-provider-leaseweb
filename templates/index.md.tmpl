@@ -24,3 +24,17 @@ towards a stable 1.0.0 version.
 {{ tffile "examples/provider/provider.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Multiple accounts
+
+The API token necessary for the configuration of the provider is linked to a
+particular account. In case you want to manage within a single configuration
+resources from different accounts, you'll need to use aliases and the
+[provider meta-argument](https://www.terraform.io/language/meta-arguments/resource-provider)
+in your resources.
+
+{{ tffile "examples/provider/multiple_providers.tf" }}
+
+->
+The API token are hardcoded in this example for simplicity, you should use
+[input variables](https://www.terraform.io/language/values/variables) instead.
