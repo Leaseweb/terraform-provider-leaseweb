@@ -1,5 +1,5 @@
 NAME ?= terraform-provider-leaseweb
-VERSION ?= 0.0.1
+VERSION ?= 0.1.0
 GOOS ?= linux
 GOARCH ?= amd64
 BINARY = $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH)
@@ -62,5 +62,5 @@ release:
 
 .PHONY: install
 install: build
-	mkdir -p ~/.terraform.d/plugins/git.ocom.com/infra/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)
-	mv dist/$(BINARY) ~/.terraform.d/plugins/git.ocom.com/infra/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)/$(NAME)
+	mkdir -p ~/.terraform.d/plugins/terraform.local/local/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)
+	mv dist/$(BINARY) ~/.terraform.d/plugins/terraform.local/local/leaseweb/$(VERSION)/$(GOOS)_$(GOARCH)/$(NAME)
