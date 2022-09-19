@@ -1,5 +1,9 @@
 ## 0.2.0 (Unreleased)
 
+## 0.1.1 (September 19, 2022)
+
+Fix release
+
 ## 0.1.0 (September 16, 2022)
 
 FEATURES:
