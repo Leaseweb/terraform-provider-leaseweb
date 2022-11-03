@@ -38,7 +38,7 @@ func dataSourceDedicatedServersRead(ctx context.Context, d *schema.ResourceData,
 	var diags diag.Diagnostics
 
 	site := d.Get("site").(string)
-	servers, err := getAllServers(site)
+	servers, err := getAllServers(ctx, site)
 	if err != nil {
 		return diag.FromErr(err)
 	}

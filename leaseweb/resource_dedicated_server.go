@@ -101,7 +101,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	var diags diag.Diagnostics
 
 	// get basic data
-	server, err := getServer(serverID)
+	server, err := getServer(ctx, serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -117,7 +117,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	})
 
 	// get IP data
-	ip, err := getServerIP(serverID, server.NetworkInterfaces.Public.IP)
+	ip, err := getServerIP(ctx, serverID, server.NetworkInterfaces.Public.IP)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -125,21 +125,21 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	d.Set("public_ip_null_routed", ip.NullRouted)
 
 	// get lease data
-	lease, err := getServerLease(serverID)
+	lease, err := getServerLease(ctx, serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("dhcp_lease", lease.GetBootfile())
 
 	// get power data
-	powerInfo, err := getPowerInfo(serverID)
+	powerInfo, err := getPowerInfo(ctx, serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("powered_on", powerInfo.IsPoweredOn())
 
 	// get public network interface data
-	publicNetworkInterfaceInfo, err := getNetworkInterfaceInfo(serverID, "public")
+	publicNetworkInterfaceInfo, err := getNetworkInterfaceInfo(ctx, serverID, "public")
 	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.IsOpened())
 
 	return diags
@@ -150,7 +150,7 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	if d.HasChange("reference") {
 		reference := d.Get("reference").(string)
-		if err := updateReference(serverID, reference); err != nil {
+		if err := updateReference(ctx, serverID, reference); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -161,7 +161,7 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("reverse_lookup") {
 		publicIP := d.Get("public_ip").(string)
 		reverseLookup := d.Get("reverse_lookup").(string)
-		if err := updateReverseLookup(serverID, publicIP, reverseLookup); err != nil {
+		if err := updateReverseLookup(ctx, serverID, publicIP, reverseLookup); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -169,11 +169,11 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("dhcp_lease") {
 		bootFile := d.Get("dhcp_lease").(string)
 		if bootFile != "" {
-			if err := addDHCPLease(serverID, bootFile); err != nil {
+			if err := addDHCPLease(ctx, serverID, bootFile); err != nil {
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := removeDHCPLease(serverID); err != nil {
+			if err := removeDHCPLease(ctx, serverID); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -181,11 +181,11 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	if d.HasChange("powered_on") {
 		if d.Get("powered_on").(bool) {
-			if err := powerOnServer(serverID); err != nil {
+			if err := powerOnServer(ctx, serverID); err != nil {
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := powerOffServer(serverID); err != nil {
+			if err := powerOffServer(ctx, serverID); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -193,11 +193,11 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	if d.HasChange("public_network_interface_opened") {
 		if d.Get("public_network_interface_opened").(bool) {
-			if err := openNetworkInterface(serverID, "public"); err != nil {
+			if err := openNetworkInterface(ctx, serverID, "public"); err != nil {
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := closeNetworkInterface(serverID, "public"); err != nil {
+			if err := closeNetworkInterface(ctx, serverID, "public"); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -206,11 +206,11 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("public_ip_null_routed") {
 		publicIP := d.Get("public_ip").(string)
 		if d.Get("public_ip_null_routed").(bool) {
-			if err := nullIP(serverID, publicIP); err != nil {
+			if err := nullIP(ctx, serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := unnullIP(serverID, publicIP); err != nil {
+			if err := unnullIP(ctx, serverID, publicIP); err != nil {
 				return diag.FromErr(err)
 			}
 		}

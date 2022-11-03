@@ -2,6 +2,7 @@ package leaseweb
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -146,7 +147,7 @@ func parseErrorInfo(r io.Reader, ctx string) error {
 	return &ei
 }
 
-func getServer(serverID string) (*Server, error) {
+func getServer(ctx context.Context, serverID string) (*Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return nil, err
@@ -175,7 +176,7 @@ func getServer(serverID string) (*Server, error) {
 	return &server, nil
 }
 
-func getServerIP(serverID string, ip string) (*IP, error) {
+func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip), nil)
 	if err != nil {
 		return nil, err
@@ -201,7 +202,7 @@ func getServerIP(serverID string, ip string) (*IP, error) {
 	return &ipData, nil
 }
 
-func getServerLease(serverID string) (*DHCPLease, error) {
+func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return nil, err
@@ -227,7 +228,7 @@ func getServerLease(serverID string) (*DHCPLease, error) {
 	return &dhcpLease, nil
 }
 
-func getPowerInfo(serverID string) (*PowerInfo, error) {
+func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerInfo", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return nil, err
@@ -253,7 +254,7 @@ func getPowerInfo(serverID string) (*PowerInfo, error) {
 	return &powerInfo, nil
 }
 
-func getNetworkInterfaceInfo(serverID string, networkType string) (*NetworkInterfaceInfo, error) {
+func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType string) (*NetworkInterfaceInfo, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s", leasewebAPIURL, serverID, networkType), nil)
 	if err != nil {
 		return nil, err
@@ -279,7 +280,7 @@ func getNetworkInterfaceInfo(serverID string, networkType string) (*NetworkInter
 	return &networkInterfaceInfo, nil
 }
 
-func updateReference(serverID string, reference string) error {
+func updateReference(ctx context.Context, serverID string, reference string) error {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		Reference string `json:"reference"`
@@ -309,7 +310,7 @@ func updateReference(serverID string, reference string) error {
 	return nil
 }
 
-func updateReverseLookup(serverID string, ip string, reverseLookup string) error {
+func updateReverseLookup(ctx context.Context, serverID string, ip string, reverseLookup string) error {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		ReverseLookup string `json:"reverseLookup"`
@@ -339,7 +340,7 @@ func updateReverseLookup(serverID string, ip string, reverseLookup string) error
 	return nil
 }
 
-func powerOnServer(serverID string) error {
+func powerOnServer(ctx context.Context, serverID string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOn", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return err
@@ -358,7 +359,7 @@ func powerOnServer(serverID string) error {
 	return nil
 }
 
-func powerOffServer(serverID string) error {
+func powerOffServer(ctx context.Context, serverID string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOff", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return err
@@ -377,7 +378,7 @@ func powerOffServer(serverID string) error {
 	return nil
 }
 
-func addDHCPLease(serverID string, bootfile string) error {
+func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		Bootfile string `json:"bootfile"`
@@ -407,7 +408,7 @@ func addDHCPLease(serverID string, bootfile string) error {
 	return nil
 }
 
-func removeDHCPLease(serverID string) error {
+func removeDHCPLease(ctx context.Context, serverID string) error {
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return err
@@ -426,7 +427,7 @@ func removeDHCPLease(serverID string) error {
 	return nil
 }
 
-func openNetworkInterface(serverID string, networkType string) error {
+func openNetworkInterface(ctx context.Context, serverID string, networkType string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/open", leasewebAPIURL, serverID, networkType), nil)
 	if err != nil {
 		return err
@@ -445,7 +446,7 @@ func openNetworkInterface(serverID string, networkType string) error {
 	return nil
 }
 
-func closeNetworkInterface(serverID string, networkType string) error {
+func closeNetworkInterface(ctx context.Context, serverID string, networkType string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/close", leasewebAPIURL, serverID, networkType), nil)
 	if err != nil {
 		return err
@@ -464,7 +465,7 @@ func closeNetworkInterface(serverID string, networkType string) error {
 	return nil
 }
 
-func nullIP(serverID string, IP string) error {
+func nullIP(ctx context.Context, serverID string, IP string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP), nil)
 	if err != nil {
 		return err
@@ -483,7 +484,7 @@ func nullIP(serverID string, IP string) error {
 	return nil
 }
 
-func unnullIP(serverID string, IP string) error {
+func unnullIP(ctx context.Context, serverID string, IP string) error {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP), nil)
 	if err != nil {
 		return err
@@ -502,7 +503,7 @@ func unnullIP(serverID string, IP string) error {
 	return nil
 }
 
-func createDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+func createDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
@@ -535,7 +536,7 @@ func createDedicatedServerNotificationSetting(serverID string, notificationType 
 	return &createdNotificationSetting, nil
 }
 
-func getDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
+func getDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID), nil)
 	if err != nil {
 		return nil, err
@@ -561,7 +562,7 @@ func getDedicatedServerNotificationSetting(serverID string, notificationType str
 	return &notificationSetting, nil
 }
 
-func updateDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+func updateDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
@@ -594,7 +595,7 @@ func updateDedicatedServerNotificationSetting(serverID string, notificationType 
 	return &updatedNotificationSetting, nil
 }
 
-func deleteDedicatedServerNotificationSetting(serverID string, notificationType string, notificationSettingID string) error {
+func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID), nil)
 	if err != nil {
 		return err
@@ -614,7 +615,7 @@ func deleteDedicatedServerNotificationSetting(serverID string, notificationType 
 	return nil
 }
 
-func createDedicatedServerCredential(serverID string, credential *Credential) (*Credential, error) {
+func createDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) (*Credential, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(credential)
 	if err != nil {
@@ -647,7 +648,7 @@ func createDedicatedServerCredential(serverID string, credential *Credential) (*
 	return &createdCredential, nil
 }
 
-func getDedicatedServerCredential(serverID string, credentialType string, username string) (*Credential, error) {
+func getDedicatedServerCredential(ctx context.Context, serverID string, credentialType string, username string) (*Credential, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credentialType, username), nil)
 	if err != nil {
 		return nil, err
@@ -673,7 +674,7 @@ func getDedicatedServerCredential(serverID string, credentialType string, userna
 	return &credential, nil
 }
 
-func updateDedicatedServerCredential(serverID string, credential *Credential) (*Credential, error) {
+func updateDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) (*Credential, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		Password string `json:"password"`
@@ -710,7 +711,7 @@ func updateDedicatedServerCredential(serverID string, credential *Credential) (*
 	return &updatedCredential, nil
 }
 
-func deleteDedicatedServerCredential(serverID string, credential *Credential) error {
+func deleteDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) error {
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username), nil)
 	if err != nil {
 		return err
@@ -730,7 +731,7 @@ func deleteDedicatedServerCredential(serverID string, credential *Credential) er
 	return nil
 }
 
-func getOperatingSystems() ([]OperatingSystem, error) {
+func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/operatingSystems", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
@@ -762,7 +763,7 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	return operatingSystems.OperatingSystems, nil
 }
 
-func getControlPanels(operatingSystemID string) ([]ControlPanel, error) {
+func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlPanel, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
@@ -796,7 +797,7 @@ func getControlPanels(operatingSystemID string) ([]ControlPanel, error) {
 	return controlPanels.ControlPanels, nil
 }
 
-func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {
+func launchInstallationJob(ctx context.Context, serverID string, payload *Payload) (*Job, error) {
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(payload)
 	if err != nil {
@@ -830,7 +831,7 @@ func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {
 	return &installationJob, nil
 }
 
-func getLatestInstallationJob(serverID string) (*Job, error) {
+func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID), nil)
 	if err != nil {
 		return nil, err
@@ -863,7 +864,7 @@ func getLatestInstallationJob(serverID string) (*Job, error) {
 	return &jobs.Jobs[0], nil
 }
 
-func getJob(serverID string, jobUUID string) (*Job, error) {
+func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID), nil)
 	if err != nil {
 		return nil, err
@@ -890,7 +891,7 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	return &job, nil
 }
 
-func getServersBatch(offset int, limit int, site string) ([]Server, error) {
+func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL), nil)
 	if err != nil {
 		return nil, err
@@ -937,12 +938,12 @@ func getServersBatch(offset int, limit int, site string) ([]Server, error) {
 	return serverList.Servers, nil
 }
 
-func getAllServers(site string) ([]Server, error) {
+func getAllServers(ctx context.Context, site string) ([]Server, error) {
 	var allServers []Server
 	offset := 0
 	limit := 20
 
-	serversBatch, err := getServersBatch(offset, limit, site)
+	serversBatch, err := getServersBatch(ctx, offset, limit, site)
 	if err != nil {
 		return nil, err
 	}
@@ -950,7 +951,7 @@ func getAllServers(site string) ([]Server, error) {
 
 	for len(serversBatch) != 0 {
 		offset += limit
-		serversBatch, err = getServersBatch(offset, limit, site)
+		serversBatch, err = getServersBatch(ctx, offset, limit, site)
 		if err != nil {
 			return nil, err
 		}

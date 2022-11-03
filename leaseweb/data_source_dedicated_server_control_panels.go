@@ -45,7 +45,7 @@ control panels available for installation on a dedicated server.
 func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	operatingSystemID := d.Get("operating_system_id").(string)
-	controlPanels, err := getControlPanels(operatingSystemID)
+	controlPanels, err := getControlPanels(ctx, operatingSystemID)
 	if err != nil {
 		return diag.FromErr(err)
 	}

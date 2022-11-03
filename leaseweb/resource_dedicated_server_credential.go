@@ -77,7 +77,7 @@ func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.Reso
 		Password: d.Get("password").(string),
 	}
 
-	createdCredential, err := createDedicatedServerCredential(serverID, &credential)
+	createdCredential, err := createDedicatedServerCredential(ctx, serverID, &credential)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -94,7 +94,7 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 
 	var diags diag.Diagnostics
 
-	credential, err := getDedicatedServerCredential(serverID, credentialType, username)
+	credential, err := getDedicatedServerCredential(ctx, serverID, credentialType, username)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,7 +113,7 @@ func resourceDedicatedServerCredentialUpdate(ctx context.Context, d *schema.Reso
 		Password: d.Get("password").(string),
 	}
 
-	if _, err := updateDedicatedServerCredential(serverID, &credential); err != nil {
+	if _, err := updateDedicatedServerCredential(ctx, serverID, &credential); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -131,7 +131,7 @@ func resourceDedicatedServerCredentialDelete(ctx context.Context, d *schema.Reso
 		Password: d.Get("password").(string),
 	}
 
-	if err := deleteDedicatedServerCredential(serverID, &credential); err != nil {
+	if err := deleteDedicatedServerCredential(ctx, serverID, &credential); err != nil {
 		return diag.FromErr(err)
 	}
 
