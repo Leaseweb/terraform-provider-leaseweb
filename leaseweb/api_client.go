@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -122,6 +123,29 @@ type Job struct {
 	Payload Payload
 }
 
+// ErrorInfo -
+type ErrorInfo struct {
+	Context string
+	Code    string `json:"errorCode"`
+	Message string `json:"errorMessage"`
+}
+
+func (ei *ErrorInfo) Error() string {
+	return "(" + ei.Code + ") " + ei.Context + ": " + ei.Message
+}
+
+func parseErrorInfo(r io.Reader, ctx string) error {
+	ei := ErrorInfo{
+		Context: ctx,
+	}
+
+	if err := json.NewDecoder(r).Decode(&ei); err != nil {
+		return err
+	}
+
+	return &ei
+}
+
 func getServer(serverID string) (*Server, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID), nil)
 	if err != nil {
@@ -136,7 +160,7 @@ func getServer(serverID string) (*Server, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting server, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server")
 	}
 
 	var server Server
@@ -165,7 +189,7 @@ func getServerIP(serverID string, ip string) (*IP, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting ip, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server IP")
 	}
 
 	var ipData IP
@@ -191,7 +215,7 @@ func getServerLease(serverID string) (*DHCPLease, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting leases, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server lease")
 	}
 
 	var dhcpLease DHCPLease
@@ -217,7 +241,7 @@ func getPowerInfo(serverID string) (*PowerInfo, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting leases, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server power info")
 	}
 
 	var powerInfo PowerInfo
@@ -243,7 +267,7 @@ func getNetworkInterfaceInfo(serverID string, networkType string) (*NetworkInter
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting network interface info, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server network interface info")
 	}
 
 	var networkInterfaceInfo NetworkInterfaceInfo
@@ -279,7 +303,7 @@ func updateReference(serverID string, reference string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error updating reference, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "updating server reference")
 	}
 
 	return nil
@@ -309,7 +333,7 @@ func updateReverseLookup(serverID string, ip string, reverseLookup string) error
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("error updating reverse lookup, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "updating server reverse lookup")
 	}
 
 	return nil
@@ -328,7 +352,7 @@ func powerOnServer(serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("error powering on server, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "powering on server")
 	}
 
 	return nil
@@ -347,7 +371,7 @@ func powerOffServer(serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("error powering off server, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "powering off server")
 	}
 
 	return nil
@@ -377,7 +401,7 @@ func addDHCPLease(serverID string, bootfile string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error adding dhcp lease, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "adding server lease")
 	}
 
 	return nil
@@ -396,7 +420,7 @@ func removeDHCPLease(serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error removing dhcp lease, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "removing server lease")
 	}
 
 	return nil
@@ -415,7 +439,7 @@ func openNetworkInterface(serverID string, networkType string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error opening network interface, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "opening server network interface")
 	}
 
 	return nil
@@ -434,7 +458,7 @@ func closeNetworkInterface(serverID string, networkType string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error closing network interface, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "closing server network interface")
 	}
 
 	return nil
@@ -453,7 +477,7 @@ func nullIP(serverID string, IP string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("error nulling ip of the server, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "nulling server IP")
 	}
 
 	return nil
@@ -472,7 +496,7 @@ func unnullIP(serverID string, IP string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("error unnulling server ip of the server, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "unnulling server IP")
 	}
 
 	return nil
@@ -499,7 +523,7 @@ func createDedicatedServerNotificationSetting(serverID string, notificationType 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("error creating server notification setting, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "creating server notification setting")
 	}
 
 	var createdNotificationSetting NotificationSetting
@@ -525,7 +549,7 @@ func getDedicatedServerNotificationSetting(serverID string, notificationType str
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting server notification setting, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server notification setting")
 	}
 
 	var notificationSetting NotificationSetting
@@ -558,7 +582,7 @@ func updateDedicatedServerNotificationSetting(serverID string, notificationType 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error updating server notification setting, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "updating server notification setting")
 	}
 
 	var updatedNotificationSetting NotificationSetting
@@ -584,7 +608,7 @@ func deleteDedicatedServerNotificationSetting(serverID string, notificationType 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error deleting server notification setting, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "deleting server notification setting")
 	}
 
 	return nil
@@ -611,7 +635,7 @@ func createDedicatedServerCredential(serverID string, credential *Credential) (*
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error creating server credential, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "creating server credential")
 	}
 
 	var createdCredential Credential
@@ -637,7 +661,7 @@ func getDedicatedServerCredential(serverID string, credentialType string, userna
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting server credential, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting server credential")
 	}
 
 	var credential Credential
@@ -674,7 +698,7 @@ func updateDedicatedServerCredential(serverID string, credential *Credential) (*
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error updating server credential, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "updating server credential")
 	}
 
 	var updatedCredential Credential
@@ -700,7 +724,7 @@ func deleteDedicatedServerCredential(serverID string, credential *Credential) er
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("error deleting server credential, api response %v", response.StatusCode)
+		return parseErrorInfo(response.Body, "deleting server credential")
 	}
 
 	return nil
@@ -720,7 +744,7 @@ func getOperatingSystems() ([]OperatingSystem, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting operating systems, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting operating systems")
 	}
 
 	var operatingSystems struct {
@@ -757,7 +781,7 @@ func getControlPanels(operatingSystemID string) ([]ControlPanel, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting control panels, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting control panels")
 	}
 
 	var controlPanels struct {
@@ -793,7 +817,7 @@ func launchInstallationJob(serverID string, payload *Payload) (*Job, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		return nil, fmt.Errorf("error launching installation job, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "launching installation job")
 	}
 
 	var installationJob Job
@@ -824,7 +848,7 @@ func getLatestInstallationJob(serverID string) (*Job, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting latest installation job, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting latest installation job")
 	}
 
 	var jobs struct {
@@ -853,7 +877,7 @@ func getJob(serverID string, jobUUID string) (*Job, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting job status, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting job status")
 	}
 
 	var job Job
@@ -898,7 +922,7 @@ func getServersBatch(offset int, limit int, site string) ([]Server, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting server list, api response %v", response.StatusCode)
+		return nil, parseErrorInfo(response.Body, "getting servers list")
 	}
 
 	var serverList struct {
