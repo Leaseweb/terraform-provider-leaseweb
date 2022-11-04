@@ -159,6 +159,23 @@ func logAPIRequest(ctx context.Context, method, url string) {
 		})
 }
 
+func logAPIError(ctx context.Context, method, url string, e error) {
+	fields := map[string]interface{}{
+		"url":    url,
+		"method": method,
+	}
+
+	if ei, ok := e.(*ErrorInfo); ok {
+		fields["context"] = ei.Context
+		fields["code"] = ei.Code
+		fields["message"] = ei.Message
+	} else {
+		fields["message"] = e.Error()
+	}
+
+	tflog.Error(ctx, "API request error", fields)
+}
+
 func getServer(ctx context.Context, serverID string) (*Server, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
 	method := "GET"
@@ -178,7 +195,9 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server %s", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s", serverID))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var server Server
@@ -212,7 +231,9 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server %s IP %s", serverID, ip))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s IP %s", serverID, ip))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var ipData IP
@@ -243,7 +264,9 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server %s lease", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s lease", serverID))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var dhcpLease DHCPLease
@@ -274,7 +297,9 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server %s power info", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s power info", serverID))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var powerInfo PowerInfo
@@ -305,7 +330,9 @@ func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType s
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server network interface info"))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server network interface info"))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var networkInterfaceInfo NetworkInterfaceInfo
@@ -346,7 +373,9 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reference", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reference", serverID))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -381,7 +410,9 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -405,7 +436,9 @@ func powerOnServer(ctx context.Context, serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return parseErrorInfo(response.Body, fmt.Sprintf("powering on server %s", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("powering on server %s", serverID))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -429,7 +462,9 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return parseErrorInfo(response.Body, fmt.Sprintf("powering off server %s", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("powering off server %s", serverID))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -464,7 +499,9 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("adding server %s lease", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("adding server %s lease", serverID))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -488,7 +525,9 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("removing server %s lease", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("removing server %s lease", serverID))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -512,7 +551,9 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("opening server %s network interface %s", serverID, networkType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("opening server %s network interface %s", serverID, networkType))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -536,7 +577,9 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("closing server %s network interface %s", serverID, networkType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("closing server %s network interface %s", serverID, networkType))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -560,7 +603,9 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return parseErrorInfo(response.Body, fmt.Sprintf("nulling server %s IP %s", serverID, IP))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("nulling server %s IP %s", serverID, IP))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -584,7 +629,9 @@ func unnullIP(ctx context.Context, serverID string, IP string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		return parseErrorInfo(response.Body, fmt.Sprintf("unnulling server %s IP %s", serverID, IP))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("unnulling server %s IP %s", serverID, IP))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -616,7 +663,9 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusCreated {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var createdNotificationSetting NotificationSetting
@@ -647,7 +696,9 @@ func getDedicatedServerNotificationSetting(ctx context.Context, serverID string,
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var notificationSetting NotificationSetting
@@ -685,7 +736,9 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var updatedNotificationSetting NotificationSetting
@@ -716,7 +769,9 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -748,7 +803,9 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("creating server %s credential %s", serverID, credential.Type))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s credential %s", serverID, credential.Type))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var createdCredential Credential
@@ -779,7 +836,9 @@ func getDedicatedServerCredential(ctx context.Context, serverID string, credenti
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting server %s credential %s", serverID, credentialType))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s credential %s", serverID, credentialType))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var credential Credential
@@ -821,7 +880,9 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("updating server %s credential %s", serverID, credential.Type))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s credential %s", serverID, credential.Type))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var updatedCredential Credential
@@ -852,7 +913,9 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		return parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type))
+		logAPIError(ctx, method, url, e)
+		return e
 	}
 
 	return nil
@@ -877,7 +940,9 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting operating systems"))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting operating systems"))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var operatingSystems struct {
@@ -919,7 +984,9 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting control panels"))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting control panels"))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var controlPanels struct {
@@ -960,7 +1027,9 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("launching installation job for server %s", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("launching installation job for server %s", serverID))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var installationJob Job
@@ -996,7 +1065,9 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting latest installation job for server %s", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting latest installation job for server %s", serverID))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var jobs struct {
@@ -1030,7 +1101,9 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting job status for server %s", serverID))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting job status for server %s", serverID))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var job Job
@@ -1080,7 +1153,9 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, parseErrorInfo(response.Body, fmt.Sprintf("getting servers list"))
+		e := parseErrorInfo(response.Body, fmt.Sprintf("getting servers list"))
+		logAPIError(ctx, method, url, e)
+		return nil, e
 	}
 
 	var serverList struct {
