@@ -135,20 +135,20 @@ type ErrorInfo struct {
 	Details       map[string][]string `json:"errorDetails"`
 }
 
-func (ei *ErrorInfo) Error() string {
-	return "(" + ei.Code + ") " + ei.Context + ": " + ei.Message
+func (erri *ErrorInfo) Error() string {
+	return "(" + erri.Code + ") " + erri.Context + ": " + erri.Message
 }
 
 func parseErrorInfo(r io.Reader, ctx string) error {
-	ei := ErrorInfo{
+	erri := ErrorInfo{
 		Context: ctx,
 	}
 
-	if err := json.NewDecoder(r).Decode(&ei); err != nil {
+	if err := json.NewDecoder(r).Decode(&erri); err != nil {
 		return err
 	}
 
-	return &ei
+	return &erri
 }
 
 func logAPIRequest(ctx context.Context, method, url string) {
@@ -161,25 +161,25 @@ func logAPIRequest(ctx context.Context, method, url string) {
 		})
 }
 
-func logAPIError(ctx context.Context, method, url string, e error) {
+func logAPIError(ctx context.Context, method, url string, err error) {
 	fields := map[string]interface{}{
 		"url":    url,
 		"method": method,
 	}
 
-	if ei, ok := e.(*ErrorInfo); ok {
-		fields["context"] = ei.Context
-		fields["code"] = ei.Code
-		fields["message"] = ei.Message
-		fields["correlation_id"] = ei.CorrelationID
+	if erri, ok := err.(*ErrorInfo); ok {
+		fields["context"] = erri.Context
+		fields["code"] = erri.Code
+		fields["message"] = erri.Message
+		fields["correlation_id"] = erri.CorrelationID
 
-		if len(ei.Details) != 0 {
-			for field, details := range ei.Details {
+		if len(erri.Details) != 0 {
+			for field, details := range erri.Details {
 				fields["detail_"+field] = details
 			}
 		}
 	} else {
-		fields["message"] = e.Error()
+		fields["message"] = err.Error()
 	}
 
 	tflog.Error(ctx, "API request error", fields)
@@ -204,9 +204,9 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s", serverID))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s", serverID))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var server Server
@@ -240,9 +240,9 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s IP %s", serverID, ip))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s IP %s", serverID, ip))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var ipData IP
@@ -273,9 +273,9 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s lease", serverID))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s lease", serverID))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var dhcpLease DHCPLease
@@ -306,9 +306,9 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s power info", serverID))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s power info", serverID))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var powerInfo PowerInfo
@@ -339,9 +339,9 @@ func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType s
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server network interface info"))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server network interface info"))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var networkInterfaceInfo NetworkInterfaceInfo
@@ -382,9 +382,9 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reference", serverID))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reference", serverID))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -419,9 +419,9 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 	}
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -445,9 +445,9 @@ func powerOnServer(ctx context.Context, serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("powering on server %s", serverID))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("powering on server %s", serverID))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -471,9 +471,9 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("powering off server %s", serverID))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("powering off server %s", serverID))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -508,9 +508,9 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("adding server %s lease", serverID))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("adding server %s lease", serverID))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -534,9 +534,9 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("removing server %s lease", serverID))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("removing server %s lease", serverID))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -560,9 +560,9 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("opening server %s network interface %s", serverID, networkType))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("opening server %s network interface %s", serverID, networkType))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -586,9 +586,9 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 	}
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("closing server %s network interface %s", serverID, networkType))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("closing server %s network interface %s", serverID, networkType))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -612,9 +612,9 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("nulling server %s IP %s", serverID, IP))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("nulling server %s IP %s", serverID, IP))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -638,9 +638,9 @@ func unnullIP(ctx context.Context, serverID string, IP string) error {
 	}
 
 	if response.StatusCode != http.StatusAccepted {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("unnulling server %s IP %s", serverID, IP))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("unnulling server %s IP %s", serverID, IP))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -672,9 +672,9 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusCreated {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var createdNotificationSetting NotificationSetting
@@ -705,9 +705,9 @@ func getDedicatedServerNotificationSetting(ctx context.Context, serverID string,
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var notificationSetting NotificationSetting
@@ -745,9 +745,9 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var updatedNotificationSetting NotificationSetting
@@ -778,9 +778,9 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -812,9 +812,9 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s credential %s", serverID, credential.Type))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s credential %s", serverID, credential.Type))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var createdCredential Credential
@@ -845,9 +845,9 @@ func getDedicatedServerCredential(ctx context.Context, serverID string, credenti
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s credential %s", serverID, credentialType))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s credential %s", serverID, credentialType))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var credential Credential
@@ -889,9 +889,9 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s credential %s", serverID, credential.Type))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s credential %s", serverID, credential.Type))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var updatedCredential Credential
@@ -922,9 +922,9 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type))
-		logAPIError(ctx, method, url, e)
-		return e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type))
+		logAPIError(ctx, method, url, err)
+		return err
 	}
 
 	return nil
@@ -949,9 +949,9 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting operating systems"))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting operating systems"))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var operatingSystems struct {
@@ -993,9 +993,9 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting control panels"))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting control panels"))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var controlPanels struct {
@@ -1036,9 +1036,9 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("launching installation job for server %s", serverID))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("launching installation job for server %s", serverID))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var installationJob Job
@@ -1074,9 +1074,9 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting latest installation job for server %s", serverID))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting latest installation job for server %s", serverID))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var jobs struct {
@@ -1110,9 +1110,9 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting job status for server %s", serverID))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting job status for server %s", serverID))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var job Job
@@ -1162,9 +1162,9 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		e := parseErrorInfo(response.Body, fmt.Sprintf("getting servers list"))
-		logAPIError(ctx, method, url, e)
-		return nil, e
+		err := parseErrorInfo(response.Body, fmt.Sprintf("getting servers list"))
+		logAPIError(ctx, method, url, err)
+		return nil, err
 	}
 
 	var serverList struct {
