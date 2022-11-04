@@ -128,10 +128,11 @@ type Job struct {
 
 // ErrorInfo -
 type ErrorInfo struct {
-	Context string
-	Code    string              `json:"errorCode"`
-	Message string              `json:"errorMessage"`
-	Details map[string][]string `json:"errorDetails"`
+	Context       string
+	CorrelationID string              `json:"correlationId"`
+	Code          string              `json:"errorCode"`
+	Message       string              `json:"errorMessage"`
+	Details       map[string][]string `json:"errorDetails"`
 }
 
 func (ei *ErrorInfo) Error() string {
@@ -170,6 +171,7 @@ func logAPIError(ctx context.Context, method, url string, e error) {
 		fields["context"] = ei.Context
 		fields["code"] = ei.Code
 		fields["message"] = ei.Message
+		fields["correlation_id"] = ei.CorrelationID
 
 		if len(ei.Details) != 0 {
 			for field, details := range ei.Details {
