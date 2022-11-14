@@ -187,7 +187,7 @@ func logAPIError(ctx context.Context, method, url string, err error) {
 
 func getServer(ctx context.Context, serverID string) (*Server, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -223,7 +223,7 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 
 func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -256,7 +256,7 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 
 func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -289,7 +289,7 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 
 func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerInfo", leasewebAPIURL, serverID)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -322,7 +322,7 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 
 func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType string) (*NetworkInterfaceInfo, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s", leasewebAPIURL, serverID, networkType)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -365,7 +365,7 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
-	method := "PUT"
+	method := http.MethodPut
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -402,7 +402,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
-	method := "PUT"
+	method := http.MethodPut
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -429,7 +429,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 
 func powerOnServer(ctx context.Context, serverID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOn", leasewebAPIURL, serverID)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -455,7 +455,7 @@ func powerOnServer(ctx context.Context, serverID string) error {
 
 func powerOffServer(ctx context.Context, serverID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOff", leasewebAPIURL, serverID)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -491,7 +491,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -518,7 +518,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 
 func removeDHCPLease(ctx context.Context, serverID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
-	method := "DELETE"
+	method := http.MethodDelete
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -544,7 +544,7 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 
 func openNetworkInterface(ctx context.Context, serverID string, networkType string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/open", leasewebAPIURL, serverID, networkType)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -570,7 +570,7 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 
 func closeNetworkInterface(ctx context.Context, serverID string, networkType string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/close", leasewebAPIURL, serverID, networkType)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -596,7 +596,7 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 
 func nullIP(ctx context.Context, serverID string, IP string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -622,7 +622,7 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 
 func unnullIP(ctx context.Context, serverID string, IP string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -654,7 +654,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s", leasewebAPIURL, serverID, notificationType)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -688,7 +688,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 
 func getDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -727,7 +727,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := "PUT"
+	method := http.MethodPut
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -761,7 +761,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 
 func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := "DELETE"
+	method := http.MethodDelete
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -794,7 +794,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials", leasewebAPIURL, serverID)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -828,7 +828,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 
 func getDedicatedServerCredential(ctx context.Context, serverID string, credentialType string, username string) (*Credential, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credentialType, username)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -871,7 +871,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
-	method := "PUT"
+	method := http.MethodPut
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -905,7 +905,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 
 func deleteDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
-	method := "DELETE"
+	method := http.MethodDelete
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -932,7 +932,7 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 
 func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/operatingSystems", leasewebAPIURL)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -971,7 +971,7 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 
 func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlPanel, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -1018,7 +1018,7 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/install", leasewebAPIURL, serverID)
-	method := "POST"
+	method := http.MethodPost
 
 	request, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
@@ -1053,7 +1053,7 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 
 func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -1093,7 +1093,7 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 
 func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -1127,7 +1127,7 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL)
-	method := "GET"
+	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
