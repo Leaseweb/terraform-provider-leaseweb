@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -970,7 +971,18 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 }
 
 func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlPanel, error) {
-	url := fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL)
+	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL))
+	if err != nil {
+		return nil, err
+	}
+
+	if operatingSystemID != "" {
+		v := url.Values{}
+		v.Set("operatingSystemId", operatingSystemID)
+		u.RawQuery = v.Encode()
+	}
+
+	url := u.String()
 	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
@@ -978,11 +990,6 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 		return nil, err
 	}
 	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-	if operatingSystemID != "" {
-		q := request.URL.Query()
-		q.Add("operatingSystemId", operatingSystemID)
-		request.URL.RawQuery = q.Encode()
-	}
 
 	logAPIRequest(ctx, method, url)
 
@@ -1052,7 +1059,16 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 }
 
 func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID)
+	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID))
+	if err != nil {
+		return nil, err
+	}
+
+	v := url.Values{}
+	v.Set("type", "install")
+	u.RawQuery = v.Encode()
+
+	url := u.String()
 	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
@@ -1060,10 +1076,6 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 		return nil, err
 	}
 	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	q := request.URL.Query()
-	q.Add("type", "install")
-	request.URL.RawQuery = q.Encode()
 
 	logAPIRequest(ctx, method, url)
 
@@ -1126,7 +1138,28 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 }
 
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
-	url := fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL)
+	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL))
+	if err != nil {
+		return nil, err
+	}
+
+	v := url.Values{}
+
+	if offset >= 0 {
+		v.Set("offset", strconv.Itoa(offset))
+	}
+
+	if limit >= 0 {
+		v.Set("limit", strconv.Itoa(limit))
+	}
+
+	if site != "" {
+		v.Set("site", site)
+	}
+
+	u.RawQuery = v.Encode()
+
+	url := u.String()
 	method := http.MethodGet
 
 	request, err := http.NewRequest(method, url, nil)
@@ -1134,24 +1167,6 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 		return nil, err
 	}
 	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	if offset >= 0 {
-		q := request.URL.Query()
-		q.Add("offset", strconv.Itoa(offset))
-		request.URL.RawQuery = q.Encode()
-	}
-
-	if limit >= 0 {
-		q := request.URL.Query()
-		q.Add("limit", strconv.Itoa(limit))
-		request.URL.RawQuery = q.Encode()
-	}
-
-	if site != "" {
-		q := request.URL.Query()
-		q.Add("site", site)
-		request.URL.RawQuery = q.Encode()
-	}
 
 	logAPIRequest(ctx, method, url)
 
