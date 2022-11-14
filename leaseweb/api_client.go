@@ -164,7 +164,10 @@ func doAPIRequest(ctx context.Context, method, url string, body io.Reader) (*htt
 		request.Header.Set("Content-Type", "application/json")
 	}
 
-	logAPIRequest(ctx, method, url)
+	tflog.Trace(ctx, "executing API request", map[string]interface{}{
+		"url":    url,
+		"method": method,
+	})
 
 	response, err := leasewebClient.Do(request)
 	if err != nil {
@@ -172,16 +175,6 @@ func doAPIRequest(ctx context.Context, method, url string, body io.Reader) (*htt
 	}
 
 	return response, nil
-}
-
-func logAPIRequest(ctx context.Context, method, url string) {
-	tflog.Trace(
-		ctx,
-		"executing API request",
-		map[string]interface{}{
-			"url":    url,
-			"method": method,
-		})
 }
 
 func logAPIError(ctx context.Context, method, url string, err error) {
