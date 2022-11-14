@@ -381,6 +381,7 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reference", serverID))
@@ -418,6 +419,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip))
@@ -444,6 +446,7 @@ func powerOnServer(ctx context.Context, serverID string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("powering on server %s", serverID))
@@ -470,6 +473,7 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("powering off server %s", serverID))
@@ -507,6 +511,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("adding server %s lease", serverID))
@@ -533,6 +538,7 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("removing server %s lease", serverID))
@@ -559,6 +565,7 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("opening server %s network interface %s", serverID, networkType))
@@ -585,6 +592,7 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("closing server %s network interface %s", serverID, networkType))
@@ -611,6 +619,7 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("nulling server %s IP %s", serverID, IP))
@@ -637,6 +646,7 @@ func unnullIP(ctx context.Context, serverID string, IP string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
 		err := parseErrorInfo(response.Body, fmt.Sprintf("unnulling server %s IP %s", serverID, IP))
