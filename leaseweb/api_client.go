@@ -152,6 +152,28 @@ func parseErrorInfo(r io.Reader, ctx string) error {
 	return &erri
 }
 
+func doAPIRequest(ctx context.Context, method, url string, body io.Reader) (*http.Response, error) {
+	request, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
+
+	if method == http.MethodPost || method == http.MethodPut {
+		// not always needed even for those methods but this is simpler for now
+		request.Header.Set("Content-Type", "application/json")
+	}
+
+	logAPIRequest(ctx, method, url)
+
+	response, err := leasewebClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 func logAPIRequest(ctx context.Context, method, url string) {
 	tflog.Trace(
 		ctx,
@@ -190,15 +212,7 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -226,15 +240,7 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -259,15 +265,7 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -292,15 +290,7 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerInfo", leasewebAPIURL, serverID)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -325,15 +315,7 @@ func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType s
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s", leasewebAPIURL, serverID, networkType)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -368,16 +350,7 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
 	method := http.MethodPut
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return err
 	}
@@ -406,16 +379,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
 	method := http.MethodPut
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return err
 	}
@@ -434,15 +398,7 @@ func powerOnServer(ctx context.Context, serverID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOn", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -461,15 +417,7 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOff", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -498,16 +446,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return err
 	}
@@ -526,15 +465,7 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
 	method := http.MethodDelete
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -553,15 +484,7 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/open", leasewebAPIURL, serverID, networkType)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -580,15 +503,7 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/close", leasewebAPIURL, serverID, networkType)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -607,15 +522,7 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -634,15 +541,7 @@ func unnullIP(ctx context.Context, serverID string, IP string) error {
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -667,16 +566,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s", leasewebAPIURL, serverID, notificationType)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -701,15 +591,7 @@ func getDedicatedServerNotificationSetting(ctx context.Context, serverID string,
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -740,16 +622,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
 	method := http.MethodPut
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -774,15 +647,7 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
 	method := http.MethodDelete
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -807,16 +672,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -841,15 +697,7 @@ func getDedicatedServerCredential(ctx context.Context, serverID string, credenti
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credentialType, username)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -884,16 +732,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
 	method := http.MethodPut
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -918,15 +757,7 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
 	method := http.MethodDelete
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
@@ -945,15 +776,7 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 	url := fmt.Sprintf("%s/bareMetals/v2/operatingSystems", leasewebAPIURL)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -995,15 +818,7 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 	url := u.String()
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,16 +852,7 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/install", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
-	request, err := http.NewRequest(method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, requestBody)
 	if err != nil {
 		return nil, err
 	}
@@ -1081,15 +887,7 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 	url := u.String()
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1117,15 +915,7 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID)
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1172,15 +962,7 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 	url := u.String()
 	method := http.MethodGet
 
-	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	logAPIRequest(ctx, method, url)
-
-	response, err := leasewebClient.Do(request)
+	response, err := doAPIRequest(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
