@@ -202,6 +202,7 @@ func logAPIError(ctx context.Context, method, url string, err error) {
 }
 
 func getServer(ctx context.Context, serverID string) (*Server, error) {
+	apiCtx := fmt.Sprintf("getting server %s", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
 	method := http.MethodGet
 
@@ -212,7 +213,7 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -230,6 +231,7 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 }
 
 func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
+	apiCtx := fmt.Sprintf("getting server %s IP %s", serverID, ip)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
 	method := http.MethodGet
 
@@ -240,7 +242,7 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s IP %s", serverID, ip))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -255,6 +257,7 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 }
 
 func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
+	apiCtx := fmt.Sprintf("getting server %s lease", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
 	method := http.MethodGet
 
@@ -265,7 +268,7 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s lease", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -280,6 +283,7 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 }
 
 func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
+	apiCtx := fmt.Sprintf("getting server %s power info", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerInfo", leasewebAPIURL, serverID)
 	method := http.MethodGet
 
@@ -290,7 +294,7 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s power info", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -305,6 +309,7 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 }
 
 func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType string) (*NetworkInterfaceInfo, error) {
+	apiCtx := fmt.Sprintf("getting server network interface info")
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s", leasewebAPIURL, serverID, networkType)
 	method := http.MethodGet
 
@@ -315,7 +320,7 @@ func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType s
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server network interface info"))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -330,6 +335,8 @@ func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType s
 }
 
 func updateReference(ctx context.Context, serverID string, reference string) error {
+	apiCtx := fmt.Sprintf("updating server %s reference", serverID)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		Reference string `json:"reference"`
@@ -350,7 +357,7 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reference", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -359,6 +366,8 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 }
 
 func updateReverseLookup(ctx context.Context, serverID string, ip string, reverseLookup string) error {
+	apiCtx := fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		ReverseLookup string `json:"reverseLookup"`
@@ -379,7 +388,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -388,6 +397,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 }
 
 func powerOnServer(ctx context.Context, serverID string) error {
+	apiCtx := fmt.Sprintf("powering on server %s", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOn", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
@@ -398,7 +408,7 @@ func powerOnServer(ctx context.Context, serverID string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("powering on server %s", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -407,6 +417,7 @@ func powerOnServer(ctx context.Context, serverID string) error {
 }
 
 func powerOffServer(ctx context.Context, serverID string) error {
+	apiCtx := fmt.Sprintf("powering off server %s", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOff", leasewebAPIURL, serverID)
 	method := http.MethodPost
 
@@ -417,7 +428,7 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("powering off server %s", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -426,6 +437,8 @@ func powerOffServer(ctx context.Context, serverID string) error {
 }
 
 func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
+	apiCtx := fmt.Sprintf("adding server %s lease", serverID)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		Bootfile string `json:"bootfile"`
@@ -446,7 +459,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("adding server %s lease", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -455,6 +468,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 }
 
 func removeDHCPLease(ctx context.Context, serverID string) error {
+	apiCtx := fmt.Sprintf("removing server %s lease", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
 	method := http.MethodDelete
 
@@ -465,7 +479,7 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("removing server %s lease", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -474,6 +488,7 @@ func removeDHCPLease(ctx context.Context, serverID string) error {
 }
 
 func openNetworkInterface(ctx context.Context, serverID string, networkType string) error {
+	apiCtx := fmt.Sprintf("opening server %s network interface %s", serverID, networkType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/open", leasewebAPIURL, serverID, networkType)
 	method := http.MethodPost
 
@@ -484,7 +499,7 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("opening server %s network interface %s", serverID, networkType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -493,6 +508,7 @@ func openNetworkInterface(ctx context.Context, serverID string, networkType stri
 }
 
 func closeNetworkInterface(ctx context.Context, serverID string, networkType string) error {
+	apiCtx := fmt.Sprintf("closing server %s network interface %s", serverID, networkType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/close", leasewebAPIURL, serverID, networkType)
 	method := http.MethodPost
 
@@ -503,7 +519,7 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("closing server %s network interface %s", serverID, networkType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -512,6 +528,7 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 }
 
 func nullIP(ctx context.Context, serverID string, IP string) error {
+	apiCtx := fmt.Sprintf("nulling server %s IP %s", serverID, IP)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP)
 	method := http.MethodPost
 
@@ -522,7 +539,7 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("nulling server %s IP %s", serverID, IP))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -531,6 +548,7 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 }
 
 func unnullIP(ctx context.Context, serverID string, IP string) error {
+	apiCtx := fmt.Sprintf("unnulling server %s IP %s", serverID, IP)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP)
 	method := http.MethodPost
 
@@ -541,7 +559,7 @@ func unnullIP(ctx context.Context, serverID string, IP string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("unnulling server %s IP %s", serverID, IP))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -550,6 +568,8 @@ func unnullIP(ctx context.Context, serverID string, IP string) error {
 }
 
 func createDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+	apiCtx := fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
@@ -566,7 +586,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusCreated {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -581,6 +601,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 }
 
 func getDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
+	apiCtx := fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
 	method := http.MethodGet
 
@@ -591,7 +612,7 @@ func getDedicatedServerNotificationSetting(ctx context.Context, serverID string,
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -606,6 +627,8 @@ func getDedicatedServerNotificationSetting(ctx context.Context, serverID string,
 }
 
 func updateDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
+	apiCtx := fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
@@ -622,7 +645,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -637,6 +660,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 }
 
 func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
+	apiCtx := fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
 	method := http.MethodDelete
 
@@ -647,7 +671,7 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -656,6 +680,8 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 }
 
 func createDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) (*Credential, error) {
+	apiCtx := fmt.Sprintf("creating server %s credential %s", serverID, credential.Type)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(credential)
 	if err != nil {
@@ -672,7 +698,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("creating server %s credential %s", serverID, credential.Type))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -687,6 +713,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 }
 
 func getDedicatedServerCredential(ctx context.Context, serverID string, credentialType string, username string) (*Credential, error) {
+	apiCtx := fmt.Sprintf("getting server %s credential %s", serverID, credentialType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credentialType, username)
 	method := http.MethodGet
 
@@ -697,7 +724,7 @@ func getDedicatedServerCredential(ctx context.Context, serverID string, credenti
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting server %s credential %s", serverID, credentialType))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -712,6 +739,8 @@ func getDedicatedServerCredential(ctx context.Context, serverID string, credenti
 }
 
 func updateDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) (*Credential, error) {
+	apiCtx := fmt.Sprintf("updating server %s credential %s", serverID, credential.Type)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(struct {
 		Password string `json:"password"`
@@ -732,7 +761,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("updating server %s credential %s", serverID, credential.Type))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -747,6 +776,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 }
 
 func deleteDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) error {
+	apiCtx := fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
 	method := http.MethodDelete
 
@@ -757,7 +787,7 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
 	}
@@ -766,6 +796,7 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 }
 
 func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
+	apiCtx := fmt.Sprintf("getting operating systems")
 	url := fmt.Sprintf("%s/bareMetals/v2/operatingSystems", leasewebAPIURL)
 	method := http.MethodGet
 
@@ -776,7 +807,7 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting operating systems"))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -797,6 +828,8 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 }
 
 func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlPanel, error) {
+	apiCtx := fmt.Sprintf("getting control panels")
+
 	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL))
 	if err != nil {
 		return nil, err
@@ -818,7 +851,7 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting control panels"))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -836,6 +869,8 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 }
 
 func launchInstallationJob(ctx context.Context, serverID string, payload *Payload) (*Job, error) {
+	apiCtx := fmt.Sprintf("launching installation job for server %s", serverID)
+
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(payload)
 	if err != nil {
@@ -852,7 +887,7 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("launching installation job for server %s", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -868,6 +903,8 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 }
 
 func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
+	apiCtx := fmt.Sprintf("getting latest installation job for server %s", serverID)
+
 	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID))
 	if err != nil {
 		return nil, err
@@ -887,7 +924,7 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting latest installation job for server %s", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -905,6 +942,7 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 }
 
 func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) {
+	apiCtx := fmt.Sprintf("getting job status for server %s", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID)
 	method := http.MethodGet
 
@@ -915,7 +953,7 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting job status for server %s", serverID))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
@@ -931,6 +969,8 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 }
 
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
+	apiCtx := fmt.Sprintf("getting servers list")
+
 	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL))
 	if err != nil {
 		return nil, err
@@ -962,7 +1002,7 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, fmt.Sprintf("getting servers list"))
+		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return nil, err
 	}
