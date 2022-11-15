@@ -13,8 +13,6 @@ proper credentials before it can be used.
 
 !>
 This provider is currently considered in a **beta version**.
-The documented features are expected to work however several things such as
-better logging and error reporting will be improved later on.
 As we gather feedback from our customers, it is possible that some items
 might change in a non backward compatible way as we continue our improvements
 towards a stable 1.0.0 version.
