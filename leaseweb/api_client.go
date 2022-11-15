@@ -1052,19 +1052,18 @@ func getAllServers(ctx context.Context, site string) ([]Server, error) {
 	offset := 0
 	limit := 20
 
-	serversBatch, err := getServersBatch(ctx, offset, limit, site)
-	if err != nil {
-		return nil, err
-	}
-	allServers = append(allServers, serversBatch...)
-
-	for len(serversBatch) != 0 {
-		offset += limit
-		serversBatch, err = getServersBatch(ctx, offset, limit, site)
+	for {
+		serversBatch, err := getServersBatch(ctx, offset, limit, site)
 		if err != nil {
 			return nil, err
 		}
+
+		if len(serversBatch) == 0 {
+			break
+		}
+
 		allServers = append(allServers, serversBatch...)
+		offset += limit
 	}
 
 	return allServers, nil
