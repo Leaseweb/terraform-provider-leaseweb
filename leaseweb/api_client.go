@@ -555,9 +555,9 @@ func closeNetworkInterface(ctx context.Context, serverID string, networkType str
 	return nil
 }
 
-func nullIP(ctx context.Context, serverID string, IP string) error {
-	apiCtx := fmt.Sprintf("nulling server %s IP %s", serverID, IP)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, IP)
+func nullIP(ctx context.Context, serverID string, ip string) error {
+	apiCtx := fmt.Sprintf("nulling server %s IP %s", serverID, ip)
+	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/null", leasewebAPIURL, serverID, ip)
 	method := http.MethodPost
 
 	response, err := doAPIRequest(ctx, method, url, nil)
@@ -575,9 +575,9 @@ func nullIP(ctx context.Context, serverID string, IP string) error {
 	return nil
 }
 
-func unnullIP(ctx context.Context, serverID string, IP string) error {
-	apiCtx := fmt.Sprintf("unnulling server %s IP %s", serverID, IP)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, IP)
+func unnullIP(ctx context.Context, serverID string, ip string) error {
+	apiCtx := fmt.Sprintf("unnulling server %s IP %s", serverID, ip)
+	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s/unnull", leasewebAPIURL, serverID, ip)
 	method := http.MethodPost
 
 	response, err := doAPIRequest(ctx, method, url, nil)
