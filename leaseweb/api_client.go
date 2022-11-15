@@ -155,6 +155,21 @@ func NewDecodingError(ctx string, err error) *DecodingError {
 	return &DecodingError{Context: ctx, Message: err.Error()}
 }
 
+// EncodingError -
+type EncodingError struct {
+	Context string
+	Message string
+}
+
+func (erre *EncodingError) Error() string {
+	return erre.Context + ": error while encoding JSON request body (" + erre.Message + ")"
+}
+
+// NewEncodingError -
+func NewEncodingError(ctx string, err error) *EncodingError {
+	return &EncodingError{Context: ctx, Message: err.Error()}
+}
+
 func parseErrorInfo(r io.Reader, ctx string) error {
 	erri := ErrorInfo{Context: ctx}
 
@@ -357,7 +372,7 @@ func updateReference(ctx context.Context, serverID string, reference string) err
 		Reference: reference,
 	})
 	if err != nil {
-		return err
+		return NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
@@ -388,7 +403,7 @@ func updateReverseLookup(ctx context.Context, serverID string, ip string, revers
 		ReverseLookup: reverseLookup,
 	})
 	if err != nil {
-		return err
+		return NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
@@ -459,7 +474,7 @@ func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
 		Bootfile: bootfile,
 	})
 	if err != nil {
-		return err
+		return NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
@@ -586,7 +601,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
-		return nil, err
+		return nil, NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s", leasewebAPIURL, serverID, notificationType)
@@ -645,7 +660,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(notificationSetting)
 	if err != nil {
-		return nil, err
+		return nil, NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
@@ -698,7 +713,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(credential)
 	if err != nil {
-		return nil, err
+		return nil, NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials", leasewebAPIURL, serverID)
@@ -761,7 +776,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 		Password: credential.Password,
 	})
 	if err != nil {
-		return nil, err
+		return nil, NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
@@ -887,7 +902,7 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 	requestBody := new(bytes.Buffer)
 	err := json.NewEncoder(requestBody).Encode(payload)
 	if err != nil {
-		return nil, err
+		return nil, NewEncodingError(apiCtx, err)
 	}
 
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/install", leasewebAPIURL, serverID)
