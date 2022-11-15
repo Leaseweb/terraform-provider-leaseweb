@@ -140,13 +140,26 @@ func (erri *ErrorInfo) Error() string {
 	return "(" + erri.Code + ") " + erri.Context + ": " + erri.Message
 }
 
+// DecodingError -
+type DecodingError struct {
+	Context string
+	Message string
+}
+
+func (errd *DecodingError) Error() string {
+	return errd.Context + ": error while decoding JSON response body (" + errd.Message + ")"
+}
+
+// NewDecodingError -
+func NewDecodingError(ctx string, err error) *DecodingError {
+	return &DecodingError{Context: ctx, Message: err.Error()}
+}
+
 func parseErrorInfo(r io.Reader, ctx string) error {
-	erri := ErrorInfo{
-		Context: ctx,
-	}
+	erri := ErrorInfo{Context: ctx}
 
 	if err := json.NewDecoder(r).Decode(&erri); err != nil {
-		return fmt.Errorf("error while decoding JSON error response body: %v", err)
+		return NewDecodingError(ctx, err)
 	}
 
 	return &erri
@@ -221,7 +234,7 @@ func getServer(ctx context.Context, serverID string) (*Server, error) {
 	var server Server
 	err = json.NewDecoder(response.Body).Decode(&server)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	server.NetworkInterfaces.Public.IP = strings.SplitN(server.NetworkInterfaces.Public.IP, "/", 2)[0]
@@ -250,7 +263,7 @@ func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
 	var ipData IP
 	err = json.NewDecoder(response.Body).Decode(&ipData)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &ipData, nil
@@ -276,7 +289,7 @@ func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	var dhcpLease DHCPLease
 	err = json.NewDecoder(response.Body).Decode(&dhcpLease)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &dhcpLease, nil
@@ -302,7 +315,7 @@ func getPowerInfo(ctx context.Context, serverID string) (*PowerInfo, error) {
 	var powerInfo PowerInfo
 	err = json.NewDecoder(response.Body).Decode(&powerInfo)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &powerInfo, nil
@@ -328,7 +341,7 @@ func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType s
 	var networkInterfaceInfo NetworkInterfaceInfo
 	err = json.NewDecoder(response.Body).Decode(&networkInterfaceInfo)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &networkInterfaceInfo, nil
@@ -594,7 +607,7 @@ func createDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	var createdNotificationSetting NotificationSetting
 	err = json.NewDecoder(response.Body).Decode(&createdNotificationSetting)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &createdNotificationSetting, nil
@@ -620,7 +633,7 @@ func getDedicatedServerNotificationSetting(ctx context.Context, serverID string,
 	var notificationSetting NotificationSetting
 	err = json.NewDecoder(response.Body).Decode(&notificationSetting)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &notificationSetting, nil
@@ -653,7 +666,7 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	var updatedNotificationSetting NotificationSetting
 	err = json.NewDecoder(response.Body).Decode(&updatedNotificationSetting)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &updatedNotificationSetting, nil
@@ -706,7 +719,7 @@ func createDedicatedServerCredential(ctx context.Context, serverID string, crede
 	var createdCredential Credential
 	err = json.NewDecoder(response.Body).Decode(&createdCredential)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &createdCredential, nil
@@ -732,7 +745,7 @@ func getDedicatedServerCredential(ctx context.Context, serverID string, credenti
 	var credential Credential
 	err = json.NewDecoder(response.Body).Decode(&credential)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &credential, nil
@@ -769,7 +782,7 @@ func updateDedicatedServerCredential(ctx context.Context, serverID string, crede
 	var updatedCredential Credential
 	err = json.NewDecoder(response.Body).Decode(&updatedCredential)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &updatedCredential, nil
@@ -818,7 +831,7 @@ func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
 
 	err = json.NewDecoder(response.Body).Decode(&operatingSystems)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
@@ -862,7 +875,7 @@ func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlP
 
 	err = json.NewDecoder(response.Body).Decode(&controlPanels)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return controlPanels.ControlPanels, nil
@@ -896,7 +909,7 @@ func launchInstallationJob(ctx context.Context, serverID string, payload *Payloa
 
 	err = json.NewDecoder(response.Body).Decode(&installationJob)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &installationJob, nil
@@ -935,7 +948,7 @@ func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error
 
 	err = json.NewDecoder(response.Body).Decode(&jobs)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &jobs.Jobs[0], nil
@@ -962,7 +975,7 @@ func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) 
 
 	err = json.NewDecoder(response.Body).Decode(&job)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return &job, nil
@@ -1013,7 +1026,7 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 
 	err = json.NewDecoder(response.Body).Decode(&serverList)
 	if err != nil {
-		return nil, fmt.Errorf("error while decoding JSON response body: %v", err)
+		return nil, NewDecodingError(apiCtx, err)
 	}
 
 	return serverList.Servers, nil
