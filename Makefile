@@ -19,7 +19,7 @@ lint: lint-eol lint-spaces lint-tabs lint-go
 .PHONY: lint-eol
 lint-eol:
 	@echo "==> Validating unix style line endings of files:"
-	@! git ls-files | xargs grep --files-with-matches --recursive --exclude Makefile '' || ( echo '[ERROR] Above files have CRLF line endings' && exit 1 )
+	@! git ls-files | xargs grep --files-with-matches --recursive --perl-regexp "\r" || ( echo '[ERROR] Above files have CRLF line endings' && exit 1 )
 	@echo All files have valid line endings
 
 .PHONY: lint-spaces
