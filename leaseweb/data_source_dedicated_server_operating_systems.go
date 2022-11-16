@@ -40,7 +40,7 @@ operating systems available for installation on a dedicated server.
 func dataSourceDedicatedServerOperatingSystemsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	operatingSystems, err := getOperatingSystems()
+	operatingSystems, err := getOperatingSystems(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}

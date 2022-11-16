@@ -83,7 +83,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficCreate(ctx context.Con
 		Unit:      d.Get("unit").(string),
 	}
 
-	createdNotificationSetting, err := createDedicatedServerNotificationSetting(serverID, "datatraffic", &notificationSetting)
+	createdNotificationSetting, err := createDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", &notificationSetting)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -99,7 +99,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficRead(ctx context.Conte
 
 	var diags diag.Diagnostics
 
-	notificationSetting, err := getDedicatedServerNotificationSetting(serverID, "datatraffic", notificationSettingID)
+	notificationSetting, err := getDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", notificationSettingID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -120,7 +120,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficUpdate(ctx context.Con
 		Unit:      d.Get("unit").(string),
 	}
 
-	if _, err := updateDedicatedServerNotificationSetting(serverID, "datatraffic", notificationSettingID, &notificationSetting); err != nil {
+	if _, err := updateDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", notificationSettingID, &notificationSetting); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -133,7 +133,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficDelete(ctx context.Con
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	if err := deleteDedicatedServerNotificationSetting(serverID, "datatraffic", notificationSettingID); err != nil {
+	if err := deleteDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", notificationSettingID); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -254,7 +254,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["partitions"] = partitions
 	}
 
-	installationJob, err := launchInstallationJob(serverID, &payload)
+	installationJob, err := launchInstallationJob(ctx, serverID, &payload)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -266,7 +266,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		Pending: []string{"ACTIVE"},
 		Target:  []string{"FINISHED"},
 		Refresh: func() (interface{}, string, error) {
-			job, err := getJob(serverID, installationJob.UUID)
+			job, err := getJob(ctx, serverID, installationJob.UUID)
 			if err != nil {
 				return nil, "error", err
 			}
@@ -288,7 +288,7 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	var diags diag.Diagnostics
 
-	installationJob, err := getLatestInstallationJob(serverID)
+	installationJob, err := getLatestInstallationJob(ctx, serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
