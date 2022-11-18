@@ -1,5 +1,9 @@
 ## 0.2.0 (Unreleased)
 
+## 0.1.2 (November 18, 2022)
+
+Add some logging and improve error messages
+
 ## 0.1.1 (September 19, 2022)
 
 Fix release
