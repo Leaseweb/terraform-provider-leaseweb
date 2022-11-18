@@ -1,5 +1,5 @@
 NAME ?= terraform-provider-leaseweb
-VERSION ?= 0.1.1
+VERSION ?= 0.1.2
 GOOS ?= linux
 GOARCH ?= amd64
 BINARY = $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH)
@@ -19,7 +19,7 @@ lint: lint-eol lint-spaces lint-tabs lint-go
 .PHONY: lint-eol
 lint-eol:
 	@echo "==> Validating unix style line endings of files:"
-	@! git ls-files | xargs grep --files-with-matches --recursive --exclude Makefile '' || ( echo '[ERROR] Above files have CRLF line endings' && exit 1 )
+	@! git ls-files | xargs grep --files-with-matches --recursive --perl-regexp "\r" || ( echo '[ERROR] Above files have CRLF line endings' && exit 1 )
 	@echo All files have valid line endings
 
 .PHONY: lint-spaces
@@ -51,14 +51,6 @@ doc:
 format:
 	go fmt ./...
 	terraform fmt -recursive examples/
-
-.PHONY: release
-release:
-	$(MAKE) build GOOS=darwin GOARCH=amd64
-	$(MAKE) build GOOS=darwin GOARCH=arm64
-	$(MAKE) build GOOS=freebsd GOARCH=amd64
-	$(MAKE) build GOOS=linux GOARCH=amd64
-	$(MAKE) build GOOS=windows GOARCH=amd64
 
 .PHONY: install
 install: build
