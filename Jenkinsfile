@@ -12,15 +12,5 @@ lswci([node: 'docker', mattermost: 'bare-metal-cicd']) {
         stage("Test build") {
             sh "make build"
         }
-
-        if (env.BRANCH_NAME == 'master') {
-            stage("Build release") {
-                sh "make release"
-            }
-
-            stage("Publish artifacts") {
-                step([$class: 'ArtifactArchiver', artifacts: 'dist/*', fingerprint: true])
-            }
-        }
     }
 }
