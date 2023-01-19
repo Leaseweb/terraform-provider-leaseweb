@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -76,19 +77,16 @@ Can be either ` + "`Mbps`" + ` or ` + "`Gbps`" + `.
 
 func resourceDedicatedServerNotificationSettingBandwidthCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
+	frequency := d.Get("frequency").(string)
+	threshold := d.Get("threshold").(string)
+	unit := d.Get("unit").(string)
 
-	var notificationSetting = NotificationSetting{
-		Frequency: d.Get("frequency").(string),
-		Threshold: d.Get("threshold").(float64),
-		Unit:      d.Get("unit").(string),
-	}
-
-	createdNotificationSetting, err := createDedicatedServerNotificationSetting(ctx, serverID, "bandwidth", &notificationSetting)
+	createdNotificationSetting, err := LSW.DedicatedServerApi{}.CreateBandWidthNotificationSetting(serverID, frequency, threshold, unit)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createdNotificationSetting.ID)
+	d.SetId(createdNotificationSetting.Id)
 
 	return resourceDedicatedServerNotificationSettingBandwidthRead(ctx, d, m)
 }
@@ -99,7 +97,7 @@ func resourceDedicatedServerNotificationSettingBandwidthRead(ctx context.Context
 
 	var diags diag.Diagnostics
 
-	notificationSetting, err := getDedicatedServerNotificationSetting(ctx, serverID, "bandwidth", notificationSettingID)
+	notificationSetting, err := LSW.DedicatedServerApi{}.GetBandWidthNotificationSetting(serverID, notificationSettingID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,14 +111,13 @@ func resourceDedicatedServerNotificationSettingBandwidthRead(ctx context.Context
 func resourceDedicatedServerNotificationSettingBandwidthUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
-
-	var notificationSetting = NotificationSetting{
-		Frequency: d.Get("frequency").(string),
-		Threshold: d.Get("threshold").(float64),
-		Unit:      d.Get("unit").(string),
+	params := map[string]string{
+		"frequency": d.Get("frequency").(string),
+		"threshold": d.Get("threshold").(string),
+		"unit":      d.Get("unit").(string),
 	}
-
-	if _, err := updateDedicatedServerNotificationSetting(ctx, serverID, "bandwidth", notificationSettingID, &notificationSetting); err != nil {
+	_, err := LSW.DedicatedServerApi{}.UpdateBandWidthNotificationSetting(serverID, notificationSettingID, params)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -133,7 +130,8 @@ func resourceDedicatedServerNotificationSettingBandwidthDelete(ctx context.Conte
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	if err := deleteDedicatedServerNotificationSetting(ctx, serverID, "bandwidth", notificationSettingID); err != nil {
+	err := LSW.DedicatedServerApi{}.DeleteBandWidthNotificationSetting(serverID, notificationSettingID)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

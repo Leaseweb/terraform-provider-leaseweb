@@ -1,4 +1,6 @@
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20221014124609-cf69ef9285e8 h1:zvdFmSbv8wzTQKTPLdFmqkqATDZkHUX7E/4w1fIApSw=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20221014124609-cf69ef9285e8/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
 github.com/Masterminds/goutils v1.1.0/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
