@@ -1,6 +1,6 @@
 #!groovy
 
-lswci([node: 'docker', mattermost: 'bare-metal-cicd']) {
+lswci([node: 'docker', mattermost: 'bare-metal-cicd', stagingBranch: "master"]]) {
     name = env.CHANGE_BRANCH ? env.CHANGE_BRANCH.toLowerCase().replace("/", "-") : env.BRANCH_NAME.toLowerCase().replace("/", "-")
 
     image = docker.build("${name}-dev", "--target godev .")
