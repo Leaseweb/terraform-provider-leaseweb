@@ -823,38 +823,6 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 	return nil
 }
 
-func getOperatingSystems(ctx context.Context) ([]OperatingSystem, error) {
-	apiCtx := fmt.Sprintf("getting operating systems")
-	url := fmt.Sprintf("%s/bareMetals/v2/operatingSystems", leasewebAPIURL)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var operatingSystems struct {
-		OperatingSystems []OperatingSystem
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&operatingSystems)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
-	// but with the default offset and limit values we already get the full list at the moment
-
-	return operatingSystems.OperatingSystems, nil
-}
-
 func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlPanel, error) {
 	apiCtx := fmt.Sprintf("getting control panels")
 

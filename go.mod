@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230307160712-34ad89849e9d // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
