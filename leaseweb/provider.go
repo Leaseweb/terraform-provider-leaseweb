@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -62,6 +63,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	leasewebAPIURL = baseURL
 	leasewebAPIToken = apiToken
 	leasewebClient = &http.Client{Timeout: 60 * time.Second}
+
+	LSW.InitLeasewebClient(apiToken)
 
 	return nil, diags
 }
