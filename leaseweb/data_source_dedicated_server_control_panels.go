@@ -45,9 +45,12 @@ control panels available for installation on a dedicated server.
 
 func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	offset, limit := 0, 100
+
+	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
+	// but fetching only one page is enough currently
+
 	operatingSystemID := d.Get("operating_system_id").(string)
-	result, err := LSW.DedicatedServerApi{}.ListControlPanels(offset, limit, operatingSystemID)
+	result, err := LSW.DedicatedServerApi{}.ListControlPanels(0, 100, operatingSystemID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
