@@ -3,12 +3,13 @@ module github.com/leaseweb/terraform-provider-leaseweb
 go 1.18
 
 require (
+	github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230307160712-34ad89849e9d
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
+	github.com/hashicorp/terraform-plugin-log v0.7.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.22.0
 )
 
 require (
-	github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230307160712-34ad89849e9d // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
@@ -37,7 +38,6 @@ require (
 	github.com/hashicorp/terraform-exec v0.17.3 // indirect
 	github.com/hashicorp/terraform-json v0.14.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.14.0 // indirect
-	github.com/hashicorp/terraform-plugin-log v0.7.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.0.0-20220623143253-7d51757b572c // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect

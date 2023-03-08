@@ -823,47 +823,6 @@ func deleteDedicatedServerCredential(ctx context.Context, serverID string, crede
 	return nil
 }
 
-func getControlPanels(ctx context.Context, operatingSystemID string) ([]ControlPanel, error) {
-	apiCtx := fmt.Sprintf("getting control panels")
-
-	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/controlPanels", leasewebAPIURL))
-	if err != nil {
-		return nil, err
-	}
-
-	if operatingSystemID != "" {
-		v := url.Values{}
-		v.Set("operatingSystemId", operatingSystemID)
-		u.RawQuery = v.Encode()
-	}
-
-	url := u.String()
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var controlPanels struct {
-		ControlPanels []ControlPanel
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&controlPanels)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return controlPanels.ControlPanels, nil
-}
-
 func launchInstallationJob(ctx context.Context, serverID string, payload *Payload) (*Job, error) {
 	apiCtx := fmt.Sprintf("launching installation job for server %s", serverID)
 
