@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -40,17 +41,20 @@ operating systems available for installation on a dedicated server.
 func dataSourceDedicatedServerOperatingSystemsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	operatingSystems, err := getOperatingSystems(ctx)
+	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
+	// but with the default offset and limit values we already get the full list at the moment
+
+	result, err := LSW.DedicatedServerApi{}.ListOperatingSystems()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	operatingSystemsNames := make(map[string]string)
-	operatingSystemsIds := make([]string, len(operatingSystems))
+	operatingSystemsIds := make([]string, len(result.OperatingSystems))
 
-	for i, os := range operatingSystems {
-		operatingSystemsNames[os.ID] = os.Name
-		operatingSystemsIds[i] = os.ID
+	for i, os := range result.OperatingSystems {
+		operatingSystemsNames[os.Id] = os.Name
+		operatingSystemsIds[i] = os.Id
 	}
 
 	if err := d.Set("names", operatingSystemsNames); err != nil {
