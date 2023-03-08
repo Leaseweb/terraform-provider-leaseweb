@@ -41,6 +41,9 @@ operating systems available for installation on a dedicated server.
 func dataSourceDedicatedServerOperatingSystemsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
+	// but with the default offset and limit values we already get the full list at the moment
+
 	result, err := LSW.DedicatedServerApi{}.ListOperatingSystems()
 	if err != nil {
 		return diag.FromErr(err)
