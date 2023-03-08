@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -44,18 +45,19 @@ control panels available for installation on a dedicated server.
 
 func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	offset, limit := 0, 100
 	operatingSystemID := d.Get("operating_system_id").(string)
-	controlPanels, err := getControlPanels(ctx, operatingSystemID)
+	result, err := LSW.DedicatedServerApi{}.ListControlPanels(offset, limit, operatingSystemID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	controlPanelsNames := make(map[string]string)
-	controlPanelsIds := make([]string, len(controlPanels))
+	controlPanelsIds := make([]string, len(result.ControlPanels))
 
-	for i, cp := range controlPanels {
-		controlPanelsNames[cp.ID] = cp.Name
-		controlPanelsIds[i] = cp.ID
+	for i, cp := range result.ControlPanels {
+		controlPanelsNames[cp.Id] = cp.Name
+		controlPanelsIds[i] = cp.Id
 	}
 
 	if err := d.Set("names", controlPanelsNames); err != nil {
