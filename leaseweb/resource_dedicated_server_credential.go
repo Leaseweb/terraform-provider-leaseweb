@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -70,14 +71,11 @@ Can be either ` + "`OPERATING_SYSTEM`" + `, ` + "`CONTROL_PANEL`" + `, ` + "`REM
 
 func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
+	credentialType := d.Get("type").(string)
+	username := d.Get("username").(string)
+	password := d.Get("password").(string)
 
-	var credential = Credential{
-		Type:     d.Get("type").(string),
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
-	}
-
-	createdCredential, err := createDedicatedServerCredential(ctx, serverID, &credential)
+	createdCredential, err := LSW.DedicatedServerApi{}.CreateCredential(serverID, credentialType, username, password)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -94,7 +92,7 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 
 	var diags diag.Diagnostics
 
-	credential, err := getDedicatedServerCredential(ctx, serverID, credentialType, username)
+	credential, err := LSW.DedicatedServerApi{}.GetCredential(serverID, credentialType, username)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -106,15 +104,12 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 
 func resourceDedicatedServerCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
+	credentialType := d.Get("type").(string)
+	username := d.Get("username").(string)
+	password := d.Get("password").(string)
 
-	var credential = Credential{
-		Type:     d.Get("type").(string),
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
-	}
-
-	if _, err := updateDedicatedServerCredential(ctx, serverID, &credential); err != nil {
-		return diag.FromErr(err)
+	_, err := LSW.DedicatedServerApi{}.UpdateCredential(serverID, credentialType, username, password)
+	if err != nil {
 	}
 
 	return resourceDedicatedServerCredentialRead(ctx, d, m)
@@ -124,14 +119,11 @@ func resourceDedicatedServerCredentialDelete(ctx context.Context, d *schema.Reso
 	var diags diag.Diagnostics
 
 	serverID := d.Get("dedicated_server_id").(string)
+	credentialType := d.Get("type").(string)
+	username := d.Get("username").(string)
 
-	var credential = Credential{
-		Type:     d.Get("type").(string),
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
-	}
-
-	if err := deleteDedicatedServerCredential(ctx, serverID, &credential); err != nil {
+	err := LSW.DedicatedServerApi{}.DeleteCredential(serverID, credentialType, username)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
