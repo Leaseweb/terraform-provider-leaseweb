@@ -2,6 +2,7 @@ package leaseweb
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
@@ -106,6 +107,10 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	server.NetworkInterfaces.Public.Ip = strings.SplitN(server.NetworkInterfaces.Public.Ip, "/", 2)[0]
+	server.NetworkInterfaces.RemoteManagement.Ip = strings.SplitN(server.NetworkInterfaces.RemoteManagement.Ip, "/", 2)[0]
+
 	d.Set("reference", server.Contract.Reference)
 	d.Set("public_ip", server.NetworkInterfaces.Public.Ip)
 	d.Set("remote_management_ip", server.NetworkInterfaces.RemoteManagement.Ip)
