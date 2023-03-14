@@ -98,13 +98,6 @@ type NotificationSetting struct {
 	Unit      string  `json:"unit"`
 }
 
-// Credential -
-type Credential struct {
-	Type     string `json:"type"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 // OperatingSystem -
 type OperatingSystem struct {
 	ID   string
@@ -690,122 +683,6 @@ func updateDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
 	apiCtx := fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodDelete
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return err
-	}
-
-	return nil
-}
-
-func createDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) (*Credential, error) {
-	apiCtx := fmt.Sprintf("creating server %s credential %s", serverID, credential.Type)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(credential)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials", leasewebAPIURL, serverID)
-	method := http.MethodPost
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var createdCredential Credential
-	err = json.NewDecoder(response.Body).Decode(&createdCredential)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &createdCredential, nil
-}
-
-func getDedicatedServerCredential(ctx context.Context, serverID string, credentialType string, username string) (*Credential, error) {
-	apiCtx := fmt.Sprintf("getting server %s credential %s", serverID, credentialType)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credentialType, username)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var credential Credential
-	err = json.NewDecoder(response.Body).Decode(&credential)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &credential, nil
-}
-
-func updateDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) (*Credential, error) {
-	apiCtx := fmt.Sprintf("updating server %s credential %s", serverID, credential.Type)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(struct {
-		Password string `json:"password"`
-	}{
-		Password: credential.Password,
-	})
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
-	method := http.MethodPut
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var updatedCredential Credential
-	err = json.NewDecoder(response.Body).Decode(&updatedCredential)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &updatedCredential, nil
-}
-
-func deleteDedicatedServerCredential(ctx context.Context, serverID string, credential *Credential) error {
-	apiCtx := fmt.Sprintf("deleting server %s credential %s", serverID, credential.Type)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/credentials/%s/%s", leasewebAPIURL, serverID, credential.Type, credential.Username)
 	method := http.MethodDelete
 
 	response, err := doAPIRequest(ctx, method, url, nil)
