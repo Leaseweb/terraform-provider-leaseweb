@@ -98,13 +98,6 @@ type NotificationSetting struct {
 	Unit      string  `json:"unit"`
 }
 
-// Credential -
-type Credential struct {
-	Type     string `json:"type"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 // OperatingSystem -
 type OperatingSystem struct {
 	ID   string
