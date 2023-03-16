@@ -688,45 +688,6 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	return nil
 }
 
-func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
-	apiCtx := fmt.Sprintf("getting latest installation job for server %s", serverID)
-
-	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID))
-	if err != nil {
-		return nil, err
-	}
-
-	v := url.Values{}
-	v.Set("type", "install")
-	u.RawQuery = v.Encode()
-
-	url := u.String()
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var jobs struct {
-		Jobs []Job
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&jobs)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &jobs.Jobs[0], nil
-}
-
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
 	apiCtx := fmt.Sprintf("getting servers list")
 
