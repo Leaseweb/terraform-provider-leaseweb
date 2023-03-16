@@ -98,18 +98,6 @@ type NotificationSetting struct {
 	Unit      string  `json:"unit"`
 }
 
-// OperatingSystem -
-type OperatingSystem struct {
-	ID   string
-	Name string
-}
-
-// ControlPanel -
-type ControlPanel struct {
-	ID   string
-	Name string
-}
-
 // Payload -
 type Payload map[string]interface{}
 
