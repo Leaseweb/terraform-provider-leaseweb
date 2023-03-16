@@ -285,15 +285,22 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 }
 
 func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+
 	serverID := d.Get("dedicated_server_id").(string)
 
 	var diags diag.Diagnostics
 
-	installationJob, err := getLatestInstallationJob(ctx, serverID)
+	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(serverID, 0, 1, "install")
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.Set("job_uuid", installationJob.UUID)
+	if len(installationJobs.Jobs) == 0 {
+		return diag.Errorf("no installation jobs found for server %s", serverID)
+	}
+	installationJob := installationJobs.Jobs[0]
+
+	d.Set("job_uuid", installationJob.Uuid)
 	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
 
 	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {
