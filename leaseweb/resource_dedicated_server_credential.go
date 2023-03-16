@@ -110,6 +110,7 @@ func resourceDedicatedServerCredentialUpdate(ctx context.Context, d *schema.Reso
 
 	_, err := LSW.DedicatedServerApi{}.UpdateCredential(serverID, credentialType, username, password)
 	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	return resourceDedicatedServerCredentialRead(ctx, d, m)
