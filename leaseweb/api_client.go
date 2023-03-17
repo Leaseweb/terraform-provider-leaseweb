@@ -98,16 +98,6 @@ type NotificationSetting struct {
 	Unit      string  `json:"unit"`
 }
 
-// Payload -
-type Payload map[string]interface{}
-
-// Job -
-type Job struct {
-	UUID    string
-	Status  string
-	Payload Payload
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string

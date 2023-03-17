@@ -255,7 +255,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["partitions"] = partitions
 	}
 
-	installationJob, err := LSW.DedicatedServerApi{}.LaunchInstallation(serverID, payload)
+	installationJob, err := LSW.DedicatedServerApi{}.LaunchInstallation(ctx, serverID, payload)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -267,7 +267,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		Pending: []string{"ACTIVE"},
 		Target:  []string{"FINISHED"},
 		Refresh: func() (interface{}, string, error) {
-			job, err := LSW.DedicatedServerApi{}.GetJob(serverID, installationJob.Uuid)
+			job, err := LSW.DedicatedServerApi{}.GetJob(ctx, serverID, installationJob.Uuid)
 			if err != nil {
 				return nil, "error", err
 			}
@@ -290,7 +290,7 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	var diags diag.Diagnostics
 
-	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(serverID, 0, 1, "install")
+	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(ctx, serverID, 0, 1, "install")
 
 	if err != nil {
 		return diag.FromErr(err)
