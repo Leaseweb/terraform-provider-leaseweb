@@ -44,7 +44,7 @@ func dataSourceDedicatedServerOperatingSystemsRead(ctx context.Context, d *schem
 	// to be exact we would need to support pagination by checking the metadata and make multiple requests if needed
 	// but with the default offset and limit values we already get the full list at the moment
 
-	result, err := LSW.DedicatedServerApi{}.ListOperatingSystems()
+	result, err := LSW.DedicatedServerApi{}.ListOperatingSystems(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
