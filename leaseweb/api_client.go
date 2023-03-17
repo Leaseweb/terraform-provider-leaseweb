@@ -212,7 +212,7 @@ func logAPIError(ctx context.Context, method, url string, err error) {
 }
 
 // TODO rename to LogApiError when we remove the other one
-func logSdkApiError(ctx context.Context, err error) {
+func logSdkAPIError(ctx context.Context, err error) {
 	fields := map[string]interface{}{}
 
 	if erra, ok := err.(*LSW.ApiError); ok {
