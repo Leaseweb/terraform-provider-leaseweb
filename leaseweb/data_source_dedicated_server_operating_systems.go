@@ -46,6 +46,7 @@ func dataSourceDedicatedServerOperatingSystemsRead(ctx context.Context, d *schem
 
 	result, err := LSW.DedicatedServerApi{}.ListOperatingSystems(ctx)
 	if err != nil {
+		logSdkApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 

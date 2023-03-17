@@ -52,6 +52,7 @@ func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.R
 	operatingSystemID := d.Get("operating_system_id").(string)
 	result, err := LSW.DedicatedServerApi{}.ListControlPanels(ctx, 0, 100, operatingSystemID)
 	if err != nil {
+		logSdkApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
