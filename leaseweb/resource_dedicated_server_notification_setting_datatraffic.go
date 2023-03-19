@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -76,19 +77,16 @@ Can be either ` + "`MB`" + `, ` + "`GB`" + `, or ` + "`TB`" + `.
 
 func resourceDedicatedServerNotificationSettingDatatrafficCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
+	frequency := d.Get("frequency").(string)
+	threshold := d.Get("threshold").(float64)
+	unit := d.Get("unit").(string)
 
-	var notificationSetting = NotificationSetting{
-		Frequency: d.Get("frequency").(string),
-		Threshold: d.Get("threshold").(float64),
-		Unit:      d.Get("unit").(string),
-	}
-
-	createdNotificationSetting, err := createDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", &notificationSetting)
+	createdNotificationSetting, err := LSW.DedicatedServerApi{}.CreateDataTrafficNotificationSetting(ctx, serverID, frequency, threshold, unit)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createdNotificationSetting.ID)
+	d.SetId(createdNotificationSetting.Id)
 
 	return resourceDedicatedServerNotificationSettingDatatrafficRead(ctx, d, m)
 }
@@ -99,7 +97,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficRead(ctx context.Conte
 
 	var diags diag.Diagnostics
 
-	notificationSetting, err := getDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", notificationSettingID)
+	notificationSetting, err := LSW.DedicatedServerApi{}.GetDataTrafficNotificationSetting(ctx, serverID, notificationSettingID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,13 +112,15 @@ func resourceDedicatedServerNotificationSettingDatatrafficUpdate(ctx context.Con
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	var notificationSetting = NotificationSetting{
-		Frequency: d.Get("frequency").(string),
-		Threshold: d.Get("threshold").(float64),
-		Unit:      d.Get("unit").(string),
+	threshold := d.Get("threshold").(float64)
+	params := map[string]string{
+		"frequency": d.Get("frequency").(string),
+		"threshold": fmt.Sprintf("%.6g", threshold),
+		"unit":      d.Get("unit").(string),
 	}
 
-	if _, err := updateDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", notificationSettingID, &notificationSetting); err != nil {
+	_, err := LSW.DedicatedServerApi{}.UpdateDataTrafficNotificationSetting(ctx, serverID, notificationSettingID, params)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -133,7 +133,8 @@ func resourceDedicatedServerNotificationSettingDatatrafficDelete(ctx context.Con
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	if err := deleteDedicatedServerNotificationSetting(ctx, serverID, "datatraffic", notificationSettingID); err != nil {
+	err := LSW.DedicatedServerApi{}.DeleteDataTrafficNotificationSetting(ctx, serverID, notificationSettingID)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
