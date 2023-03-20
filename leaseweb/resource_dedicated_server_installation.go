@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -190,7 +191,7 @@ Mandatory for root partition, unnecessary for swap partition.
 func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
 
-	var payload = Payload{
+	var payload = map[string]interface{}{
 		"operatingSystemId":   d.Get("operating_system_id").(string),
 		"doEmailNotification": false,
 	}
@@ -254,20 +255,22 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["partitions"] = partitions
 	}
 
-	installationJob, err := launchInstallationJob(ctx, serverID, &payload)
+	installationJob, err := LSW.DedicatedServerApi{}.LaunchInstallation(ctx, serverID, payload)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
-	d.Set("job_uuid", installationJob.UUID)
+	d.Set("job_uuid", installationJob.Uuid)
 	d.SetId(serverID)
 
 	createStateConf := &resource.StateChangeConf{
 		Pending: []string{"ACTIVE"},
 		Target:  []string{"FINISHED"},
 		Refresh: func() (interface{}, string, error) {
-			job, err := getJob(ctx, serverID, installationJob.UUID)
+			job, err := LSW.DedicatedServerApi{}.GetJob(ctx, serverID, installationJob.Uuid)
 			if err != nil {
+				logSdkAPIError(ctx, err)
 				return nil, "error", err
 			}
 			return job, job.Status, err
@@ -278,6 +281,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	_, err = createStateConf.WaitForStateContext(ctx)
 
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 	return resourceDedicatedServerInstallationRead(ctx, d, m)
@@ -288,11 +292,18 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	var diags diag.Diagnostics
 
-	installationJob, err := getLatestInstallationJob(ctx, serverID)
+	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(ctx, serverID, 0, 1, "install")
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
-	d.Set("job_uuid", installationJob.UUID)
+	if len(installationJobs.Jobs) == 0 {
+		return diag.Errorf("no installation jobs found for server %s", serverID)
+	}
+	installationJob := installationJobs.Jobs[0]
+
+	d.Set("job_uuid", installationJob.Uuid)
+
 	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
 
 	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {
