@@ -223,32 +223,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	tflog.Error(ctx, "API request error", fields)
 }
 
-func getNetworkInterfaceInfo(ctx context.Context, serverID string, networkType string) (*NetworkInterfaceInfo, error) {
-	apiCtx := fmt.Sprintf("getting server network interface info")
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s", leasewebAPIURL, serverID, networkType)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var networkInterfaceInfo NetworkInterfaceInfo
-	err = json.NewDecoder(response.Body).Decode(&networkInterfaceInfo)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &networkInterfaceInfo, nil
-}
-
 func updateReference(ctx context.Context, serverID string, reference string) error {
 	apiCtx := fmt.Sprintf("updating server %s reference", serverID)
 
