@@ -217,26 +217,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	tflog.Error(ctx, "API request error", fields)
 }
 
-func powerOnServer(ctx context.Context, serverID string) error {
-	apiCtx := fmt.Sprintf("powering on server %s", serverID)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOn", leasewebAPIURL, serverID)
-	method := http.MethodPost
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return err
-	}
-
-	return nil
-}
-
 func powerOffServer(ctx context.Context, serverID string) error {
 	apiCtx := fmt.Sprintf("powering off server %s", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/powerOff", leasewebAPIURL, serverID)
