@@ -218,37 +218,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	tflog.Error(ctx, "API request error", fields)
 }
 
-func updateReference(ctx context.Context, serverID string, reference string) error {
-	apiCtx := fmt.Sprintf("updating server %s reference", serverID)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(struct {
-		Reference string `json:"reference"`
-	}{
-		Reference: reference,
-	})
-	if err != nil {
-		return NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
-	method := http.MethodPut
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return err
-	}
-
-	return nil
-}
-
 func updateReverseLookup(ctx context.Context, serverID string, ip string, reverseLookup string) error {
 	apiCtx := fmt.Sprintf("updating server %s reverse lookup for IP %s", serverID, ip)
 
