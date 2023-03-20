@@ -191,7 +191,7 @@ Mandatory for root partition, unnecessary for swap partition.
 func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	serverID := d.Get("dedicated_server_id").(string)
 
-	var payload = Payload{
+	var payload = map[string]interface{}{
 		"operatingSystemId":   d.Get("operating_system_id").(string),
 		"doEmailNotification": false,
 	}
