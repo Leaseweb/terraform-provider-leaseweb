@@ -85,11 +85,6 @@ type NetworkInterfaceInfo struct {
 	Status string
 }
 
-// IsOpened -
-func (n *NetworkInterfaceInfo) IsOpened() bool {
-	return n.Status == "OPEN"
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string
