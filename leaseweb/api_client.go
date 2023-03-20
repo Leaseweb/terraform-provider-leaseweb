@@ -610,33 +610,6 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	return nil
 }
 
-func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) {
-	apiCtx := fmt.Sprintf("getting job status for server %s", serverID)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var job Job
-
-	err = json.NewDecoder(response.Body).Decode(&job)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &job, nil
-}
-
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
 	apiCtx := fmt.Sprintf("getting servers list")
 
