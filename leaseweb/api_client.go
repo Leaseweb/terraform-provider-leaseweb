@@ -608,39 +608,6 @@ func unnullIP(ctx context.Context, serverID string, ip string) error {
 	return nil
 }
 
-func updateDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(notificationSetting)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodPut
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var updatedNotificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&updatedNotificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &updatedNotificationSetting, nil
-}
-
 func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
 	apiCtx := fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
