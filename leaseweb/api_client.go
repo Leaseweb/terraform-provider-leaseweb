@@ -608,32 +608,6 @@ func unnullIP(ctx context.Context, serverID string, ip string) error {
 	return nil
 }
 
-func getDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var notificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&notificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &notificationSetting, nil
-}
-
 func updateDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
 	apiCtx := fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType)
 
