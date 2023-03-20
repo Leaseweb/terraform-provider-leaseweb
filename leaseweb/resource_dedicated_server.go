@@ -160,7 +160,6 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
-	// TODO: can be cleaner
 	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.Status == "OPEN")
 
 	return diags
