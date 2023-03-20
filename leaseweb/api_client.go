@@ -91,16 +91,6 @@ func (n *NetworkInterfaceInfo) IsOpened() bool {
 	return n.Status == "OPEN"
 }
 
-// Payload -
-type Payload map[string]interface{}
-
-// Job -
-type Job struct {
-	UUID    string
-	Status  string
-	Payload Payload
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string
@@ -618,106 +608,6 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	}
 
 	return nil
-}
-
-func launchInstallationJob(ctx context.Context, serverID string, payload *Payload) (*Job, error) {
-	apiCtx := fmt.Sprintf("launching installation job for server %s", serverID)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(payload)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/install", leasewebAPIURL, serverID)
-	method := http.MethodPost
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var installationJob Job
-
-	err = json.NewDecoder(response.Body).Decode(&installationJob)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &installationJob, nil
-}
-
-func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
-	apiCtx := fmt.Sprintf("getting latest installation job for server %s", serverID)
-
-	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID))
-	if err != nil {
-		return nil, err
-	}
-
-	v := url.Values{}
-	v.Set("type", "install")
-	u.RawQuery = v.Encode()
-
-	url := u.String()
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var jobs struct {
-		Jobs []Job
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&jobs)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &jobs.Jobs[0], nil
-}
-
-func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) {
-	apiCtx := fmt.Sprintf("getting job status for server %s", serverID)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var job Job
-
-	err = json.NewDecoder(response.Body).Decode(&job)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &job, nil
 }
 
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
