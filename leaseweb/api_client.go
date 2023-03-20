@@ -91,16 +91,6 @@ func (n *NetworkInterfaceInfo) IsOpened() bool {
 	return n.Status == "OPEN"
 }
 
-// Payload -
-type Payload map[string]interface{}
-
-// Job -
-type Job struct {
-	UUID    string
-	Status  string
-	Payload Payload
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string
