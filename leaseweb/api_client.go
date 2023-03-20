@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -222,35 +221,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	}
 
 	tflog.Error(ctx, "API request error", fields)
-}
-
-func getServer(ctx context.Context, serverID string) (*Server, error) {
-	apiCtx := fmt.Sprintf("getting server %s", serverID)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s", leasewebAPIURL, serverID)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var server Server
-	err = json.NewDecoder(response.Body).Decode(&server)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	server.NetworkInterfaces.Public.IP = strings.SplitN(server.NetworkInterfaces.Public.IP, "/", 2)[0]
-	server.NetworkInterfaces.RemoteManagement.IP = strings.SplitN(server.NetworkInterfaces.RemoteManagement.IP, "/", 2)[0]
-
-	return &server, nil
 }
 
 func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
