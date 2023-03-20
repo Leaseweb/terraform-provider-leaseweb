@@ -3,6 +3,7 @@ package leaseweb
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
@@ -114,10 +115,9 @@ func resourceDedicatedServerNotificationSettingBandwidthUpdate(ctx context.Conte
 	serverID := d.Get("dedicated_server_id").(string)
 	notificationSettingID := d.Get("id").(string)
 
-	threshold := d.Get("threshold").(float64)
 	params := map[string]string{
 		"frequency": d.Get("frequency").(string),
-		"threshold": fmt.Sprintf("%.6g", threshold),
+		"threshold": strconv.FormatFloat(d.Get("threshold").(float64), 'f', -1, 64),
 		"unit":      d.Get("unit").(string),
 	}
 
