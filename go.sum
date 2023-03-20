@@ -3,6 +3,10 @@ github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230307160712-34ad89849e9d h1:+3yM35
 github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230307160712-34ad89849e9d/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
 github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230316200259-c8875f4546f8 h1:SGcHBkrsxedm6ye/iklZgVtIzmwZ21Ys6kOZYW0Hg88=
 github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230316200259-c8875f4546f8/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230319202841-314087608a6a h1:nQTgx77vwAcdfjQEJ63zN9BkepoIrhAgLNyijZp62XA=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230319202841-314087608a6a/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230320080654-dbccb2d44431 h1:17AM7bZk5fo8zSSi6IaSuBtrH7FRvfkP5fLCSIyl2hg=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230320080654-dbccb2d44431/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
 github.com/Masterminds/goutils v1.1.0/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
