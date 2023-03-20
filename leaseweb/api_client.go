@@ -257,26 +257,6 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	return nil
 }
 
-func removeDHCPLease(ctx context.Context, serverID string) error {
-	apiCtx := fmt.Sprintf("removing server %s lease", serverID)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
-	method := http.MethodDelete
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return err
-	}
-
-	return nil
-}
-
 func openNetworkInterface(ctx context.Context, serverID string, networkType string) error {
 	apiCtx := fmt.Sprintf("opening server %s network interface %s", serverID, networkType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/networkInterfaces/%s/open", leasewebAPIURL, serverID, networkType)
