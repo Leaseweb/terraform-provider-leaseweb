@@ -223,32 +223,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	tflog.Error(ctx, "API request error", fields)
 }
 
-func getServerIP(ctx context.Context, serverID string, ip string) (*IP, error) {
-	apiCtx := fmt.Sprintf("getting server %s IP %s", serverID, ip)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/ips/%s", leasewebAPIURL, serverID, ip)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var ipData IP
-	err = json.NewDecoder(response.Body).Decode(&ipData)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &ipData, nil
-}
-
 func getServerLease(ctx context.Context, serverID string) (*DHCPLease, error) {
 	apiCtx := fmt.Sprintf("getting server %s lease", serverID)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
