@@ -1,7 +1,6 @@
 package leaseweb
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -250,37 +249,6 @@ func powerOffServer(ctx context.Context, serverID string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return err
-	}
-
-	return nil
-}
-
-func addDHCPLease(ctx context.Context, serverID string, bootfile string) error {
-	apiCtx := fmt.Sprintf("adding server %s lease", serverID)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(struct {
-		Bootfile string `json:"bootfile"`
-	}{
-		Bootfile: bootfile,
-	})
-	if err != nil {
-		return NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/leases", leasewebAPIURL, serverID)
-	method := http.MethodPost
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusNoContent {
 		err := parseErrorInfo(response.Body, apiCtx)
 		logAPIError(ctx, method, url, err)
 		return err
