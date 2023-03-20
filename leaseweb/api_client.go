@@ -91,14 +91,6 @@ func (n *NetworkInterfaceInfo) IsOpened() bool {
 	return n.Status == "OPEN"
 }
 
-// NotificationSetting -
-type NotificationSetting struct {
-	ID        string  `json:"id,omitempty"`
-	Frequency string  `json:"frequency"`
-	Threshold float64 `json:"threshold,string"`
-	Unit      string  `json:"unit"`
-}
-
 // Payload -
 type Payload map[string]interface{}
 
@@ -606,98 +598,6 @@ func unnullIP(ctx context.Context, serverID string, ip string) error {
 	}
 
 	return nil
-}
-
-func createDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(notificationSetting)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s", leasewebAPIURL, serverID, notificationType)
-	method := http.MethodPost
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusCreated {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var createdNotificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&createdNotificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &createdNotificationSetting, nil
-}
-
-func getDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var notificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&notificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &notificationSetting, nil
-}
-
-func updateDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(notificationSetting)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodPut
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var updatedNotificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&updatedNotificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &updatedNotificationSetting, nil
 }
 
 func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
