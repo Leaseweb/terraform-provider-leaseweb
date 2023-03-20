@@ -75,8 +75,9 @@ func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.Reso
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 
-	createdCredential, err := LSW.DedicatedServerApi{}.CreateCredential(serverID, credentialType, username, password)
+	createdCredential, err := LSW.DedicatedServerApi{}.CreateCredential(ctx, serverID, credentialType, username, password)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -92,8 +93,9 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 
 	var diags diag.Diagnostics
 
-	credential, err := LSW.DedicatedServerApi{}.GetCredential(serverID, credentialType, username)
+	credential, err := LSW.DedicatedServerApi{}.GetCredential(ctx, serverID, credentialType, username)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -108,8 +110,9 @@ func resourceDedicatedServerCredentialUpdate(ctx context.Context, d *schema.Reso
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 
-	_, err := LSW.DedicatedServerApi{}.UpdateCredential(serverID, credentialType, username, password)
+	_, err := LSW.DedicatedServerApi{}.UpdateCredential(ctx, serverID, credentialType, username, password)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -123,8 +126,9 @@ func resourceDedicatedServerCredentialDelete(ctx context.Context, d *schema.Reso
 	credentialType := d.Get("type").(string)
 	username := d.Get("username").(string)
 
-	err := LSW.DedicatedServerApi{}.DeleteCredential(serverID, credentialType, username)
+	err := LSW.DedicatedServerApi{}.DeleteCredential(ctx, serverID, credentialType, username)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
