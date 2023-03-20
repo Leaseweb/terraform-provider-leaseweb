@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -255,19 +254,19 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		payload["partitions"] = partitions
 	}
 
-	installationJob, err := LSW.DedicatedServerApi{}.LaunchInstallation(ctx, serverID, payload)
+	installationJob, err := launchInstallationJob(ctx, serverID, &payload)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.Set("job_uuid", installationJob.Uuid)
+	d.Set("job_uuid", installationJob.UUID)
 	d.SetId(serverID)
 
 	createStateConf := &resource.StateChangeConf{
 		Pending: []string{"ACTIVE"},
 		Target:  []string{"FINISHED"},
 		Refresh: func() (interface{}, string, error) {
-			job, err := LSW.DedicatedServerApi{}.GetJob(ctx, serverID, installationJob.Uuid)
+			job, err := getJob(ctx, serverID, installationJob.UUID)
 			if err != nil {
 				return nil, "error", err
 			}
@@ -285,22 +284,15 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 }
 
 func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
 	serverID := d.Get("dedicated_server_id").(string)
 
 	var diags diag.Diagnostics
 
-	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(ctx, serverID, 0, 1, "install")
-
+	installationJob, err := getLatestInstallationJob(ctx, serverID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if len(installationJobs.Jobs) == 0 {
-		return diag.Errorf("no installation jobs found for server %s", serverID)
-	}
-	installationJob := installationJobs.Jobs[0]
-
-	d.Set("job_uuid", installationJob.Uuid)
+	d.Set("job_uuid", installationJob.UUID)
 	d.Set("operating_system_id", installationJob.Payload["operatingSystemId"])
 
 	if controlPanelID, ok := installationJob.Payload["controlPanelId"]; ok {

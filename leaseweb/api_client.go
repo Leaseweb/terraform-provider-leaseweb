@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -90,12 +91,14 @@ func (n *NetworkInterfaceInfo) IsOpened() bool {
 	return n.Status == "OPEN"
 }
 
-// NotificationSetting -
-type NotificationSetting struct {
-	ID        string  `json:"id,omitempty"`
-	Frequency string  `json:"frequency"`
-	Threshold float64 `json:"threshold,string"`
-	Unit      string  `json:"unit"`
+// Payload -
+type Payload map[string]interface{}
+
+// Job -
+type Job struct {
+	UUID    string
+	Status  string
+	Payload Payload
 }
 
 // ErrorInfo -
@@ -195,6 +198,37 @@ func logAPIError(ctx context.Context, method, url string, err error) {
 		}
 	} else {
 		fields["message"] = err.Error()
+	}
+
+	tflog.Error(ctx, "API request error", fields)
+}
+
+// TODO rename to LogApiError when we remove the other one
+func logSdkAPIError(ctx context.Context, err error) {
+	fields := map[string]interface{}{}
+
+	if erra, ok := err.(*LSW.ApiError); ok {
+		fields["url"] = erra.Url
+		fields["method"] = erra.Method
+		fields["code"] = erra.Code
+		fields["message"] = erra.Message
+		fields["correlation_id"] = erra.CorrelationId
+
+		if len(erra.Details) != 0 {
+			for field, details := range erra.Details {
+				fields["detail_"+field] = details
+			}
+		}
+	} else {
+		fields["message"] = err.Error()
+
+		if errd, ok := err.(*LSW.DecodingError); ok {
+			fields["url"] = errd.Url
+			fields["method"] = errd.Method
+		} else if erre, ok := err.(*LSW.EncodingError); ok {
+			fields["url"] = erre.Url
+			fields["method"] = erre.Method
+		}
 	}
 
 	tflog.Error(ctx, "API request error", fields)
@@ -566,98 +600,6 @@ func unnullIP(ctx context.Context, serverID string, ip string) error {
 	return nil
 }
 
-func createDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("creating server %s notification setting %s", serverID, notificationType)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(notificationSetting)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s", leasewebAPIURL, serverID, notificationType)
-	method := http.MethodPost
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusCreated {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var createdNotificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&createdNotificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &createdNotificationSetting, nil
-}
-
-func getDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("getting server %s notification setting %s", serverID, notificationType)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var notificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&notificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &notificationSetting, nil
-}
-
-func updateDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string, notificationSetting *NotificationSetting) (*NotificationSetting, error) {
-	apiCtx := fmt.Sprintf("updating server %s notification setting %s", serverID, notificationType)
-
-	requestBody := new(bytes.Buffer)
-	err := json.NewEncoder(requestBody).Encode(notificationSetting)
-	if err != nil {
-		return nil, NewEncodingError(apiCtx, err)
-	}
-
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodPut
-
-	response, err := doAPIRequest(ctx, method, url, requestBody)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var updatedNotificationSetting NotificationSetting
-	err = json.NewDecoder(response.Body).Decode(&updatedNotificationSetting)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return &updatedNotificationSetting, nil
-}
-
 func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
 	apiCtx := fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType)
 	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
@@ -676,6 +618,106 @@ func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID stri
 	}
 
 	return nil
+}
+
+func launchInstallationJob(ctx context.Context, serverID string, payload *Payload) (*Job, error) {
+	apiCtx := fmt.Sprintf("launching installation job for server %s", serverID)
+
+	requestBody := new(bytes.Buffer)
+	err := json.NewEncoder(requestBody).Encode(payload)
+	if err != nil {
+		return nil, NewEncodingError(apiCtx, err)
+	}
+
+	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/install", leasewebAPIURL, serverID)
+	method := http.MethodPost
+
+	response, err := doAPIRequest(ctx, method, url, requestBody)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		err := parseErrorInfo(response.Body, apiCtx)
+		logAPIError(ctx, method, url, err)
+		return nil, err
+	}
+
+	var installationJob Job
+
+	err = json.NewDecoder(response.Body).Decode(&installationJob)
+	if err != nil {
+		return nil, NewDecodingError(apiCtx, err)
+	}
+
+	return &installationJob, nil
+}
+
+func getLatestInstallationJob(ctx context.Context, serverID string) (*Job, error) {
+	apiCtx := fmt.Sprintf("getting latest installation job for server %s", serverID)
+
+	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs", leasewebAPIURL, serverID))
+	if err != nil {
+		return nil, err
+	}
+
+	v := url.Values{}
+	v.Set("type", "install")
+	u.RawQuery = v.Encode()
+
+	url := u.String()
+	method := http.MethodGet
+
+	response, err := doAPIRequest(ctx, method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		err := parseErrorInfo(response.Body, apiCtx)
+		logAPIError(ctx, method, url, err)
+		return nil, err
+	}
+
+	var jobs struct {
+		Jobs []Job
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&jobs)
+	if err != nil {
+		return nil, NewDecodingError(apiCtx, err)
+	}
+
+	return &jobs.Jobs[0], nil
+}
+
+func getJob(ctx context.Context, serverID string, jobUUID string) (*Job, error) {
+	apiCtx := fmt.Sprintf("getting job status for server %s", serverID)
+	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/jobs/%s", leasewebAPIURL, serverID, jobUUID)
+	method := http.MethodGet
+
+	response, err := doAPIRequest(ctx, method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		err := parseErrorInfo(response.Body, apiCtx)
+		logAPIError(ctx, method, url, err)
+		return nil, err
+	}
+
+	var job Job
+
+	err = json.NewDecoder(response.Body).Decode(&job)
+	if err != nil {
+		return nil, NewDecodingError(apiCtx, err)
+	}
+
+	return &job, nil
 }
 
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
