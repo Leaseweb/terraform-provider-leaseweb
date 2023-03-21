@@ -2,8 +2,10 @@ package leaseweb
 
 import (
 	"context"
+	"strings"
 	"time"
 
+	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -101,13 +103,18 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	var diags diag.Diagnostics
 
 	// get basic data
-	server, err := getServer(ctx, serverID)
+	server, err := LSW.DedicatedServerApi{}.Get(ctx, serverID)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
+
+	server.NetworkInterfaces.Public.Ip = strings.SplitN(server.NetworkInterfaces.Public.Ip, "/", 2)[0]
+	server.NetworkInterfaces.RemoteManagement.Ip = strings.SplitN(server.NetworkInterfaces.RemoteManagement.Ip, "/", 2)[0]
+
 	d.Set("reference", server.Contract.Reference)
-	d.Set("public_ip", server.NetworkInterfaces.Public.IP)
-	d.Set("remote_management_ip", server.NetworkInterfaces.RemoteManagement.IP)
+	d.Set("public_ip", server.NetworkInterfaces.Public.Ip)
+	d.Set("remote_management_ip", server.NetworkInterfaces.RemoteManagement.Ip)
 
 	d.Set("location", map[string]string{
 		"rack":  server.Location.Rack,
@@ -117,30 +124,43 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	})
 
 	// get IP data
-	ip, err := getServerIP(ctx, serverID, server.NetworkInterfaces.Public.IP)
+	ip, err := LSW.DedicatedServerApi{}.GetIp(ctx, serverID, server.NetworkInterfaces.Public.Ip)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 	d.Set("reverse_lookup", ip.ReverseLookup)
 	d.Set("public_ip_null_routed", ip.NullRouted)
 
 	// get lease data
-	lease, err := getServerLease(ctx, serverID)
+	lease, err := LSW.DedicatedServerApi{}.ListDhcpReservation(ctx, serverID)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
-	d.Set("dhcp_lease", lease.GetBootfile())
+
+	if len(lease.Leases) == 0 {
+		d.Set("dhcp_lease", "")
+	} else {
+		d.Set("dhcp_lease", lease.Leases[0].BootFile)
+	}
 
 	// get power data
-	powerInfo, err := getPowerInfo(ctx, serverID)
+	powerStatus, err := LSW.DedicatedServerApi{}.GetPowerStatus(ctx, serverID)
 	if err != nil {
+		logSdkAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
-	d.Set("powered_on", powerInfo.IsPoweredOn())
+
+	d.Set("powered_on", powerStatus.Pdu.Status != "off" && powerStatus.Ipmi.Status != "off")
 
 	// get public network interface data
-	publicNetworkInterfaceInfo, err := getNetworkInterfaceInfo(ctx, serverID, "public")
-	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.IsOpened())
+	publicNetworkInterfaceInfo, err := LSW.DedicatedServerApi{}.GetNetworkInterface(ctx, serverID, "public")
+	if err != nil {
+		logSdkAPIError(ctx, err)
+		return diag.FromErr(err)
+	}
+	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.Status == "OPEN")
 
 	return diags
 }
@@ -150,7 +170,9 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	if d.HasChange("reference") {
 		reference := d.Get("reference").(string)
-		if err := updateReference(ctx, serverID, reference); err != nil {
+		err := LSW.DedicatedServerApi{}.Update(ctx, serverID, map[string]interface{}{"reference": reference})
+		if err != nil {
+			logSdkAPIError(ctx, err)
 			return diag.FromErr(err)
 		}
 
@@ -161,7 +183,9 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("reverse_lookup") {
 		publicIP := d.Get("public_ip").(string)
 		reverseLookup := d.Get("reverse_lookup").(string)
-		if err := updateReverseLookup(ctx, serverID, publicIP, reverseLookup); err != nil {
+		_, err := LSW.DedicatedServerApi{}.UpdateIp(ctx, serverID, publicIP, map[string]string{"reverseLookup": reverseLookup})
+		if err != nil {
+			logSdkAPIError(ctx, err)
 			return diag.FromErr(err)
 		}
 	}
@@ -169,11 +193,15 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("dhcp_lease") {
 		bootFile := d.Get("dhcp_lease").(string)
 		if bootFile != "" {
-			if err := addDHCPLease(ctx, serverID, bootFile); err != nil {
+			err := LSW.DedicatedServerApi{}.CreateDhcpReservation(ctx, serverID, map[string]string{"bootfile": bootFile})
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := removeDHCPLease(ctx, serverID); err != nil {
+			err := LSW.DedicatedServerApi{}.DeleteDhcpReservation(ctx, serverID)
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
@@ -181,11 +209,15 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	if d.HasChange("powered_on") {
 		if d.Get("powered_on").(bool) {
-			if err := powerOnServer(ctx, serverID); err != nil {
+			err := LSW.DedicatedServerApi{}.PowerOnServer(ctx, serverID)
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := powerOffServer(ctx, serverID); err != nil {
+			err := LSW.DedicatedServerApi{}.PowerOffServer(ctx, serverID)
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
@@ -193,11 +225,15 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	if d.HasChange("public_network_interface_opened") {
 		if d.Get("public_network_interface_opened").(bool) {
-			if err := openNetworkInterface(ctx, serverID, "public"); err != nil {
+			err := LSW.DedicatedServerApi{}.OpenNetworkInterface(ctx, serverID, "public")
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := closeNetworkInterface(ctx, serverID, "public"); err != nil {
+			err := LSW.DedicatedServerApi{}.CloseNetworkInterface(ctx, serverID, "public")
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
@@ -206,11 +242,15 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("public_ip_null_routed") {
 		publicIP := d.Get("public_ip").(string)
 		if d.Get("public_ip_null_routed").(bool) {
-			if err := nullIP(ctx, serverID, publicIP); err != nil {
+			_, err := LSW.DedicatedServerApi{}.NullRouteAnIp(ctx, serverID, publicIP)
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
-			if err := unnullIP(ctx, serverID, publicIP); err != nil {
+			_, err := LSW.DedicatedServerApi{}.NullRouteAnIp(ctx, serverID, publicIP)
+			if err != nil {
+				logSdkAPIError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
