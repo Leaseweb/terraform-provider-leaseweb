@@ -21,31 +21,7 @@ var (
 
 // Server -
 type Server struct {
-	ID       string
-	Contract struct {
-		Reference string
-	}
-	NetworkInterfaces struct {
-		Public struct {
-			IP string
-		}
-		RemoteManagement struct {
-			IP string
-		}
-	}
-	Location struct {
-		Site  string
-		Suite string
-		Rack  string
-		Unit  string
-	}
-}
-
-// IP -
-type IP struct {
-	IP            string
-	ReverseLookup string
-	NullRouted    bool
+	ID string
 }
 
 // ErrorInfo -
