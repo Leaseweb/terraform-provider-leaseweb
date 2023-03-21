@@ -79,11 +79,6 @@ func (p *PowerInfo) IsPoweredOn() bool {
 	return p.PDU.Status != "off" && p.IPMI.Status != "off"
 }
 
-// NetworkInterfaceInfo -
-type NetworkInterfaceInfo struct {
-	Status string
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string
