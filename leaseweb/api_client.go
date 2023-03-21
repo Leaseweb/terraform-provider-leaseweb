@@ -48,37 +48,6 @@ type IP struct {
 	NullRouted    bool
 }
 
-// DHCPLease -
-type DHCPLease struct {
-	Leases []struct {
-		IP       string
-		Bootfile string
-	}
-}
-
-// GetBootfile -
-func (l *DHCPLease) GetBootfile() string {
-	if len(l.Leases) == 0 {
-		return ""
-	}
-	return l.Leases[0].Bootfile
-}
-
-// PowerInfo -
-type PowerInfo struct {
-	IPMI struct {
-		Status string
-	}
-	PDU struct {
-		Status string
-	}
-}
-
-// IsPoweredOn -
-func (p *PowerInfo) IsPoweredOn() bool {
-	return p.PDU.Status != "off" && p.IPMI.Status != "off"
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string
