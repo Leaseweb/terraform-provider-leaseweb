@@ -181,26 +181,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	tflog.Error(ctx, "API request error", fields)
 }
 
-func deleteDedicatedServerNotificationSetting(ctx context.Context, serverID string, notificationType string, notificationSettingID string) error {
-	apiCtx := fmt.Sprintf("deleting server %s notification setting %s", serverID, notificationType)
-	url := fmt.Sprintf("%s/bareMetals/v2/servers/%s/notificationSettings/%s/%s", leasewebAPIURL, serverID, notificationType, notificationSettingID)
-	method := http.MethodDelete
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusNoContent {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return err
-	}
-
-	return nil
-}
-
 func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
 	apiCtx := fmt.Sprintf("getting servers list")
 
