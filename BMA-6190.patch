@@ -1,0 +1,52 @@
+diff --git a/leaseweb/api_client.go b/leaseweb/api_client.go
+index 8053ef8..3393a1a 100644
+--- a/leaseweb/api_client.go
++++ b/leaseweb/api_client.go
+@@ -208,22 +208,29 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
+ 	return serverList.Servers, nil
+ }
+ 
+-func getAllServers(ctx context.Context, site string) ([]Server, error) {
+-	var allServers []Server
++func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, error) {
++	var allServers []LSW.DedicatedServer
+ 	offset := 0
+ 	limit := 20
+ 
+ 	for {
+-		serversBatch, err := getServersBatch(ctx, offset, limit, site)
++
++		opts := LSW.DedicatedServerListOptions{
++			Site:   LSW.String(site),
++			Offset: LSW.Int(offset),
++			Limit:  LSW.Int(limit),
++		}
++
++		result, err := LSW.DedicatedServerApi{}.List(ctx, opts)
+ 		if err != nil {
+ 			return nil, err
+ 		}
+ 
+-		if len(serversBatch) == 0 {
++		if len(result.Servers) == 0 {
+ 			break
+ 		}
+ 
+-		allServers = append(allServers, serversBatch...)
++		allServers = append(allServers, result.Servers...)
+ 		offset += limit
+ 	}
+ 
+diff --git a/leaseweb/data_source_dedicated_servers.go b/leaseweb/data_source_dedicated_servers.go
+index 0264d87..eaa9af9 100644
+--- a/leaseweb/data_source_dedicated_servers.go
++++ b/leaseweb/data_source_dedicated_servers.go
+@@ -46,7 +46,7 @@ func dataSourceDedicatedServersRead(ctx context.Context, d *schema.ResourceData,
+ 	serverIds := make([]string, len(servers))
+ 
+ 	for i, server := range servers {
+-		serverIds[i] = server.ID
++		serverIds[i] = server.Id
+ 	}
+ 
+ 	if err := d.Set("ids", serverIds); err != nil {

@@ -208,22 +208,29 @@ func getServersBatch(ctx context.Context, offset int, limit int, site string) ([
 	return serverList.Servers, nil
 }
 
-func getAllServers(ctx context.Context, site string) ([]Server, error) {
-	var allServers []Server
+func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, error) {
+	var allServers []LSW.DedicatedServer
 	offset := 0
 	limit := 20
 
 	for {
-		serversBatch, err := getServersBatch(ctx, offset, limit, site)
+
+		opts := LSW.DedicatedServerListOptions{
+			Site:   LSW.String(site),
+			Offset: LSW.Int(offset),
+			Limit:  LSW.Int(limit),
+		}
+
+		result, err := LSW.DedicatedServerApi{}.List(ctx, opts)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(serversBatch) == 0 {
+		if len(result.Servers) == 0 {
 			break
 		}
 
-		allServers = append(allServers, serversBatch...)
+		allServers = append(allServers, result.Servers...)
 		offset += limit
 	}
 

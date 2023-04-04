@@ -46,7 +46,7 @@ func dataSourceDedicatedServersRead(ctx context.Context, d *schema.ResourceData,
 	serverIds := make([]string, len(servers))
 
 	for i, server := range servers {
-		serverIds[i] = server.ID
+		serverIds[i] = server.Id
 	}
 
 	if err := d.Set("ids", serverIds); err != nil {
