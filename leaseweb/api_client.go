@@ -216,9 +216,9 @@ func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, err
 	for {
 
 		opts := LSW.DedicatedServerListOptions{
-			Site:   LSW.String(site),
-			Offset: LSW.Int(offset),
-			Limit:  LSW.Int(limit),
+			Site:   &site,
+			Offset: &offset,
+			Limit:  &limit,
 		}
 
 		result, err := LSW.DedicatedServerApi{}.List(ctx, opts)
