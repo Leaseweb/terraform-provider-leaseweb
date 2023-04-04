@@ -3,11 +3,8 @@ package leaseweb
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"strconv"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -155,57 +152,6 @@ func logSdkAPIError(ctx context.Context, err error) {
 	}
 
 	tflog.Error(ctx, "API request error", fields)
-}
-
-func getServersBatch(ctx context.Context, offset int, limit int, site string) ([]Server, error) {
-	apiCtx := fmt.Sprintf("getting servers list")
-
-	u, err := url.Parse(fmt.Sprintf("%s/bareMetals/v2/servers", leasewebAPIURL))
-	if err != nil {
-		return nil, err
-	}
-
-	v := url.Values{}
-
-	if offset >= 0 {
-		v.Set("offset", strconv.Itoa(offset))
-	}
-
-	if limit >= 0 {
-		v.Set("limit", strconv.Itoa(limit))
-	}
-
-	if site != "" {
-		v.Set("site", site)
-	}
-
-	u.RawQuery = v.Encode()
-
-	url := u.String()
-	method := http.MethodGet
-
-	response, err := doAPIRequest(ctx, method, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := parseErrorInfo(response.Body, apiCtx)
-		logAPIError(ctx, method, url, err)
-		return nil, err
-	}
-
-	var serverList struct {
-		Servers []Server
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&serverList)
-	if err != nil {
-		return nil, NewDecodingError(apiCtx, err)
-	}
-
-	return serverList.Servers, nil
 }
 
 func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, error) {
