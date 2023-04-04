@@ -123,8 +123,7 @@ func logAPIError(ctx context.Context, method, url string, err error) {
 	tflog.Error(ctx, "API request error", fields)
 }
 
-// TODO rename to LogApiError when we remove the other one
-func logSdkAPIError(ctx context.Context, err error) {
+func LogApiError(ctx context.Context, err error) {
 	fields := map[string]interface{}{}
 
 	if erra, ok := err.(*LSW.ApiError); ok {

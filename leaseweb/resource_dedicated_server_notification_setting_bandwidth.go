@@ -84,7 +84,7 @@ func resourceDedicatedServerNotificationSettingBandwidthCreate(ctx context.Conte
 
 	createdNotificationSetting, err := LSW.DedicatedServerApi{}.CreateBandWidthNotificationSetting(ctx, serverID, frequency, threshold, unit)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		LogApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -101,7 +101,7 @@ func resourceDedicatedServerNotificationSettingBandwidthRead(ctx context.Context
 
 	notificationSetting, err := LSW.DedicatedServerApi{}.GetBandWidthNotificationSetting(ctx, serverID, notificationSettingID)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		LogApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 	d.Set("frequency", notificationSetting.Frequency)
@@ -123,7 +123,7 @@ func resourceDedicatedServerNotificationSettingBandwidthUpdate(ctx context.Conte
 
 	_, err := LSW.DedicatedServerApi{}.UpdateBandWidthNotificationSetting(ctx, serverID, notificationSettingID, params)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		LogApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -138,7 +138,7 @@ func resourceDedicatedServerNotificationSettingBandwidthDelete(ctx context.Conte
 
 	err := LSW.DedicatedServerApi{}.DeleteBandWidthNotificationSetting(ctx, serverID, notificationSettingID)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		LogApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
