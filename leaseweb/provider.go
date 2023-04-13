@@ -12,16 +12,6 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_url": {
-				Description: `
-The base URL of the API endpoint to use.
-By default it takes the value from the ` + "`LEASEWEB_API_URL`" + ` environment variable if present,
-otherwise it defaults to "https://api.leaseweb.com".
-`,
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("LEASEWEB_API_URL", "https://api.leaseweb.com"),
-			},
 			"api_token": {
 				Description: `
 The API token to use.
