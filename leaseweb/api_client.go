@@ -161,9 +161,11 @@ func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, err
 	for {
 
 		opts := LSW.DedicatedServerListOptions{
-			Site:   &site,
-			Offset: &offset,
-			Limit:  &limit,
+			PaginationOptions: LSW.PaginationOptions{
+				Offset: &offset,
+				Limit:  &limit,
+			},
+			Site: &site,
 		}
 
 		result, err := LSW.DedicatedServerApi{}.List(ctx, opts)

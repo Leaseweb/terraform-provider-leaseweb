@@ -133,7 +133,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	d.Set("public_ip_null_routed", ip.NullRouted)
 
 	// get lease data
-	lease, err := LSW.DedicatedServerApi{}.ListDhcpReservation(ctx, serverID)
+	lease, err := LSW.DedicatedServerApi{}.ListDhcpReservation(ctx, serverID, LSW.PaginationOptions{})
 	if err != nil {
 		LogApiError(ctx, err)
 		return diag.FromErr(err)

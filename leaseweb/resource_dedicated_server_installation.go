@@ -292,7 +292,15 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	var diags diag.Diagnostics
 
-	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(ctx, serverID, 0, 1, "install")
+	opts := LSW.DedicatedServerListJobOptions{
+		PaginationOptions: LSW.PaginationOptions{
+			Offset: LSW.Int(0),
+			Limit:  LSW.Int(1),
+		},
+		Type: LSW.String("install"),
+	}
+
+	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(ctx, serverID, opts)
 	if err != nil {
 		LogApiError(ctx, err)
 		return diag.FromErr(err)

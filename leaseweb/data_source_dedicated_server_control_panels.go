@@ -50,7 +50,14 @@ func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.R
 	// but fetching only one page is enough currently
 
 	operatingSystemID := d.Get("operating_system_id").(string)
-	result, err := LSW.DedicatedServerApi{}.ListControlPanels(ctx, 0, 100, operatingSystemID)
+	opts := LSW.DedicatedServerListControlPanelsOptions{
+		PaginationOptions: LSW.PaginationOptions{
+			Offset: LSW.Int(0),
+			Limit:  LSW.Int(100),
+		},
+		OperatingSystemId: &operatingSystemID,
+	}
+	result, err := LSW.DedicatedServerApi{}.ListControlPanels(ctx, opts)
 	if err != nil {
 		LogApiError(ctx, err)
 		return diag.FromErr(err)
