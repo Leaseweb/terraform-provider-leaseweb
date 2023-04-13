@@ -2,8 +2,6 @@ package leaseweb
 
 import (
 	"context"
-	"net/http"
-	"time"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -60,9 +58,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	var diags diag.Diagnostics
 
-	leasewebAPIURL = baseURL
 	leasewebAPIToken = apiToken
-	leasewebClient = &http.Client{Timeout: 60 * time.Second}
 
 	LSW.InitLeasewebClient(apiToken)
 
