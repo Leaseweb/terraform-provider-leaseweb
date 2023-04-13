@@ -49,16 +49,13 @@ By default it takes the value from the ` + "`LEASEWEB_API_TOKEN`" + ` environmen
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	baseURL := d.Get("api_url").(string)
 	apiToken := d.Get("api_token").(string)
 
-	if baseURL == "" || apiToken == "" {
-		return nil, diag.Errorf("missing leaseweb provider base url or token")
+	if apiToken == "" {
+		return nil, diag.Errorf("missing leaseweb provider token")
 	}
 
 	var diags diag.Diagnostics
-
-	leasewebAPIToken = apiToken
 
 	LSW.InitLeasewebClient(apiToken)
 

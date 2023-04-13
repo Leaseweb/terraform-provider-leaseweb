@@ -7,10 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var (
-	leasewebAPIToken string
-)
-
 func logAPIError(ctx context.Context, err error) {
 	fields := map[string]interface{}{}
 
@@ -43,13 +39,11 @@ func logAPIError(ctx context.Context, err error) {
 
 func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, error) {
 	var allServers []LSW.DedicatedServer
-	offset := 0
-	limit := 20
 
 	opts := LSW.DedicatedServerListOptions{
 		PaginationOptions: LSW.PaginationOptions{
-			Offset: &offset,
-			Limit:  &limit,
+			Offset: LSW.Int(0),
+			Limit:  LSW.Int(20),
 		},
 		Site: &site,
 	}
