@@ -69,7 +69,7 @@ func parseErrorInfo(r io.Reader, ctx string) error {
 	return &erri
 }
 
-func logApiError(ctx context.Context, err error) {
+func logAPIError(ctx context.Context, err error) {
 	fields := map[string]interface{}{}
 
 	if erra, ok := err.(*LSW.ApiError); ok {

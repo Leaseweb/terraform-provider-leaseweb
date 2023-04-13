@@ -257,7 +257,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 
 	installationJob, err := LSW.DedicatedServerApi{}.LaunchInstallation(ctx, serverID, payload)
 	if err != nil {
-		logApiError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -270,7 +270,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 		Refresh: func() (interface{}, string, error) {
 			job, err := LSW.DedicatedServerApi{}.GetJob(ctx, serverID, installationJob.Uuid)
 			if err != nil {
-				logApiError(ctx, err)
+				logAPIError(ctx, err)
 				return nil, "error", err
 			}
 			return job, job.Status, err
@@ -281,7 +281,7 @@ func resourceDedicatedServerInstallationCreate(ctx context.Context, d *schema.Re
 	_, err = createStateConf.WaitForStateContext(ctx)
 
 	if err != nil {
-		logApiError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 	return resourceDedicatedServerInstallationRead(ctx, d, m)
@@ -302,7 +302,7 @@ func resourceDedicatedServerInstallationRead(ctx context.Context, d *schema.Reso
 
 	installationJobs, err := LSW.DedicatedServerApi{}.ListJobs(ctx, serverID, opts)
 	if err != nil {
-		logApiError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 	if len(installationJobs.Jobs) == 0 {
