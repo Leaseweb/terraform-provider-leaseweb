@@ -16,11 +16,6 @@ var (
 	leasewebClient   *http.Client
 )
 
-// Server -
-type Server struct {
-	ID string
-}
-
 // ErrorInfo -
 type ErrorInfo struct {
 	Context       string
@@ -74,56 +69,7 @@ func parseErrorInfo(r io.Reader, ctx string) error {
 	return &erri
 }
 
-func doAPIRequest(ctx context.Context, method, url string, body io.Reader) (*http.Response, error) {
-	request, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("X-Lsw-Auth", leasewebAPIToken)
-
-	if method == http.MethodPost || method == http.MethodPut {
-		// not always needed even for those methods but this is simpler for now
-		request.Header.Set("Content-Type", "application/json")
-	}
-
-	tflog.Trace(ctx, "executing API request", map[string]interface{}{
-		"url":    url,
-		"method": method,
-	})
-
-	response, err := leasewebClient.Do(request)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
-}
-
-func logAPIError(ctx context.Context, method, url string, err error) {
-	fields := map[string]interface{}{
-		"url":    url,
-		"method": method,
-	}
-
-	if erri, ok := err.(*ErrorInfo); ok {
-		fields["context"] = erri.Context
-		fields["code"] = erri.Code
-		fields["message"] = erri.Message
-		fields["correlation_id"] = erri.CorrelationID
-
-		if len(erri.Details) != 0 {
-			for field, details := range erri.Details {
-				fields["detail_"+field] = details
-			}
-		}
-	} else {
-		fields["message"] = err.Error()
-	}
-
-	tflog.Error(ctx, "API request error", fields)
-}
-
-func LogApiError(ctx context.Context, err error) {
+func logApiError(ctx context.Context, err error) {
 	fields := map[string]interface{}{}
 
 	if erra, ok := err.(*LSW.ApiError); ok {
@@ -158,15 +104,15 @@ func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, err
 	offset := 0
 	limit := 20
 
-	for {
+	opts := LSW.DedicatedServerListOptions{
+		PaginationOptions: LSW.PaginationOptions{
+			Offset: &offset,
+			Limit:  &limit,
+		},
+		Site: &site,
+	}
 
-		opts := LSW.DedicatedServerListOptions{
-			PaginationOptions: LSW.PaginationOptions{
-				Offset: &offset,
-				Limit:  &limit,
-			},
-			Site: &site,
-		}
+	for {
 
 		result, err := LSW.DedicatedServerApi{}.List(ctx, opts)
 		if err != nil {
@@ -178,7 +124,7 @@ func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, err
 		}
 
 		allServers = append(allServers, result.Servers...)
-		offset += limit
+		*opts.PaginationOptions.Offset += *opts.PaginationOptions.Limit
 	}
 
 	return allServers, nil

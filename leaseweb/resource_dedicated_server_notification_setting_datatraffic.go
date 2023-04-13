@@ -84,7 +84,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficCreate(ctx context.Con
 
 	createdNotificationSetting, err := LSW.DedicatedServerApi{}.CreateDataTrafficNotificationSetting(ctx, serverID, frequency, threshold, unit)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -101,7 +101,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficRead(ctx context.Conte
 
 	notificationSetting, err := LSW.DedicatedServerApi{}.GetDataTrafficNotificationSetting(ctx, serverID, notificationSettingID)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 	d.Set("frequency", notificationSetting.Frequency)
@@ -123,7 +123,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficUpdate(ctx context.Con
 
 	_, err := LSW.DedicatedServerApi{}.UpdateDataTrafficNotificationSetting(ctx, serverID, notificationSettingID, params)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -138,7 +138,7 @@ func resourceDedicatedServerNotificationSettingDatatrafficDelete(ctx context.Con
 
 	err := LSW.DedicatedServerApi{}.DeleteDataTrafficNotificationSetting(ctx, serverID, notificationSettingID)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 

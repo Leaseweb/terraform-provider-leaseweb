@@ -59,7 +59,7 @@ func dataSourceDedicatedServerControlPanelsRead(ctx context.Context, d *schema.R
 	}
 	result, err := LSW.DedicatedServerApi{}.ListControlPanels(ctx, opts)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 

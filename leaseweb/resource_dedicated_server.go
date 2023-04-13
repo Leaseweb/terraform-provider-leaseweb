@@ -105,7 +105,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	// get basic data
 	server, err := LSW.DedicatedServerApi{}.Get(ctx, serverID)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -126,7 +126,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	// get IP data
 	ip, err := LSW.DedicatedServerApi{}.GetIp(ctx, serverID, server.NetworkInterfaces.Public.Ip)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 	d.Set("reverse_lookup", ip.ReverseLookup)
@@ -135,7 +135,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	// get lease data
 	lease, err := LSW.DedicatedServerApi{}.ListDhcpReservation(ctx, serverID, LSW.PaginationOptions{})
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -148,7 +148,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	// get power data
 	powerStatus, err := LSW.DedicatedServerApi{}.GetPowerStatus(ctx, serverID)
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -157,7 +157,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	// get public network interface data
 	publicNetworkInterfaceInfo, err := LSW.DedicatedServerApi{}.GetNetworkInterface(ctx, serverID, "public")
 	if err != nil {
-		LogApiError(ctx, err)
+		logApiError(ctx, err)
 		return diag.FromErr(err)
 	}
 	d.Set("public_network_interface_opened", publicNetworkInterfaceInfo.Status == "OPEN")
@@ -172,7 +172,7 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		reference := d.Get("reference").(string)
 		err := LSW.DedicatedServerApi{}.Update(ctx, serverID, map[string]interface{}{"reference": reference})
 		if err != nil {
-			LogApiError(ctx, err)
+			logApiError(ctx, err)
 			return diag.FromErr(err)
 		}
 
@@ -185,7 +185,7 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		reverseLookup := d.Get("reverse_lookup").(string)
 		_, err := LSW.DedicatedServerApi{}.UpdateIp(ctx, serverID, publicIP, map[string]string{"reverseLookup": reverseLookup})
 		if err != nil {
-			LogApiError(ctx, err)
+			logApiError(ctx, err)
 			return diag.FromErr(err)
 		}
 	}
@@ -195,13 +195,13 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if bootFile != "" {
 			err := LSW.DedicatedServerApi{}.CreateDhcpReservation(ctx, serverID, map[string]string{"bootfile": bootFile})
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
 			err := LSW.DedicatedServerApi{}.DeleteDhcpReservation(ctx, serverID)
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
@@ -211,13 +211,13 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if d.Get("powered_on").(bool) {
 			err := LSW.DedicatedServerApi{}.PowerOnServer(ctx, serverID)
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
 			err := LSW.DedicatedServerApi{}.PowerOffServer(ctx, serverID)
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
@@ -227,13 +227,13 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if d.Get("public_network_interface_opened").(bool) {
 			err := LSW.DedicatedServerApi{}.OpenNetworkInterface(ctx, serverID, "public")
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
 			err := LSW.DedicatedServerApi{}.CloseNetworkInterface(ctx, serverID, "public")
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
@@ -244,13 +244,13 @@ func resourceDedicatedServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		if d.Get("public_ip_null_routed").(bool) {
 			_, err := LSW.DedicatedServerApi{}.NullRouteAnIp(ctx, serverID, publicIP)
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		} else {
 			_, err := LSW.DedicatedServerApi{}.NullRouteAnIp(ctx, serverID, publicIP)
 			if err != nil {
-				LogApiError(ctx, err)
+				logApiError(ctx, err)
 				return diag.FromErr(err)
 			}
 		}
