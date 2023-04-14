@@ -1,4 +1,8 @@
-## 0.2.0 (Unreleased)
+## 0.3.0 (Unreleased)
+
+## 0.2.0 (April 14, 2023)
+
+Integrated Leaseweb SDK to handle API calls.
 
 ## 0.1.2 (November 18, 2022)
 
