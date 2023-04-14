@@ -46,6 +46,12 @@ resource "leaseweb_dedicated_server" "web" {
 - `api_token` (String) The API token to use.
 By default it takes the value from the `LEASEWEB_API_TOKEN` environment variable if present.
 
+### Optional
+
+- `api_url` (String) The base URL of the API endpoint to use.
+By default it takes the value from the `LEASEWEB_API_URL` environment variable if present,
+otherwise it defaults to "https://api.leaseweb.com".
+
 ## Multiple accounts
 
 The API token necessary for the configuration of the provider is linked to a

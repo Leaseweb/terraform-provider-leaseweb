@@ -12,6 +12,16 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
+			"api_url": {
+				Description: `
+The base URL of the API endpoint to use.
+By default it takes the value from the ` + "`LEASEWEB_API_URL`" + ` environment variable if present,
+otherwise it defaults to "https://api.leaseweb.com".
+`,
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("LEASEWEB_API_URL", nil),
+			},
 			"api_token": {
 				Description: `
 The API token to use.
@@ -39,6 +49,7 @@ By default it takes the value from the ` + "`LEASEWEB_API_TOKEN`" + ` environmen
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	baseURL := d.Get("api_url").(string)
 	apiToken := d.Get("api_token").(string)
 
 	if apiToken == "" {
@@ -48,6 +59,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	var diags diag.Diagnostics
 
 	LSW.InitLeasewebClient(apiToken)
+	LSW.SetBaseUrl(baseURL)
 
 	return nil, diags
 }
