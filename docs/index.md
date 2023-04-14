@@ -25,7 +25,7 @@ towards a stable 1.0.0 version.
 terraform {
   required_providers {
     leaseweb = {
-      version = "0.1.2"
+      version = "0.2.0"
       source  = "leaseweb/leaseweb"
     }
   }
@@ -64,7 +64,7 @@ in your resources.
 terraform {
   required_providers {
     leaseweb = {
-      version = "0.1.2"
+      version = "0.2.0"
       source  = "leaseweb/leaseweb"
     }
   }

@@ -1,4 +1,16 @@
-## 0.2.0 (Unreleased)
+## 0.3.0 (Unreleased)
+
+## 0.2.0 (April 14, 2023)
+
+FEATURES:
+
+- **Integrated Leaseweb SDK**: The SDK has been added to handle API calls in the Terraform provider, providing a structured and maintainable way to interact with the API.
+
+IMPROVEMENTS:
+
+- Refactored API call functions to use corresponding SDK methods, enhancing code maintainability.
+- Updated API argument handling to use SDK-provided structs, improving code organization and readability.
+
 
 ## 0.1.2 (November 18, 2022)
 
