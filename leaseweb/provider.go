@@ -2,8 +2,6 @@ package leaseweb
 
 import (
 	"context"
-	"net/http"
-	"time"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -21,8 +19,8 @@ By default it takes the value from the ` + "`LEASEWEB_API_URL`" + ` environment 
 otherwise it defaults to "https://api.leaseweb.com".
 `,
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("LEASEWEB_API_URL", "https://api.leaseweb.com"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("LEASEWEB_API_URL", nil),
 			},
 			"api_token": {
 				Description: `
@@ -54,17 +52,16 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	baseURL := d.Get("api_url").(string)
 	apiToken := d.Get("api_token").(string)
 
-	if baseURL == "" || apiToken == "" {
-		return nil, diag.Errorf("missing leaseweb provider base url or token")
+	if apiToken == "" {
+		return nil, diag.Errorf("missing leaseweb provider token")
 	}
 
 	var diags diag.Diagnostics
 
-	leasewebAPIURL = baseURL
-	leasewebAPIToken = apiToken
-	leasewebClient = &http.Client{Timeout: 60 * time.Second}
-
 	LSW.InitLeasewebClient(apiToken)
+	if baseURL != "" {
+		LSW.SetBaseUrl(baseURL)
+	}
 
 	return nil, diags
 }

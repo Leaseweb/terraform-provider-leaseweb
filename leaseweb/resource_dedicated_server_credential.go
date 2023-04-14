@@ -77,7 +77,7 @@ func resourceDedicatedServerCredentialCreate(ctx context.Context, d *schema.Reso
 
 	createdCredential, err := LSW.DedicatedServerApi{}.CreateCredential(ctx, serverID, credentialType, username, password)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -95,7 +95,7 @@ func resourceDedicatedServerCredentialRead(ctx context.Context, d *schema.Resour
 
 	credential, err := LSW.DedicatedServerApi{}.GetCredential(ctx, serverID, credentialType, username)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -112,7 +112,7 @@ func resourceDedicatedServerCredentialUpdate(ctx context.Context, d *schema.Reso
 
 	_, err := LSW.DedicatedServerApi{}.UpdateCredential(ctx, serverID, credentialType, username, password)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
@@ -128,7 +128,7 @@ func resourceDedicatedServerCredentialDelete(ctx context.Context, d *schema.Reso
 
 	err := LSW.DedicatedServerApi{}.DeleteCredential(ctx, serverID, credentialType, username)
 	if err != nil {
-		logSdkAPIError(ctx, err)
+		logAPIError(ctx, err)
 		return diag.FromErr(err)
 	}
 
