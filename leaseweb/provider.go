@@ -59,7 +59,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	var diags diag.Diagnostics
 
 	LSW.InitLeasewebClient(apiToken)
-	LSW.SetBaseUrl(baseURL)
+	if baseURL != "" {
+		LSW.SetBaseUrl(baseURL)
+	}
 
 	return nil, diags
 }
