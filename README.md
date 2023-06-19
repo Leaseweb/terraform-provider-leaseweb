@@ -46,3 +46,12 @@ It can then be used the following way in your config:
         }
       }
     }
+
+
+Building the plugin using a local checkout of the Leaseweb Golang SDK
+---------------------------------------------------------------------
+
+If you need to do a modification in the SDK and want to test it within the usage of the plugin,
+add the following at the end of the go.mod file to point to your local SDK checkout
+
+    replace github.com/LeaseWeb/leaseweb-go-sdk => /home/.../leaseweb-go-sdk
