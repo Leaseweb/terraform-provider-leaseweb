@@ -42,7 +42,7 @@ It can then be used the following way in your config:
       required_providers {
         leaseweb = {
           source = "terraform.local/local/leaseweb"
-          version = "0.2.0"
+          version = "0.3.0"
         }
       }
     }
