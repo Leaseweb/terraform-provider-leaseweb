@@ -2,11 +2,15 @@ package leaseweb
 
 import (
 	"context"
+	"runtime"
 
 	LSW "github.com/LeaseWeb/leaseweb-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+// VERSION is a placeholder for the actual version tag which is set at buildtime via compiler flags
+var VERSION = "dev"
 
 // Provider -
 func Provider() *schema.Provider {
@@ -62,6 +66,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	if baseURL != "" {
 		LSW.SetBaseUrl(baseURL)
 	}
+
+	LSW.SetUserAgent("terraform-provider-leaseweb/" + VERSION + " (" + runtime.GOOS + "; " + runtime.GOARCH + "; " + runtime.Version() + ")")
 
 	return nil, diags
 }
