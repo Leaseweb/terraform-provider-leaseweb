@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// VERSION is a placeholder for the actual version tag which is set at buildtime via compiler flags
 var VERSION = "dev"
 
 // Provider -
