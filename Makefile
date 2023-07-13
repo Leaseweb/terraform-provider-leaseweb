@@ -1,5 +1,5 @@
 NAME ?= terraform-provider-leaseweb
-VERSION ?= 0.2.0
+VERSION ?= 0.3.0
 GOOS ?= linux
 GOARCH ?= amd64
 BINARY = $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH)
@@ -11,7 +11,7 @@ help:
 .PHONY: build
 build:
 	mkdir -p dist
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -a -tags netgo -ldflags '-w' -o dist/$(BINARY)
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -a -tags netgo -ldflags '-w -X github.com/leaseweb/terraform-provider-leaseweb/leaseweb.VERSION=$(VERSION)' -o dist/$(BINARY)
 
 .PHONY: lint
 lint: lint-eol lint-spaces lint-tabs lint-go
