@@ -1,5 +1,9 @@
 ## 0.4.0 (Unreleased)
 
+## 0.3.1 (July 14, 2023)
+
+Fix release
+
 ## 0.3.0 (July 14, 2023)
 
 * Bump Leaseweb Go SDK to v.0.2.0
