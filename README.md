@@ -9,7 +9,7 @@ Requirements
 
 Terraform 0.12.0 or later is needed to use this plugin.
 
-Go 1.18 or later is needed to build the plugin.
+Go 1.20 or later is needed to build the plugin.
 
 
 Setup for development
@@ -42,7 +42,7 @@ It can then be used the following way in your config:
       required_providers {
         leaseweb = {
           source = "terraform.local/local/leaseweb"
-          version = "0.3.1"
+          version = "0.3.2"
         }
       }
     }
