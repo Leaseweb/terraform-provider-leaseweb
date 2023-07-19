@@ -1,5 +1,9 @@
 ## 0.4.0 (Unreleased)
 
+## 0.3.2 (July 19, 2023)
+
+Fix release
+
 ## 0.3.1 (July 14, 2023)
 
 Fix release
