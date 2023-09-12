@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     leaseweb = {
-      version = "0.3.2"
+      version = "0.3.3"
       source  = "leaseweb/leaseweb"
     }
   }
