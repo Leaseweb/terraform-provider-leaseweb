@@ -26,6 +26,12 @@ data "leaseweb_dedicated_servers" "ams_01_servers" {
 
 ### Optional
 
+- `ip` (String) Filter the list of servers by ip address.
+- `mac_address` (String) Filter the list of servers by mac address.
+- `private_network_capable` (Boolean) Filter the list for private network capable servers.
+- `private_network_enabled` (Boolean) Filter the list for private network enabled servers.
+- `private_rack_id` (String) Filter the list of servers by dedicated rack id.
+- `reference` (String) Filter the list of servers by reference.
 - `site` (String) Filter the list of servers by location site.
 
 ### Read-Only

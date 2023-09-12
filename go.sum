@@ -1,5 +1,5 @@
-github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230713111734-314097fd61dd h1:ry02iyXSic4K1/NQnh7FKTmCLV2WeOPNHiVtfp+baQU=
-github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230713111734-314097fd61dd/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230911091944-98e96dcbe1ca h1:SPofEx9Cq5/LsyqNkwj2QFiXLxYAt8OzDDZti0q031U=
+github.com/LeaseWeb/leaseweb-go-sdk v0.0.0-20230911091944-98e96dcbe1ca/go.mod h1:vBWxy9DP2ARqrav9LO6gEN4BhIckENXvktVVMtFmQEw=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=

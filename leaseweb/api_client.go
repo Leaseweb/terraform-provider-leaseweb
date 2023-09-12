@@ -36,32 +36,3 @@ func logAPIError(ctx context.Context, err error) {
 
 	tflog.Error(ctx, "API request error", fields)
 }
-
-func getAllServers(ctx context.Context, site string) ([]LSW.DedicatedServer, error) {
-	var allServers []LSW.DedicatedServer
-
-	opts := LSW.DedicatedServerListOptions{
-		PaginationOptions: LSW.PaginationOptions{
-			Offset: LSW.Int(0),
-			Limit:  LSW.Int(20),
-		},
-		Site: &site,
-	}
-
-	for {
-
-		result, err := LSW.DedicatedServerApi{}.List(ctx, opts)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(result.Servers) == 0 {
-			break
-		}
-
-		allServers = append(allServers, result.Servers...)
-		*opts.PaginationOptions.Offset += *opts.PaginationOptions.Limit
-	}
-
-	return allServers, nil
-}
