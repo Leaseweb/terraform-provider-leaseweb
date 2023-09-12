@@ -1,5 +1,5 @@
 NAME ?= terraform-provider-leaseweb
-VERSION ?= 0.3.2
+VERSION ?= 0.3.3
 GOOS ?= linux
 GOARCH ?= amd64
 BINARY = $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH)

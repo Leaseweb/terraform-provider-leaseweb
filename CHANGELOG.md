@@ -1,5 +1,12 @@
 ## 0.4.0 (Unreleased)
 
+## 0.3.3 (September 12, 2023)
+
+Minor release
+
+* ENHANCEMENT: Add all available filter options to data source `data_source_dedicated_servers`.
+* CHANGE: Bump Leaseweb Go SDK to v0.0.3
+
 ## 0.3.2 (July 19, 2023)
 
 Fix release
