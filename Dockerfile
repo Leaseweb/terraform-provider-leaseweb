@@ -1,4 +1,4 @@
-FROM golang:1.22.1-alpine AS godev
+FROM golang:1.22.1-alpine3.19 AS godev
 RUN apk add --no-cache \
         git \
         gpg \
