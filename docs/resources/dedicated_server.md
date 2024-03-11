@@ -40,6 +40,7 @@ resource "leaseweb_dedicated_server" "web01" {
 ### Read-Only
 
 - `id` (String) The ID of the dedicated server.
+- `internal_mac` (String) The MAC address of the interface connected to internal private network.
 - `location` (Map of String) The location of the server.
 Available fields are `rack`, `site`, `suite` and `unit`.
 - `public_ip` (String) The public IP of the dedicated server.

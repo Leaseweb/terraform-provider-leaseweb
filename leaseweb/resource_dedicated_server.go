@@ -85,6 +85,11 @@ Available fields are ` + "`rack`" + `, ` + "`site`" + `, ` + "`suite`" + ` and `
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
+			"internal_mac": {
+				Description: "The MAC address of the interface connected to internal private network.",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -115,6 +120,7 @@ func resourceDedicatedServerRead(ctx context.Context, d *schema.ResourceData, m 
 	d.Set("reference", server.Contract.Reference)
 	d.Set("public_ip", server.NetworkInterfaces.Public.Ip)
 	d.Set("remote_management_ip", server.NetworkInterfaces.RemoteManagement.Ip)
+	d.Set("internal_mac", server.NetworkInterfaces.Internal.Mac)
 
 	d.Set("location", map[string]string{
 		"rack":  server.Location.Rack,
