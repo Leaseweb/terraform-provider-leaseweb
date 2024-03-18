@@ -1,11 +1,20 @@
-## 0.4.0 (Unreleased)
+## 0.5.0 (Unreleased)
+
+## 0.4.1 (March 18, 2024)
+
+Fix release
+
+## 0.4.0 (March 18, 2024)
+
+- Implement a `internal_mac` field for `dedicated_server` to be able to use the MAC address of the internal interface in `post_install_script` of `leaseweb_dedicated_server_installation`
+- Implement data source to fetch credentials, such as those for REMOTE_MANAGEMENT to store them in 1Password via Terraform
 
 ## 0.3.3 (September 12, 2023)
 
 Minor release
 
-* ENHANCEMENT: Add all available filter options to data source `data_source_dedicated_servers`.
-* CHANGE: Bump Leaseweb Go SDK to v0.0.3
+- ENHANCEMENT: Add all available filter options to data source `data_source_dedicated_servers`.
+- CHANGE: Bump Leaseweb Go SDK to v0.0.3
 
 ## 0.3.2 (July 19, 2023)
 
@@ -17,8 +26,8 @@ Fix release
 
 ## 0.3.0 (July 14, 2023)
 
-* Bump Leaseweb Go SDK to v.0.2.0
-* Add User-Agent string to API calls
+- Bump Leaseweb Go SDK to v.0.2.0
+- Add User-Agent string to API calls
 
 ## 0.2.0 (April 14, 2023)
 
@@ -36,11 +45,11 @@ Fix release
 
 FEATURES:
 
-* **New Data Source:** `data_source_dedicated_server_control_panels`
-* **New Data Source:** `data_source_dedicated_server_operating_systems`
-* **New Data Source:** `data_source_dedicated_servers`
-* **New Resource:** `resource_dedicated_server`
-* **New Resource:** `resource_dedicated_server_credential`
-* **New Resource:** `resource_dedicated_server_installation`
-* **New Resource:** `resource_dedicated_server_notification_setting_bandwidth`
-* **New Resource:** `resource_dedicated_server_notification_setting_datatraffic`
+- **New Data Source:** `data_source_dedicated_server_control_panels`
+- **New Data Source:** `data_source_dedicated_server_operating_systems`
+- **New Data Source:** `data_source_dedicated_servers`
+- **New Resource:** `resource_dedicated_server`
+- **New Resource:** `resource_dedicated_server_credential`
+- **New Resource:** `resource_dedicated_server_installation`
+- **New Resource:** `resource_dedicated_server_notification_setting_bandwidth`
+- **New Resource:** `resource_dedicated_server_notification_setting_datatraffic`
