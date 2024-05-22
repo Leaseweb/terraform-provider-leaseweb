@@ -1,14 +1,16 @@
 ## 0.5.0 (Unreleased)
 
 - Remove old legacy code
-- Implement Terraform Plugin Framework
+- Implement [Terraform Plugin Framework](https://github.com/hashicorp/terraform-provider-scaffolding-framework)
 - Implement public cloud instance management
 - Implement git pre push hooks
-- Implement prettier
-- Implement markdownlint
-- Implement shellcheck
-- Implement commimtlint
-- Implement lint-staged
+- Implement [prettier](https://prettier.io/)
+- Implement [markdownlint](https://github.com/igorshubovych/markdownlint-cli)
+- Implement [ShellCheck](https://www.shellcheck.net/)
+- Implement [commitlint](https://commitlint.js.org/)
+- Implement [lint-staged](https://github.com/lint-staged/lint-staged)
+- Implement [prism](https://stoplight.io/open-source/prism)
+- Implement public cloud instances provider
 
 ## 0.4.1 (March 18, 2024)
 

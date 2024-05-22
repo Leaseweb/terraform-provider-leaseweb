@@ -29,6 +29,11 @@ services:
     volumes:
       - ./:/app
     working_dir: /app
+  prism:
+    image: stoplight/prism:5.8.1@sha256:ac53a76c2237c418502244b3a82061bb817be63d061806834e837abfb7a60951
+    working_dir: /app
+    volumes:
+      - ./:/app
 
 volumes:
   golang:

@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-scaffolding-framework
+module terraform-provider-leaseweb
 
 go 1.21
 
@@ -81,3 +81,5 @@ require (
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/leaseweb/leaseweb-go-sdk/publicCloud => ../api-definitions/build/github.com/Leaseweb/go-sdk/publicCloud/
