@@ -1,5 +1,15 @@
 ## 0.5.0 (Unreleased)
 
+- Remove old legacy code
+- Implement Terraform Plugin Framework
+- Implement public cloud instance management
+- Implement git pre push hooks
+- Implement prettier
+- Implement markdownlint
+- Implement shellcheck
+- Implement commimtlint
+- Implement lint-staged
+
 ## 0.4.1 (March 18, 2024)
 
 Fix release

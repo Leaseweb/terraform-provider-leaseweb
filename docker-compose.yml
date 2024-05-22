@@ -1,12 +1,34 @@
----
-version: "3.8"
 services:
-  backend:
-    build: .
-    init: true
-    command: ["sleep", "infinity"]
+  golangci-lint:
+    image: golangci/golangci-lint:v1.58.2-alpine@sha256:511101feba931bd578164b77714d1cee015d8980e0d40033c378b6626193e4ab
     volumes:
-      - ".:/src"
-      - "go_cache:/go/pkg"
+      - ./:/app
+    working_dir: /app
+  golang:
+    build:
+      dockerfile: docker/golang/Dockerfile
+    volumes:
+      - ./:/app
+      - golang:/go
+    working_dir: /app
+    environment:
+      TF_ACC: true
+  hadolint:
+    image: hadolint/hadolint:2.12.0-alpine@sha256:3c206a451cec6d486367e758645269fd7d696c5ccb6ff59d8b03b0e45268a199
+    working_dir: /app
+    volumes:
+      - ./:/app
+  shellcheck:
+    image: koalaman/shellcheck:v0.10.0@sha256:2097951f02e735b613f4a34de20c40f937a6c8f18ecb170612c88c34517221fb
+    working_dir: /app
+    volumes:
+      - ./:/app
+  node:
+    build:
+      dockerfile: docker/node/Dockerfile
+    volumes:
+      - ./:/app
+    working_dir: /app
+
 volumes:
-  go_cache:
+  golang:

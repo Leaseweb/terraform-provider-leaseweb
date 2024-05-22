@@ -1,1 +1,10 @@
-dist
+example.tf
+terraform.tfplan
+terraform.tfstate
+*.log
+*.iml
+*.test
+
+# Test exclusions
+!command/test-fixtures/**/*.tfstate
+!command/test-fixtures/**/.terraform/
