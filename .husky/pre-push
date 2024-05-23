@@ -12,7 +12,6 @@ docker-compose run --rm -T shellcheck -x ./.husky/commit-msg
 
 golangci-lint run
 go mod download && go build -v .
-go generate ./...
 go test -v -cover ./internal/provider/
 
 
