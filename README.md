@@ -51,6 +51,14 @@ _Note:_ Acceptance tests create real resources, and often cost money to run.
 make testacc
 ```
 
+## Run mock server
+
+To test against API specifications a mock server can be run
+
+```shell
+pnpm prism:mock api-specifications/publicCloud.json
+```
+
 ## Linting
 
 Files are automatically linted via git hooks on commit and on push
