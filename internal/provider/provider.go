@@ -53,8 +53,8 @@ func (p *leasewebProvider) Schema(_ context.Context, _ provider.SchemaRequest, r
 				Optional: true,
 			},
 			"token": schema.StringAttribute{
-				Optional:  true,
 				Sensitive: true,
+				Required:  true,
 			},
 		},
 	}
@@ -67,18 +67,6 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	// If practitioner provided a configuration value for any of the
-	// attributes, it must be a known value.
-
-	if config.Host.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("host"),
-			"Unknown Leaseweb API Host",
-			"The provider cannot create the Leaseweb API client as there is an unknown configuration value for the API host. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the LEASEWEB_HOST environment variable.",
-		)
 	}
 
 	if config.Token.IsUnknown() {
@@ -111,16 +99,6 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 	// If any of the expected configurations are missing, return
 	// errors with provider-specific guidance.
 
-	if host == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("host"),
-			"Missing Leaseweb API Host",
-			"The provider cannot create the Leaseweb API client as there is a missing or empty value for the Leaseweb API host. "+
-				"Set the host value in the configuration or use the LEASEWEB_HOST environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
-
 	if token == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
@@ -138,12 +116,11 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 	// Make the Leaseweb client available during DataSource and Resource
 	// type Configure methods.
 
-	client := leasewebProviderClient{
-		Host: host, Token: token,
-	}
+	client := NewLeasewebProviderClient(token, &LeasewebProviderClientOptions{Host: host})
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
+
 }
 
 // DataSources defines the data sources implemented in the provider.

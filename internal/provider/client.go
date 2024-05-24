@@ -5,19 +5,26 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type leasewebProviderClient struct {
-	Host  string
-	Token string
+type LeasewebProviderClient struct {
+	Client *publicCloud.APIClient
+	Token  string
 }
 
-func (c *leasewebProviderClient) Client() *publicCloud.APIClient {
+type LeasewebProviderClientOptions struct {
+	Host string
+}
+
+func NewLeasewebProviderClient(token string, options *LeasewebProviderClientOptions) *LeasewebProviderClient {
 	configuration := publicCloud.NewConfiguration()
-	configuration.Host = c.Host
 
-	return publicCloud.NewAPIClient(configuration)
+	if options.Host != "" {
+		configuration.Host = options.Host
+	}
+
+	return &LeasewebProviderClient{Client: publicCloud.NewAPIClient(configuration), Token: token}
 }
 
-func (c *leasewebProviderClient) AuthContext() context.Context {
+func (c *LeasewebProviderClient) AuthContext() context.Context {
 	return context.WithValue(
 		context.Background(),
 		publicCloud.ContextAPIKeys,
