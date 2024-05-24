@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
 
+set -e
+
 go generate ./...
 pnpm dlx lint-staged -r

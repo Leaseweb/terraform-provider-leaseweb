@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -e
+
 pnpm run prettier:lint .
 pnpm run markdown:lint .
 
