@@ -12,6 +12,8 @@ docker-compose run --rm -T shellcheck -x ./.husky/pre-commit
 docker-compose run --rm -T shellcheck -x ./.husky/pre-push
 docker-compose run --rm -T shellcheck -x ./.husky/commit-msg
 
+terraform fmt -recursive -check .
+
 golangci-lint run
 go mod download && go build -v .
 go test -v -cover ./internal/provider/

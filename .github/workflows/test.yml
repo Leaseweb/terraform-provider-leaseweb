@@ -49,6 +49,7 @@ jobs:
           terraform_version: "1.8.3"
           terraform_wrapper: false
       - run: go generate ./...
+      - run: terraform fmt -recursive -check .
       - name: git diff
         run: |
           git diff --compact-summary --exit-code || \

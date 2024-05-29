@@ -30,6 +30,7 @@
   "lint-staged": {
     "**/*": "pnpm prettier:format",
     "**/*.md": "pnpm markdown:format",
+    "**/*.tf": "terraform fmt",
     "**/Dockerfile": "docker-compose run --rm hadolint hadolint",
     "internal/provider/**/*.go": "golangci-lint run --fix",
     ".husky/commit-msg": "docker-compose run --rm shellcheck -x",

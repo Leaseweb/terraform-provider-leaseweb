@@ -56,7 +56,14 @@ make testacc
 To test against API specifications a mock server can be run
 
 ```shell
-pnpm prism:mock api-specifications/publicCloud.json
+docker-compose up -d
+```
+
+Make sure to use `localhost` in your requests as caddy does not know what to do with `127.0.0.1`
+
+```shell
+
+curl -i http://localhost:8080/publicCloud/v1/instances --header 'x-lsw-auth: tralala'
 ```
 
 ## Linting

@@ -29,11 +29,21 @@ services:
     volumes:
       - ./:/app
     working_dir: /app
-  prism:
+  prism_publicCloud:
     image: stoplight/prism:5.8.1@sha256:ac53a76c2237c418502244b3a82061bb817be63d061806834e837abfb7a60951
-    working_dir: /app
+    command: >
+      mock -p 4010 --host 0.0.0.0
+      /specs/publicCloud.json
     volumes:
-      - ./:/app
+      - ./api-specifications:/specs
+  prism-proxy:
+    image: caddy:2.8-alpine@sha256:f8660fb5414bac933e55401955e14133539f48ecff9df4741ea45505eb005bb1
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - prism_publicCloud
 
 volumes:
   golang:

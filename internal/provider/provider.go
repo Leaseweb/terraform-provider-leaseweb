@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"os"
+	providerClient "terraform-provider-leaseweb/internal/client"
+	"terraform-provider-leaseweb/internal/data_sources/instances"
 )
 
-// Ensure the implementation satisfies the expected interfaces.
 var (
 	_ provider.Provider = &leasewebProvider{}
 )
 
-// New is a helper function to simplify provider server and testing implementation.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &leasewebProvider{
@@ -25,7 +25,6 @@ func New(version string) func() provider.Provider {
 	}
 }
 
-// leasewebProvider is the provider implementation.
 type leasewebProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
@@ -33,23 +32,24 @@ type leasewebProvider struct {
 	version string
 }
 
-// leasewebProviderModel maps provider schema data to a Go type.
 type leasewebProviderModel struct {
-	Host  types.String `tfsdk:"host"`
-	Token types.String `tfsdk:"token"`
+	Host   types.String `tfsdk:"host"`
+	Token  types.String `tfsdk:"token"`
+	Scheme types.String `tfsdk:"scheme"`
 }
 
-// Metadata returns the provider type name.
 func (p *leasewebProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "leaseweb"
 	resp.Version = p.version
 }
 
-// Schema defines the provider-level schema for configuration data.
 func (p *leasewebProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
+				Optional: true,
+			},
+			"scheme": schema.StringAttribute{
 				Optional: true,
 			},
 			"token": schema.StringAttribute{
@@ -61,7 +61,6 @@ func (p *leasewebProvider) Schema(_ context.Context, _ provider.SchemaRequest, r
 }
 
 func (p *leasewebProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	// Retrieve provider data from configuration
 	var config leasewebProviderModel
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
@@ -82,22 +81,21 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 		return
 	}
 
-	// Default values to environment variables, but override
-	// with Terraform configuration value if set.
-
 	host := os.Getenv("LEASEWEB_HOST")
+	scheme := os.Getenv("LEASEWEB_SCHEME")
 	token := os.Getenv("LEASEWEB_TOKEN")
 
 	if !config.Host.IsNull() {
 		host = config.Host.ValueString()
 	}
 
+	if !config.Scheme.IsNull() {
+		scheme = config.Scheme.ValueString()
+	}
+
 	if !config.Token.IsNull() {
 		token = config.Token.ValueString()
 	}
-
-	// If any of the expected configurations are missing, return
-	// errors with provider-specific guidance.
 
 	if token == "" {
 		resp.Diagnostics.AddAttributeError(
@@ -113,22 +111,19 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 		return
 	}
 
-	// Make the Leaseweb client available during DataSource and Resource
-	// type Configure methods.
-
-	client := NewLeasewebProviderClient(token, &LeasewebProviderClientOptions{Host: host})
+	client := providerClient.NewClient(token, &providerClient.Options{Host: host, Scheme: scheme})
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
 
 }
 
-// DataSources defines the data sources implemented in the provider.
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{
+		instances.NewInstancesDataSource,
+	}
 }
 
-// Resources defines the resources implemented in the provider.
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
 	return nil
 }
