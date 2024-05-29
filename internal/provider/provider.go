@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"os"
 	providerClient "terraform-provider-leaseweb/internal/client"
 	"terraform-provider-leaseweb/internal/data_sources/instances"
@@ -61,6 +62,8 @@ func (p *leasewebProvider) Schema(_ context.Context, _ provider.SchemaRequest, r
 }
 
 func (p *leasewebProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Configuring Leaseweb client")
+
 	var config leasewebProviderModel
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
@@ -111,11 +114,19 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 		return
 	}
 
+	ctx = tflog.SetField(ctx, "leaseweb_host", host)
+	ctx = tflog.SetField(ctx, "leaseweb_scheme", scheme)
+	ctx = tflog.SetField(ctx, "leaseweb_token", token)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "leaseweb_token")
+
+	tflog.Debug(ctx, "Creating Leaseweb client")
+
 	client := providerClient.NewClient(token, &providerClient.Options{Host: host, Scheme: scheme})
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
 
+	tflog.Info(ctx, "Configured Leaseweb client", map[string]any{"success": true})
 }
 
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
