@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/terraform-plugin-docs v0.19.2
 	github.com/hashicorp/terraform-plugin-framework v1.8.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
+	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.9.0
 )
@@ -41,7 +42,6 @@ require (
 	github.com/hashicorp/terraform-exec v0.20.0 // indirect
 	github.com/hashicorp/terraform-json v0.21.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.22.2 // indirect
-	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.2.3 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
