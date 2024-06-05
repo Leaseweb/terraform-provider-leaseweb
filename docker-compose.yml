@@ -33,9 +33,7 @@ services:
     image: stoplight/prism:5.8.1@sha256:ac53a76c2237c418502244b3a82061bb817be63d061806834e837abfb7a60951
     command: >
       mock -p 4010 --host 0.0.0.0
-      /specs/publicCloud.json
-    volumes:
-      - ./api-specifications:/specs
+      https://raw.githubusercontent.com/Leaseweb/leaseweb-go-sdk/main/publicCloud/api/openapi.yaml
   prism-proxy:
     image: caddy:2.8-alpine@sha256:f8660fb5414bac933e55401955e14133539f48ecff9df4741ea45505eb005bb1
     volumes:
