@@ -2,14 +2,12 @@ module terraform-provider-leaseweb
 
 go 1.22.3
 
-replace github.com/leaseweb/leaseweb-go-sdk/publicCloud => ../api-definitions/build/github.com/Leaseweb/go-sdk/publicCloud/
-
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.19.2
 	github.com/hashicorp/terraform-plugin-framework v1.8.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
-	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-00010101000000-000000000000
+	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240531131945-b6e600b84b84
 	github.com/stretchr/testify v1.9.0
 )
 
