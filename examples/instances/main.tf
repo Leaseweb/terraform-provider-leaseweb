@@ -4,6 +4,7 @@ terraform {
       source = "registry.terraform.io/LeaseWeb/leaseweb"
     }
   }
+  required_version = ">= 0.0"
 }
 
 provider "leaseweb" {

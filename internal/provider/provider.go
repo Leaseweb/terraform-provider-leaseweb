@@ -12,6 +12,7 @@ import (
 	"os"
 	providerClient "terraform-provider-leaseweb/internal/client"
 	"terraform-provider-leaseweb/internal/data_sources/instances"
+	"terraform-provider-leaseweb/internal/resources/instance"
 )
 
 var (
@@ -136,5 +137,5 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 }
 
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{instance.NewInstanceResource}
 }

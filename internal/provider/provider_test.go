@@ -4,11 +4,12 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestMetadata(t *testing.T) {
+func TestLeasewebProvider_Metadata(t *testing.T) {
 	leasewebProvider := New("dev")
 	metadataResponse := provider.MetadataResponse{}
 	leasewebProvider().Metadata(
@@ -23,7 +24,7 @@ func TestMetadata(t *testing.T) {
 	assert.Equal(t, want, got, "version should be passed to provider")
 }
 
-func TestProviderSchema(t *testing.T) {
+func TestLeasewebProvider_Schema(t *testing.T) {
 	leasewebProvider := New("dev")
 	schemaResponse := provider.SchemaResponse{}
 	leasewebProvider().Schema(context.TODO(), provider.SchemaRequest{}, &schemaResponse)
@@ -33,7 +34,7 @@ func TestProviderSchema(t *testing.T) {
 	assert.True(t, schemaResponse.Schema.Attributes["token"].IsSensitive(), "token is sensitive")
 }
 
-func TestDatSources(t *testing.T) {
+func TestLeasewebProvider_DataSources(t *testing.T) {
 	leasewebProvider := New("dev")
 
 	assert.True(
@@ -46,16 +47,36 @@ func TestDatSources(t *testing.T) {
 	)
 }
 
-func TestResources(t *testing.T) {
+func TestLeasewebProvider_Resources(t *testing.T) {
 	leasewebProvider := New("dev")
 
-	assert.Nil(t, leasewebProvider().Resources(context.TODO()))
+	assert.True(
+		t,
+		implementsResource(
+			leasewebProvider().Resources(
+				context.TODO()), "_instance",
+		),
+		"resources should implement InstanceResource",
+	)
 }
 
 func implementsDataSource(dataSources []func() datasource.DataSource, expectedTypeName string) bool {
 	for _, dataSource := range dataSources {
 		resp := datasource.MetadataResponse{}
 		dataSource().Metadata(context.TODO(), datasource.MetadataRequest{}, &resp)
+
+		if resp.TypeName == expectedTypeName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func implementsResource(resources []func() resource.Resource, expectedTypeName string) bool {
+	for _, element := range resources {
+		resp := resource.MetadataResponse{}
+		element().Metadata(context.TODO(), resource.MetadataRequest{}, &resp)
 
 		if resp.TypeName == expectedTypeName {
 			return true

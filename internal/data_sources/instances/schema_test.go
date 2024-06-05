@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSchema(t *testing.T) {
+func TestInstancesDataSource_Schema(t *testing.T) {
 	instancesDataSource := NewInstancesDataSource()
 
 	schemaResponse := datasource.SchemaResponse{}

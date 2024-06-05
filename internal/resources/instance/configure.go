@@ -1,18 +1,19 @@
-package instances
+package instance
 
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/client"
 )
 
-func (d *instancesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *instanceResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
 	sdkClient, ok := req.ProviderData.(*client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
@@ -22,5 +23,5 @@ func (d *instancesDataSource) Configure(_ context.Context, req datasource.Config
 		return
 	}
 
-	d.client = sdkClient
+	r.client = sdkClient
 }
