@@ -53,13 +53,13 @@ output "public_cloud" {
 ### Required
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
-- `market_app_id` (String)
 - `operating_system` (Attributes) (see [below for nested schema](#nestedatt--operating_system))
 - `region` (String) The region where the instance was launched into
 - `root_disk_storage_type` (String) The root disk's storage type
 
 ### Optional
 
+- `market_app_id` (String)
 - `reference` (String) The identifying name set to the instance
 - `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
 - `ssh_key` (String)

@@ -255,7 +255,8 @@ func (i *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"market_app_id": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
 			},
 			"private_network": schema.SingleNestedAttribute{
 				Computed: true,

@@ -1,7 +1,6 @@
 package instance
 
 import (
-	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/client"
 )
@@ -17,7 +16,4 @@ func NewInstanceResource() resource.Resource {
 
 type instanceResource struct {
 	client *client.Client
-}
-
-func (i *instanceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 }
