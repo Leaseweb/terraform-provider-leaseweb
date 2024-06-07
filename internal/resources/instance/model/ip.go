@@ -1,6 +1,9 @@
 package model
 
 import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/resources"
@@ -14,10 +17,30 @@ type Ip struct {
 	MainIp        types.Bool   `tfsdk:"main_ip"`
 	NetworkType   types.String `tfsdk:"network_type"`
 	ReverseLookup types.String `tfsdk:"reverse_lookup"`
-	Ddos          Ddos         `tfsdk:"ddos"`
+	Ddos          types.Object `tfsdk:"ddos"`
 }
 
-func newIp(sdkIp *publicCloud.Ip) Ip {
+func (i Ip) attributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"ip":             types.StringType,
+		"prefix_length":  types.StringType,
+		"version":        types.Int64Type,
+		"null_routed":    types.BoolType,
+		"main_ip":        types.BoolType,
+		"network_type":   types.StringType,
+		"reverse_lookup": types.StringType,
+		"ddos":           types.ObjectType{AttrTypes: Ddos{}.attributeTypes()},
+	}
+}
+
+func newIp(ctx context.Context, sdkIp *publicCloud.Ip) (Ip, diag.Diagnostics) {
+	ddos := newDdos(sdkIp.Ddos)
+
+	ddosObject, diags := types.ObjectValueFrom(ctx, ddos.attributeTypes(), ddos)
+	if diags != nil {
+		return Ip{}, diags
+	}
+
 	return Ip{
 		Ip:            resources.GetStringValue(sdkIp.HasIp(), sdkIp.GetIp()),
 		PrefixLength:  resources.GetStringValue(sdkIp.HasPrefixLength(), sdkIp.GetPrefixLength()),
@@ -26,6 +49,6 @@ func newIp(sdkIp *publicCloud.Ip) Ip {
 		MainIp:        resources.GetBoolValue(sdkIp.HasMainIp(), sdkIp.GetMainIp()),
 		NetworkType:   resources.GetStringValue(sdkIp.HasNetworkType(), string(sdkIp.GetNetworkType())),
 		ReverseLookup: resources.GetStringValue(sdkIp.HasReverseLookup(), sdkIp.GetReverseLookup()),
-		Ddos:          newDdos(sdkIp.Ddos),
-	}
+		Ddos:          ddosObject,
+	}, nil
 }

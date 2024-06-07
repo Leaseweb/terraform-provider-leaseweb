@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/resources"
@@ -29,13 +30,19 @@ type Instance struct {
 	Iso                 types.Object `tfsdk:"iso"`
 	MarketAppId         types.String `tfsdk:"market_app_id"`
 	PrivateNetwork      types.Object `tfsdk:"private_network"`
+	SshKey              types.String `tfsdk:"ssh_key"`
 }
 
-func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context) {
+func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context) diag.Diagnostics {
 	operatingSystem := newOperatingSystem(instance.OperatingSystem)
 	contract := newContract(instance.Contract)
 	iso := newIso(instance.GetIso())
 	privateNetwork := newPrivateNetwork(instance.GetPrivateNetwork())
+
+	resourcesModel, diags := newResources(ctx, instance.Resources)
+	if diags != nil {
+		return diags
+	}
 
 	i.Id = resources.GetStringValue(instance.HasId(), instance.GetId())
 	i.EquipmentId = resources.GetStringValue(instance.HasEquipmentId(), instance.GetEquipmentId())
@@ -52,24 +59,50 @@ func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context)
 	i.RootDiskStorageType = resources.GetStringValue(instance.HasRootDiskStorageType(), instance.GetRootDiskStorageType())
 	i.StartedAt = resources.GetDateTime(instance.GetStartedAt())
 	i.MarketAppId = resources.GetStringValue(instance.HasMarketAppId(), instance.GetMarketAppId())
-	i.OperatingSystem, _ = types.ObjectValueFrom(ctx, i.OperatingSystem.AttributeTypes(ctx), operatingSystem)
-	i.Contract, _ = types.ObjectValueFrom(ctx, i.Contract.AttributeTypes(ctx), contract)
-	i.Iso, _ = types.ObjectValueFrom(ctx, i.Iso.AttributeTypes(ctx), iso)
-	i.PrivateNetwork, _ = types.ObjectValueFrom(ctx, i.PrivateNetwork.AttributeTypes(ctx), privateNetwork)
 
-	i.populateResources(ctx, instance.Resources)
+	operatingSystemObject, diags := types.ObjectValueFrom(ctx, operatingSystem.attributeTypes(), operatingSystem)
+	if diags != nil {
+		return diags
+	}
+	i.OperatingSystem = operatingSystemObject
+
+	contractObject, diags := types.ObjectValueFrom(ctx, contract.attributeTypes(), contract)
+	if diags != nil {
+		return diags
+	}
+	i.Contract = contractObject
+
+	isoObject, diags := types.ObjectValueFrom(ctx, iso.attributeTypes(), iso)
+	if diags != nil {
+		return diags
+	}
+	i.Iso = isoObject
+
+	privateNetworkObject, diags := types.ObjectValueFrom(ctx, privateNetwork.attributeTypes(), privateNetwork)
+	if diags != nil {
+		return diags
+	}
+	i.PrivateNetwork = privateNetworkObject
+
+	resourcesObject, diags := types.ObjectValueFrom(ctx, resourcesModel.attributeTypes(), resourcesModel)
+	if diags != nil {
+		return diags
+	}
+	i.Resources = resourcesObject
 
 	var ips []Ip
-
 	for _, ip := range instance.Ips {
-		ips = append(ips, newIp(&ip))
+		ipObject, diags := newIp(ctx, &ip)
+		if diags != nil {
+			return diags
+		}
+		ips = append(ips, ipObject)
 	}
+	ipsObject, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: Ip{}.attributeTypes()}, ips)
+	if diags != nil {
+		return diags
+	}
+	i.Ips = ipsObject
 
-	i.Ips, _ = types.ListValueFrom(ctx, i.Ips.ElementType(ctx), ips)
-}
-
-func (i *Instance) populateResources(ctx context.Context, sdkResources *publicCloud.InstanceResources) {
-	resourcesModel, _ := types.ObjectValueFrom(ctx, i.Resources.AttributeTypes(ctx), newResources(sdkResources))
-
-	i.Resources = resourcesModel
+	return nil
 }

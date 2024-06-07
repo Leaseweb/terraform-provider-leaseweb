@@ -6,7 +6,7 @@ import (
 	"terraform-provider-leaseweb/internal/resources/instance/model"
 )
 
-func (r *instanceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (i *instanceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state model.Instance
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -14,7 +14,7 @@ func (r *instanceResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	instance, _, err := r.client.SdkClient.PublicCloudAPI.GetInstance(r.client.AuthContext(), state.Id.ValueString()).Execute()
+	instance, _, err := i.client.SdkClient.PublicCloudAPI.GetInstance(i.client.AuthContext(), state.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Leaseweb Instance",

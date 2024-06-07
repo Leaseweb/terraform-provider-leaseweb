@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/resources"
@@ -9,6 +10,13 @@ import (
 type Iso struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
+}
+
+func (i Iso) attributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
 }
 
 func newIso(sdkIso publicCloud.Iso) Iso {

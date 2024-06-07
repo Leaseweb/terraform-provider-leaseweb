@@ -1,34 +1,61 @@
 package model
 
 import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func Test_newResources(t *testing.T) {
-	cpu := publicCloud.NewCpu()
-	cpu.SetUnit("cpu")
+	sdkCpu := publicCloud.NewCpu()
+	sdkCpu.SetUnit("cpu")
 
-	memory := publicCloud.NewMemory()
-	memory.SetUnit("memory")
+	sdkMemory := publicCloud.NewMemory()
+	sdkMemory.SetUnit("memory")
 
-	publicNetworkSpeed := publicCloud.NewPublicNetworkSpeed()
-	publicNetworkSpeed.SetUnit("publicNetworkSpeed")
+	sdkPublicNetworkSpeed := publicCloud.NewPublicNetworkSpeed()
+	sdkPublicNetworkSpeed.SetUnit("publicNetworkSpeed")
 
-	privateNetworkSpeed := publicCloud.NewPrivateNetworkSpeed()
-	privateNetworkSpeed.SetUnit("privateNetworkSpeed")
+	sdkPrivateNetworkSpeed := publicCloud.NewPrivateNetworkSpeed()
+	sdkPrivateNetworkSpeed.SetUnit("privateNetworkSpeed")
 
 	sdkResources := publicCloud.NewInstanceResources()
-	sdkResources.SetCpu(*cpu)
-	sdkResources.SetMemory(*memory)
-	sdkResources.SetPublicNetworkSpeed(*publicNetworkSpeed)
-	sdkResources.SetPrivateNetworkSpeed(*privateNetworkSpeed)
+	sdkResources.SetCpu(*sdkCpu)
+	sdkResources.SetMemory(*sdkMemory)
+	sdkResources.SetPublicNetworkSpeed(*sdkPublicNetworkSpeed)
+	sdkResources.SetPrivateNetworkSpeed(*sdkPrivateNetworkSpeed)
 
-	resources := newResources(sdkResources)
+	resources, _ := newResources(context.TODO(), sdkResources)
 
-	assert.Equal(t, "cpu", resources.Cpu.Unit.ValueString(), "cpu should be set")
-	assert.Equal(t, "memory", resources.Memory.Unit.ValueString(), "memory should be set")
-	assert.Equal(t, "publicNetworkSpeed", resources.PublicNetworkSpeed.Unit.ValueString(), "publicNetworkSpeed should be set")
-	assert.Equal(t, "privateNetworkSpeed", resources.PrivateNetworkSpeed.Unit.ValueString(), "privateNetworkSpeed should be set")
+	cpu := Cpu{}
+	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "cpu", cpu.Unit.ValueString(), "cpu should be set")
+
+	memory := Memory{}
+	resources.Memory.As(context.TODO(), &memory, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "memory", memory.Unit.ValueString(), "memory should be set")
+
+	publicNetworkSpeed := PublicNetworkSpeed{}
+	resources.PublicNetworkSpeed.As(context.TODO(), &publicNetworkSpeed, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "publicNetworkSpeed", publicNetworkSpeed.Unit.ValueString(), "publicNetworkSpeed should be set")
+
+	privateNetworkSpeed := PrivateNetworkSpeed{}
+	resources.PrivateNetworkSpeed.As(context.TODO(), &privateNetworkSpeed, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "privateNetworkSpeed", privateNetworkSpeed.Unit.ValueString(), "privateNetworkSpeed should be set")
+}
+
+func TestResources_attributeTypes(t *testing.T) {
+	sdkResources := publicCloud.NewInstanceResources()
+	resources, _ := newResources(context.TODO(), sdkResources)
+
+	_, diags := types.ObjectValueFrom(
+		context.TODO(),
+		resources.attributeTypes(),
+		resources,
+	)
+
+	assert.Nil(t, diags, "attributes should be correct")
 }

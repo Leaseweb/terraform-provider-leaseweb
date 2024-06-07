@@ -7,7 +7,7 @@ import (
 	"terraform-provider-leaseweb/internal/resources/instance/model"
 )
 
-func (i *instanceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (i *instanceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan model.Instance
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -16,24 +16,19 @@ func (i *instanceResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	instanceOpts := opts.NewInstanceOpts(plan, ctx)
+	updateInstanceOpts := instanceOpts.NewUpdateInstanceOpts()
 
-	request := i.client.SdkClient.PublicCloudAPI.
-		LaunchInstance(i.client.AuthContext()).
-		LaunchInstanceOpts(*instanceOpts.NewLaunchInstanceOpts())
-	instance, _, err := i.client.SdkClient.PublicCloudAPI.LaunchInstanceExecute(request)
+	request := i.client.SdkClient.PublicCloudAPI.UpdateInstance(i.client.AuthContext(), plan.Id.ValueString()).UpdateInstanceOpts(*updateInstanceOpts)
+	instance, _, err := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating instance",
-			"Could not create instance, unexpected error: "+err.Error(),
+			"Error updating instance",
+			"Could not update instance, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
-	diags = plan.Populate(instance, ctx)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	plan.Populate(instance, ctx)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

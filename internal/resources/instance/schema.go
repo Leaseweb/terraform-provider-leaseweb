@@ -2,19 +2,25 @@ package instance
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (r *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (i *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The instance unique identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"equipment_id": schema.StringAttribute{
 				Computed:    true,
@@ -30,8 +36,12 @@ func (r *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"region": schema.StringAttribute{
 				Required:    true,
 				Description: "The region where the instance was launched into",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"reference": schema.StringAttribute{
+				Optional:    true,
 				Computed:    true,
 				Description: "The identifying name set to the instance",
 			},
@@ -70,7 +80,7 @@ func (r *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 						},
 					},
 				},
-				Description: "r available for the load balancer",
+				Description: "i available for the load balancer",
 				Computed:    true,
 			},
 			"operating_system": schema.SingleNestedAttribute{
@@ -125,11 +135,19 @@ func (r *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Computed: true,
 			},
 			"type": schema.StringAttribute{
+				Optional: true,
 				Computed: true,
+			},
+			"ssh_key": schema.StringAttribute{
+				Optional: true,
 			},
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
+				Optional:    true,
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
+				Validators: []validator.Int64{
+					int64validator.Between(5, 1000),
+				},
 			},
 			"root_disk_storage_type": schema.StringAttribute{
 				Required:    true,
@@ -182,10 +200,20 @@ func (r *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					"billing_frequency": schema.Int64Attribute{
 						Required:    true,
 						Description: "The billing frequency (in months) of the instance.",
+						Validators: []validator.Int64{
+							int64validator.OneOf(
+								[]int64{0, 1, 3, 6, 12}...,
+							),
+						},
 					},
 					"term": schema.Int64Attribute{
 						Required:    true,
 						Description: "The contract commitment (in months)",
+						Validators: []validator.Int64{
+							int64validator.OneOf(
+								[]int64{0, 1, 3, 6, 12}...,
+							),
+						},
 					},
 					"type": schema.StringAttribute{
 						Required: true,
@@ -227,7 +255,7 @@ func (r *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"market_app_id": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 			},
 			"private_network": schema.SingleNestedAttribute{
 				Computed: true,

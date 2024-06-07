@@ -1,6 +1,9 @@
 package model
 
 import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -20,7 +23,7 @@ func Test_newIp(t *testing.T) {
 	sdkIp.SetReverseLookup("reverse-lookup")
 	sdkIp.Ddos = sdkDdos
 
-	ip := newIp(sdkIp)
+	ip, _ := newIp(context.TODO(), sdkIp)
 
 	assert.Equal(t, "ip", ip.Ip.ValueString(), "ip should be set")
 	assert.Equal(t, "prefix-length", ip.PrefixLength.ValueString(), "prefix-length should be set")
@@ -29,5 +32,16 @@ func Test_newIp(t *testing.T) {
 	assert.Equal(t, false, ip.MainIp.ValueBool(), "mainIp should be set")
 	assert.Equal(t, "tralala", ip.NetworkType.ValueString(), "networkType should be set")
 	assert.Equal(t, "reverse-lookup", ip.ReverseLookup.ValueString(), "reverseLookup should be set")
-	assert.Equal(t, "protection-type", ip.Ddos.ProtectionType.ValueString(), "ddos should be set")
+
+	ddos := Ddos{}
+	ip.Ddos.As(context.TODO(), &ddos, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "protection-type", ddos.ProtectionType.ValueString(), "ddos should be set")
+}
+
+func TestIp_attributeTypes(t *testing.T) {
+	ip, _ := newIp(context.TODO(), publicCloud.NewIp())
+
+	_, diags := types.ObjectValueFrom(context.TODO(), ip.attributeTypes(), ip)
+
+	assert.Nil(t, diags, "attributes should be correct")
 }

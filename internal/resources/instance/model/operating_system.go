@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/resources"
@@ -15,6 +16,19 @@ type OperatingSystem struct {
 	Architecture types.String   `tfsdk:"architecture"`
 	MarketApps   []types.String `tfsdk:"market_apps"`
 	StorageTypes []types.String `tfsdk:"storage_types"`
+}
+
+func (o OperatingSystem) attributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":            types.StringType,
+		"name":          types.StringType,
+		"version":       types.StringType,
+		"family":        types.StringType,
+		"flavour":       types.StringType,
+		"architecture":  types.StringType,
+		"market_apps":   types.ListType{ElemType: types.StringType},
+		"storage_types": types.ListType{ElemType: types.StringType},
+	}
 }
 
 func newOperatingSystem(sdkOperatingSystem *publicCloud.OperatingSystem) *OperatingSystem {

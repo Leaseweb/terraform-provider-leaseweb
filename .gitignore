@@ -11,3 +11,5 @@ terraform.tfstate.backup
 !command/test-fixtures/**/.terraform/
 
 terraform-provider-leaseweb
+
+.env

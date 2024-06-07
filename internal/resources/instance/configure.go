@@ -7,7 +7,7 @@ import (
 	"terraform-provider-leaseweb/internal/client"
 )
 
-func (r *instanceResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (i *instanceResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -23,5 +23,5 @@ func (r *instanceResource) Configure(_ context.Context, req resource.ConfigureRe
 		return
 	}
 
-	r.client = sdkClient
+	i.client = sdkClient
 }

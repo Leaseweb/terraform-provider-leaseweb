@@ -13,7 +13,9 @@ provider "leaseweb" {
 }
 
 resource "leaseweb_instance" "public_cloud_instance" {
-  region = "eu-west-3"
+  region    = "eu-west-3"
+  type      = "lsw.m3.large"
+  reference = "my webserver"
   operating_system = {
     id = "UBUNTU_22_04_64BIT"
   }
