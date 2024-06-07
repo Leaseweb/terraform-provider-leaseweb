@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &instanceResource{}
-	_ resource.ResourceWithConfigure = &instanceResource{}
+	_ resource.Resource                = &instanceResource{}
+	_ resource.ResourceWithConfigure   = &instanceResource{}
+	_ resource.ResourceWithImportState = &instanceResource{}
 )
 
 func NewInstanceResource() resource.Resource {
