@@ -1,15 +1,13 @@
 package model
 
 import (
-	"context"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
-func TestInstance_Populate(t *testing.T) {
+func Test_newInstance(t *testing.T) {
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 
 	sdkInstance := publicCloud.NewInstance()
@@ -61,8 +59,7 @@ func TestInstance_Populate(t *testing.T) {
 	sdkResources.SetCpu(*sdkCpu)
 	sdkInstance.SetResources(*sdkResources)
 
-	instance := Instance{}
-	instance.Populate(sdkInstance, context.TODO())
+	instance := newInstance(*sdkInstance)
 
 	assert.Equal(
 		t,
@@ -149,67 +146,45 @@ func TestInstance_Populate(t *testing.T) {
 		"marketAppId should be set",
 	)
 
-	operatingSystem := OperatingSystem{}
-	instance.OperatingSystem.As(
-		context.TODO(),
-		&operatingSystem,
-		basetypes.ObjectAsOptions{},
-	)
 	assert.Equal(
 		t,
 		"operatingSystemId",
-		operatingSystem.Id.ValueString(),
+		instance.OperatingSystem.Id.ValueString(),
 		"operating_system should be set",
 	)
 
-	contract := Contract{}
-	instance.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(
 		t,
 		"contract",
-		contract.Type.ValueString(),
+		instance.Contract.Type.ValueString(),
 		"contract should be set",
 	)
 
-	iso := Iso{}
-	instance.Iso.As(context.TODO(), &iso, basetypes.ObjectAsOptions{})
 	assert.Equal(
 		t,
 		"isoId",
-		iso.Id.ValueString(),
+		instance.Iso.Id.ValueString(),
 		"iso should be set",
 	)
 
-	privateNetwork := PrivateNetwork{}
-	instance.PrivateNetwork.As(
-		context.TODO(),
-		&privateNetwork,
-		basetypes.ObjectAsOptions{},
-	)
 	assert.Equal(
 		t,
 		"privateNetworkId",
-		privateNetwork.Id.ValueString(),
+		instance.PrivateNetwork.Id.ValueString(),
 		"privateNetwork should be set",
 	)
 
-	var ips []Ip
-	instance.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Equal(
 		t,
 		"1.2.3.4",
-		ips[0].Ip.ValueString(),
+		instance.Ips[0].Ip.ValueString(),
 		"ip should be set",
 	)
 
-	resources := Resources{}
-	cpu := Cpu{}
-	instance.Resources.As(context.TODO(), &resources, basetypes.ObjectAsOptions{})
-	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
 	assert.Equal(
 		t,
 		"cpu",
-		cpu.Unit.ValueString(),
+		instance.Resources.Cpu.Unit.ValueString(),
 		"privateNetwork should be set",
 	)
 }

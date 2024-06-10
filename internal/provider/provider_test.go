@@ -4,13 +4,31 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
+const (
+	providerConfig = `
+provider "leaseweb" {
+  host     = "localhost:8080"
+  scheme = "http"
+  token = "tralala"
+}
+`
+)
+
+var (
+	testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+		"leaseweb": providerserver.NewProtocol6WithError(NewProvider("test")()),
+	}
+)
+
 func TestLeasewebProvider_Metadata(t *testing.T) {
-	leasewebProvider := New("dev")
+	leasewebProvider := NewProvider("dev")
 	metadataResponse := provider.MetadataResponse{}
 	leasewebProvider().Metadata(
 		context.TODO(),
@@ -25,7 +43,7 @@ func TestLeasewebProvider_Metadata(t *testing.T) {
 }
 
 func TestLeasewebProvider_Schema(t *testing.T) {
-	leasewebProvider := New("dev")
+	leasewebProvider := NewProvider("dev")
 	schemaResponse := provider.SchemaResponse{}
 	leasewebProvider().Schema(context.TODO(), provider.SchemaRequest{}, &schemaResponse)
 
@@ -35,7 +53,7 @@ func TestLeasewebProvider_Schema(t *testing.T) {
 }
 
 func TestLeasewebProvider_DataSources(t *testing.T) {
-	leasewebProvider := New("dev")
+	leasewebProvider := NewProvider("dev")
 
 	assert.True(
 		t,
@@ -48,7 +66,7 @@ func TestLeasewebProvider_DataSources(t *testing.T) {
 }
 
 func TestLeasewebProvider_Resources(t *testing.T) {
-	leasewebProvider := New("dev")
+	leasewebProvider := NewProvider("dev")
 
 	assert.True(
 		t,

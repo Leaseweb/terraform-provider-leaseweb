@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/resources"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Contract struct {
@@ -31,12 +31,12 @@ func (c Contract) attributeTypes() map[string]attr.Type {
 
 func newContract(sdkContract *publicCloud.Contract) Contract {
 	return Contract{
-		BillingFrequency: resources.GetIntValue(sdkContract.HasBillingFrequency(), sdkContract.GetBillingFrequency()),
-		Term:             resources.GetIntValue(sdkContract.HasTerm(), sdkContract.GetTerm()),
-		Type:             resources.GetStringValue(sdkContract.HasType(), string(sdkContract.GetType())),
-		EndsAt:           resources.GetDateTime(sdkContract.GetEndsAt()),
-		RenewalsAt:       resources.GetDateTime(sdkContract.GetRenewalsAt()),
-		CreatedAt:        resources.GetDateTime(sdkContract.GetCreatedAt()),
-		State:            resources.GetStringValue(sdkContract.HasState(), string(sdkContract.GetState())),
+		BillingFrequency: utils.GenerateInt(sdkContract.HasBillingFrequency(), sdkContract.GetBillingFrequency()),
+		Term:             utils.GenerateInt(sdkContract.HasTerm(), sdkContract.GetTerm()),
+		Type:             utils.GenerateString(sdkContract.HasType(), string(sdkContract.GetType())),
+		EndsAt:           utils.GenerateDateTime(sdkContract.GetEndsAt()),
+		RenewalsAt:       utils.GenerateDateTime(sdkContract.GetRenewalsAt()),
+		CreatedAt:        utils.GenerateDateTime(sdkContract.GetCreatedAt()),
+		State:            utils.GenerateString(sdkContract.HasState(), string(sdkContract.GetState())),
 	}
 }

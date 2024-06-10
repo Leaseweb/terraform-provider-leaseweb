@@ -1,4 +1,4 @@
-package resources
+package utils
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestGetBoolValue(t *testing.T) {
+func TestGenerateBool(t *testing.T) {
 	type args struct {
 		hasValue bool
 		value    bool
@@ -24,11 +24,11 @@ func TestGetBoolValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.want, GetBoolValue(tt.args.hasValue, tt.args.value), tt.name)
+		assert.Equal(t, tt.want, GenerateBool(tt.args.hasValue, tt.args.value), tt.name)
 	}
 }
 
-func TestGetDateTime(t *testing.T) {
+func TestGenerateDateTime(t *testing.T) {
 	zeroTime, _ := time.Parse("2006-01-02 15:04:05 -0700 MST", "0001-01-01 00:00:00 +0000 UTC ")
 	timestamp, _ := time.Parse("2006-01-02 15:04:05", "2023-12-14 17:09:47")
 
@@ -46,11 +46,11 @@ func TestGetDateTime(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.want, GetDateTime(tt.args.value), tt.name)
+		assert.Equal(t, tt.want, GenerateDateTime(tt.args.value), tt.name)
 	}
 }
 
-func TestGetFloatValue(t *testing.T) {
+func TestGenerateFloat(t *testing.T) {
 	type args struct {
 		hasValue bool
 		value    float32
@@ -66,11 +66,11 @@ func TestGetFloatValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.want, GetFloatValue(tt.args.hasValue, tt.args.value).ValueFloat64(), tt.name)
+		assert.Equal(t, tt.want, GenerateFloat(tt.args.hasValue, tt.args.value).ValueFloat64(), tt.name)
 	}
 }
 
-func TestGetIntValue(t *testing.T) {
+func TestGenerateInt(t *testing.T) {
 	type args struct {
 		hasValue bool
 		value    int32
@@ -85,11 +85,11 @@ func TestGetIntValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.want, GetIntValue(tt.args.hasValue, tt.args.value).ValueInt64(), tt.name)
+		assert.Equal(t, tt.want, GenerateInt(tt.args.hasValue, tt.args.value).ValueInt64(), tt.name)
 	}
 }
 
-func TestGetStringValue(t *testing.T) {
+func TestGenerateString(t *testing.T) {
 	type args struct {
 		hasValue bool
 		value    string
@@ -104,6 +104,6 @@ func TestGetStringValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 
-		assert.Equal(t, tt.want, GetStringValue(tt.args.hasValue, tt.args.value).ValueString(), tt.name)
+		assert.Equal(t, tt.want, GenerateString(tt.args.hasValue, tt.args.value).ValueString(), tt.name)
 	}
 }

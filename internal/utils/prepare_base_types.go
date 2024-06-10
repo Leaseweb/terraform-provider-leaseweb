@@ -1,11 +1,11 @@
-package resources
+package utils
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"time"
 )
 
-func GetStringValue(hasValue bool, value string) basetypes.StringValue {
+func GenerateString(hasValue bool, value string) basetypes.StringValue {
 	if hasValue {
 		return basetypes.NewStringValue(value)
 	}
@@ -13,7 +13,7 @@ func GetStringValue(hasValue bool, value string) basetypes.StringValue {
 	return basetypes.NewStringNull()
 }
 
-func GetBoolValue(hasValue bool, value bool) basetypes.BoolValue {
+func GenerateBool(hasValue bool, value bool) basetypes.BoolValue {
 	if hasValue {
 		return basetypes.NewBoolValue(value)
 	}
@@ -21,7 +21,7 @@ func GetBoolValue(hasValue bool, value bool) basetypes.BoolValue {
 	return basetypes.NewBoolNull()
 }
 
-func GetIntValue(hasValue bool, value int32) basetypes.Int64Value {
+func GenerateInt(hasValue bool, value int32) basetypes.Int64Value {
 	if hasValue {
 		return basetypes.NewInt64Value(int64(value))
 	}
@@ -29,7 +29,7 @@ func GetIntValue(hasValue bool, value int32) basetypes.Int64Value {
 	return basetypes.NewInt64Null()
 }
 
-func GetFloatValue(hasValue bool, value float32) basetypes.Float64Value {
+func GenerateFloat(hasValue bool, value float32) basetypes.Float64Value {
 	if hasValue {
 		return basetypes.NewFloat64Value(float64(value))
 	}
@@ -37,7 +37,7 @@ func GetFloatValue(hasValue bool, value float32) basetypes.Float64Value {
 	return basetypes.NewFloat64Null()
 }
 
-func GetDateTime(value time.Time) basetypes.StringValue {
+func GenerateDateTime(value time.Time) basetypes.StringValue {
 	if value.IsZero() {
 		return basetypes.NewStringNull()
 	}

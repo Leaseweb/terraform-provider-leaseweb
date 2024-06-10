@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/resources"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Instance struct {
@@ -44,21 +44,21 @@ func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context)
 		return diags
 	}
 
-	i.Id = resources.GetStringValue(instance.HasId(), instance.GetId())
-	i.EquipmentId = resources.GetStringValue(instance.HasEquipmentId(), instance.GetEquipmentId())
-	i.SalesOrgId = resources.GetStringValue(instance.HasSalesOrgId(), instance.GetSalesOrgId())
-	i.CustomerId = resources.GetStringValue(instance.HasCustomerId(), instance.GetCustomerId())
-	i.Region = resources.GetStringValue(instance.HasRegion(), instance.GetRegion())
-	i.Reference = resources.GetStringValue(instance.HasReference(), instance.GetReference())
-	i.State = resources.GetStringValue(instance.HasState(), string(instance.GetState()))
-	i.ProductType = resources.GetStringValue(instance.HasProductType(), instance.GetProductType())
-	i.HasPublicIpv4 = resources.GetBoolValue(instance.HasHasPublicIpV4(), instance.GetHasPublicIpV4())
-	i.HasPrivateNetwork = resources.GetBoolValue(instance.HasincludesPrivateNetwork(), instance.GetincludesPrivateNetwork())
-	i.Type = resources.GetStringValue(instance.HasType(), instance.GetType())
-	i.RootDiskSize = resources.GetIntValue(instance.HasRootDiskSize(), instance.GetRootDiskSize())
-	i.RootDiskStorageType = resources.GetStringValue(instance.HasRootDiskStorageType(), instance.GetRootDiskStorageType())
-	i.StartedAt = resources.GetDateTime(instance.GetStartedAt())
-	i.MarketAppId = resources.GetStringValue(instance.HasMarketAppId(), instance.GetMarketAppId())
+	i.Id = utils.GenerateString(instance.HasId(), instance.GetId())
+	i.EquipmentId = utils.GenerateString(instance.HasEquipmentId(), instance.GetEquipmentId())
+	i.SalesOrgId = utils.GenerateString(instance.HasSalesOrgId(), instance.GetSalesOrgId())
+	i.CustomerId = utils.GenerateString(instance.HasCustomerId(), instance.GetCustomerId())
+	i.Region = utils.GenerateString(instance.HasRegion(), instance.GetRegion())
+	i.Reference = utils.GenerateString(instance.HasReference(), instance.GetReference())
+	i.State = utils.GenerateString(instance.HasState(), string(instance.GetState()))
+	i.ProductType = utils.GenerateString(instance.HasProductType(), instance.GetProductType())
+	i.HasPublicIpv4 = utils.GenerateBool(instance.HasHasPublicIpV4(), instance.GetHasPublicIpV4())
+	i.HasPrivateNetwork = utils.GenerateBool(instance.HasincludesPrivateNetwork(), instance.GetincludesPrivateNetwork())
+	i.Type = utils.GenerateString(instance.HasType(), instance.GetType())
+	i.RootDiskSize = utils.GenerateInt(instance.HasRootDiskSize(), instance.GetRootDiskSize())
+	i.RootDiskStorageType = utils.GenerateString(instance.HasRootDiskStorageType(), instance.GetRootDiskStorageType())
+	i.StartedAt = utils.GenerateDateTime(instance.GetStartedAt())
+	i.MarketAppId = utils.GenerateString(instance.HasMarketAppId(), instance.GetMarketAppId())
 
 	operatingSystemObject, diags := types.ObjectValueFrom(ctx, operatingSystem.attributeTypes(), operatingSystem)
 	if diags != nil {

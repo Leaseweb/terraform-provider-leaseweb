@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/resources"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type OperatingSystem struct {
@@ -44,12 +44,12 @@ func newOperatingSystem(sdkOperatingSystem *publicCloud.OperatingSystem) *Operat
 	}
 
 	return &OperatingSystem{
-		Id:           resources.GetStringValue(sdkOperatingSystem.HasId(), sdkOperatingSystem.GetId()),
-		Name:         resources.GetStringValue(sdkOperatingSystem.HasName(), sdkOperatingSystem.GetName()),
-		Version:      resources.GetStringValue(sdkOperatingSystem.HasVersion(), sdkOperatingSystem.GetVersion()),
-		Family:       resources.GetStringValue(sdkOperatingSystem.HasFamily(), sdkOperatingSystem.GetFamily()),
-		Flavour:      resources.GetStringValue(sdkOperatingSystem.HasFlavour(), sdkOperatingSystem.GetFlavour()),
-		Architecture: resources.GetStringValue(sdkOperatingSystem.HasArchitecture(), sdkOperatingSystem.GetArchitecture()),
+		Id:           utils.GenerateString(sdkOperatingSystem.HasId(), sdkOperatingSystem.GetId()),
+		Name:         utils.GenerateString(sdkOperatingSystem.HasName(), sdkOperatingSystem.GetName()),
+		Version:      utils.GenerateString(sdkOperatingSystem.HasVersion(), sdkOperatingSystem.GetVersion()),
+		Family:       utils.GenerateString(sdkOperatingSystem.HasFamily(), sdkOperatingSystem.GetFamily()),
+		Flavour:      utils.GenerateString(sdkOperatingSystem.HasFlavour(), sdkOperatingSystem.GetFlavour()),
+		Architecture: utils.GenerateString(sdkOperatingSystem.HasArchitecture(), sdkOperatingSystem.GetArchitecture()),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}

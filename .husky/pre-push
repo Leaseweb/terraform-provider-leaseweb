@@ -16,6 +16,4 @@ terraform fmt -recursive -check .
 
 golangci-lint run
 go mod download && go build -v .
-go test -v -cover ./internal/provider/
-
-
+TF_ACC=1 go test -v -cover ./internal/provider/

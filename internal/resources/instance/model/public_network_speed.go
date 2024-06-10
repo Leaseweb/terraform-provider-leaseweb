@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/resources"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type PublicNetworkSpeed struct {
@@ -21,7 +21,7 @@ func (p PublicNetworkSpeed) attributeTypes() map[string]attr.Type {
 
 func newPublicNetworkSpeed(sdkPublicNetworkSpeed *publicCloud.PublicNetworkSpeed) PublicNetworkSpeed {
 	return PublicNetworkSpeed{
-		Value: resources.GetIntValue(sdkPublicNetworkSpeed.HasValue(), sdkPublicNetworkSpeed.GetValue()),
-		Unit:  resources.GetStringValue(sdkPublicNetworkSpeed.HasUnit(), sdkPublicNetworkSpeed.GetUnit()),
+		Value: utils.GenerateInt(sdkPublicNetworkSpeed.HasValue(), sdkPublicNetworkSpeed.GetValue()),
+		Unit:  utils.GenerateString(sdkPublicNetworkSpeed.HasUnit(), sdkPublicNetworkSpeed.GetUnit()),
 	}
 }

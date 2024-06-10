@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/resources"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type PrivateNetwork struct {
@@ -23,8 +23,8 @@ func (p PrivateNetwork) attributeTypes() map[string]attr.Type {
 
 func newPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) PrivateNetwork {
 	return PrivateNetwork{
-		Id:     resources.GetStringValue(sdkPrivateNetwork.HasPrivateNetworkId(), sdkPrivateNetwork.GetPrivateNetworkId()),
-		Status: resources.GetStringValue(sdkPrivateNetwork.HasStatus(), sdkPrivateNetwork.GetStatus()),
-		Subnet: resources.GetStringValue(sdkPrivateNetwork.HasSubnet(), sdkPrivateNetwork.GetSubnet()),
+		Id:     utils.GenerateString(sdkPrivateNetwork.HasPrivateNetworkId(), sdkPrivateNetwork.GetPrivateNetworkId()),
+		Status: utils.GenerateString(sdkPrivateNetwork.HasStatus(), sdkPrivateNetwork.GetStatus()),
+		Subnet: utils.GenerateString(sdkPrivateNetwork.HasSubnet(), sdkPrivateNetwork.GetSubnet()),
 	}
 }
