@@ -1,18 +1,5 @@
-terraform {
-  required_providers {
-    leaseweb = {
-      source = "registry.terraform.io/LeaseWeb/leaseweb"
-    }
-  }
-}
-
-provider "leaseweb" {
-  host   = "localhost:8080"
-  scheme = "http"
-  token  = "tralala"
-}
-
-resource "leaseweb_instance" "public_cloud_instance" {
+# Manage example Public Cloud instance
+resource "public_cloud_instance" "example" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
@@ -25,8 +12,4 @@ resource "leaseweb_instance" "public_cloud_instance" {
     term              = 0
     type              = "HOURLY"
   }
-}
-
-output "public_cloud" {
-  value = leaseweb_instance.public_cloud_instance
 }
