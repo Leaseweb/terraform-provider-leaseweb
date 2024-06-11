@@ -1,5 +1,5 @@
-# Manage example Public Cloud instance
-resource "public_cloud_instance" "example" {
+# Manage example Public Cloud Instance
+resource "leaseweb_public_cloud_instance" "example" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"

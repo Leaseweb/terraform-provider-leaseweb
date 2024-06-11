@@ -11,7 +11,15 @@ func Test_instanceResource_Metadata(t *testing.T) {
 	resp := resource.MetadataResponse{}
 	instanceResource := NewInstanceResource()
 
-	instanceResource.Metadata(context.TODO(), resource.MetadataRequest{ProviderTypeName: "tralala"}, &resp)
+	instanceResource.Metadata(
+		context.TODO(),
+		resource.MetadataRequest{ProviderTypeName: "tralala"},
+		&resp,
+	)
 
-	assert.Equal(t, "tralala_instance", resp.TypeName, "Type name should be tralala_instances")
+	assert.Equal(t,
+		"tralala_public_cloud_instance",
+		resp.TypeName,
+		"Type name should be tralala_public_cloud_instance",
+	)
 }

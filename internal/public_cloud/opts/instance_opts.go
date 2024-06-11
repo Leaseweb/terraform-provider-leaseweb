@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/resources/instance/model"
+	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
 
 type InstanceOpts struct {
@@ -19,7 +19,9 @@ func (o *InstanceOpts) NewUpdateInstanceOpts() *publicCloud.UpdateInstanceOpts {
 	return opts
 }
 
-func (o *InstanceOpts) setOptionalUpdateInstanceOpts(opts *publicCloud.UpdateInstanceOpts) {
+func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
+	opts *publicCloud.UpdateInstanceOpts,
+) {
 	contract := model.Contract{}
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
 
@@ -65,7 +67,9 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() *publicCloud.LaunchInstanceOpts {
 	return opts
 }
 
-func (o *InstanceOpts) setOptionalLaunchInstanceOpts(opts *publicCloud.LaunchInstanceOpts) {
+func (o *InstanceOpts) setOptionalLaunchInstanceOpts(
+	opts *publicCloud.LaunchInstanceOpts,
+) {
 	if !o.instance.Type.IsUnknown() {
 		opts.SetType(o.instance.Type.ValueString())
 	}
@@ -83,6 +87,9 @@ func (o *InstanceOpts) setOptionalLaunchInstanceOpts(opts *publicCloud.LaunchIns
 	}
 }
 
-func NewInstanceOpts(instance model.Instance, ctx context.Context) InstanceOpts {
+func NewInstanceOpts(
+	instance model.Instance,
+	ctx context.Context,
+) InstanceOpts {
 	return InstanceOpts{instance: instance, ctx: ctx}
 }

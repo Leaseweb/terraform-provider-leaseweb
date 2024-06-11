@@ -3,7 +3,7 @@ package instance
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"terraform-provider-leaseweb/internal/resources/instance/model"
+	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
 
 func (i *instanceResource) Delete(
@@ -26,8 +26,8 @@ func (i *instanceResource) Delete(
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error terminating instance",
-			"Could not terminate instance, unexpected error: "+err.Error(),
+			"Error terminating Public Cloud Instance",
+			"Could not terminate Public CLoud Instance, unexpected error: "+err.Error(),
 		)
 		return
 	}

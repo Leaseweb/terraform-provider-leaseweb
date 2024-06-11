@@ -1,2 +1,2 @@
 # List all Public Cloud instances
-data "public_cloud_instances" "all" {}
+data "leaseweb_public_cloud_instances" "all" {}

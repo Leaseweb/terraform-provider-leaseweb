@@ -59,9 +59,9 @@ func TestLeasewebProvider_DataSources(t *testing.T) {
 		t,
 		implementsDataSource(
 			leasewebProvider().DataSources(
-				context.TODO()), "_instances",
+				context.TODO()), "_public_cloud_instances",
 		),
-		"data sources should implement InstancesDataSource",
+		"data sources should implement Public Cloud InstancesDataSource",
 	)
 }
 
@@ -72,9 +72,9 @@ func TestLeasewebProvider_Resources(t *testing.T) {
 		t,
 		implementsResource(
 			leasewebProvider().Resources(
-				context.TODO()), "_instance",
+				context.TODO()), "_public_cloud_instance",
 		),
-		"resources should implement InstanceResource",
+		"resource should implement Public Cloud InstanceResource",
 	)
 }
 

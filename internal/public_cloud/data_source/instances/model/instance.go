@@ -13,7 +13,7 @@ type instance struct {
 	CustomerId          types.String    `tfsdk:"customer_id"`
 	Region              types.String    `tfsdk:"region"`
 	Reference           types.String    `tfsdk:"reference"`
-	Resources           resources       `tfsdk:"resources"`
+	Resources           resources       `tfsdk:"resource"`
 	OperatingSystem     operatingSystem `tfsdk:"operating_system"`
 	State               types.String    `tfsdk:"state"`
 	ProductType         types.String    `tfsdk:"product_type"`

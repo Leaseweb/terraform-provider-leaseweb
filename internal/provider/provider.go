@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"os"
 	providerClient "terraform-provider-leaseweb/internal/client"
-	"terraform-provider-leaseweb/internal/data_sources/instances"
-	"terraform-provider-leaseweb/internal/resources/instance"
+	"terraform-provider-leaseweb/internal/public_cloud/data_source/instances"
+	"terraform-provider-leaseweb/internal/public_cloud/resource/instance"
 )
 
 var (
@@ -40,12 +40,20 @@ type leasewebProviderModel struct {
 	Scheme types.String `tfsdk:"scheme"`
 }
 
-func (p *leasewebProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *leasewebProvider) Metadata(
+	_ context.Context,
+	_ provider.MetadataRequest,
+	resp *provider.MetadataResponse,
+) {
 	resp.TypeName = "leaseweb"
 	resp.Version = p.version
 }
 
-func (p *leasewebProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *leasewebProvider) Schema(
+	_ context.Context,
+	_ provider.SchemaRequest,
+	resp *provider.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
@@ -62,7 +70,11 @@ func (p *leasewebProvider) Schema(_ context.Context, _ provider.SchemaRequest, r
 	}
 }
 
-func (p *leasewebProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *leasewebProvider) Configure(
+	ctx context.Context,
+	req provider.ConfigureRequest,
+	resp *provider.ConfigureResponse,
+) {
 	tflog.Info(ctx, "Configuring Leaseweb client")
 
 	var config leasewebProviderModel
@@ -122,12 +134,19 @@ func (p *leasewebProvider) Configure(ctx context.Context, req provider.Configure
 
 	tflog.Debug(ctx, "Creating Leaseweb client")
 
-	client := providerClient.NewClient(token, &providerClient.Options{Host: host, Scheme: scheme})
+	client := providerClient.NewClient(
+		token,
+		&providerClient.Options{Host: host, Scheme: scheme},
+	)
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
 
-	tflog.Info(ctx, "Configured Leaseweb client", map[string]any{"success": true})
+	tflog.Info(
+		ctx,
+		"Configured Leaseweb client",
+		map[string]any{"success": true},
+	)
 }
 
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {

@@ -3,11 +3,15 @@ package instance
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"terraform-provider-leaseweb/internal/opts"
-	"terraform-provider-leaseweb/internal/resources/instance/model"
+	"terraform-provider-leaseweb/internal/public_cloud/opts"
+	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
 
-func (i *instanceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (i *instanceResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var plan model.Instance
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -23,8 +27,8 @@ func (i *instanceResource) Create(ctx context.Context, req resource.CreateReques
 	instance, _, err := i.client.SdkClient.PublicCloudAPI.LaunchInstanceExecute(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating instance",
-			"Could not create instance, unexpected error: "+err.Error(),
+			"Error creating Public Cloud Instance",
+			"Could not create Public Cloud Instance, unexpected error: "+err.Error(),
 		)
 		return
 	}

@@ -39,7 +39,7 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 							Computed:    true,
 							Description: "The identifying name set to the instance",
 						},
-						"resources": schema.SingleNestedAttribute{
+						"resource": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"cpu": schema.SingleNestedAttribute{
 									Description: "Number of cores",

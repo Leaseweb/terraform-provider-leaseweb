@@ -11,15 +11,15 @@ func TestAccInstancesDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: providerConfig + `data "leaseweb_instances" "test" {}`,
+				Config: providerConfig + `data "leaseweb_public_cloud_instances" "test" {}`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"data.leaseweb_instances.test",
+						"data.leaseweb_public_cloud_instances.test",
 						"instances.#",
 						"1",
 					),
 					resource.TestCheckResourceAttr(
-						"data.leaseweb_instances.test",
+						"data.leaseweb_public_cloud_instances.test",
 						"instances.0.id",
 						"ace712e9-a166-47f1-9065-4af0f7e7fce1",
 					),

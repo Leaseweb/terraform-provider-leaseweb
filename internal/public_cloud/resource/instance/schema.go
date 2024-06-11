@@ -12,7 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (i *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (i *instanceResource) Schema(
+	_ context.Context,
+	_ resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -45,7 +49,7 @@ func (i *instanceResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Computed:    true,
 				Description: "The identifying name set to the instance",
 			},
-			"resources": schema.SingleNestedAttribute{
+			"resource": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"cpu": schema.SingleNestedAttribute{
 						Description: "Number of cores",
