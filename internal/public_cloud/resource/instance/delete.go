@@ -19,7 +19,7 @@ func (i *instanceResource) Delete(
 	}
 
 	request := i.client.SdkClient.PublicCloudAPI.TerminateInstance(
-		i.client.AuthContext(),
+		i.client.AuthContext(ctx),
 		state.Id.ValueString(),
 	)
 	_, err := i.client.SdkClient.PublicCloudAPI.TerminateInstanceExecute(request)

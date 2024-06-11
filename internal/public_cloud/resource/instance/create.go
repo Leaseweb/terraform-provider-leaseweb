@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 func (i *instanceResource) Create(
@@ -22,13 +23,18 @@ func (i *instanceResource) Create(
 	instanceOpts := opts.NewInstanceOpts(plan, ctx)
 
 	request := i.client.SdkClient.PublicCloudAPI.
-		LaunchInstance(i.client.AuthContext()).
+		LaunchInstance(i.client.AuthContext(ctx)).
 		LaunchInstanceOpts(*instanceOpts.NewLaunchInstanceOpts())
-	instance, _, err := i.client.SdkClient.PublicCloudAPI.LaunchInstanceExecute(request)
+	instance, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.
+		LaunchInstanceExecute(request)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
+		utils.HandleError(
+			ctx,
+			sdkResponse,
+			&resp.Diagnostics,
 			"Error creating Public Cloud Instance",
-			"Could not create Public Cloud Instance, unexpected error: "+err.Error(),
+			err.Error(),
 		)
 		return
 	}

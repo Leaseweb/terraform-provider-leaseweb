@@ -4,14 +4,22 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"terraform-provider-leaseweb/internal/public_cloud/data_source/instances/model"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
-func (d *instancesDataSource) Read(ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *instancesDataSource) Read(
+	ctx context.Context,
+	_ datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
-	instances, _, err := d.client.SdkClient.PublicCloudAPI.
-		GetInstanceList(d.client.AuthContext()).Execute()
+	instances, sdkResponse, err := d.client.SdkClient.PublicCloudAPI.
+		GetInstanceList(d.client.AuthContext(ctx)).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
+		utils.HandleError(
+			ctx,
+			sdkResponse,
+			&resp.Diagnostics,
 			"Unable to Read Leaseweb Public Cloud Instances",
 			err.Error(),
 		)

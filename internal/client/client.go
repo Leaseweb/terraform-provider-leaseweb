@@ -28,9 +28,9 @@ func NewClient(token string, options *Options) *Client {
 	return &Client{SdkClient: publicCloud.NewAPIClient(configuration), Token: token}
 }
 
-func (c *Client) AuthContext() context.Context {
+func (c *Client) AuthContext(ctx context.Context) context.Context {
 	return context.WithValue(
-		context.Background(),
+		ctx,
 		publicCloud.ContextAPIKeys,
 		map[string]publicCloud.APIKey{
 			"X-LSW-Auth": {Key: c.Token, Prefix: ""},

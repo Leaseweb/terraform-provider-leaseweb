@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -31,7 +32,7 @@ func TestClientSupportsScheme(t *testing.T) {
 func TestAuthContext(t *testing.T) {
 	client := NewClient("token", &Options{})
 
-	got := client.AuthContext().Value(publicCloud.ContextAPIKeys)
+	got := client.AuthContext(context.TODO()).Value(publicCloud.ContextAPIKeys)
 	want := map[string]publicCloud.APIKey{
 		"X-LSW-Auth": {Key: "token", Prefix: ""},
 	}

@@ -23,7 +23,7 @@ func (i *instanceResource) Update(
 	updateInstanceOpts := instanceOpts.NewUpdateInstanceOpts()
 
 	request := i.client.SdkClient.PublicCloudAPI.UpdateInstance(
-		i.client.AuthContext(),
+		i.client.AuthContext(ctx),
 		plan.Id.ValueString(),
 	).UpdateInstanceOpts(*updateInstanceOpts)
 	instance, _, err := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)

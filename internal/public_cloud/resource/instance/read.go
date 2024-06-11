@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 func (i *instanceResource) Read(
@@ -18,14 +19,17 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	instance, _, err := i.client.SdkClient.PublicCloudAPI.GetInstance(
-		i.client.AuthContext(),
+	instance, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.GetInstance(
+		i.client.AuthContext(ctx),
 		state.Id.ValueString(),
 	).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Public Cloud Instance",
-			"Could not read Public Cloud Instance ID "+state.Id.ValueString()+": "+err.Error(),
+		utils.HandleError(
+			ctx,
+			sdkResponse,
+			&resp.Diagnostics,
+			"Error Reading Public Cloud Instance "+state.Id.ValueString(),
+			err.Error(),
 		)
 		return
 	}
