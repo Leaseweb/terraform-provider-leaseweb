@@ -19,16 +19,16 @@ description: |-
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
 - `operating_system` (Attributes) (see [below for nested schema](#nestedatt--operating_system))
-- `region` (String) The region where the instance was launched into
+- `region` (String) Region to launch the instance into
 - `root_disk_storage_type` (String) The root disk's storage type
+- `type` (String) Instance type
 
 ### Optional
 
-- `market_app_id` (String)
+- `market_app_id` (String) Market App ID that must be installed into the instance
 - `reference` (String) The identifying name set to the instance
 - `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
-- `ssh_key` (String)
-- `type` (String)
+- `ssh_key` (String) Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances
 
 ### Read-Only
 
@@ -52,7 +52,7 @@ description: |-
 Required:
 
 - `billing_frequency` (Number) The billing frequency (in months) of the instance.
-- `term` (Number) The contract commitment (in months)
+- `term` (Number) Contract term (in months). Used only when contract type is MONTHLY
 - `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
 
 Read-Only:
@@ -68,7 +68,7 @@ Read-Only:
 
 Required:
 
-- `id` (String)
+- `id` (String) Operating System ID
 
 Read-Only:
 

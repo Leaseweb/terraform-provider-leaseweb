@@ -32,7 +32,7 @@ Read-Only:
 - `id` (String) The instance unique identifier
 - `ips` (Attributes List) (see [below for nested schema](#nestedatt--instances--ips))
 - `iso` (Attributes) (see [below for nested schema](#nestedatt--instances--iso))
-- `market_app_id` (String)
+- `market_app_id` (String) Market App ID
 - `operating_system` (Attributes) (see [below for nested schema](#nestedatt--instances--operating_system))
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--instances--private_network))
 - `product_type` (String) The product type
@@ -56,7 +56,7 @@ Read-Only:
 - `ends_at` (String)
 - `renewals_at` (String) Date when the contract will be automatically renewed
 - `state` (String)
-- `term` (Number) The contract commitment (in months)
+- `term` (Number) Contract term (in months). Used only when contract type is MONTHLY
 - `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
 
 
@@ -101,7 +101,7 @@ Read-Only:
 - `architecture` (String)
 - `family` (String)
 - `flavour` (String)
-- `id` (String)
+- `id` (String) Operating System ID
 - `market_apps` (List of String)
 - `name` (String)
 - `storage_types` (List of String) The supported storage types for the instance type

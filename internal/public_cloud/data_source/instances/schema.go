@@ -2,6 +2,7 @@ package instances
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -77,7 +78,8 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
-									Computed: true,
+									Computed:    true,
+									Description: "Operating System ID",
 								},
 								"name": schema.StringAttribute{
 									Computed: true,
@@ -182,10 +184,20 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 								"billing_frequency": schema.Int64Attribute{
 									Computed:    true,
 									Description: "The billing frequency (in months) of the instance.",
+									Validators: []validator.Int64{
+										int64validator.OneOf(
+											[]int64{0, 1, 3, 6, 12}...,
+										),
+									},
 								},
 								"term": schema.Int64Attribute{
 									Computed:    true,
-									Description: "The contract commitment (in months)",
+									Description: "Contract term (in months). Used only when contract type is MONTHLY",
+									Validators: []validator.Int64{
+										int64validator.OneOf(
+											[]int64{0, 1, 3, 6, 12}...,
+										),
+									},
 								},
 								"type": schema.StringAttribute{
 									Computed: true,
@@ -227,7 +239,8 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 							},
 						},
 						"market_app_id": schema.StringAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "Market App ID",
 						},
 						"private_network": schema.SingleNestedAttribute{
 							Computed: true,

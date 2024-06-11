@@ -39,7 +39,7 @@ func (i *instanceResource) Schema(
 			},
 			"region": schema.StringAttribute{
 				Required:    true,
-				Description: "The region where the instance was launched into",
+				Description: "Region to launch the instance into",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -91,7 +91,8 @@ func (i *instanceResource) Schema(
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
-						Required: true,
+						Required:    true,
+						Description: "Operating System ID",
 					},
 					"name": schema.StringAttribute{
 						Computed: true,
@@ -139,11 +140,12 @@ func (i *instanceResource) Schema(
 				Computed: true,
 			},
 			"type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Required:    true,
+				Description: "Instance type",
 			},
 			"ssh_key": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 			},
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
@@ -212,7 +214,7 @@ func (i *instanceResource) Schema(
 					},
 					"term": schema.Int64Attribute{
 						Required:    true,
-						Description: "The contract commitment (in months)",
+						Description: "Contract term (in months). Used only when contract type is MONTHLY",
 						Validators: []validator.Int64{
 							int64validator.OneOf(
 								[]int64{0, 1, 3, 6, 12}...,
@@ -259,8 +261,9 @@ func (i *instanceResource) Schema(
 				},
 			},
 			"market_app_id": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:    true,
+				Optional:    true,
+				Description: "Market App ID that must be installed into the instance",
 			},
 			"private_network": schema.SingleNestedAttribute{
 				Computed: true,
