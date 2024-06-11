@@ -10,8 +10,8 @@ import (
 )
 
 func Test_newIp(t *testing.T) {
-	sdkDdos := publicCloud.NewDdos()
-	sdkDdos.SetProtectionType("protection-type")
+	sdkDdos := publicCloud.NewNullableDdos(publicCloud.NewDdos())
+	sdkDdos.Get().SetProtectionType("protection-type")
 
 	sdkIp := publicCloud.NewIp()
 	sdkIp.SetIp("ip")
@@ -21,7 +21,7 @@ func Test_newIp(t *testing.T) {
 	sdkIp.SetMainIp(false)
 	sdkIp.SetNetworkType("tralala")
 	sdkIp.SetReverseLookup("reverse-lookup")
-	sdkIp.Ddos = sdkDdos
+	sdkIp.Ddos = *sdkDdos
 
 	ip, _ := newIp(context.TODO(), sdkIp)
 

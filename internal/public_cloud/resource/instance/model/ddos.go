@@ -21,7 +21,13 @@ func (d Ddos) attributeTypes() map[string]attr.Type {
 
 func newDdos(sdkDDos *publicCloud.Ddos) Ddos {
 	return Ddos{
-		DetectionProfile: utils.GenerateString(sdkDDos.HasDetectionProfile(), sdkDDos.GetDetectionProfile()),
-		ProtectionType:   utils.GenerateString(sdkDDos.HasProtectionType(), sdkDDos.GetProtectionType()),
+		DetectionProfile: utils.GenerateString(
+			sdkDDos.HasDetectionProfile(),
+			sdkDDos.GetDetectionProfile(),
+		),
+		ProtectionType: utils.GenerateString(
+			sdkDDos.HasProtectionType(),
+			sdkDDos.GetProtectionType(),
+		),
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/utils"
 )
@@ -34,9 +35,8 @@ func (i Ip) attributeTypes() map[string]attr.Type {
 }
 
 func newIp(ctx context.Context, sdkIp *publicCloud.Ip) (Ip, diag.Diagnostics) {
-	ddos := newDdos(sdkIp.Ddos)
+	ddosObject, diags := generateDdos(*sdkIp, ctx)
 
-	ddosObject, diags := types.ObjectValueFrom(ctx, ddos.attributeTypes(), ddos)
 	if diags != nil {
 		return Ip{}, diags
 	}
@@ -51,4 +51,18 @@ func newIp(ctx context.Context, sdkIp *publicCloud.Ip) (Ip, diag.Diagnostics) {
 		ReverseLookup: utils.GenerateString(sdkIp.HasReverseLookup(), sdkIp.GetReverseLookup()),
 		Ddos:          ddosObject,
 	}, nil
+}
+
+func generateDdos(
+	ip publicCloud.Ip,
+	ctx context.Context,
+) (basetypes.ObjectValue, diag.Diagnostics) {
+	ddos := newDdos(ip.Ddos.Get())
+	ddosObject, diags := types.ObjectValueFrom(ctx, ddos.attributeTypes(), ddos)
+
+	if diags != nil {
+		return ddosObject, diags
+	}
+
+	return ddosObject, nil
 }

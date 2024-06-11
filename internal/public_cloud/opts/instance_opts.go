@@ -55,6 +55,7 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() *publicCloud.LaunchInstanceOpts {
 
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
+		o.instance.Type.ValueString(),
 		o.instance.OperatingSystem.Attributes()["id"].String(),
 		contract.Type.ValueString(),
 		int32(contract.Term.ValueInt64()),
@@ -70,9 +71,6 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() *publicCloud.LaunchInstanceOpts {
 func (o *InstanceOpts) setOptionalLaunchInstanceOpts(
 	opts *publicCloud.LaunchInstanceOpts,
 ) {
-	if !o.instance.Type.IsUnknown() {
-		opts.SetType(o.instance.Type.ValueString())
-	}
 	if !o.instance.MarketAppId.IsUnknown() {
 		opts.SetMarketAppId(o.instance.MarketAppId.ValueString())
 	}

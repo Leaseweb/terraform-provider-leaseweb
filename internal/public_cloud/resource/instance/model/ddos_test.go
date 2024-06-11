@@ -9,11 +9,11 @@ import (
 )
 
 func Test_newDdos(t *testing.T) {
-	sdkDdos := publicCloud.NewDdos()
-	sdkDdos.SetDetectionProfile("detectionProfile")
-	sdkDdos.SetProtectionType("protectionType")
+	sdkDdos := publicCloud.NewNullableDdos(publicCloud.NewDdos())
+	sdkDdos.Get().SetDetectionProfile("detectionProfile")
+	sdkDdos.Get().SetProtectionType("protectionType")
 
-	dDos := newDdos(sdkDdos)
+	dDos := newDdos(sdkDdos.Get())
 
 	assert.Equal(
 		t,

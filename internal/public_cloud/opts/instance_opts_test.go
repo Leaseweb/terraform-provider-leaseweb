@@ -24,6 +24,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts_RequiredValues(t *testing.T) {
 	sdkInstance.SetOperatingSystem(*sdkOperatingSystem)
 	sdkInstance.SetRegion("eu-west-1")
 	sdkInstance.SetRootDiskStorageType("rootDiskStorage")
+	sdkInstance.SetType("type")
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -62,13 +63,13 @@ func TestInstanceOpts_NewLaunchInstanceOpts_RequiredValues(t *testing.T) {
 		launchInstanceOpts.GetRootDiskStorageType(),
 		"rootDiskStorageType should be rootDiskStorage",
 	)
-
 	assert.Equal(
 		t,
-		"",
+		"type",
 		launchInstanceOpts.GetType(),
-		"type should be empty",
+		"type should be type",
 	)
+
 	assert.Equal(
 		t,
 		"",
@@ -101,7 +102,6 @@ func TestInstanceOpts_NewLaunchInstanceOpts_OptionalValues(t *testing.T) {
 	sdkInstance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
 	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
 
-	sdkInstance.SetType("type")
 	sdkInstance.SetMarketAppId("marketAppId")
 	sdkInstance.SetReference("reference")
 	sdkInstance.SetRootDiskSize(23)
@@ -114,12 +114,6 @@ func TestInstanceOpts_NewLaunchInstanceOpts_OptionalValues(t *testing.T) {
 
 	launchInstanceOpts := instanceOpts.NewLaunchInstanceOpts()
 
-	assert.Equal(
-		t,
-		"type",
-		launchInstanceOpts.GetType(),
-		"type should be set",
-	)
 	assert.Equal(
 		t,
 		"marketAppId",
