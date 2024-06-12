@@ -28,25 +28,25 @@ func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	contract := model.Contract{}
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
 
-	if !o.instance.Type.IsUnknown() {
+	if !o.instance.Type.IsNull() && !o.instance.Type.IsUnknown() {
 		opts.SetType(o.instance.Type.ValueString())
 	}
 
-	if !o.instance.Reference.IsUnknown() {
+	if !o.instance.Reference.IsNull() && !o.instance.Reference.IsUnknown() {
 		opts.SetReference(o.instance.Reference.ValueString())
 	}
 
-	if !o.instance.RootDiskSize.IsUnknown() {
+	if !o.instance.RootDiskSize.IsNull() && !o.instance.RootDiskSize.IsUnknown() {
 		opts.SetRootDiskSize(int32(o.instance.RootDiskSize.ValueInt64()))
 	}
 
-	if !contract.Type.IsUnknown() {
+	if !contract.Type.IsNull() && !contract.Type.IsUnknown() {
 		opts.SetContractType(contract.Type.ValueString())
 	}
-	if !contract.Term.IsUnknown() {
+	if !contract.Term.IsNull() && !contract.Term.IsUnknown() {
 		opts.SetContractTerm(int32(contract.Term.ValueInt64()))
 	}
-	if !contract.BillingFrequency.IsUnknown() {
+	if !contract.BillingFrequency.IsNull() {
 		opts.SetBillingFrequency(int32(contract.BillingFrequency.ValueInt64()))
 	}
 }
@@ -87,16 +87,16 @@ func (o *InstanceOpts) NewLaunchInstanceOpts(diags *diag.Diagnostics) (*publicCl
 func (o *InstanceOpts) setOptionalLaunchInstanceOpts(
 	opts *publicCloud.LaunchInstanceOpts,
 ) {
-	if !o.instance.MarketAppId.IsUnknown() {
+	if !o.instance.MarketAppId.IsNull() && !o.instance.MarketAppId.IsUnknown() {
 		opts.SetMarketAppId(o.instance.MarketAppId.ValueString())
 	}
-	if !o.instance.Reference.IsUnknown() {
+	if !o.instance.Reference.IsNull() && !o.instance.Reference.IsUnknown() {
 		opts.SetReference(o.instance.Reference.ValueString())
 	}
-	if !o.instance.RootDiskSize.IsUnknown() {
+	if !o.instance.RootDiskSize.IsNull() && !o.instance.RootDiskSize.IsUnknown() {
 		opts.SetRootDiskSize(int32(o.instance.RootDiskSize.ValueInt64()))
 	}
-	if !o.instance.SshKey.IsUnknown() {
+	if !o.instance.SshKey.IsNull() && !o.instance.SshKey.IsUnknown() {
 		opts.SetSshKey(o.instance.SshKey.ValueString())
 	}
 }

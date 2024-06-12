@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 func (i *instanceResource) Update(
@@ -26,11 +27,14 @@ func (i *instanceResource) Update(
 		i.client.AuthContext(ctx),
 		plan.Id.ValueString(),
 	).UpdateInstanceOpts(*updateInstanceOpts)
-	instance, _, err := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)
+	instance, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)
 	if err != nil {
-		resp.Diagnostics.AddError(
+		utils.HandleError(
+			ctx,
+			sdkResponse,
+			&resp.Diagnostics,
 			"Error updating Public Cloud Instance",
-			"Could not update Public Cloud Instance, unexpected error: "+err.Error(),
+			err.Error(),
 		)
 		return
 	}
