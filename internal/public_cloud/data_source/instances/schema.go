@@ -1,13 +1,10 @@
 package instances
 
 import (
-	"context"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+  "context"
+  "github.com/hashicorp/terraform-plugin-framework/datasource"
+  "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+  "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -110,11 +107,6 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 						"state": schema.StringAttribute{
 							Computed:    true,
 							Description: "The instance's current state",
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									[]string{"RUNNING", "STOPPED", "CREATING", "DESTROYING", "DESTROYED"}...,
-								),
-							},
 						},
 						"product_type": schema.StringAttribute{
 							Computed:    true,
@@ -136,11 +128,6 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 						"root_disk_storage_type": schema.StringAttribute{
 							Computed:    true,
 							Description: "The root disk's storage type",
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									[]string{"LOCAL", "CENTRAL"}...,
-								),
-							},
 						},
 						"ips": schema.ListNestedAttribute{
 							Computed: true,
@@ -153,11 +140,6 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 									"main_ip":       schema.BoolAttribute{Computed: true},
 									"network_type": schema.StringAttribute{
 										Computed: true,
-										Validators: []validator.String{
-											stringvalidator.OneOf(
-												[]string{"INTERNAL", "PUBLIC"}...,
-											),
-										},
 									},
 									"reverse_lookup": schema.StringAttribute{Computed: true},
 									"ddos": schema.SingleNestedAttribute{
@@ -184,28 +166,13 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 								"billing_frequency": schema.Int64Attribute{
 									Computed:    true,
 									Description: "The billing frequency (in months) of the instance.",
-									Validators: []validator.Int64{
-										int64validator.OneOf(
-											[]int64{0, 1, 3, 6, 12}...,
-										),
-									},
 								},
 								"term": schema.Int64Attribute{
 									Computed:    true,
 									Description: "Contract term (in months). Used only when contract type is MONTHLY",
-									Validators: []validator.Int64{
-										int64validator.OneOf(
-											[]int64{0, 1, 3, 6, 12}...,
-										),
-									},
 								},
 								"type": schema.StringAttribute{
 									Computed: true,
-									Validators: []validator.String{
-										stringvalidator.OneOf(
-											[]string{"HOURLY", "MONTHLY"}...,
-										),
-									},
 									Description: "Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage",
 								},
 								"ends_at": schema.StringAttribute{Computed: true},
@@ -219,11 +186,6 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 								},
 								"state": schema.StringAttribute{
 									Computed: true,
-									Validators: []validator.String{
-										stringvalidator.OneOf(
-											[]string{"ACTIVE", "DELETE_SCHEDULED"}...,
-										),
-									},
 								},
 							},
 						},
