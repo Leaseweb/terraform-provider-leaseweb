@@ -2,3 +2,4 @@
 docs
 pnpm-lock.yaml
 .pnpm-store
+.go
