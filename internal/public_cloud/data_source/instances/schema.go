@@ -1,10 +1,10 @@
 package instances
 
 import (
-  "context"
-  "github.com/hashicorp/terraform-plugin-framework/datasource"
-  "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-  "github.com/hashicorp/terraform-plugin-framework/types"
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -172,7 +172,7 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 									Description: "Contract term (in months). Used only when contract type is MONTHLY",
 								},
 								"type": schema.StringAttribute{
-									Computed: true,
+									Computed:    true,
 									Description: "Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage",
 								},
 								"ends_at": schema.StringAttribute{Computed: true},
