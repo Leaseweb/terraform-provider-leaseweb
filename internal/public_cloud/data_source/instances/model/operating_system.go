@@ -21,7 +21,7 @@ func newOperatingSystem(sdkOperatingSystem publicCloud.OperatingSystem) operatin
 	operatingSystem := operatingSystem{
 		Id: utils.GenerateString(
 			sdkOperatingSystem.HasId(),
-			sdkOperatingSystem.GetId(),
+			string(sdkOperatingSystem.GetId()),
 		),
 		Name: utils.GenerateString(
 			sdkOperatingSystem.HasName(),

@@ -2,6 +2,7 @@ package opts
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
@@ -9,30 +10,64 @@ import (
 	"testing"
 )
 
+func setupSdkInstance(
+	instance *publicCloud.Instance,
+	operatingSystem *publicCloud.OperatingSystem,
+	contract *publicCloud.Contract,
+) *publicCloud.Instance {
+	if instance == nil {
+		instance = publicCloud.NewInstance()
+	}
+
+	if operatingSystem == nil {
+		operatingSystemId, _ := publicCloud.NewOperatingSystemIdFromValue(
+			"UBUNTU_24_04_64BIT",
+		)
+		operatingSystem = publicCloud.NewOperatingSystem()
+		operatingSystem.SetId(*operatingSystemId)
+	}
+
+	instance.SetOperatingSystem(*operatingSystem)
+	instance.SetResources(*publicCloud.NewInstanceResources())
+
+	if contract != nil {
+		instance.SetContract(*contract)
+	}
+
+	return instance
+}
+
 func TestInstanceOpts_NewLaunchInstanceOpts_RequiredValues(t *testing.T) {
+	sdkOperatingSystemId, _ := publicCloud.NewOperatingSystemIdFromValue(
+		"UBUNTU_24_04_64BIT",
+	)
+	sdkOperatingSystem := publicCloud.NewOperatingSystem()
+	sdkOperatingSystem.SetId(*sdkOperatingSystemId)
+
 	sdkContract := publicCloud.NewContract()
 	sdkContract.SetTerm(4)
 	sdkContract.SetType("contractType")
 
-	sdkOperatingSystem := publicCloud.NewOperatingSystem()
-	sdkOperatingSystem.SetId("operatingSystemId")
-
 	sdkInstance := publicCloud.NewInstance()
 	sdkInstance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
-	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
-	sdkInstance.SetContract(*sdkContract)
 	sdkInstance.SetOperatingSystem(*sdkOperatingSystem)
 	sdkInstance.SetRegion("eu-west-1")
 	sdkInstance.SetRootDiskStorageType("rootDiskStorage")
 	sdkInstance.SetType("type")
+
+	sdkInstance = setupSdkInstance(sdkInstance, sdkOperatingSystem, sdkContract)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
 
 	instanceOpts := NewInstanceOpts(instance, context.TODO())
 
-	launchInstanceOpts := instanceOpts.NewLaunchInstanceOpts()
+	launchInstanceOpts, err := instanceOpts.NewLaunchInstanceOpts(&diag.Diagnostics{})
 
+	assert.Nil(t,
+		err,
+		"NewLaunchInstanceOpts should not return an error",
+	)
 	assert.Equal(
 		t,
 		"eu-west-1",
@@ -41,9 +76,9 @@ func TestInstanceOpts_NewLaunchInstanceOpts_RequiredValues(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"\"operatingSystemId\"",
-		launchInstanceOpts.GetOperatingSystemId(),
-		"operating_system id  should be operatingSystemId",
+		"UBUNTU_24_04_64BIT",
+		string(launchInstanceOpts.GetOperatingSystemId()),
+		"operating_system id  should be UBUNTU_24_04_64BIT",
 	)
 	assert.Equal(
 		t,
@@ -97,14 +132,12 @@ func TestInstanceOpts_NewLaunchInstanceOpts_RequiredValues(t *testing.T) {
 }
 
 func TestInstanceOpts_NewLaunchInstanceOpts_OptionalValues(t *testing.T) {
-
 	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
-	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
-
 	sdkInstance.SetMarketAppId("marketAppId")
 	sdkInstance.SetReference("reference")
 	sdkInstance.SetRootDiskSize(23)
+
+	sdkInstance = setupSdkInstance(sdkInstance, nil, nil)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -112,8 +145,12 @@ func TestInstanceOpts_NewLaunchInstanceOpts_OptionalValues(t *testing.T) {
 
 	instanceOpts := NewInstanceOpts(instance, context.TODO())
 
-	launchInstanceOpts := instanceOpts.NewLaunchInstanceOpts()
+	launchInstanceOpts, err := instanceOpts.NewLaunchInstanceOpts(&diag.Diagnostics{})
 
+	assert.Nil(t,
+		err,
+		"NewLaunchInstanceOpts should not return an error",
+	)
 	assert.Equal(
 		t,
 		"marketAppId",
@@ -141,9 +178,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts_OptionalValues(t *testing.T) {
 }
 
 func TestInstanceOpts_NewUpdateInstanceOpts_RequiredValues(t *testing.T) {
-	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
-	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
+	sdkInstance := setupSdkInstance(nil, nil, nil)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -191,18 +226,17 @@ func TestInstanceOpts_NewUpdateInstanceOpts_RequiredValues(t *testing.T) {
 }
 
 func TestInstanceOpts_NewUpdateInstanceOpts_OptionalValues(t *testing.T) {
+	sdkInstance := publicCloud.NewInstance()
+	sdkInstance.SetType("type")
+	sdkInstance.SetReference("reference")
+	sdkInstance.SetRootDiskSize(32)
+
 	sdkContract := publicCloud.NewContract()
 	sdkContract.SetType("contractType")
 	sdkContract.SetTerm(4)
 	sdkContract.SetBillingFrequency(5)
 
-	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetType("type")
-	sdkInstance.SetReference("reference")
-	sdkInstance.SetRootDiskSize(32)
-	sdkInstance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
-	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
-	sdkInstance.SetContract(*sdkContract)
+	sdkInstance = setupSdkInstance(sdkInstance, nil, sdkContract)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())

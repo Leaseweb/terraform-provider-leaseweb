@@ -44,12 +44,28 @@ func newOperatingSystem(sdkOperatingSystem *publicCloud.OperatingSystem) *Operat
 	}
 
 	return &OperatingSystem{
-		Id:           utils.GenerateString(sdkOperatingSystem.HasId(), sdkOperatingSystem.GetId()),
-		Name:         utils.GenerateString(sdkOperatingSystem.HasName(), sdkOperatingSystem.GetName()),
-		Version:      utils.GenerateString(sdkOperatingSystem.HasVersion(), sdkOperatingSystem.GetVersion()),
-		Family:       utils.GenerateString(sdkOperatingSystem.HasFamily(), sdkOperatingSystem.GetFamily()),
-		Flavour:      utils.GenerateString(sdkOperatingSystem.HasFlavour(), sdkOperatingSystem.GetFlavour()),
-		Architecture: utils.GenerateString(sdkOperatingSystem.HasArchitecture(), sdkOperatingSystem.GetArchitecture()),
+		Id: utils.GenerateString(
+			sdkOperatingSystem.HasId(),
+			string(sdkOperatingSystem.GetId()),
+		),
+		Name: utils.GenerateString(
+			sdkOperatingSystem.HasName(),
+			sdkOperatingSystem.GetName(),
+		),
+		Version: utils.GenerateString(
+			sdkOperatingSystem.HasVersion(),
+			sdkOperatingSystem.GetVersion(),
+		),
+		Family: utils.GenerateString(
+			sdkOperatingSystem.HasFamily(),
+			sdkOperatingSystem.GetFamily()),
+		Flavour: utils.GenerateString(
+			sdkOperatingSystem.HasFlavour(),
+			sdkOperatingSystem.GetFlavour(),
+		),
+		Architecture: utils.GenerateString(
+			sdkOperatingSystem.HasArchitecture(),
+			sdkOperatingSystem.GetArchitecture()),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}

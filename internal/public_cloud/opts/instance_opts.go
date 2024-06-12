@@ -2,8 +2,11 @@ package opts
 
 import (
 	"context"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"strings"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
 
@@ -48,15 +51,28 @@ func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	}
 }
 
-func (o *InstanceOpts) NewLaunchInstanceOpts() *publicCloud.LaunchInstanceOpts {
-
+func (o *InstanceOpts) NewLaunchInstanceOpts(diags *diag.Diagnostics) (*publicCloud.LaunchInstanceOpts, error) {
 	contract := model.Contract{}
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
+
+	operatingSystemId, err := publicCloud.NewOperatingSystemIdFromValue(
+		strings.Trim(o.instance.OperatingSystem.Attributes()["id"].String(), "\""),
+	)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"Cannot set operatingSystemId \"%v\" ",
+				o.instance.OperatingSystem.Attributes()["id"].String(),
+			),
+			err.Error(),
+		)
+		return nil, err
+	}
 
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
 		o.instance.Type.ValueString(),
-		o.instance.OperatingSystem.Attributes()["id"].String(),
+		*operatingSystemId,
 		contract.Type.ValueString(),
 		int32(contract.Term.ValueInt64()),
 		int32(contract.BillingFrequency.ValueInt64()),
@@ -65,7 +81,7 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() *publicCloud.LaunchInstanceOpts {
 
 	o.setOptionalLaunchInstanceOpts(opts)
 
-	return opts
+	return opts, nil
 }
 
 func (o *InstanceOpts) setOptionalLaunchInstanceOpts(
