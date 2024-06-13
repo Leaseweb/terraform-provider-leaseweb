@@ -76,7 +76,7 @@ func newInstance(sdkInstance publicCloud.Instance) instance {
 		),
 		Type: utils.GenerateString(
 			sdkInstance.HasType(),
-			sdkInstance.GetType(),
+			string(sdkInstance.GetType()),
 		),
 		RootDiskSize: utils.GenerateInt(
 			sdkInstance.HasRootDiskSize(),

@@ -2,8 +2,6 @@ package opts
 
 import (
 	"context"
-	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"strings"
@@ -15,21 +13,32 @@ type InstanceOpts struct {
 	ctx      context.Context
 }
 
-func (o *InstanceOpts) NewUpdateInstanceOpts() *publicCloud.UpdateInstanceOpts {
+func (o *InstanceOpts) NewUpdateInstanceOpts() (*publicCloud.UpdateInstanceOpts, error) {
 	opts := publicCloud.NewUpdateInstanceOpts()
-	o.setOptionalUpdateInstanceOpts(opts)
+	err := o.setOptionalUpdateInstanceOpts(opts)
 
-	return opts
+	if err != nil {
+		return nil, err
+	}
+
+	return opts, nil
 }
 
 func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	opts *publicCloud.UpdateInstanceOpts,
-) {
+) *OptsError {
 	contract := model.Contract{}
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
 
 	if !o.instance.Type.IsNull() && !o.instance.Type.IsUnknown() {
-		opts.SetType(o.instance.Type.ValueString())
+		instanceType, err := publicCloud.NewInstanceTypeFromValue(
+			o.instance.Type.ValueString(),
+		)
+		if err != nil {
+			return cannotSetInstanceType(o.instance.Type.ValueString())
+		}
+
+		opts.SetType(*instanceType)
 	}
 
 	if !o.instance.Reference.IsNull() && !o.instance.Reference.IsUnknown() {
@@ -49,29 +58,36 @@ func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	if !contract.BillingFrequency.IsNull() {
 		opts.SetBillingFrequency(int32(contract.BillingFrequency.ValueInt64()))
 	}
+
+	return nil
 }
 
-func (o *InstanceOpts) NewLaunchInstanceOpts(diags *diag.Diagnostics) (*publicCloud.LaunchInstanceOpts, error) {
+func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts, *OptsError) {
 	contract := model.Contract{}
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
 
 	operatingSystemId, err := publicCloud.NewOperatingSystemIdFromValue(
-		strings.Trim(o.instance.OperatingSystem.Attributes()["id"].String(), "\""),
+		strings.Trim(
+			o.instance.OperatingSystem.Attributes()["id"].String(),
+			"\"",
+		),
 	)
 	if err != nil {
-		diags.AddError(
-			fmt.Sprintf(
-				"Cannot set operatingSystemId \"%v\" ",
-				o.instance.OperatingSystem.Attributes()["id"].String(),
-			),
-			err.Error(),
+		return nil, cannotSetOperatingSystemId(
+			o.instance.OperatingSystem.Attributes()["id"].String(),
 		)
-		return nil, err
+	}
+
+	instanceType, err := publicCloud.NewInstanceTypeFromValue(
+		o.instance.Type.ValueString(),
+	)
+	if err != nil {
+		return nil, cannotSetInstanceType(o.instance.Type.ValueString())
 	}
 
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
-		o.instance.Type.ValueString(),
+		*instanceType,
 		*operatingSystemId,
 		contract.Type.ValueString(),
 		int32(contract.Term.ValueInt64()),

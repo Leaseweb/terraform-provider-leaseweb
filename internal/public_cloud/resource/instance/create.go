@@ -2,7 +2,6 @@ package instance
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
@@ -22,15 +21,15 @@ func (i *instanceResource) Create(
 	}
 
 	instanceOpts := opts.NewInstanceOpts(plan, ctx)
-	launchInstanceOpts, err := instanceOpts.NewLaunchInstanceOpts(&diag.Diagnostics{})
+	launchInstanceOpts, optsErr := instanceOpts.NewLaunchInstanceOpts()
 
-	if err != nil {
+	if optsErr != nil {
 		utils.HandleError(
 			ctx,
 			nil,
 			&resp.Diagnostics,
 			"Error creating Public Cloud Instance",
-			err.Error(),
+			optsErr.Error(),
 		)
 		return
 	}
@@ -39,16 +38,16 @@ func (i *instanceResource) Create(
 		LaunchInstance(i.client.AuthContext(ctx)).
 		LaunchInstanceOpts(*launchInstanceOpts)
 
-	instance, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.
+	instance, sdkResponse, sdkErr := i.client.SdkClient.PublicCloudAPI.
 		LaunchInstanceExecute(request)
 
-	if err != nil {
+	if sdkErr != nil {
 		utils.HandleError(
 			ctx,
 			sdkResponse,
 			&resp.Diagnostics,
 			"Error creating Public Cloud Instance",
-			err.Error(),
+			sdkErr.Error(),
 		)
 		return
 	}

@@ -21,20 +21,30 @@ func (i *instanceResource) Update(
 	}
 
 	instanceOpts := opts.NewInstanceOpts(plan, ctx)
-	updateInstanceOpts := instanceOpts.NewUpdateInstanceOpts()
+	updateInstanceOpts, optsErr := instanceOpts.NewUpdateInstanceOpts()
+	if optsErr != nil {
+		utils.HandleError(
+			ctx,
+			nil,
+			&resp.Diagnostics,
+			"Error updating Public Cloud Instance",
+			optsErr.Error(),
+		)
+		return
+	}
 
 	request := i.client.SdkClient.PublicCloudAPI.UpdateInstance(
 		i.client.AuthContext(ctx),
 		plan.Id.ValueString(),
 	).UpdateInstanceOpts(*updateInstanceOpts)
-	instance, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)
-	if err != nil {
+	instance, sdkResponse, sdkErr := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)
+	if sdkErr != nil {
 		utils.HandleError(
 			ctx,
 			sdkResponse,
 			&resp.Diagnostics,
 			"Error updating Public Cloud Instance",
-			err.Error(),
+			sdkErr.Error(),
 		)
 		return
 	}

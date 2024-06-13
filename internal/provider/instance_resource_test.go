@@ -153,7 +153,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 	})
 }
 
-func TestAccInstanceResource_expectContractTermError(t *testing.T) {
+func TestAccInstanceResource_validationError(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -196,6 +196,26 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  }
 			  `,
 				ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
+			},
+			// Test invalid instance type
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "tralala"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+			  }
+			  `,
+				ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
 			},
 		},
 	})
