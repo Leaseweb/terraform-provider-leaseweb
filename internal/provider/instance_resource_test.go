@@ -173,7 +173,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 5
     type              = "HOURLY"
   }
-			  }
+}
 			  `,
 				ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 5"),
 			},
@@ -193,7 +193,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "MONTHLY"
   }
-			  }
+}
 			  `,
 				ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
 			},
@@ -213,9 +213,30 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-			  }
+}
 			  `,
 				ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
+			},
+			// Test invalid ssh key
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m4.4xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+  ssh_key = "tralala"
+}
+			  `,
+				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
 		},
 	})

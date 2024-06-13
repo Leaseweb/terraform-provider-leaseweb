@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"regexp"
 	customerValidator "terraform-provider-leaseweb/internal/public_cloud/validator"
 )
 
@@ -227,6 +228,13 @@ func (i *instanceResource) Schema(
 			"ssh_key": schema.StringAttribute{
 				Optional:    true,
 				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(
+							`^(ssh-dss|ecdsa-sha2-nistp256|ssh-ed25519|ssh-rsa)\s+(?:[a-zA-Z0-9+/]{4})*(?:|[a-zA-Z0-9+/]{3}=|[a-zA-Z0-9+/]{2}==|[a-zA-Z0-9+/]===)[\s+\x21-\x7F]+$`),
+						"Invalid ssh key",
+					),
+				},
 			},
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
