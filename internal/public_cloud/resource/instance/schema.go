@@ -257,19 +257,12 @@ func (i *instanceResource) Schema(
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"ip":            schema.StringAttribute{Computed: true},
-						"prefix_length": schema.StringAttribute{Computed: true},
-						"version":       schema.Int64Attribute{Computed: true},
-						"null_routed":   schema.BoolAttribute{Computed: true},
-						"main_ip":       schema.BoolAttribute{Computed: true},
-						"network_type": schema.StringAttribute{
-							Computed: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									[]string{"INTERNAL", "PUBLIC"}...,
-								),
-							},
-						},
+						"ip":             schema.StringAttribute{Computed: true},
+						"prefix_length":  schema.StringAttribute{Computed: true},
+						"version":        schema.Int64Attribute{Computed: true},
+						"null_routed":    schema.BoolAttribute{Computed: true},
+						"main_ip":        schema.BoolAttribute{Computed: true},
+						"network_type":   schema.StringAttribute{Computed: true},
 						"reverse_lookup": schema.StringAttribute{Computed: true},
 						"ddos": schema.SingleNestedAttribute{
 							Computed: true,
