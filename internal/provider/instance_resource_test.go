@@ -238,6 +238,48 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
+			// Test root_disk_size is too small
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m4.4xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  root_disk_size = 1
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}
+			  `,
+				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+			},
+			// Test root_disk_size is too big
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m4.4xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  root_disk_size = 1001
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}
+			  `,
+				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+			},
 		},
 	})
 }
