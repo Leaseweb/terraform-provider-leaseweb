@@ -157,7 +157,7 @@ func TestAccInstanceResource_validationError(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Test that term must be 0 when contract type is HOURLY
+			// term must be 0 when contract type is HOURLY
 			{
 				Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
@@ -177,7 +177,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 5"),
 			},
-			// Test that term must not be 0 when contract type is MONTHLY
+			// term must not be 0 when contract type is MONTHLY
 			{
 				Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
@@ -197,7 +197,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
 			},
-			// Test invalid instance type
+			// Invalid instance type
 			{
 				Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
@@ -217,7 +217,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
 			},
-			// Test invalid ssh key
+			// invalid ssh key
 			{
 				Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
@@ -238,7 +238,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
-			// Test root_disk_size is too small
+			// root_disk_size is too small
 			{
 				Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
@@ -259,7 +259,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
 			},
-			// Test root_disk_size is too big
+			// root_disk_size is too big
 			{
 				Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
@@ -279,6 +279,26 @@ resource "leaseweb_public_cloud_instance" "test" {
 }
 			  `,
 				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+			},
+			// Invalid root_disk_storage_type
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m4.4xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "tralala"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}
+			  `,
+				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
 			},
 		},
 	})
