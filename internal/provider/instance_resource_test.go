@@ -300,6 +300,26 @@ resource "leaseweb_public_cloud_instance" "test" {
 			  `,
 				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
 			},
+			// Invalid contract.billing_frequency
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m4.4xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRY"
+  contract = {
+    billing_frequency = 55
+    term              = 0
+    type              = "HOURLY"
+  }
+}
+			  `,
+				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
+			},
 		},
 	})
 }
