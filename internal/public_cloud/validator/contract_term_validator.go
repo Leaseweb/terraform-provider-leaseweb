@@ -10,15 +10,13 @@ import (
 
 var _ validator.Object = contractTermValidator{}
 
-// contractTermValidator validates that the contract term is correct.
 type contractTermValidator struct {
 }
 
 func (v contractTermValidator) Description(_ context.Context) string {
-	return "Contract Term Validator"
+	return `When contract.type is "MONTHLY", contract.term cannot be 0. When contract.type is "HOURLY", contract.term may only be 0.`
 }
 
-// MarkdownDescription describes the validation in Markdown formatting.
 func (v contractTermValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
