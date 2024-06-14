@@ -125,11 +125,6 @@ func (i *instanceResource) Schema(
 			"state": schema.StringAttribute{
 				Computed:    true,
 				Description: "The instance's current state",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						[]string{"RUNNING", "STOPPED", "CREATING", "DESTROYING", "DESTROYED"}...,
-					),
-				},
 			},
 			"product_type": schema.StringAttribute{
 				Computed:    true,
