@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type iso struct {
@@ -13,7 +13,7 @@ type iso struct {
 
 func newIso(sdkIso publicCloud.Iso) iso {
 	return iso{
-		Id:   utils.GenerateString(sdkIso.HasId(), sdkIso.GetId()),
-		Name: utils.GenerateString(sdkIso.HasName(), sdkIso.GetName()),
+		Id:   basetypes.NewStringValue(sdkIso.GetId()),
+		Name: basetypes.NewStringValue(sdkIso.GetName()),
 	}
 }

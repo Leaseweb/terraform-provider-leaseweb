@@ -1,9 +1,10 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccInstanceResource(t *testing.T) {
@@ -26,8 +27,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-}
-`,
+}`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"leaseweb_public_cloud_instance.test",
@@ -98,8 +98,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-			  }
-			  `,
+}`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"leaseweb_public_cloud_instance.test",
@@ -173,8 +172,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 5
     type              = "HOURLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 5"),
 			},
 			// term must not be 0 when contract type is MONTHLY
@@ -193,8 +191,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "MONTHLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
 			},
 			// Invalid instance type
@@ -213,8 +210,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
 			},
 			// invalid ssh key
@@ -234,8 +230,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
   ssh_key = "tralala"
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
 			// root_disk_size is too small
@@ -255,8 +250,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
 			},
 			// root_disk_size is too big
@@ -276,8 +270,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
 			},
 			// Invalid root_disk_storage_type
@@ -296,8 +289,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
 			},
 			// Invalid contract.billing_frequency
@@ -316,9 +308,52 @@ resource "leaseweb_public_cloud_instance" "test" {
     term              = 0
     type              = "HOURLY"
   }
-}
-			  `,
+}`,
 				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
+			},
+		},
+	})
+}
+
+func TestAccInstanceResource_Choosing_Invalid_Instance_Type_Not_Allowed(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create and Read testing
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m3.large"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+			},
+			{
+				Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m4.large"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				ExpectError: regexp.MustCompile("Invalid Instance Type"),
 			},
 		},
 	})

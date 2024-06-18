@@ -3,8 +3,8 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Cpu struct {
@@ -21,7 +21,7 @@ func (c Cpu) attributeTypes() map[string]attr.Type {
 
 func newCpu(sdkCpu *publicCloud.Cpu) Cpu {
 	return Cpu{
-		Value: utils.GenerateInt(sdkCpu.HasValue(), sdkCpu.GetValue()),
-		Unit:  utils.GenerateString(sdkCpu.HasUnit(), sdkCpu.GetUnit()),
+		Value: basetypes.NewInt64Value(int64(sdkCpu.GetValue())),
+		Unit:  basetypes.NewStringValue(sdkCpu.GetUnit()),
 	}
 }

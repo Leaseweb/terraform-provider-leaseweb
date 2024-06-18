@@ -3,8 +3,8 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Contract struct {
@@ -31,12 +31,12 @@ func (c Contract) attributeTypes() map[string]attr.Type {
 
 func newContract(sdkContract *publicCloud.Contract) Contract {
 	return Contract{
-		BillingFrequency: utils.GenerateInt(sdkContract.HasBillingFrequency(), sdkContract.GetBillingFrequency()),
-		Term:             utils.GenerateInt(sdkContract.HasTerm(), sdkContract.GetTerm()),
-		Type:             utils.GenerateString(sdkContract.HasType(), string(sdkContract.GetType())),
-		EndsAt:           utils.GenerateDateTime(sdkContract.GetEndsAt()),
-		RenewalsAt:       utils.GenerateDateTime(sdkContract.GetRenewalsAt()),
-		CreatedAt:        utils.GenerateDateTime(sdkContract.GetCreatedAt()),
-		State:            utils.GenerateString(sdkContract.HasState(), string(sdkContract.GetState())),
+		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
+		EndsAt:           basetypes.NewStringValue(sdkContract.GetEndsAt().String()),
+		RenewalsAt:       basetypes.NewStringValue(sdkContract.GetRenewalsAt().String()),
+		CreatedAt:        basetypes.NewStringValue(sdkContract.GetCreatedAt().String()),
+		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
 	}
 }

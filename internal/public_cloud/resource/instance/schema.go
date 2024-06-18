@@ -2,6 +2,8 @@ package instance
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -10,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
-	customerValidator "terraform-provider-leaseweb/internal/public_cloud/validator"
+	customerValidator "terraform-provider-leaseweb/internal/public_cloud/resource/instance/validator"
 )
 
 func (i *instanceResource) Schema(

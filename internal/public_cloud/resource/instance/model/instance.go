@@ -2,10 +2,11 @@ package model
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Instance struct {
@@ -44,29 +45,37 @@ func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context)
 		return diags
 	}
 
-	i.Id = utils.GenerateString(instance.HasId(), instance.GetId())
-	i.EquipmentId = utils.GenerateString(instance.HasEquipmentId(), instance.GetEquipmentId())
-	i.SalesOrgId = utils.GenerateString(instance.HasSalesOrgId(), instance.GetSalesOrgId())
-	i.CustomerId = utils.GenerateString(instance.HasCustomerId(), instance.GetCustomerId())
-	i.Region = utils.GenerateString(instance.HasRegion(), instance.GetRegion())
-	i.Reference = utils.GenerateString(instance.HasReference(), instance.GetReference())
-	i.State = utils.GenerateString(instance.HasState(), string(instance.GetState()))
-	i.ProductType = utils.GenerateString(instance.HasProductType(), instance.GetProductType())
-	i.HasPublicIpv4 = utils.GenerateBool(instance.HasHasPublicIpV4(), instance.GetHasPublicIpV4())
-	i.HasPrivateNetwork = utils.GenerateBool(instance.HasincludesPrivateNetwork(), instance.GetincludesPrivateNetwork())
-	i.Type = utils.GenerateString(instance.HasType(), string(instance.GetType()))
-	i.RootDiskSize = utils.GenerateInt(instance.HasRootDiskSize(), instance.GetRootDiskSize())
-	i.RootDiskStorageType = utils.GenerateString(instance.HasRootDiskStorageType(), instance.GetRootDiskStorageType())
-	i.StartedAt = utils.GenerateDateTime(instance.GetStartedAt())
-	i.MarketAppId = utils.GenerateString(instance.HasMarketAppId(), instance.GetMarketAppId())
+	i.Id = basetypes.NewStringValue(instance.GetId())
+	i.EquipmentId = basetypes.NewStringValue(instance.GetEquipmentId())
+	i.SalesOrgId = basetypes.NewStringValue(instance.GetSalesOrgId())
+	i.CustomerId = basetypes.NewStringValue(instance.GetCustomerId())
+	i.Region = basetypes.NewStringValue(instance.GetRegion())
+	i.Reference = basetypes.NewStringValue(instance.GetReference())
+	i.State = basetypes.NewStringValue(string(instance.GetState()))
+	i.ProductType = basetypes.NewStringValue(instance.GetProductType())
+	i.HasPublicIpv4 = basetypes.NewBoolValue(instance.GetHasPublicIpV4())
+	i.HasPrivateNetwork = basetypes.NewBoolValue(instance.GetincludesPrivateNetwork())
+	i.Type = basetypes.NewStringValue(string(instance.GetType()))
+	i.RootDiskSize = basetypes.NewInt64Value(int64(instance.GetRootDiskSize()))
+	i.RootDiskStorageType = basetypes.NewStringValue(instance.GetRootDiskStorageType())
+	i.StartedAt = basetypes.NewStringValue(instance.GetStartedAt().String())
+	i.MarketAppId = basetypes.NewStringValue(instance.GetMarketAppId())
 
-	operatingSystemObject, diags := types.ObjectValueFrom(ctx, operatingSystem.attributeTypes(), operatingSystem)
+	operatingSystemObject, diags := types.ObjectValueFrom(
+		ctx,
+		operatingSystem.attributeTypes(),
+		operatingSystem,
+	)
 	if diags != nil {
 		return diags
 	}
 	i.OperatingSystem = operatingSystemObject
 
-	contractObject, diags := types.ObjectValueFrom(ctx, contract.attributeTypes(), contract)
+	contractObject, diags := types.ObjectValueFrom(
+		ctx,
+		contract.attributeTypes(),
+		contract,
+	)
 	if diags != nil {
 		return diags
 	}
@@ -78,13 +87,21 @@ func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context)
 	}
 	i.Iso = isoObject
 
-	privateNetworkObject, diags := types.ObjectValueFrom(ctx, privateNetwork.attributeTypes(), privateNetwork)
+	privateNetworkObject, diags := types.ObjectValueFrom(
+		ctx,
+		privateNetwork.attributeTypes(),
+		privateNetwork,
+	)
 	if diags != nil {
 		return diags
 	}
 	i.PrivateNetwork = privateNetworkObject
 
-	resourcesObject, diags := types.ObjectValueFrom(ctx, resourcesModel.attributeTypes(), resourcesModel)
+	resourcesObject, diags := types.ObjectValueFrom(
+		ctx,
+		resourcesModel.attributeTypes(),
+		resourcesModel,
+	)
 	if diags != nil {
 		return diags
 	}
@@ -98,7 +115,11 @@ func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context)
 		}
 		ips = append(ips, ipObject)
 	}
-	ipsObject, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: Ip{}.attributeTypes()}, ips)
+	ipsObject, diags := types.ListValueFrom(
+		ctx,
+		types.ObjectType{AttrTypes: Ip{}.attributeTypes()},
+		ips,
+	)
 	if diags != nil {
 		return diags
 	}

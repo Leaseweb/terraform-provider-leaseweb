@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type ddos struct {
@@ -13,13 +13,7 @@ type ddos struct {
 
 func newDdos(sdkDdos publicCloud.Ddos) ddos {
 	return ddos{
-		DetectionProfile: utils.GenerateString(
-			sdkDdos.HasDetectionProfile(),
-			sdkDdos.GetDetectionProfile(),
-		),
-		ProtectionType: utils.GenerateString(
-			sdkDdos.HasProtectionType(),
-			sdkDdos.GetProtectionType(),
-		),
+		DetectionProfile: basetypes.NewStringValue(sdkDdos.GetDetectionProfile()),
+		ProtectionType:   basetypes.NewStringValue(sdkDdos.GetProtectionType()),
 	}
 }

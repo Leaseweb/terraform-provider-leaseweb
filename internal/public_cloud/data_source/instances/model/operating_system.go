@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type operatingSystem struct {
@@ -19,30 +19,12 @@ type operatingSystem struct {
 
 func newOperatingSystem(sdkOperatingSystem publicCloud.OperatingSystem) operatingSystem {
 	operatingSystem := operatingSystem{
-		Id: utils.GenerateString(
-			sdkOperatingSystem.HasId(),
-			string(sdkOperatingSystem.GetId()),
-		),
-		Name: utils.GenerateString(
-			sdkOperatingSystem.HasName(),
-			sdkOperatingSystem.GetName(),
-		),
-		Version: utils.GenerateString(
-			sdkOperatingSystem.HasVersion(),
-			sdkOperatingSystem.GetVersion(),
-		),
-		Family: utils.GenerateString(
-			sdkOperatingSystem.HasFamily(),
-			sdkOperatingSystem.GetFamily(),
-		),
-		Flavour: utils.GenerateString(
-			sdkOperatingSystem.HasFlavour(),
-			sdkOperatingSystem.GetFlavour(),
-		),
-		Architecture: utils.GenerateString(
-			sdkOperatingSystem.HasArchitecture(),
-			sdkOperatingSystem.GetArchitecture(),
-		),
+		Id:           basetypes.NewStringValue(string(sdkOperatingSystem.GetId())),
+		Name:         basetypes.NewStringValue(sdkOperatingSystem.GetName()),
+		Version:      basetypes.NewStringValue(sdkOperatingSystem.GetVersion()),
+		Family:       basetypes.NewStringValue(sdkOperatingSystem.GetFamily()),
+		Flavour:      basetypes.NewStringValue(sdkOperatingSystem.GetFlavour()),
+		Architecture: basetypes.NewStringValue(sdkOperatingSystem.GetArchitecture()),
 	}
 
 	for _, marketApp := range sdkOperatingSystem.MarketApps {

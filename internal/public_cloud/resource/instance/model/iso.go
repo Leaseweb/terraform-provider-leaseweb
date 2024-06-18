@@ -3,8 +3,8 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Iso struct {
@@ -21,7 +21,7 @@ func (i Iso) attributeTypes() map[string]attr.Type {
 
 func newIso(sdkIso publicCloud.Iso) Iso {
 	return Iso{
-		Id:   utils.GenerateString(sdkIso.HasId(), sdkIso.GetId()),
-		Name: utils.GenerateString(sdkIso.HasName(), sdkIso.GetName()),
+		Id:   basetypes.NewStringValue(sdkIso.GetId()),
+		Name: basetypes.NewStringValue(sdkIso.GetName()),
 	}
 }

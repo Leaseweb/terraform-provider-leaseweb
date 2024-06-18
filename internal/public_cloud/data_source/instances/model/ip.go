@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type ip struct {
@@ -19,13 +19,13 @@ type ip struct {
 
 func newIp(sdkIp publicCloud.Ip) ip {
 	return ip{
-		Ip:            utils.GenerateString(sdkIp.HasIp(), sdkIp.GetIp()),
-		PrefixLength:  utils.GenerateString(sdkIp.HasPrefixLength(), sdkIp.GetPrefixLength()),
-		Version:       utils.GenerateInt(sdkIp.HasVersion(), sdkIp.GetVersion()),
-		NullRouted:    utils.GenerateBool(sdkIp.HasNullRouted(), sdkIp.GetNullRouted()),
-		MainIp:        utils.GenerateBool(sdkIp.HasMainIp(), sdkIp.GetMainIp()),
-		NetworkType:   utils.GenerateString(sdkIp.HasNetworkType(), string(sdkIp.GetNetworkType())),
-		ReverseLookup: utils.GenerateString(sdkIp.HasReverseLookup(), sdkIp.GetReverseLookup()),
+		Ip:            basetypes.NewStringValue(sdkIp.GetIp()),
+		PrefixLength:  basetypes.NewStringValue(sdkIp.GetPrefixLength()),
+		Version:       basetypes.NewInt64Value(int64(sdkIp.GetVersion())),
+		NullRouted:    basetypes.NewBoolValue(sdkIp.GetNullRouted()),
+		MainIp:        basetypes.NewBoolValue(sdkIp.GetMainIp()),
+		NetworkType:   basetypes.NewStringValue(string(sdkIp.GetNetworkType())),
+		ReverseLookup: basetypes.NewStringValue(sdkIp.GetReverseLookup()),
 		Ddos:          newDdos(sdkIp.GetDdos()),
 	}
 }

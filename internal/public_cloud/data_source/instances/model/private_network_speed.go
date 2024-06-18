@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type privateNetworkSpeed struct {
@@ -15,13 +15,7 @@ func newPrivateNetworkSpeed(
 	sdkPrivateNetworkSpeed publicCloud.PrivateNetworkSpeed,
 ) privateNetworkSpeed {
 	return privateNetworkSpeed{
-		Value: utils.GenerateInt(
-			sdkPrivateNetworkSpeed.HasValue(),
-			sdkPrivateNetworkSpeed.GetValue(),
-		),
-		Unit: utils.GenerateString(
-			sdkPrivateNetworkSpeed.HasUnit(),
-			sdkPrivateNetworkSpeed.GetUnit(),
-		),
+		Value: basetypes.NewInt64Value(int64(sdkPrivateNetworkSpeed.GetValue())),
+		Unit:  basetypes.NewStringValue(sdkPrivateNetworkSpeed.GetUnit()),
 	}
 }

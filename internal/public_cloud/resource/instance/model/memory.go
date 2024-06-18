@@ -3,8 +3,8 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Memory struct {
@@ -21,7 +21,7 @@ func (m Memory) attributeTypes() map[string]attr.Type {
 
 func newMemory(sdkMemory *publicCloud.Memory) Memory {
 	return Memory{
-		Value: utils.GenerateFloat(sdkMemory.HasValue(), sdkMemory.GetValue()),
-		Unit:  utils.GenerateString(sdkMemory.HasUnit(), sdkMemory.GetUnit()),
+		Value: basetypes.NewFloat64Value(float64(sdkMemory.GetValue())),
+		Unit:  basetypes.NewStringValue(sdkMemory.GetUnit()),
 	}
 }

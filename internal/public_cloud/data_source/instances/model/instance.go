@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 type instance struct {
@@ -32,68 +32,26 @@ type instance struct {
 
 func newInstance(sdkInstance publicCloud.Instance) instance {
 	instance := instance{
-		Id: utils.GenerateString(
-			sdkInstance.HasId(),
-			sdkInstance.GetId(),
-		),
-		EquipmentId: utils.GenerateString(
-			sdkInstance.HasEquipmentId(),
-			sdkInstance.GetEquipmentId(),
-		),
-		SalesOrgId: utils.GenerateString(
-			sdkInstance.HasSalesOrgId(),
-			sdkInstance.GetSalesOrgId(),
-		),
-		CustomerId: utils.GenerateString(
-			sdkInstance.HasCustomerId(),
-			sdkInstance.GetCustomerId(),
-		),
-		Region: utils.GenerateString(
-			sdkInstance.HasRegion(),
-			sdkInstance.GetRegion(),
-		),
-		Reference: utils.GenerateString(
-			sdkInstance.HasReference(),
-			sdkInstance.GetReference(),
-		),
-		Resources:       newResources(*sdkInstance.Resources),
-		OperatingSystem: newOperatingSystem(*sdkInstance.OperatingSystem),
-		State: utils.GenerateString(
-			sdkInstance.HasState(),
-			string(sdkInstance.GetState()),
-		),
-		ProductType: utils.GenerateString(
-			sdkInstance.HasProductType(),
-			sdkInstance.GetProductType(),
-		),
-		HasPublicIpv4: utils.GenerateBool(
-			sdkInstance.HasHasPublicIpV4(),
-			sdkInstance.GetHasPublicIpV4(),
-		),
-		HasPrivateNetwork: utils.GenerateBool(
-			sdkInstance.HasincludesPrivateNetwork(),
-			sdkInstance.GetincludesPrivateNetwork(),
-		),
-		Type: utils.GenerateString(
-			sdkInstance.HasType(),
-			string(sdkInstance.GetType()),
-		),
-		RootDiskSize: utils.GenerateInt(
-			sdkInstance.HasRootDiskSize(),
-			sdkInstance.GetRootDiskSize(),
-		),
-		RootDiskStorageType: utils.GenerateString(
-			sdkInstance.HasRootDiskStorageType(),
-			sdkInstance.GetRootDiskStorageType(),
-		),
-		StartedAt: utils.GenerateDateTime(sdkInstance.GetStartedAt()),
-		Contract:  newContract(sdkInstance.GetContract()),
-		Iso:       newIso(sdkInstance.GetIso()),
-		MarketAppId: utils.GenerateString(
-			sdkInstance.HasMarketAppId(),
-			sdkInstance.GetMarketAppId(),
-		),
-		PrivateNetwork: newPrivateNetwork(sdkInstance.GetPrivateNetwork()),
+		Id:                  basetypes.NewStringValue(sdkInstance.GetId()),
+		EquipmentId:         basetypes.NewStringValue(sdkInstance.GetEquipmentId()),
+		SalesOrgId:          basetypes.NewStringValue(sdkInstance.GetSalesOrgId()),
+		CustomerId:          basetypes.NewStringValue(sdkInstance.GetCustomerId()),
+		Region:              basetypes.NewStringValue(sdkInstance.GetRegion()),
+		Reference:           basetypes.NewStringValue(sdkInstance.GetReference()),
+		Resources:           newResources(*sdkInstance.Resources),
+		OperatingSystem:     newOperatingSystem(*sdkInstance.OperatingSystem),
+		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
+		ProductType:         basetypes.NewStringValue(sdkInstance.GetProductType()),
+		HasPublicIpv4:       basetypes.NewBoolValue(sdkInstance.GetHasPublicIpV4()),
+		HasPrivateNetwork:   basetypes.NewBoolValue(sdkInstance.GetincludesPrivateNetwork()),
+		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(sdkInstance.GetRootDiskStorageType()),
+		StartedAt:           basetypes.NewStringValue(sdkInstance.GetStartedAt().String()),
+		Contract:            newContract(sdkInstance.GetContract()),
+		Iso:                 newIso(sdkInstance.GetIso()),
+		MarketAppId:         basetypes.NewStringValue(sdkInstance.GetMarketAppId()),
+		PrivateNetwork:      newPrivateNetwork(sdkInstance.GetPrivateNetwork()),
 	}
 
 	for _, sdkIp := range sdkInstance.Ips {
