@@ -3,14 +3,12 @@ package instance
 import (
 	"context"
 	"fmt"
-	"io"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/modify_plan"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 func (i *instanceResource) ModifyPlan(
@@ -42,27 +40,16 @@ func (i *instanceResource) ModifyPlan(
 		GetAllowedInstanceTypes(stateInstance.Id.ValueString())
 
 	if err != nil {
-		if sdkResponse != nil {
-			buf := new(strings.Builder)
-			_, sdkResponseError := io.Copy(buf, sdkResponse.Body)
-
-			if sdkResponseError == nil {
-				tflog.Debug(
-					ctx,
-					err.Error(),
-					map[string]interface{}{"response": buf.String()},
-				)
-			}
-		}
-
-		response.Diagnostics.AddError(
+		utils.HandleError(
+			ctx,
+			sdkResponse,
+			&response.Diagnostics,
 			fmt.Sprintf(
 				"Error getting updateInstanceType list for %q",
 				stateInstance.Id.ValueString(),
 			),
 			err.Error(),
 		)
-		return
 	}
 
 	if typeValidator.IsTypeValid(allowedInstanceTypes) {
