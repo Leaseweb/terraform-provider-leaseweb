@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
@@ -33,11 +34,11 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	request := i.client.SdkClient.PublicCloudAPI.UpdateInstance(
+	request := i.client.PublicCloudClient.PublicCloudAPI.UpdateInstance(
 		i.client.AuthContext(ctx),
 		plan.Id.ValueString(),
 	).UpdateInstanceOpts(*updateInstanceOpts)
-	instance, sdkResponse, sdkErr := i.client.SdkClient.PublicCloudAPI.UpdateInstanceExecute(request)
+	instance, sdkResponse, sdkErr := i.client.PublicCloudClient.PublicCloudAPI.UpdateInstanceExecute(request)
 	if sdkErr != nil {
 		utils.HandleError(
 			ctx,

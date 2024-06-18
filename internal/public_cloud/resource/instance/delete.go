@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
@@ -18,11 +19,11 @@ func (i *instanceResource) Delete(
 		return
 	}
 
-	request := i.client.SdkClient.PublicCloudAPI.TerminateInstance(
+	request := i.client.PublicCloudClient.PublicCloudAPI.TerminateInstance(
 		i.client.AuthContext(ctx),
 		state.Id.ValueString(),
 	)
-	_, err := i.client.SdkClient.PublicCloudAPI.TerminateInstanceExecute(request)
+	_, err := i.client.PublicCloudClient.PublicCloudAPI.TerminateInstanceExecute(request)
 
 	if err != nil {
 		resp.Diagnostics.AddError(

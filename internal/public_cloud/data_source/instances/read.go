@@ -2,6 +2,7 @@ package instances
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"terraform-provider-leaseweb/internal/public_cloud/data_source/instances/model"
 	"terraform-provider-leaseweb/internal/utils"
@@ -13,7 +14,7 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	instances, sdkResponse, err := d.client.SdkClient.PublicCloudAPI.
+	instances, sdkResponse, err := d.client.PublicCloudClient.PublicCloudAPI.
 		GetInstanceList(d.client.AuthContext(ctx)).Execute()
 	if err != nil {
 		utils.HandleError(

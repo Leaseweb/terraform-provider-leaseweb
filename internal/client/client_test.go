@@ -2,9 +2,10 @@ package client
 
 import (
 	"context"
+	"testing"
+
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestClientSupportsHost(t *testing.T) {
@@ -12,7 +13,7 @@ func TestClientSupportsHost(t *testing.T) {
 		Host: "tralala.com",
 	})
 
-	got := client.SdkClient.GetConfig().Host
+	got := client.PublicCloudClient.GetConfig().Host
 	want := "tralala.com"
 
 	assert.Equal(t, want, got, "client supports host")
@@ -23,7 +24,7 @@ func TestClientSupportsScheme(t *testing.T) {
 		Scheme: "http",
 	})
 
-	got := client.SdkClient.GetConfig().Scheme
+	got := client.PublicCloudClient.GetConfig().Scheme
 	want := "http"
 
 	assert.Equal(t, want, got, "client supports scheme")

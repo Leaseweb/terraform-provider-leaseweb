@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
@@ -34,11 +35,11 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	request := i.client.SdkClient.PublicCloudAPI.
+	request := i.client.PublicCloudClient.PublicCloudAPI.
 		LaunchInstance(i.client.AuthContext(ctx)).
 		LaunchInstanceOpts(*launchInstanceOpts)
 
-	instance, sdkResponse, sdkErr := i.client.SdkClient.PublicCloudAPI.
+	instance, sdkResponse, sdkErr := i.client.PublicCloudClient.PublicCloudAPI.
 		LaunchInstanceExecute(request)
 
 	if sdkErr != nil {

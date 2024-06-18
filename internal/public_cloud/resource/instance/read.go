@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 	"terraform-provider-leaseweb/internal/utils"
@@ -19,7 +20,7 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	instance, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.GetInstance(
+	instance, sdkResponse, err := i.client.PublicCloudClient.PublicCloudAPI.GetInstance(
 		i.client.AuthContext(ctx),
 		state.Id.ValueString(),
 	).Execute()

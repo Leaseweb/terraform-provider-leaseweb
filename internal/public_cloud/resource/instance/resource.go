@@ -53,12 +53,12 @@ func (i *instanceResource) ModifyPlan(
 		return
 	}
 
-	allowedInstanceTypesRequest := i.client.SdkClient.PublicCloudAPI.
+	allowedInstanceTypesRequest := i.client.PublicCloudClient.PublicCloudAPI.
 		GetUpdateInstanceTypeList(
 			i.client.AuthContext(ctx),
 			stateInstance.Id.ValueString(),
 		)
-	allowedInstanceTypes, sdkResponse, err := i.client.SdkClient.PublicCloudAPI.
+	allowedInstanceTypes, sdkResponse, err := i.client.PublicCloudClient.PublicCloudAPI.
 		GetUpdateInstanceTypeListExecute(allowedInstanceTypesRequest)
 
 	if err != nil {

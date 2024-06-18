@@ -2,12 +2,13 @@ package client
 
 import (
 	"context"
+
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
 type Client struct {
-	SdkClient *publicCloud.APIClient
-	Token     string
+	PublicCloudClient *publicCloud.APIClient
+	Token             string
 }
 
 type Options struct {
@@ -25,7 +26,7 @@ func NewClient(token string, options *Options) *Client {
 		configuration.Scheme = options.Scheme
 	}
 
-	return &Client{SdkClient: publicCloud.NewAPIClient(configuration), Token: token}
+	return &Client{PublicCloudClient: publicCloud.NewAPIClient(configuration), Token: token}
 }
 
 func (c *Client) AuthContext(ctx context.Context) context.Context {
