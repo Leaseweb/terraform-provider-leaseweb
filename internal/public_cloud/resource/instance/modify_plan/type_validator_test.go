@@ -1,4 +1,4 @@
-package validator
+package modify_plan
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,16 +64,13 @@ func TestTypeValidator_HashTypeChanged(t *testing.T) {
 }
 
 func TestTypeValidator_IsTypeValid(t *testing.T) {
-	newValueUpdateInstanceType := publicCloud.NewUpdateInstanceType()
-	newValueUpdateInstanceType.SetName("newValue")
-
 	type fields struct {
 		stateInstanceId   types.String
 		stateInstanceType types.String
 		planInstanceType  types.String
 	}
 	type args struct {
-		allowedInstanceTypes []publicCloud.UpdateInstanceType
+		allowedInstanceTypes []string
 	}
 	tests := []struct {
 		name   string
@@ -90,7 +86,7 @@ func TestTypeValidator_IsTypeValid(t *testing.T) {
 				planInstanceType:  basetypes.NewStringValue("newValue"),
 			},
 			args: args{
-				allowedInstanceTypes: []publicCloud.UpdateInstanceType{*newValueUpdateInstanceType},
+				allowedInstanceTypes: []string{"newValue"},
 			},
 			want: true,
 		},
@@ -102,7 +98,7 @@ func TestTypeValidator_IsTypeValid(t *testing.T) {
 				planInstanceType:  basetypes.NewStringValue("newValue"),
 			},
 			args: args{
-				allowedInstanceTypes: []publicCloud.UpdateInstanceType{},
+				allowedInstanceTypes: []string{},
 			},
 			want: false,
 		},
@@ -121,6 +117,40 @@ func TestTypeValidator_IsTypeValid(t *testing.T) {
 				"IsTypeValid(%v)",
 				tt.args.allowedInstanceTypes,
 			)
+		})
+	}
+}
+
+func TestTypeValidator_IsBeingCreated(t *testing.T) {
+	type fields struct {
+		stateInstanceId   types.String
+		stateInstanceType types.String
+		planInstanceType  types.String
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name:   "is being created",
+			fields: fields{},
+			want:   true,
+		},
+		{
+			name:   "is not created",
+			fields: fields{stateInstanceId: basetypes.NewStringValue("123")},
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := TypeValidator{
+				stateInstanceId:   tt.fields.stateInstanceId,
+				stateInstanceType: tt.fields.stateInstanceType,
+				planInstanceType:  tt.fields.planInstanceType,
+			}
+			assert.Equalf(t, tt.want, v.IsBeingCreated(), "IsBeingCreated()")
 		})
 	}
 }

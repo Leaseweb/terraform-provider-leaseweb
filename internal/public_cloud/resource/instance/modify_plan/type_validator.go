@@ -1,8 +1,7 @@
-package validator
+package modify_plan
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
 type TypeValidator struct {
@@ -42,13 +41,17 @@ func (v TypeValidator) HashTypeChanged() bool {
 }
 
 func (v TypeValidator) IsTypeValid(
-	allowedInstanceTypes []publicCloud.UpdateInstanceType,
+	allowedInstanceTypes []string,
 ) bool {
 	for _, allowedInstanceType := range allowedInstanceTypes {
-		if allowedInstanceType.GetName() == v.planInstanceType.ValueString() {
+		if allowedInstanceType == v.planInstanceType.ValueString() {
 			return true
 		}
 	}
 
 	return false
+}
+
+func (v TypeValidator) IsBeingCreated() bool {
+	return v.stateInstanceId.ValueString() == ""
 }

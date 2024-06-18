@@ -9,9 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
-	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/validator"
+	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/modify_plan"
 )
 
 func (i *instanceResource) ModifyPlan(
@@ -25,11 +24,13 @@ func (i *instanceResource) ModifyPlan(
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
-	typeValidator := validator.NewTypeValidator(
+	typeValidator := modify_plan.NewTypeValidator(
 		stateInstance.Id,
 		stateInstance.Type,
 		planInstance.Type,
 	)
+
+	instanceTypes := modify_plan.NewInstanceTypes(*i.client, ctx)
 
 	hasTypeChanged := typeValidator.HashTypeChanged()
 
@@ -37,13 +38,8 @@ func (i *instanceResource) ModifyPlan(
 		return
 	}
 
-	allowedInstanceTypesRequest := i.client.PublicCloudClient.PublicCloudAPI.
-		GetUpdateInstanceTypeList(
-			i.client.AuthContext(ctx),
-			stateInstance.Id.ValueString(),
-		)
-	allowedInstanceTypes, sdkResponse, err := i.client.PublicCloudClient.PublicCloudAPI.
-		GetUpdateInstanceTypeListExecute(allowedInstanceTypesRequest)
+	allowedInstanceTypes, sdkResponse, err := instanceTypes.
+		GetAllowedInstanceTypes(stateInstance.Id.ValueString())
 
 	if err != nil {
 		if sdkResponse != nil {
@@ -69,7 +65,7 @@ func (i *instanceResource) ModifyPlan(
 		return
 	}
 
-	if typeValidator.IsTypeValid(allowedInstanceTypes.GetInstanceTypes()) {
+	if typeValidator.IsTypeValid(allowedInstanceTypes) {
 		return
 	}
 
@@ -78,15 +74,7 @@ func (i *instanceResource) ModifyPlan(
 		"Invalid Instance Type",
 		fmt.Sprintf(
 			"Allowed types are %v",
-			convertAllowedInstancesTypesToString(allowedInstanceTypes.GetInstanceTypes()),
+			allowedInstanceTypes,
 		),
 	)
-}
-
-func convertAllowedInstancesTypesToString(updateInstanceTypes []publicCloud.UpdateInstanceType) (instanceTypes []string) {
-	for _, instanceType := range updateInstanceTypes {
-		instanceTypes = append(instanceTypes, instanceType.GetName())
-	}
-
-	return
 }
