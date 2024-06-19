@@ -2,26 +2,27 @@ package opts
 
 import (
 	"context"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
-	"testing"
 )
 
 func setupSdkInstance(
 	instance *publicCloud.Instance,
 	operatingSystem *publicCloud.OperatingSystem,
 	contract *publicCloud.Contract,
-	instanceType *publicCloud.InstanceType,
+	instanceTypeName *publicCloud.InstanceTypeName,
 ) *publicCloud.Instance {
 	if instance == nil {
 		instance = publicCloud.NewInstance()
 	}
 
-	if instanceType == nil {
-		instanceType, _ = publicCloud.NewInstanceTypeFromValue("lsw.m5a.4xlarge")
+	if instanceTypeName == nil {
+		instanceTypeName, _ = publicCloud.NewInstanceTypeNameFromValue("lsw.m5a.4xlarge")
 	}
 
 	if operatingSystem == nil {
@@ -34,7 +35,7 @@ func setupSdkInstance(
 
 	instance.SetOperatingSystem(*operatingSystem)
 	instance.SetResources(*publicCloud.NewInstanceResources())
-	instance.SetType(*instanceType)
+	instance.SetType(*instanceTypeName)
 
 	if contract != nil {
 		instance.SetContract(*contract)
@@ -44,7 +45,12 @@ func setupSdkInstance(
 }
 
 func TestInstanceOpts_setOptionalUpdateInstanceOpts_incorrectInstanceType(t *testing.T) {
-	sdkInstance := setupSdkInstance(nil, nil, nil, nil)
+	sdkInstance := setupSdkInstance(
+		nil,
+		nil,
+		nil,
+		nil,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -70,9 +76,14 @@ func TestInstanceOpts_setOptionalUpdateInstanceOpts(t *testing.T) {
 	sdkContract.SetType("contractType")
 	sdkContract.SetBillingFrequency(6)
 
-	sdkInstanceType, _ := publicCloud.NewInstanceTypeFromValue("lsw.m3.xlarge")
+	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.xlarge")
 
-	sdkInstance = setupSdkInstance(sdkInstance, nil, sdkContract, sdkInstanceType)
+	sdkInstance = setupSdkInstance(
+		sdkInstance,
+		nil,
+		sdkContract,
+		sdkInstanceTypeName,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -125,7 +136,12 @@ func TestInstanceOpts_setOptionalUpdateInstanceOpts(t *testing.T) {
 }
 
 func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
-	sdkInstance := setupSdkInstance(nil, nil, nil, nil)
+	sdkInstance := setupSdkInstance(
+		nil,
+		nil,
+		nil,
+		nil,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -141,7 +157,12 @@ func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
 }
 
 func TestInstanceOpts_NewUpdateInstanceOpts_error(t *testing.T) {
-	sdkInstance := setupSdkInstance(nil, nil, nil, nil)
+	sdkInstance := setupSdkInstance(
+		nil,
+		nil,
+		nil,
+		nil,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -175,13 +196,13 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 	sdkInstance.SetRegion("eu-west-1")
 	sdkInstance.SetRootDiskStorageType("rootDiskStorageType")
 
-	sdkInstanceType, _ := publicCloud.NewInstanceTypeFromValue("lsw.m3.xlarge")
+	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.xlarge")
 
 	sdkInstance = setupSdkInstance(
 		sdkInstance,
 		sdkOperatingSystem,
 		sdkContract,
-		sdkInstanceType,
+		sdkInstanceTypeName,
 	)
 
 	instance := model.Instance{}
@@ -247,7 +268,12 @@ func TestInstanceOpts_setOptionalLaunchInstanceOpts(t *testing.T) {
 	sdkInstance.SetRootDiskSize(32)
 	sdkInstance.SetMarketAppId("marketAppId")
 
-	sdkInstance = setupSdkInstance(sdkInstance, nil, nil, nil)
+	sdkInstance = setupSdkInstance(
+		sdkInstance,
+		nil,
+		nil,
+		nil,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -286,7 +312,12 @@ func TestInstanceOpts_setOptionalLaunchInstanceOpts(t *testing.T) {
 
 func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetOperatingSystemId(t *testing.T) {
 	sdkOperatingSystem := publicCloud.NewOperatingSystem()
-	sdkInstance := setupSdkInstance(nil, sdkOperatingSystem, nil, nil)
+	sdkInstance := setupSdkInstance(
+		nil,
+		sdkOperatingSystem,
+		nil,
+		nil,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -298,7 +329,12 @@ func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetOperatingSystemId(t *testin
 }
 
 func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetInstanceType(t *testing.T) {
-	sdkInstance := setupSdkInstance(nil, nil, nil, nil)
+	sdkInstance := setupSdkInstance(
+		nil,
+		nil,
+		nil,
+		nil,
+	)
 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())

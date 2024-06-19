@@ -2,11 +2,12 @@ package model
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestInstance_Populate(t *testing.T) {
@@ -23,7 +24,6 @@ func TestInstance_Populate(t *testing.T) {
 	sdkInstance.SetProductType("productType")
 	sdkInstance.SetHasPublicIpV4(true)
 	sdkInstance.SetincludesPrivateNetwork(false)
-	sdkInstance.SetType("type")
 	sdkInstance.SetRootDiskSize(32)
 	sdkInstance.SetRootDiskStorageType("rootDiskStorageType")
 	sdkInstance.SetStartedAt(startedAt)
@@ -32,6 +32,9 @@ func TestInstance_Populate(t *testing.T) {
 	sdkInstance.SetMarketAppId("marketAppId")
 	sdkInstance.SetPrivateNetwork(*publicCloud.NewPrivateNetwork())
 	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
+
+	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m5a.4xlarge")
+	sdkInstance.SetType(*sdkInstanceTypeName)
 
 	sdkContract := publicCloud.NewContract()
 	sdkContract.SetType("contract")
@@ -120,7 +123,7 @@ func TestInstance_Populate(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"type",
+		"lsw.m5a.4xlarge",
 		instance.Type.ValueString(),
 		"type should be set",
 	)

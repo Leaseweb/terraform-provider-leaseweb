@@ -1,10 +1,11 @@
 package model
 
 import (
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_newInstance(t *testing.T) {

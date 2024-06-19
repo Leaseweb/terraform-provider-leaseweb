@@ -34,12 +34,12 @@ func TestInstanceTypes_AccGetAllowedInstanceTypes_Error(t *testing.T) {
 }
 
 func Test_convertAllowedInstancesTypesToString(t *testing.T) {
-	updateInstanceType := publicCloud.NewUpdateInstanceType()
-	updateInstanceType.SetName("tralala")
+	instanceType := publicCloud.NewInstanceType()
+	instanceType.SetName("tralala")
 
-	updateInstanceTypes := []publicCloud.UpdateInstanceType{*updateInstanceType}
+	updateInstanceTypes := []publicCloud.InstanceType{*instanceType}
 
-	got := convertAllowedInstancesTypesToString(updateInstanceTypes)
+	got := convertSdkInstanceTypesToString(updateInstanceTypes)
 	want := []string{"tralala"}
 
 	assert.Equal(t, want, got)

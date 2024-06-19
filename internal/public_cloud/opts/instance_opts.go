@@ -2,9 +2,10 @@ package opts
 
 import (
 	"context"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"strings"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
 
@@ -31,14 +32,14 @@ func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
 
 	if !o.instance.Type.IsNull() && !o.instance.Type.IsUnknown() {
-		instanceType, err := publicCloud.NewInstanceTypeFromValue(
+		instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(
 			o.instance.Type.ValueString(),
 		)
 		if err != nil {
 			return cannotSetInstanceType(o.instance.Type.ValueString())
 		}
 
-		opts.SetType(*instanceType)
+		opts.SetType(*instanceTypeName)
 	}
 
 	if !o.instance.Reference.IsNull() && !o.instance.Reference.IsUnknown() {
@@ -78,7 +79,7 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts,
 		)
 	}
 
-	instanceType, err := publicCloud.NewInstanceTypeFromValue(
+	instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(
 		o.instance.Type.ValueString(),
 	)
 	if err != nil {
@@ -87,7 +88,7 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts,
 
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
-		*instanceType,
+		*instanceTypeName,
 		*operatingSystemId,
 		contract.Type.ValueString(),
 		int32(contract.Term.ValueInt64()),
