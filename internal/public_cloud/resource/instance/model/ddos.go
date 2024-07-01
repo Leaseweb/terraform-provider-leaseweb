@@ -12,7 +12,7 @@ type Ddos struct {
 	ProtectionType   types.String `tfsdk:"protection_type"`
 }
 
-func (d Ddos) attributeTypes() map[string]attr.Type {
+func (d Ddos) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"detection_profile": types.StringType,
 		"protection_type":   types.StringType,

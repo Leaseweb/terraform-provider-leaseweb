@@ -8,12 +8,13 @@ import (
 )
 
 func TestAccInstanceResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create and Read testing
-			{
-				Config: providerConfig + `
+	t.Run("creates and updates an instance", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
@@ -28,63 +29,63 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"id",
-						"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"region",
+							"eu-west-3",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"type",
+							"lsw.m3.large",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"reference",
+							"my webserver",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"operating_system.id",
+							"UBUNTU_22_04_64BIT",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"root_disk_storage_type",
+							"CENTRAL",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.billing_frequency",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.term",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.type",
+							"HOURLY",
+						),
 					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"region",
-						"eu-west-3",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"type",
-						"lsw.m3.large",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"reference",
-						"my webserver",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"operating_system.id",
-						"UBUNTU_22_04_64BIT",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"root_disk_storage_type",
-						"CENTRAL",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"contract.billing_frequency",
-						"1",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"contract.term",
-						"0",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"contract.type",
-						"HOURLY",
-					),
-				),
-			},
-			// ImportState testing
-			{
-				ResourceName:      "leaseweb_public_cloud_instance.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			// Update and Read testing
-			{
-				Config: providerConfig + `
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_public_cloud_instance.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
@@ -99,66 +100,65 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"id",
-						"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"region",
+							"eu-west-3",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"type",
+							"lsw.m3.large",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"reference",
+							"my webserver",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"operating_system.id",
+							"UBUNTU_22_04_64BIT",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"root_disk_storage_type",
+							"CENTRAL",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.billing_frequency",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.term",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.type",
+							"HOURLY",
+						),
 					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"region",
-						"eu-west-3",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"type",
-						"lsw.m3.large",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"reference",
-						"my webserver",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"operating_system.id",
-						"UBUNTU_22_04_64BIT",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"root_disk_storage_type",
-						"CENTRAL",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"contract.billing_frequency",
-						"1",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"contract.term",
-						"0",
-					),
-					resource.TestCheckResourceAttr(
-						"leaseweb_public_cloud_instance.test",
-						"contract.type",
-						"HOURLY",
-					),
-				),
+				},
+				// Delete testing automatically occurs in TestCase
 			},
-			// Delete testing automatically occurs in TestCase
-		},
+		})
 	})
-}
 
-func TestAccInstanceResource_validationError(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// term must be 0 when contract type is HOURLY
-			{
-				Config: providerConfig + `
+	t.Run("term must be 0 when contract type is HOURLY", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
@@ -173,11 +173,17 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 5"),
+					ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 5"),
+				},
 			},
-			// term must not be 0 when contract type is MONTHLY
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("term must not be 0 when contract type is MONTHLY", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
@@ -192,11 +198,17 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "MONTHLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
+					ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
+				},
 			},
-			// Invalid instance type
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("invalid instance type", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "tralala"
@@ -211,11 +223,17 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
+					ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
+				},
 			},
-			// invalid ssh key
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("invalid ssh key", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
@@ -231,11 +249,17 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   ssh_key = "tralala"
 }`,
-				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+					ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+				},
 			},
-			// root_disk_size is too small
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("rootDiskSize is too small", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
@@ -251,11 +275,17 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+					ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+				},
 			},
-			// root_disk_size is too big
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("rootDiskSize is too big", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
@@ -271,11 +301,17 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+					ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+				},
 			},
-			// Invalid root_disk_storage_type
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("invalid rootDiskStorageType", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
@@ -290,38 +326,42 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
+					ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
+				},
 			},
-			// Invalid contract.billing_frequency
-			{
-				Config: providerConfig + `
+		})
+	})
+	t.Run("invalid billingFrequency", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.4xlarge"
+  type      = "lsw.m3.4xlarge"
   reference = "my webserver"
   operating_system = {
     id = "UBUNTU_22_04_64BIT"
   }
-  root_disk_storage_type = "CENTRY"
+  root_disk_storage_type = "CENTRAL"
   contract = {
     billing_frequency = 55
     term              = 0
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
+					ExpectError: regexp.MustCompile("Attribute contract.billing_frequency value must be one of"),
+				},
 			},
-		},
+		})
 	})
-}
-
-func TestAccInstanceResource_Choosing_Invalid_Instance_Type_Not_Allowed(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create and Read testing
-			{
-				Config: providerConfig + `
+	t.Run("upgrading to invalid instanceType is not allowed", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
@@ -336,9 +376,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-			},
-			{
-				Config: providerConfig + `
+				},
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.large"
@@ -353,8 +393,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				ExpectError: regexp.MustCompile("Invalid Instance Type"),
+					ExpectError: regexp.MustCompile("Invalid Instance Type"),
+				},
 			},
-		},
+		})
 	})
 }

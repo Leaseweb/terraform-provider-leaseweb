@@ -32,8 +32,7 @@ description: |-
 
 ### Read-Only
 
-- `customer_id` (String) The customer ID who owns the instance
-- `equipment_id` (String) Equipment's UUID
+- `auto_scaling_group` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group))
 - `has_private_network` (Boolean)
 - `has_public_ipv4` (Boolean)
 - `id` (String) The instance unique identifier
@@ -41,8 +40,7 @@ description: |-
 - `iso` (Attributes) (see [below for nested schema](#nestedatt--iso))
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--private_network))
 - `product_type` (String) The product type
-- `resource` (Attributes) i available for the load balancer (see [below for nested schema](#nestedatt--resource))
-- `sales_org_id` (String)
+- `resources` (Attributes) i available for the load balancer (see [below for nested schema](#nestedatt--resources))
 - `started_at` (String) Date and time when the instance was started for the first time, right after launching it
 - `state` (String) The instance's current state
 
@@ -79,6 +77,105 @@ Read-Only:
 - `name` (String)
 - `storage_types` (List of String) The supported storage types for the instance type
 - `version` (String)
+
+
+<a id="nestedatt--auto_scaling_group"></a>
+### Nested Schema for `auto_scaling_group`
+
+Read-Only:
+
+- `cooldown_time` (Number) Only for "CPU_BASED" auto scaling group. Cool-down time in seconds for new instances
+- `cpu_threshold` (Number) Only for "CPU_BASED" auto scaling group. The target average CPU utilization for scaling
+- `created_at` (String) Date and time when the Auto Scaling Group was created
+- `desired_amount` (Number) Number of instances that should be running
+- `ends_at` (String) Only for "SCHEDULED" auto scaling group. Date and time (UTC) that the instances need to be terminated
+- `id` (String) The Auto Scaling Group unique identifier
+- `load_balancer` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer))
+- `maximum_amount` (Number) Only for "CPU_BASED" auto scaling group. The maximum number of instances that can be running
+- `minimum_amount` (Number) The minimum number of instances that should be running
+- `reference` (String) The identifying name set to the auto scaling group
+- `region` (String) The region in which the Auto Scaling Group was launched
+- `starts_at` (String) Only for "SCHEDULED" auto scaling group. Date and time (UTC) that the instances need to be launched
+- `state` (String) The Auto Scaling Group's current state.
+- `type` (String) Auto Scaling Group type
+- `updated_at` (String) Date and time when the Auto Scaling Group was updated
+- `warmup_time` (Number) Only for "CPU_BASED" auto scaling group. Warm-up time in seconds for new instances
+
+<a id="nestedatt--auto_scaling_group--load_balancer"></a>
+### Nested Schema for `auto_scaling_group.load_balancer`
+
+Read-Only:
+
+- `contract` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--contract))
+- `id` (String) The load balancer unique identifier
+- `reference` (String) The identifying name set to the load balancer
+- `region` (String) The region where the load balancer was launched into
+- `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources))
+- `started_at` (String) Date and time when the load balancer was started for the first time, right after launching it
+- `state` (String) The load balancers current state
+- `type` (String) Load balancer type
+
+<a id="nestedatt--auto_scaling_group--load_balancer--contract"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.contract`
+
+Read-Only:
+
+- `billing_frequency` (Number) The billing frequency (in months) of the load balancer.
+- `created_at` (String) Date when the contract was created
+- `ends_at` (String)
+- `renewals_at` (String) Date when the contract will be automatically renewed
+- `state` (String)
+- `term` (Number) Contract term (in months). Used only when contract type is MONTHLY
+- `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--resources"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.resources`
+
+Read-Only:
+
+- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources--cpu))
+- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources--memory))
+- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources--private_network_speed))
+- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources--public_network_speed))
+
+<a id="nestedatt--auto_scaling_group--load_balancer--resources--cpu"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.resources.cpu`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--resources--memory"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.resources.memory`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--resources--private_network_speed"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.resources.private_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--resources--public_network_speed"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.resources.public_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+
 
 
 <a id="nestedatt--ips"></a>
@@ -124,27 +221,18 @@ Read-Only:
 - `subnet` (String)
 
 
-<a id="nestedatt--resource"></a>
-### Nested Schema for `resource`
+<a id="nestedatt--resources"></a>
+### Nested Schema for `resources`
 
 Read-Only:
 
-- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--resource--cpu))
-- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--resource--memory))
-- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--resource--private_network_speed))
-- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--resource--public_network_speed))
+- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--resources--cpu))
+- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--resources--memory))
+- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--resources--private_network_speed))
+- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--resources--public_network_speed))
 
-<a id="nestedatt--resource--cpu"></a>
-### Nested Schema for `resource.cpu`
-
-Read-Only:
-
-- `unit` (String)
-- `value` (Number)
-
-
-<a id="nestedatt--resource--memory"></a>
-### Nested Schema for `resource.memory`
+<a id="nestedatt--resources--cpu"></a>
+### Nested Schema for `resources.cpu`
 
 Read-Only:
 
@@ -152,8 +240,8 @@ Read-Only:
 - `value` (Number)
 
 
-<a id="nestedatt--resource--private_network_speed"></a>
-### Nested Schema for `resource.private_network_speed`
+<a id="nestedatt--resources--memory"></a>
+### Nested Schema for `resources.memory`
 
 Read-Only:
 
@@ -161,8 +249,17 @@ Read-Only:
 - `value` (Number)
 
 
-<a id="nestedatt--resource--public_network_speed"></a>
-### Nested Schema for `resource.public_network_speed`
+<a id="nestedatt--resources--private_network_speed"></a>
+### Nested Schema for `resources.private_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--resources--public_network_speed"></a>
+### Nested Schema for `resources.public_network_speed`
 
 Read-Only:
 

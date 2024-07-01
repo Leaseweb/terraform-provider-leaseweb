@@ -2,35 +2,41 @@ package model
 
 import (
 	"context"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_newDdos(t *testing.T) {
-	sdkDdos := publicCloud.NewNullableDdos(publicCloud.NewDdos())
-	sdkDdos.Get().SetDetectionProfile("detectionProfile")
-	sdkDdos.Get().SetProtectionType("protectionType")
+	sdkDdos := publicCloud.NewNullableDdos(publicCloud.NewDdos(
+		"detectionProfile",
+		"protectionType",
+	))
 
-	dDos := newDdos(sdkDdos.Get())
+	got := newDdos(sdkDdos.Get())
 
 	assert.Equal(
 		t,
 		"detectionProfile",
-		dDos.DetectionProfile.ValueString(),
+		got.DetectionProfile.ValueString(),
 		"detectionProfile should be set",
 	)
 	assert.Equal(
 		t,
 		"protectionType",
-		dDos.ProtectionType.ValueString(),
+		got.ProtectionType.ValueString(),
 		"protectionType should be set",
 	)
 }
 
 func TestDdos_attributeTypes(t *testing.T) {
-	_, diags := types.ObjectValueFrom(context.TODO(), Ddos{}.attributeTypes(), Ddos{})
+	_, diags := types.ObjectValueFrom(
+		context.TODO(),
+		Ddos{}.AttributeTypes(),
+		Ddos{},
+	)
 
 	assert.Nil(t, diags, "attributes should be correct")
 }

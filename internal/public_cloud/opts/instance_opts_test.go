@@ -11,41 +11,41 @@ import (
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 )
 
-func setupSdkInstance(
-	instance *publicCloud.Instance,
-	operatingSystem *publicCloud.OperatingSystem,
+func setupSdkInstanceDetails(
+	instanceDetails *publicCloud.InstanceDetails,
+	operatingSystemDetails *publicCloud.OperatingSystemDetails,
 	contract *publicCloud.Contract,
 	instanceTypeName *publicCloud.InstanceTypeName,
-) *publicCloud.Instance {
-	if instance == nil {
-		instance = publicCloud.NewInstance()
+) *publicCloud.InstanceDetails {
+	if instanceDetails == nil {
+		instanceDetails = &publicCloud.InstanceDetails{}
 	}
 
 	if instanceTypeName == nil {
 		instanceTypeName, _ = publicCloud.NewInstanceTypeNameFromValue("lsw.m5a.4xlarge")
 	}
 
-	if operatingSystem == nil {
+	if operatingSystemDetails == nil {
 		operatingSystemId, _ := publicCloud.NewOperatingSystemIdFromValue(
 			"UBUNTU_24_04_64BIT",
 		)
-		operatingSystem = publicCloud.NewOperatingSystem()
-		operatingSystem.SetId(*operatingSystemId)
+		operatingSystemDetails = &publicCloud.OperatingSystemDetails{}
+		operatingSystemDetails.SetId(*operatingSystemId)
 	}
 
-	instance.SetOperatingSystem(*operatingSystem)
-	instance.SetResources(*publicCloud.NewInstanceResources())
-	instance.SetType(*instanceTypeName)
+	instanceDetails.SetOperatingSystem(*operatingSystemDetails)
+	instanceDetails.SetResources(publicCloud.Resources{})
+	instanceDetails.SetType(*instanceTypeName)
 
 	if contract != nil {
-		instance.SetContract(*contract)
+		instanceDetails.SetContract(*contract)
 	}
 
-	return instance
+	return instanceDetails
 }
 
 func TestInstanceOpts_setOptionalUpdateInstanceOpts_incorrectInstanceType(t *testing.T) {
-	sdkInstance := setupSdkInstance(
+	sdkInstanceDetails := setupSdkInstanceDetails(
 		nil,
 		nil,
 		nil,
@@ -53,7 +53,7 @@ func TestInstanceOpts_setOptionalUpdateInstanceOpts_incorrectInstanceType(t *tes
 	)
 
 	instance := model.Instance{}
-	instance.Populate(sdkInstance, context.TODO())
+	instance.Populate(sdkInstanceDetails, context.TODO())
 	instance.Type = basetypes.NewStringValue("tralala")
 
 	instanceOpts := NewInstanceOpts(instance, context.TODO())
@@ -67,26 +67,26 @@ func TestInstanceOpts_setOptionalUpdateInstanceOpts_incorrectInstanceType(t *tes
 }
 
 func TestInstanceOpts_setOptionalUpdateInstanceOpts(t *testing.T) {
-	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetReference("reference")
-	sdkInstance.SetRootDiskSize(23)
+	sdkInstanceDetails := publicCloud.InstanceDetails{}
+	sdkInstanceDetails.SetReference("reference")
+	sdkInstanceDetails.SetRootDiskSize(23)
 
-	sdkContract := publicCloud.NewContract()
+	sdkContract := publicCloud.Contract{}
 	sdkContract.SetTerm(4)
 	sdkContract.SetType("contractType")
 	sdkContract.SetBillingFrequency(6)
 
 	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.xlarge")
 
-	sdkInstance = setupSdkInstance(
-		sdkInstance,
+	sdkInstanceDetails = *setupSdkInstanceDetails(
+		&sdkInstanceDetails,
 		nil,
-		sdkContract,
+		&sdkContract,
 		sdkInstanceTypeName,
 	)
 
 	instance := model.Instance{}
-	instance.Populate(sdkInstance, context.TODO())
+	instance.Populate(&sdkInstanceDetails, context.TODO())
 
 	instanceOpts := NewInstanceOpts(instance, context.TODO())
 
@@ -136,7 +136,7 @@ func TestInstanceOpts_setOptionalUpdateInstanceOpts(t *testing.T) {
 }
 
 func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
-	sdkInstance := setupSdkInstance(
+	sdkInstance := setupSdkInstanceDetails(
 		nil,
 		nil,
 		nil,
@@ -157,7 +157,7 @@ func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
 }
 
 func TestInstanceOpts_NewUpdateInstanceOpts_error(t *testing.T) {
-	sdkInstance := setupSdkInstance(
+	sdkInstance := setupSdkInstanceDetails(
 		nil,
 		nil,
 		nil,
@@ -183,30 +183,27 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 	sdkOperatingSystemId, _ := publicCloud.NewOperatingSystemIdFromValue(
 		"UBUNTU_24_04_64BIT",
 	)
-	sdkOperatingSystem := publicCloud.NewOperatingSystem()
-	sdkOperatingSystem.SetId(*sdkOperatingSystemId)
+	sdkOperatingSystemDetails := publicCloud.OperatingSystemDetails{Id: *sdkOperatingSystemId}
+	sdkContract := publicCloud.Contract{Term: 4, Type: "contractType", BillingFrequency: 6}
+	rootDiskStorageType, _ := publicCloud.NewRootDiskStorageTypeFromValue("CENTRAL")
 
-	sdkContract := publicCloud.NewContract()
-	sdkContract.SetTerm(4)
-	sdkContract.SetType("contractType")
-	sdkContract.SetBillingFrequency(6)
-
-	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetOperatingSystem(*sdkOperatingSystem)
-	sdkInstance.SetRegion("eu-west-1")
-	sdkInstance.SetRootDiskStorageType("rootDiskStorageType")
+	sdkInstanceDetails := publicCloud.InstanceDetails{
+		OperatingSystem:     sdkOperatingSystemDetails,
+		Region:              "eu-west-1",
+		RootDiskStorageType: *rootDiskStorageType,
+	}
 
 	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.xlarge")
 
-	sdkInstance = setupSdkInstance(
-		sdkInstance,
-		sdkOperatingSystem,
-		sdkContract,
+	sdkInstanceDetails = *setupSdkInstanceDetails(
+		&sdkInstanceDetails,
+		&sdkOperatingSystemDetails,
+		&sdkContract,
 		sdkInstanceTypeName,
 	)
 
 	instance := model.Instance{}
-	instance.Populate(sdkInstance, context.TODO())
+	instance.Populate(&sdkInstanceDetails, context.TODO())
 
 	instanceOpts := NewInstanceOpts(instance, context.TODO())
 
@@ -224,8 +221,8 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"rootDiskStorageType",
-		launchInstanceOpts.GetRootDiskStorageType(),
+		"CENTRAL",
+		string(launchInstanceOpts.GetRootDiskStorageType()),
 		"rootDiskStorageType should be rootDiskStorageType",
 	)
 	assert.Equal(
@@ -263,20 +260,20 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 }
 
 func TestInstanceOpts_setOptionalLaunchInstanceOpts(t *testing.T) {
-	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetReference("reference")
-	sdkInstance.SetRootDiskSize(32)
-	sdkInstance.SetMarketAppId("marketAppId")
+	sdkInstanceDetails := publicCloud.InstanceDetails{}
+	sdkInstanceDetails.SetReference("reference")
+	sdkInstanceDetails.SetRootDiskSize(32)
+	sdkInstanceDetails.SetMarketAppId("marketAppId")
 
-	sdkInstance = setupSdkInstance(
-		sdkInstance,
+	sdkInstanceDetails = *setupSdkInstanceDetails(
+		&sdkInstanceDetails,
 		nil,
 		nil,
 		nil,
 	)
 
 	instance := model.Instance{}
-	instance.Populate(sdkInstance, context.TODO())
+	instance.Populate(&sdkInstanceDetails, context.TODO())
 	instance.SshKey = types.StringValue("sshKey")
 
 	launchInstanceOpts := publicCloud.LaunchInstanceOpts{}
@@ -311,10 +308,10 @@ func TestInstanceOpts_setOptionalLaunchInstanceOpts(t *testing.T) {
 }
 
 func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetOperatingSystemId(t *testing.T) {
-	sdkOperatingSystem := publicCloud.NewOperatingSystem()
-	sdkInstance := setupSdkInstance(
+	sdkOperatingSystemDetails := publicCloud.OperatingSystemDetails{}
+	sdkInstance := setupSdkInstanceDetails(
 		nil,
-		sdkOperatingSystem,
+		&sdkOperatingSystemDetails,
 		nil,
 		nil,
 	)
@@ -329,7 +326,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetOperatingSystemId(t *testin
 }
 
 func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetInstanceType(t *testing.T) {
-	sdkInstance := setupSdkInstance(
+	sdkInstance := setupSdkInstanceDetails(
 		nil,
 		nil,
 		nil,
@@ -339,6 +336,24 @@ func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetInstanceType(t *testing.T) 
 	instance := model.Instance{}
 	instance.Populate(sdkInstance, context.TODO())
 	instance.Type = basetypes.NewStringValue("tralala")
+
+	instanceOpts := NewInstanceOpts(instance, context.TODO())
+	_, err := instanceOpts.NewLaunchInstanceOpts()
+
+	assert.NotNil(t, err, "NewLaunchInstanceOpts should return an error")
+}
+
+func TestInstanceOpts_NewLaunchInstanceOpts_cannotSetRootDiskStorageType(t *testing.T) {
+	sdkInstance := setupSdkInstanceDetails(
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+
+	instance := model.Instance{}
+	instance.Populate(sdkInstance, context.TODO())
+	instance.RootDiskStorageType = basetypes.NewStringValue("tralala")
 
 	instanceOpts := NewInstanceOpts(instance, context.TODO())
 	_, err := instanceOpts.NewLaunchInstanceOpts()

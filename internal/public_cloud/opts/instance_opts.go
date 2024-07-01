@@ -86,6 +86,13 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts,
 		return nil, cannotSetInstanceType(o.instance.Type.ValueString())
 	}
 
+	rootDiskStorageType, err := publicCloud.NewRootDiskStorageTypeFromValue(
+		o.instance.RootDiskStorageType.ValueString(),
+	)
+	if err != nil {
+		return nil, cannotSetRootDiskStorageType(o.instance.RootDiskStorageType.ValueString())
+	}
+
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
 		*instanceTypeName,
@@ -93,7 +100,7 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts,
 		contract.Type.ValueString(),
 		int32(contract.Term.ValueInt64()),
 		int32(contract.BillingFrequency.ValueInt64()),
-		o.instance.RootDiskStorageType.ValueString(),
+		*rootDiskStorageType,
 	)
 
 	o.setOptionalLaunchInstanceOpts(opts)

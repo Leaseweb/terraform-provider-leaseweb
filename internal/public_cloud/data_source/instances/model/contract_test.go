@@ -1,10 +1,11 @@
 package model
 
 import (
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_newContract(t *testing.T) {
@@ -21,58 +22,58 @@ func Test_newContract(t *testing.T) {
 		"2021-12-14 17:09:47",
 	)
 
-	sdkContract := publicCloud.NewContract()
-	sdkContract.SetBillingFrequency(1)
-	sdkContract.SetTerm(4)
-	sdkContract.SetType("HOURLY")
-	sdkContract.SetEndsAt(endsAt)
-	sdkContract.SetRenewalsAt(renewalsAt)
-	sdkContract.SetCreatedAt(createdAt)
-	sdkContract.SetState("RUNNING")
+	sdkContract := publicCloud.NewContract(
+		1,
+		4,
+		"HOURLY",
+		*publicCloud.NewNullableTime(&endsAt),
+		renewalsAt,
+		createdAt,
+		"RUNNING",
+	)
 
-	contract := newContract(*sdkContract)
+	got := newContract(*sdkContract)
 
 	assert.Equal(
 		t,
 		int64(1),
-		contract.BillingFrequency.ValueInt64(),
+		got.BillingFrequency.ValueInt64(),
 		"billingFrequency should be set",
 	)
 	assert.Equal(
 		t,
 		int64(4),
-		contract.Term.ValueInt64(),
+		got.Term.ValueInt64(),
 		"term should be set",
 	)
 	assert.Equal(
 		t,
 		"HOURLY",
-		contract.Type.ValueString(),
+		got.Type.ValueString(),
 		"type should be set",
 	)
 	assert.Equal(
 		t,
 		"2023-12-14 17:09:47 +0000 UTC",
-		contract.EndsAt.ValueString(),
+		got.EndsAt.ValueString(),
 		"endsAt should be set",
 	)
 	assert.Equal(
 		t,
 		"2022-12-14 17:09:47 +0000 UTC",
-		contract.RenewalsAt.ValueString(),
+		got.RenewalsAt.ValueString(),
 		"renewalsAt should be set",
 	)
 	assert.Equal(
 		t,
 		"2021-12-14 17:09:47 +0000 UTC",
-		contract.CreatedAt.ValueString(),
+		got.CreatedAt.ValueString(),
 		"createdAt should be set",
 	)
 	assert.Equal(
 		t,
 		"RUNNING",
-		contract.State.ValueString(),
+		got.State.ValueString(),
 		"state should be set",
 	)
-
 }

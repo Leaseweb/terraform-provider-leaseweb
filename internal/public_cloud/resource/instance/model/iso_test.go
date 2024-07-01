@@ -2,25 +2,39 @@ package model
 
 import (
 	"context"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_newIso(t *testing.T) {
-	sdkIso := publicCloud.NewIso()
-	sdkIso.SetId("id")
-	sdkIso.SetName("name")
+	sdkIso := publicCloud.NewIso("id", "name")
+	got, diags := newIso(context.TODO(), *sdkIso)
 
-	iso := newIso(*sdkIso)
+	assert.Nil(t, diags)
 
-	assert.Equal(t, "id", iso.Id.ValueString(), "id should be set")
-	assert.Equal(t, "name", iso.Name.ValueString(), "name should be set")
+	assert.Equal(
+		t,
+		"id",
+		got.Id.ValueString(),
+		"id should be set",
+	)
+	assert.Equal(
+		t,
+		"name",
+		got.Name.ValueString(),
+		"name should be set",
+	)
 }
 
 func TestIso_attributeTypes(t *testing.T) {
-	_, diags := types.ObjectValueFrom(context.TODO(), Iso{}.attributeTypes(), Iso{})
+	_, diags := types.ObjectValueFrom(
+		context.TODO(),
+		Iso{}.AttributeTypes(),
+		Iso{},
+	)
 
 	assert.Nil(t, diags, "attributes should be correct")
 }

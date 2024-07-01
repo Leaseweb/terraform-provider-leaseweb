@@ -12,7 +12,7 @@ type Memory struct {
 	Unit  types.String  `tfsdk:"unit"`
 }
 
-func (m Memory) attributeTypes() map[string]attr.Type {
+func (m Memory) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"value": types.Float64Type,
 		"unit":  types.StringType,

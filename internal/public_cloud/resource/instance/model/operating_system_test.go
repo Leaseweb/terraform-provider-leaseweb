@@ -2,25 +2,29 @@ package model
 
 import (
 	"context"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_newOperatingSystem(t *testing.T) {
-	sdkOperatingSystem := publicCloud.NewOperatingSystem()
-	sdkOperatingSystem.SetId("id")
-	sdkOperatingSystem.SetName("name")
-	sdkOperatingSystem.SetVersion("version")
-	sdkOperatingSystem.SetFamily("family")
-	sdkOperatingSystem.SetFlavour("flavour")
-	sdkOperatingSystem.SetArchitecture("architecture")
-	sdkOperatingSystem.SetMarketApps([]string{"one"})
-	sdkOperatingSystem.SetStorageTypes([]string{"storageType"})
+	sdkOperatingSystem := publicCloud.NewOperatingSystemDetails(
+		"id",
+		"name",
+		"version",
+		"family",
+		"flavour",
+		"architecture",
+		[]string{"one"},
+		[]string{"storageType"},
+	)
 
-	operatingSystem := newOperatingSystem(sdkOperatingSystem)
+	operatingSystem, diags := newOperatingSystem(context.TODO(), *sdkOperatingSystem)
+
+	assert.Nil(t, diags)
 
 	assert.Equal(
 		t,
@@ -75,7 +79,7 @@ func Test_newOperatingSystem(t *testing.T) {
 func TestOperatingSystem_attributeTypes(t *testing.T) {
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),
-		OperatingSystem{}.attributeTypes(),
+		OperatingSystem{}.AttributeTypes(),
 		OperatingSystem{},
 	)
 

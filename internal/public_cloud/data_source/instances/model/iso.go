@@ -11,8 +11,8 @@ type iso struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func newIso(sdkIso publicCloud.Iso) iso {
-	return iso{
+func newIso(sdkIso publicCloud.Iso) *iso {
+	return &iso{
 		Id:   basetypes.NewStringValue(sdkIso.GetId()),
 		Name: basetypes.NewStringValue(sdkIso.GetName()),
 	}

@@ -12,57 +12,32 @@ import (
 
 func TestInstance_Populate(t *testing.T) {
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-
-	sdkInstance := publicCloud.NewInstance()
-	sdkInstance.SetId("id")
-	sdkInstance.SetEquipmentId("equipmentId")
-	sdkInstance.SetSalesOrgId("salesOrgId")
-	sdkInstance.SetCustomerId("customerId")
-	sdkInstance.SetRegion("region")
-	sdkInstance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
-	sdkInstance.SetState("state")
-	sdkInstance.SetProductType("productType")
-	sdkInstance.SetHasPublicIpV4(true)
-	sdkInstance.SetincludesPrivateNetwork(false)
-	sdkInstance.SetRootDiskSize(32)
-	sdkInstance.SetRootDiskStorageType("rootDiskStorageType")
-	sdkInstance.SetStartedAt(startedAt)
-	sdkInstance.SetContract(*publicCloud.NewContract())
-	sdkInstance.SetIso(*publicCloud.NewIso())
-	sdkInstance.SetMarketAppId("marketAppId")
-	sdkInstance.SetPrivateNetwork(*publicCloud.NewPrivateNetwork())
-	sdkInstance.SetResources(*publicCloud.NewInstanceResources())
-
 	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m5a.4xlarge")
-	sdkInstance.SetType(*sdkInstanceTypeName)
+	marketAppId := "marketAppId"
+	reference := "reference"
+	state, _ := publicCloud.NewStateFromValue("CREATING")
 
-	sdkContract := publicCloud.NewContract()
-	sdkContract.SetType("contract")
-	sdkInstance.SetContract(*sdkContract)
-
-	sdkOperatingSystem := publicCloud.NewOperatingSystem()
-	sdkOperatingSystem.SetId("operatingSystemId")
-	sdkInstance.SetOperatingSystem(*sdkOperatingSystem)
-
-	sdkIso := publicCloud.NewIso()
-	sdkIso.SetId("isoId")
-	sdkInstance.SetIso(*sdkIso)
-
-	sdkPrivateNetwork := publicCloud.NewPrivateNetwork()
-	sdkPrivateNetwork.SetPrivateNetworkId("privateNetworkId")
-	sdkInstance.SetPrivateNetwork(*sdkPrivateNetwork)
-
-	sdkIp := publicCloud.NewIp()
-	sdkIp.SetIp("1.2.3.4")
-
-	sdkInstance.SetIps([]publicCloud.Ip{*sdkIp})
-
-	sdkCpu := publicCloud.NewCpu()
-	sdkCpu.SetUnit("cpu")
-
-	sdkResources := publicCloud.NewInstanceResources()
-	sdkResources.SetCpu(*sdkCpu)
-	sdkInstance.SetResources(*sdkResources)
+	sdkInstance := publicCloud.NewInstanceDetails(
+		"id",
+		*sdkInstanceTypeName,
+		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
+		"region",
+		*publicCloud.NewNullableString(&reference),
+		*publicCloud.NewNullableTime(&startedAt),
+		*publicCloud.NewNullableString(&marketAppId),
+		*state,
+		"productType",
+		true,
+		false,
+		32,
+		"rootDiskStorageType",
+		[]publicCloud.Ip{{Ip: "1.2.3.4"}},
+		publicCloud.Contract{Type: "contract"},
+		*publicCloud.NewNullableAutoScalingGroupDetails(nil),
+		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
+		*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
+		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
+	)
 
 	instance := Instance{}
 	instance.Populate(sdkInstance, context.TODO())
@@ -75,31 +50,13 @@ func TestInstance_Populate(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"equipmentId",
-		instance.EquipmentId.ValueString(),
-		"equipmentId should be set",
-	)
-	assert.Equal(
-		t,
-		"salesOrgId",
-		instance.SalesOrgId.ValueString(),
-		"salesOrgId should be set",
-	)
-	assert.Equal(
-		t,
-		"customerId",
-		instance.CustomerId.ValueString(),
-		"customerId should be set",
-	)
-	assert.Equal(
-		t,
 		"region",
 		instance.Region.ValueString(),
 		"region should be set",
 	)
 	assert.Equal(
 		t,
-		"state",
+		"CREATING",
 		instance.State.ValueString(),
 		"state should be set",
 	)
@@ -109,15 +66,13 @@ func TestInstance_Populate(t *testing.T) {
 		instance.ProductType.ValueString(),
 		"productType should be set",
 	)
-	assert.Equal(
+	assert.True(
 		t,
-		true,
 		instance.HasPublicIpv4.ValueBool(),
 		"hasPublicIpv should be set",
 	)
-	assert.Equal(
+	assert.False(
 		t,
-		false,
 		instance.HasPrivateNetwork.ValueBool(),
 		"hasPrivateNetwork should be set",
 	)
@@ -150,6 +105,12 @@ func TestInstance_Populate(t *testing.T) {
 		"marketAppId",
 		instance.MarketAppId.ValueString(),
 		"marketAppId should be set",
+	)
+	assert.Equal(
+		t,
+		"reference",
+		instance.Reference.ValueString(),
+		"reference should be set",
 	)
 
 	operatingSystem := OperatingSystem{}

@@ -1,17 +1,18 @@
 package model
 
 import (
+	"testing"
+
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_newIp(t *testing.T) {
 
-	sdkDdos := publicCloud.NewNullableDdos(publicCloud.NewDdos())
+	sdkDdos := publicCloud.NewNullableDdos(&publicCloud.Ddos{})
 	sdkDdos.Get().SetProtectionType("protection-type")
 
-	sdkIp := publicCloud.NewIp()
+	sdkIp := publicCloud.Ip{}
 	sdkIp.SetIp("ip")
 	sdkIp.SetPrefixLength("prefix-length")
 	sdkIp.SetVersion(46)
@@ -21,7 +22,7 @@ func Test_newIp(t *testing.T) {
 	sdkIp.SetReverseLookup("reverse-lookup")
 	sdkIp.Ddos = *sdkDdos
 
-	ip := newIp(*sdkIp)
+	ip := newIp(sdkIp)
 
 	assert.Equal(
 		t,

@@ -17,23 +17,23 @@ type operatingSystem struct {
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }
 
-func newOperatingSystem(sdkOperatingSystem publicCloud.OperatingSystem) operatingSystem {
+func newOperatingSystem(sdkOperatingSystemDetails publicCloud.OperatingSystemDetails) operatingSystem {
 	operatingSystem := operatingSystem{
-		Id:           basetypes.NewStringValue(string(sdkOperatingSystem.GetId())),
-		Name:         basetypes.NewStringValue(sdkOperatingSystem.GetName()),
-		Version:      basetypes.NewStringValue(sdkOperatingSystem.GetVersion()),
-		Family:       basetypes.NewStringValue(sdkOperatingSystem.GetFamily()),
-		Flavour:      basetypes.NewStringValue(sdkOperatingSystem.GetFlavour()),
-		Architecture: basetypes.NewStringValue(sdkOperatingSystem.GetArchitecture()),
+		Id:           basetypes.NewStringValue(string(sdkOperatingSystemDetails.GetId())),
+		Name:         basetypes.NewStringValue(sdkOperatingSystemDetails.GetName()),
+		Version:      basetypes.NewStringValue(sdkOperatingSystemDetails.GetVersion()),
+		Family:       basetypes.NewStringValue(sdkOperatingSystemDetails.GetFamily()),
+		Flavour:      basetypes.NewStringValue(sdkOperatingSystemDetails.GetFlavour()),
+		Architecture: basetypes.NewStringValue(sdkOperatingSystemDetails.GetArchitecture()),
 	}
 
-	for _, marketApp := range sdkOperatingSystem.MarketApps {
+	for _, marketApp := range sdkOperatingSystemDetails.MarketApps {
 		operatingSystem.MarketApps = append(
 			operatingSystem.MarketApps, types.StringValue(marketApp),
 		)
 	}
 
-	for _, storageType := range sdkOperatingSystem.StorageTypes {
+	for _, storageType := range sdkOperatingSystemDetails.StorageTypes {
 		operatingSystem.StorageTypes = append(
 			operatingSystem.StorageTypes, types.StringValue(storageType),
 		)

@@ -1,7 +1,10 @@
 package model
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
@@ -18,7 +21,7 @@ type OperatingSystem struct {
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }
 
-func (o OperatingSystem) attributeTypes() map[string]attr.Type {
+func (o OperatingSystem) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":            types.StringType,
 		"name":          types.StringType,
@@ -31,7 +34,10 @@ func (o OperatingSystem) attributeTypes() map[string]attr.Type {
 	}
 }
 
-func newOperatingSystem(sdkOperatingSystem *publicCloud.OperatingSystem) *OperatingSystem {
+func newOperatingSystem(
+	ctx context.Context,
+	sdkOperatingSystem publicCloud.OperatingSystemDetails,
+) (*OperatingSystem, diag.Diagnostics) {
 	var marketApps []types.String
 	var storageTypes []types.String
 
@@ -52,5 +58,5 @@ func newOperatingSystem(sdkOperatingSystem *publicCloud.OperatingSystem) *Operat
 		Architecture: basetypes.NewStringValue(sdkOperatingSystem.GetArchitecture()),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-	}
+	}, nil
 }

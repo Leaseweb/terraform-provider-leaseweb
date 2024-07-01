@@ -1,54 +1,44 @@
 package model
 
 import (
+	"testing"
+
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_newResources(t *testing.T) {
-	sdkCpu := publicCloud.NewCpu()
-	sdkCpu.SetUnit("cpu")
+	sdkResources := publicCloud.NewResources(
+		publicCloud.Cpu{Unit: "cpu"},
+		publicCloud.Memory{Unit: "memory"},
+		publicCloud.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		publicCloud.NetworkSpeed{Unit: "NetworkSpeed"},
+	)
 
-	sdkMemory := publicCloud.NewMemory()
-	sdkMemory.SetUnit("memory")
-
-	sdkPublicNetworkSpeed := publicCloud.NewPublicNetworkSpeed()
-	sdkPublicNetworkSpeed.SetUnit("publicNetworkSpeed")
-
-	sdkPrivateNetworkSpeed := publicCloud.NewPrivateNetworkSpeed()
-	sdkPrivateNetworkSpeed.SetUnit("privateNetworkSpeed")
-
-	sdkResources := publicCloud.NewInstanceResources()
-	sdkResources.SetCpu(*sdkCpu)
-	sdkResources.SetMemory(*sdkMemory)
-	sdkResources.SetPublicNetworkSpeed(*sdkPublicNetworkSpeed)
-	sdkResources.SetPrivateNetworkSpeed(*sdkPrivateNetworkSpeed)
-
-	resources := newResources(*sdkResources)
+	got := newResources(*sdkResources)
 
 	assert.Equal(
 		t,
 		"cpu",
-		resources.Cpu.Unit.ValueString(),
+		got.Cpu.Unit.ValueString(),
 		"cpu should be set",
 	)
 	assert.Equal(
 		t,
 		"memory",
-		resources.Memory.Unit.ValueString(),
+		got.Memory.Unit.ValueString(),
 		"memory should be set",
 	)
 	assert.Equal(
 		t,
 		"publicNetworkSpeed",
-		resources.PublicNetworkSpeed.Unit.ValueString(),
+		got.PublicNetworkSpeed.Unit.ValueString(),
 		"publicNetworkSpeed should be set",
 	)
 	assert.Equal(
 		t,
-		"privateNetworkSpeed",
-		resources.PrivateNetworkSpeed.Unit.ValueString(),
-		"privateNetworkSpeed should be set",
+		"NetworkSpeed",
+		got.PrivateNetworkSpeed.Unit.ValueString(),
+		"NetworkSpeed should be set",
 	)
 }

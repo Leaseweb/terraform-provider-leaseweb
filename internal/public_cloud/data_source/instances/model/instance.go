@@ -4,57 +4,65 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type instance struct {
-	Id                  types.String    `tfsdk:"id"`
-	EquipmentId         types.String    `tfsdk:"equipment_id"`
-	SalesOrgId          types.String    `tfsdk:"sales_org_id"`
-	CustomerId          types.String    `tfsdk:"customer_id"`
-	Region              types.String    `tfsdk:"region"`
-	Reference           types.String    `tfsdk:"reference"`
-	Resources           resources       `tfsdk:"resource"`
-	OperatingSystem     operatingSystem `tfsdk:"operating_system"`
-	State               types.String    `tfsdk:"state"`
-	ProductType         types.String    `tfsdk:"product_type"`
-	HasPublicIpv4       types.Bool      `tfsdk:"has_public_ipv4"`
-	HasPrivateNetwork   types.Bool      `tfsdk:"has_private_network"`
-	Type                types.String    `tfsdk:"type"`
-	RootDiskSize        types.Int64     `tfsdk:"root_disk_size"`
-	RootDiskStorageType types.String    `tfsdk:"root_disk_storage_type"`
-	Ips                 []ip            `tfsdk:"ips"`
-	StartedAt           types.String    `tfsdk:"started_at"`
-	Contract            contract        `tfsdk:"contract"`
-	Iso                 iso             `tfsdk:"iso"`
-	MarketAppId         types.String    `tfsdk:"market_app_id"`
-	PrivateNetwork      privateNetwork  `tfsdk:"private_network"`
+	Id                  types.String      `tfsdk:"id"`
+	Region              types.String      `tfsdk:"region"`
+	Reference           types.String      `tfsdk:"reference"`
+	Resources           resources         `tfsdk:"resources"`
+	OperatingSystem     operatingSystem   `tfsdk:"operating_system"`
+	State               types.String      `tfsdk:"state"`
+	ProductType         types.String      `tfsdk:"product_type"`
+	HasPublicIpv4       types.Bool        `tfsdk:"has_public_ipv4"`
+	HasPrivateNetwork   types.Bool        `tfsdk:"has_private_network"`
+	Type                types.String      `tfsdk:"type"`
+	RootDiskSize        types.Int64       `tfsdk:"root_disk_size"`
+	RootDiskStorageType types.String      `tfsdk:"root_disk_storage_type"`
+	Ips                 []ip              `tfsdk:"ips"`
+	StartedAt           types.String      `tfsdk:"started_at"`
+	Contract            contract          `tfsdk:"contract"`
+	MarketAppId         types.String      `tfsdk:"market_app_id"`
+	AutoScalingGroup    *autoScalingGroup `tfsdk:"auto_scaling_group"`
+	Iso                 *iso              `tfsdk:"iso"`
+	PrivateNetwork      privateNetwork    `tfsdk:"private_network"`
 }
 
-func newInstance(sdkInstance publicCloud.Instance) instance {
+func newInstance(sdkInstanceDetails publicCloud.InstanceDetails) instance {
+	instanceIso, instanceIsoOk := sdkInstanceDetails.GetIsoOk()
+	instanceAutoScalingGroup, instanceAutoScalingGroupOk := sdkInstanceDetails.GetAutoScalingGroupOk()
+
 	instance := instance{
-		Id:                  basetypes.NewStringValue(sdkInstance.GetId()),
-		EquipmentId:         basetypes.NewStringValue(sdkInstance.GetEquipmentId()),
-		SalesOrgId:          basetypes.NewStringValue(sdkInstance.GetSalesOrgId()),
-		CustomerId:          basetypes.NewStringValue(sdkInstance.GetCustomerId()),
-		Region:              basetypes.NewStringValue(sdkInstance.GetRegion()),
-		Reference:           basetypes.NewStringValue(sdkInstance.GetReference()),
-		Resources:           newResources(*sdkInstance.Resources),
-		OperatingSystem:     newOperatingSystem(*sdkInstance.OperatingSystem),
-		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
-		ProductType:         basetypes.NewStringValue(sdkInstance.GetProductType()),
-		HasPublicIpv4:       basetypes.NewBoolValue(sdkInstance.GetHasPublicIpV4()),
-		HasPrivateNetwork:   basetypes.NewBoolValue(sdkInstance.GetincludesPrivateNetwork()),
-		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
-		RootDiskStorageType: basetypes.NewStringValue(sdkInstance.GetRootDiskStorageType()),
-		StartedAt:           basetypes.NewStringValue(sdkInstance.GetStartedAt().String()),
-		Contract:            newContract(sdkInstance.GetContract()),
-		Iso:                 newIso(sdkInstance.GetIso()),
-		MarketAppId:         basetypes.NewStringValue(sdkInstance.GetMarketAppId()),
-		PrivateNetwork:      newPrivateNetwork(sdkInstance.GetPrivateNetwork()),
+		Id:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
+		Region:              basetypes.NewStringValue(sdkInstanceDetails.GetRegion()),
+		Reference:           basetypes.NewStringValue(sdkInstanceDetails.GetReference()),
+		Resources:           newResources(sdkInstanceDetails.GetResources()),
+		OperatingSystem:     newOperatingSystem(sdkInstanceDetails.GetOperatingSystem()),
+		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
+		ProductType:         basetypes.NewStringValue(sdkInstanceDetails.GetProductType()),
+		HasPublicIpv4:       basetypes.NewBoolValue(sdkInstanceDetails.GetHasPublicIpV4()),
+		HasPrivateNetwork:   basetypes.NewBoolValue(sdkInstanceDetails.GetIncludesPrivateNetwork()),
+		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
+		StartedAt:           basetypes.NewStringValue(sdkInstanceDetails.GetStartedAt().String()),
+		Contract:            newContract(sdkInstanceDetails.GetContract()),
+		MarketAppId:         basetypes.NewStringValue(sdkInstanceDetails.GetMarketAppId()),
+		AutoScalingGroup: utils.ConvertNullableSdkModelToDatasourceModel(
+			instanceAutoScalingGroup,
+			instanceAutoScalingGroupOk,
+			newAutoScalingGroup,
+		),
+		Iso: utils.ConvertNullableSdkModelToDatasourceModel(
+			instanceIso,
+			instanceIsoOk,
+			newIso,
+		),
+		PrivateNetwork: newPrivateNetwork(sdkInstanceDetails.GetPrivateNetwork()),
 	}
 
-	for _, sdkIp := range sdkInstance.Ips {
+	for _, sdkIp := range sdkInstanceDetails.Ips {
 		ip := newIp(sdkIp)
 		instance.Ips = append(instance.Ips, ip)
 	}

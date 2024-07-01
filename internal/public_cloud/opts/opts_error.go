@@ -21,3 +21,9 @@ func cannotSetOperatingSystemId(operatingSystemId string) *OptsError {
 		fmt.Sprintf("Cannot set operatingSystemId \"%v\" ", operatingSystemId),
 	}
 }
+
+func cannotSetRootDiskStorageType(rootDiskStorageType string) *OptsError {
+	return &OptsError{
+		fmt.Sprintf("Cannot set rootDiskStorageType \"%v\" ", rootDiskStorageType),
+	}
+}

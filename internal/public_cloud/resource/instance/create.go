@@ -35,25 +35,39 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	request := i.client.PublicCloudClient.PublicCloudAPI.
+	launchInstanceRequest := i.client.PublicCloudClient.PublicCloudAPI.
 		LaunchInstance(i.client.AuthContext(ctx)).
 		LaunchInstanceOpts(*launchInstanceOpts)
 
-	instance, sdkResponse, sdkErr := i.client.PublicCloudClient.PublicCloudAPI.
-		LaunchInstanceExecute(request)
+	launchedInstance, launchInstanceSdkResponse, launchInstanceSdkError := i.client.PublicCloudClient.PublicCloudAPI.
+		LaunchInstanceExecute(launchInstanceRequest)
 
-	if sdkErr != nil {
+	if launchInstanceSdkError != nil {
 		utils.HandleError(
 			ctx,
-			sdkResponse,
+			launchInstanceSdkResponse,
 			&resp.Diagnostics,
 			"Error creating Public Cloud Instance",
-			sdkErr.Error(),
+			launchInstanceSdkError.Error(),
 		)
 		return
 	}
 
-	diags = plan.Populate(instance, ctx)
+	instanceRequest, instanceSdkResponse, instanceSdkError := i.client.PublicCloudClient.PublicCloudAPI.
+		GetInstance(i.client.AuthContext(ctx), launchedInstance.GetId()).Execute()
+
+	if instanceSdkError != nil {
+		utils.HandleError(
+			ctx,
+			instanceSdkResponse,
+			&resp.Diagnostics,
+			"Error creating Public Cloud Instance",
+			instanceSdkError.Error(),
+		)
+		return
+	}
+
+	diags = plan.Populate(instanceRequest, ctx)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

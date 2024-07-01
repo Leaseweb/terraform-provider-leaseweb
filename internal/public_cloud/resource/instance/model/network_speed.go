@@ -7,21 +7,21 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type PrivateNetworkSpeed struct {
+type NetworkSpeed struct {
 	Value types.Int64  `tfsdk:"value"`
 	Unit  types.String `tfsdk:"unit"`
 }
 
-func (p PrivateNetworkSpeed) attributeTypes() map[string]attr.Type {
+func (p NetworkSpeed) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"value": types.Int64Type,
 		"unit":  types.StringType,
 	}
 }
 
-func newPrivateNetworkSpeed(sdkPrivateNetworkSpeed *publicCloud.PrivateNetworkSpeed) PrivateNetworkSpeed {
-	return PrivateNetworkSpeed{
-		Value: basetypes.NewInt64Value(int64(sdkPrivateNetworkSpeed.GetValue())),
-		Unit:  basetypes.NewStringValue(sdkPrivateNetworkSpeed.GetUnit()),
+func newNetworkSpeed(sdkNetworkSpeed *publicCloud.NetworkSpeed) NetworkSpeed {
+	return NetworkSpeed{
+		Value: basetypes.NewInt64Value(int64(sdkNetworkSpeed.GetValue())),
+		Unit:  basetypes.NewStringValue(sdkNetworkSpeed.GetUnit()),
 	}
 }

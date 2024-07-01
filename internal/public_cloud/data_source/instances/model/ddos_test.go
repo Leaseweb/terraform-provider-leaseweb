@@ -1,28 +1,29 @@
 package model
 
 import (
+	"testing"
+
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_newDDos(t *testing.T) {
-	sdkDdos := publicCloud.NewDdos()
-	sdkDdos.SetDetectionProfile("detectionProfile")
-	sdkDdos.SetProtectionType("protectionType")
-
-	dDos := newDdos(*sdkDdos)
+	sdkDdos := publicCloud.Ddos{
+		DetectionProfile: "detectionProfile",
+		ProtectionType:   "protectionType",
+	}
+	got := newDdos(sdkDdos)
 
 	assert.Equal(
 		t,
 		"detectionProfile",
-		dDos.DetectionProfile.ValueString(),
+		got.DetectionProfile.ValueString(),
 		"detectionProfile should be set",
 	)
 	assert.Equal(
 		t,
 		"protectionType",
-		dDos.ProtectionType.ValueString(),
+		got.ProtectionType.ValueString(),
 		"protectionType should be set",
 	)
 }

@@ -7,16 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Instance struct {
 	Id                  types.String `tfsdk:"id"`
-	EquipmentId         types.String `tfsdk:"equipment_id"`
-	SalesOrgId          types.String `tfsdk:"sales_org_id"`
-	CustomerId          types.String `tfsdk:"customer_id"`
 	Region              types.String `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
-	Resources           types.Object `tfsdk:"resource"`
+	Resources           types.Object `tfsdk:"resources"`
 	OperatingSystem     types.Object `tfsdk:"operating_system"`
 	State               types.String `tfsdk:"state"`
 	ProductType         types.String `tfsdk:"product_type"`
@@ -28,84 +26,97 @@ type Instance struct {
 	Ips                 types.List   `tfsdk:"ips"`
 	StartedAt           types.String `tfsdk:"started_at"`
 	Contract            types.Object `tfsdk:"contract"`
-	Iso                 types.Object `tfsdk:"iso"`
 	MarketAppId         types.String `tfsdk:"market_app_id"`
+	AutoScalingGroup    types.Object `tfsdk:"auto_scaling_group"`
+	Iso                 types.Object `tfsdk:"iso"`
 	PrivateNetwork      types.Object `tfsdk:"private_network"`
 	SshKey              types.String `tfsdk:"ssh_key"`
 }
 
-func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context) diag.Diagnostics {
-	operatingSystem := newOperatingSystem(instance.OperatingSystem)
-	contract := newContract(instance.Contract)
-	iso := newIso(instance.GetIso())
-	privateNetwork := newPrivateNetwork(instance.GetPrivateNetwork())
-
-	resourcesModel, diags := newResources(ctx, instance.Resources)
-	if diags != nil {
-		return diags
-	}
-
+func (i *Instance) Populate(
+	instance *publicCloud.InstanceDetails,
+	ctx context.Context,
+) diag.Diagnostics {
 	i.Id = basetypes.NewStringValue(instance.GetId())
-	i.EquipmentId = basetypes.NewStringValue(instance.GetEquipmentId())
-	i.SalesOrgId = basetypes.NewStringValue(instance.GetSalesOrgId())
-	i.CustomerId = basetypes.NewStringValue(instance.GetCustomerId())
 	i.Region = basetypes.NewStringValue(instance.GetRegion())
 	i.Reference = basetypes.NewStringValue(instance.GetReference())
 	i.State = basetypes.NewStringValue(string(instance.GetState()))
 	i.ProductType = basetypes.NewStringValue(instance.GetProductType())
 	i.HasPublicIpv4 = basetypes.NewBoolValue(instance.GetHasPublicIpV4())
-	i.HasPrivateNetwork = basetypes.NewBoolValue(instance.GetincludesPrivateNetwork())
+	i.HasPrivateNetwork = basetypes.NewBoolValue(instance.GetIncludesPrivateNetwork())
 	i.Type = basetypes.NewStringValue(string(instance.GetType()))
 	i.RootDiskSize = basetypes.NewInt64Value(int64(instance.GetRootDiskSize()))
-	i.RootDiskStorageType = basetypes.NewStringValue(instance.GetRootDiskStorageType())
+	i.RootDiskStorageType = basetypes.NewStringValue(string(instance.GetRootDiskStorageType()))
 	i.StartedAt = basetypes.NewStringValue(instance.GetStartedAt().String())
 	i.MarketAppId = basetypes.NewStringValue(instance.GetMarketAppId())
 
-	operatingSystemObject, diags := types.ObjectValueFrom(
+	operatingSystemObject, diags := utils.ConvertSdkModelToResourceObject(
+		instance.GetOperatingSystem(),
+		OperatingSystem{}.AttributeTypes(),
 		ctx,
-		operatingSystem.attributeTypes(),
-		operatingSystem,
+		newOperatingSystem,
 	)
-	if diags != nil {
+	if diags.HasError() {
 		return diags
 	}
 	i.OperatingSystem = operatingSystemObject
 
-	contractObject, diags := types.ObjectValueFrom(
+	contractObject, diags := utils.ConvertSdkModelToResourceObject(
+		instance.GetContract(),
+		Contract{}.AttributeTypes(),
 		ctx,
-		contract.attributeTypes(),
-		contract,
+		newContract,
 	)
-	if diags != nil {
+	if diags.HasError() {
 		return diags
 	}
 	i.Contract = contractObject
 
-	isoObject, diags := types.ObjectValueFrom(ctx, iso.attributeTypes(), iso)
-	if diags != nil {
+	isoObject, diags := utils.ConvertSdkModelToResourceObject(
+		instance.GetIso(),
+		Iso{}.AttributeTypes(),
+		ctx,
+		newIso,
+	)
+	if diags.HasError() {
 		return diags
 	}
 	i.Iso = isoObject
 
-	privateNetworkObject, diags := types.ObjectValueFrom(
+	privateNetworkObject, diags := utils.ConvertSdkModelToResourceObject(
+		instance.GetPrivateNetwork(),
+		PrivateNetwork{}.AttributeTypes(),
 		ctx,
-		privateNetwork.attributeTypes(),
-		privateNetwork,
+		newPrivateNetwork,
 	)
-	if diags != nil {
+	if diags.HasError() {
 		return diags
 	}
 	i.PrivateNetwork = privateNetworkObject
 
-	resourcesObject, diags := types.ObjectValueFrom(
+	resourcesObject, diags := utils.ConvertSdkModelToResourceObject(
+		instance.GetResources(),
+		Resources{}.AttributeTypes(),
 		ctx,
-		resourcesModel.attributeTypes(),
-		resourcesModel,
+		newResources,
 	)
-	if diags != nil {
+	if diags.HasError() {
 		return diags
 	}
 	i.Resources = resourcesObject
+
+	sdkAutoScalingGroup, sdkAutoScalingGroupOk := instance.GetAutoScalingGroupOk()
+	autoScalingGroupObject, diags := utils.ConvertNullableSdkModelToResourceObject(
+		sdkAutoScalingGroup,
+		sdkAutoScalingGroupOk,
+		AutoScalingGroup{}.AttributeTypes(),
+		ctx,
+		newAutoScalingGroup,
+	)
+	if diags.HasError() {
+		return diags
+	}
+	i.AutoScalingGroup = autoScalingGroupObject
 
 	var ips []Ip
 	for _, ip := range instance.Ips {
@@ -117,7 +128,7 @@ func (i *Instance) Populate(instance *publicCloud.Instance, ctx context.Context)
 	}
 	ipsObject, diags := types.ListValueFrom(
 		ctx,
-		types.ObjectType{AttrTypes: Ip{}.attributeTypes()},
+		types.ObjectType{AttrTypes: Ip{}.AttributeTypes()},
 		ips,
 	)
 	if diags != nil {

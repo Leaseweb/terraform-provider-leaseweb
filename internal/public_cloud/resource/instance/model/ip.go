@@ -21,7 +21,7 @@ type Ip struct {
 	Ddos          types.Object `tfsdk:"ddos"`
 }
 
-func (i Ip) attributeTypes() map[string]attr.Type {
+func (i Ip) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"ip":             types.StringType,
 		"prefix_length":  types.StringType,
@@ -30,7 +30,7 @@ func (i Ip) attributeTypes() map[string]attr.Type {
 		"main_ip":        types.BoolType,
 		"network_type":   types.StringType,
 		"reverse_lookup": types.StringType,
-		"ddos":           types.ObjectType{AttrTypes: Ddos{}.attributeTypes()},
+		"ddos":           types.ObjectType{AttrTypes: Ddos{}.AttributeTypes()},
 	}
 }
 
@@ -58,7 +58,7 @@ func generateDdos(
 	ctx context.Context,
 ) (basetypes.ObjectValue, diag.Diagnostics) {
 	ddos := newDdos(ip.Ddos.Get())
-	ddosObject, diags := types.ObjectValueFrom(ctx, ddos.attributeTypes(), ddos)
+	ddosObject, diags := types.ObjectValueFrom(ctx, ddos.AttributeTypes(), ddos)
 
 	if diags != nil {
 		return ddosObject, diags

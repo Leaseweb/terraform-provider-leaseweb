@@ -1,19 +1,17 @@
 package model
 
 import (
+	"testing"
+
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestInstances_Populate(t *testing.T) {
-	instance := publicCloud.NewInstance()
-	instance.SetId("instanceId")
-	instance.SetResources(*publicCloud.NewInstanceResources())
-	instance.SetOperatingSystem(*publicCloud.NewOperatingSystem())
+	instanceDetails := publicCloud.InstanceDetails{Id: "instanceId"}
 
 	instances := Instances{}
-	instances.Populate([]publicCloud.Instance{*instance})
+	instances.Populate([]publicCloud.InstanceDetails{instanceDetails})
 
 	assert.Equal(
 		t,

@@ -12,7 +12,7 @@ type Cpu struct {
 	Unit  types.String `tfsdk:"unit"`
 }
 
-func (c Cpu) attributeTypes() map[string]attr.Type {
+func (c Cpu) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"value": types.Int64Type,
 		"unit":  types.StringType,

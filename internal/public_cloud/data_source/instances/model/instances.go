@@ -8,7 +8,7 @@ type Instances struct {
 	Instances []instance `tfsdk:"instances"`
 }
 
-func (m *Instances) Populate(sdkInstances []publicCloud.Instance) {
+func (m *Instances) Populate(sdkInstances []publicCloud.InstanceDetails) {
 	for _, sdkInstance := range sdkInstances {
 		instance := newInstance(sdkInstance)
 		m.Instances = append(m.Instances, instance)
