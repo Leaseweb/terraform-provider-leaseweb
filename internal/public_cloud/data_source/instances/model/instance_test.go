@@ -31,12 +31,12 @@ func Test_newInstance(t *testing.T) {
 		false,
 		32,
 		"rootDiskStorageType",
-		[]publicCloud.Ip{{Ip: "1.2.3.4"}},
 		publicCloud.Contract{Type: "contract"},
 		*publicCloud.NewNullableAutoScalingGroupDetails(&sdkAutoScalingGroupDetails),
 		*publicCloud.NewNullableIso(&iso),
 		*publicCloud.NewNullablePrivateNetwork(&privateNetwork),
 		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
+		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
 	)
 
 	got := newInstance(*sdkInstanceDetails)

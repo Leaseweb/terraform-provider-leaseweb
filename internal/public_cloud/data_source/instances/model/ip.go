@@ -17,7 +17,7 @@ type ip struct {
 	Ddos          ddos         `tfsdk:"ddos"`
 }
 
-func newIp(sdkIp publicCloud.Ip) ip {
+func newIp(sdkIp publicCloud.IpDetails) ip {
 	return ip{
 		Ip:            basetypes.NewStringValue(sdkIp.GetIp()),
 		PrefixLength:  basetypes.NewStringValue(sdkIp.GetPrefixLength()),

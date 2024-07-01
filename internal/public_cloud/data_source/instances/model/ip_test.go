@@ -12,7 +12,7 @@ func Test_newIp(t *testing.T) {
 	sdkDdos := publicCloud.NewNullableDdos(&publicCloud.Ddos{})
 	sdkDdos.Get().SetProtectionType("protection-type")
 
-	sdkIp := publicCloud.Ip{}
+	sdkIp := publicCloud.IpDetails{}
 	sdkIp.SetIp("ip")
 	sdkIp.SetPrefixLength("prefix-length")
 	sdkIp.SetVersion(46)

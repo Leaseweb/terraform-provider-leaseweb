@@ -13,7 +13,7 @@ import (
 func Test_newIp(t *testing.T) {
 	reverseLookup := "reverse-lookup"
 
-	sdkIp := publicCloud.NewIp(
+	sdkIpDetails := publicCloud.NewIpDetails(
 		"got",
 		"prefix-length",
 		46,
@@ -23,8 +23,9 @@ func Test_newIp(t *testing.T) {
 		*publicCloud.NewNullableString(&reverseLookup),
 		*publicCloud.NewNullableDdos(&publicCloud.Ddos{ProtectionType: "protection-type"}),
 	)
-	got, _ := newIp(context.TODO(), sdkIp)
+	got, diags := newIp(context.TODO(), sdkIpDetails)
 
+	assert.Nil(t, diags)
 	assert.Equal(
 		t,
 		"got",
@@ -79,7 +80,7 @@ func Test_newIp(t *testing.T) {
 }
 
 func TestIp_attributeTypes(t *testing.T) {
-	ip, _ := newIp(context.TODO(), &publicCloud.Ip{})
+	ip, _ := newIp(context.TODO(), &publicCloud.IpDetails{})
 
 	_, diags := types.ObjectValueFrom(context.TODO(), ip.AttributeTypes(), ip)
 

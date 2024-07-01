@@ -15,7 +15,9 @@ func Test_newDdos(t *testing.T) {
 		"protectionType",
 	))
 
-	got := newDdos(sdkDdos.Get())
+	got, diags := newDdos(context.TODO(), *sdkDdos.Get())
+
+	assert.Nil(t, diags)
 
 	assert.Equal(
 		t,

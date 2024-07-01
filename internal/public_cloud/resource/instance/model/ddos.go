@@ -1,7 +1,10 @@
 package model
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
@@ -19,9 +22,9 @@ func (d Ddos) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newDdos(sdkDDos *publicCloud.Ddos) Ddos {
-	return Ddos{
+func newDdos(ctx context.Context, sdkDDos publicCloud.Ddos) (*Ddos, diag.Diagnostics) {
+	return &Ddos{
 		DetectionProfile: basetypes.NewStringValue(sdkDDos.GetDetectionProfile()),
 		ProtectionType:   basetypes.NewStringValue(sdkDDos.GetProtectionType()),
-	}
+	}, nil
 }

@@ -62,8 +62,8 @@ func newInstance(sdkInstanceDetails publicCloud.InstanceDetails) instance {
 		PrivateNetwork: newPrivateNetwork(sdkInstanceDetails.GetPrivateNetwork()),
 	}
 
-	for _, sdkIp := range sdkInstanceDetails.Ips {
-		ip := newIp(sdkIp)
+	for _, sdkIpDetails := range sdkInstanceDetails.Ips {
+		ip := newIp(sdkIpDetails)
 		instance.Ips = append(instance.Ips, ip)
 	}
 

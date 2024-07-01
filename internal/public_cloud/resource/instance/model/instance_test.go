@@ -31,12 +31,12 @@ func TestInstance_Populate(t *testing.T) {
 		false,
 		32,
 		"rootDiskStorageType",
-		[]publicCloud.Ip{{Ip: "1.2.3.4"}},
 		publicCloud.Contract{Type: "contract"},
 		*publicCloud.NewNullableAutoScalingGroupDetails(nil),
 		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
 		*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
 		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
+		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
 	)
 
 	instance := Instance{}

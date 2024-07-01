@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type Ip struct {
@@ -34,35 +35,29 @@ func (i Ip) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newIp(ctx context.Context, sdkIp *publicCloud.Ip) (Ip, diag.Diagnostics) {
-	ddosObject, diags := generateDdos(*sdkIp, ctx)
+func newIp(
+	ctx context.Context,
+	sdkIpDetails *publicCloud.IpDetails,
+) (Ip, diag.Diagnostics) {
+	ddosObject, diags := utils.ConvertSdkModelToResourceObject(
+		sdkIpDetails.GetDdos(),
+		Ddos{}.AttributeTypes(),
+		ctx,
+		newDdos,
+	)
 
 	if diags != nil {
 		return Ip{}, diags
 	}
 
 	return Ip{
-		Ip:            basetypes.NewStringValue(sdkIp.GetIp()),
-		PrefixLength:  basetypes.NewStringValue(sdkIp.GetPrefixLength()),
-		Version:       basetypes.NewInt64Value(int64(sdkIp.GetVersion())),
-		NullRouted:    basetypes.NewBoolValue(sdkIp.GetNullRouted()),
-		MainIp:        basetypes.NewBoolValue(sdkIp.GetMainIp()),
-		NetworkType:   basetypes.NewStringValue(string(sdkIp.GetNetworkType())),
-		ReverseLookup: basetypes.NewStringValue(sdkIp.GetReverseLookup()),
+		Ip:            basetypes.NewStringValue(sdkIpDetails.GetIp()),
+		PrefixLength:  basetypes.NewStringValue(sdkIpDetails.GetPrefixLength()),
+		Version:       basetypes.NewInt64Value(int64(sdkIpDetails.GetVersion())),
+		NullRouted:    basetypes.NewBoolValue(sdkIpDetails.GetNullRouted()),
+		MainIp:        basetypes.NewBoolValue(sdkIpDetails.GetMainIp()),
+		NetworkType:   basetypes.NewStringValue(string(sdkIpDetails.GetNetworkType())),
+		ReverseLookup: basetypes.NewStringValue(sdkIpDetails.GetReverseLookup()),
 		Ddos:          ddosObject,
 	}, nil
-}
-
-func generateDdos(
-	ip publicCloud.Ip,
-	ctx context.Context,
-) (basetypes.ObjectValue, diag.Diagnostics) {
-	ddos := newDdos(ip.Ddos.Get())
-	ddosObject, diags := types.ObjectValueFrom(ctx, ddos.AttributeTypes(), ddos)
-
-	if diags != nil {
-		return ddosObject, diags
-	}
-
-	return ddosObject, nil
 }
