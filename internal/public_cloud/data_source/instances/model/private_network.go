@@ -12,8 +12,8 @@ type privateNetwork struct {
 	Subnet types.String `tfsdk:"subnet"`
 }
 
-func newPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) privateNetwork {
-	return privateNetwork{
+func newPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) *privateNetwork {
+	return &privateNetwork{
 		Id:     basetypes.NewStringValue(sdkPrivateNetwork.GetPrivateNetworkId()),
 		Status: basetypes.NewStringValue(sdkPrivateNetwork.GetStatus()),
 		Subnet: basetypes.NewStringValue(sdkPrivateNetwork.GetSubnet()),

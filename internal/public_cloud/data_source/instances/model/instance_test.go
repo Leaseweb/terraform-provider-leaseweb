@@ -13,7 +13,6 @@ func Test_newInstance(t *testing.T) {
 	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.large")
 	marketAppId := "marketAppId"
 	reference := "reference"
-	sdkAutoScalingGroupDetails := publicCloud.AutoScalingGroupDetails{Id: "autoScalingGroup"}
 	iso := publicCloud.Iso{Id: "isoId"}
 	privateNetwork := publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}
 
@@ -32,14 +31,21 @@ func Test_newInstance(t *testing.T) {
 		32,
 		"rootDiskStorageType",
 		publicCloud.Contract{Type: "contract"},
-		*publicCloud.NewNullableAutoScalingGroupDetails(&sdkAutoScalingGroupDetails),
 		*publicCloud.NewNullableIso(&iso),
 		*publicCloud.NewNullablePrivateNetwork(&privateNetwork),
 		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
 		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
+		*publicCloud.NewNullableAutoScalingGroup(nil),
 	)
 
-	got := newInstance(*sdkInstanceDetails)
+	sdkAutoScalingGroupDetails := publicCloud.AutoScalingGroupDetails{Id: "autoScalingGroup"}
+	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{Id: "loadBalancerId"}
+
+	got := newInstance(
+		*sdkInstanceDetails,
+		&sdkAutoScalingGroupDetails,
+		&sdkLoadBalancerDetails,
+	)
 
 	assert.Equal(
 		t,
@@ -149,4 +155,22 @@ func Test_newInstance(t *testing.T) {
 		got.PrivateNetwork.Id.ValueString(),
 		"privateNetwork should be set",
 	)
+	assert.Equal(
+		t,
+		"loadBalancerId",
+		got.AutoScalingGroup.LoadBalancer.Id.ValueString(),
+		"loadBalancer should be set",
+	)
+}
+
+func Test_generateAutoScalingGroup(t *testing.T) {
+	t.Run("sdkAutoScalingGroupDetails is empty", func(t *testing.T) {
+		got := generateAutoScalingGroup(nil, nil)
+		assert.Nil(t, got)
+	})
+
+	t.Run("sdkAutoScalingGroupDetails is set", func(t *testing.T) {
+		got := generateAutoScalingGroup(&publicCloud.AutoScalingGroupDetails{}, nil)
+		assert.NotNil(t, got)
+	})
 }

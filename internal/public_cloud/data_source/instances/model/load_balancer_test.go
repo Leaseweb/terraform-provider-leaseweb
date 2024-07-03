@@ -13,7 +13,7 @@ func Test_newLoadBalancer(t *testing.T) {
 	state, _ := publicCloud.NewStateFromValue("RUNNING")
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 
-	sdkLoadBalancer := publicCloud.NewLoadBalancer(
+	sdkLoadBalancerDetails := publicCloud.NewLoadBalancerDetails(
 		"id",
 		"type",
 		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "resources"}},
@@ -22,9 +22,13 @@ func Test_newLoadBalancer(t *testing.T) {
 		*state,
 		publicCloud.Contract{BillingFrequency: 5},
 		*publicCloud.NewNullableTime(&startedAt),
+		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
+		*publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{Balance: "balance"}),
+		*publicCloud.NewNullableAutoScalingGroup(nil),
+		*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
 	)
 
-	got := newLoadBalancer(*sdkLoadBalancer)
+	got := newLoadBalancer(*sdkLoadBalancerDetails)
 
 	assert.Equal(t, "id", got.Id.ValueString(), "id is set")
 	assert.Equal(
@@ -68,5 +72,23 @@ func Test_newLoadBalancer(t *testing.T) {
 		"2019-09-08 00:00:00 +0000 UTC",
 		got.StartedAt.ValueString(),
 		"startedAt is set",
+	)
+	assert.Equal(
+		t,
+		"1.2.3.4",
+		got.Ips[0].Ip.ValueString(),
+		"ips is set",
+	)
+	assert.Equal(
+		t,
+		"balance",
+		got.LoadBalancerConfiguration.Balance.ValueString(),
+		"configuration is set",
+	)
+	assert.Equal(
+		t,
+		"privateNetworkId",
+		got.PrivateNetwork.Id.ValueString(),
+		"privateNetwork is set",
 	)
 }

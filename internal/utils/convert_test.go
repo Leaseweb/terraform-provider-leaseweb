@@ -24,7 +24,7 @@ type mockModel struct {
 	Value string `tfsdk:"value"`
 }
 
-func TestConvertSdkNullableIntToInt64Value(t *testing.T) {
+func TestConvertNullableSdkIntToInt64Value(t *testing.T) {
 	value := int32(1234)
 
 	type args struct {
@@ -57,8 +57,8 @@ func TestConvertSdkNullableIntToInt64Value(t *testing.T) {
 			assert.Equalf(
 				t,
 				tt.want,
-				ConvertSdkNullableIntToInt64Value(tt.args.value, tt.args.ok),
-				"ConvertSdkNullableIntToInt64Value(%v, %v)",
+				ConvertNullableSdkIntToInt64Value(tt.args.value, tt.args.ok),
+				"ConvertNullableSdkIntToInt64Value(%v, %v)",
 				tt.args.value,
 				tt.args.ok,
 			)
@@ -66,7 +66,7 @@ func TestConvertSdkNullableIntToInt64Value(t *testing.T) {
 	}
 }
 
-func TestConvertSdkNullableTimeToStringValue(t *testing.T) {
+func TestConvertNullableSdkTimeToStringValue(t *testing.T) {
 	value, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 
 	type args struct {
@@ -96,10 +96,10 @@ func TestConvertSdkNullableTimeToStringValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, ConvertSdkNullableTimeToStringValue(
+			assert.Equalf(t, tt.want, ConvertNullableSdkTimeToStringValue(
 				tt.args.value,
 				tt.args.ok,
-			), "ConvertSdkNullableTimeToStringValue(%v)", tt.args.value)
+			), "ConvertNullableSdkTimeToStringValue(%v)", tt.args.value)
 		})
 	}
 }
@@ -260,4 +260,46 @@ func TestConvertSdkModelToResourceObject(t *testing.T) {
 		assert.Nil(t, diags)
 		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
 	})
+}
+
+func TestConvertNullableSdkStringToInt64Value(t *testing.T) {
+	value := "tralala"
+
+	type args struct {
+		value *string
+		ok    bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want basetypes.StringValue
+	}{
+		{
+			name: "value is not set",
+			args: args{ok: false, value: &value},
+			want: basetypes.NewStringNull(),
+		},
+		{
+			name: "value has been set to nil",
+			args: args{ok: true, value: nil},
+			want: basetypes.NewStringNull(),
+		},
+		{
+			name: "value has been set",
+			args: args{ok: true, value: &value},
+			want: basetypes.NewStringValue("tralala"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(
+				t,
+				tt.want,
+				ConvertNullableSdkStringToStringValue(tt.args.value, tt.args.ok),
+				"ConvertNullableSdkIntToInt64Value(%v, %v)",
+				tt.args.value,
+				tt.args.ok,
+			)
+		})
+	}
 }

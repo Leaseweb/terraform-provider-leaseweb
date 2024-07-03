@@ -39,7 +39,6 @@ func newLoadBalancer(
 	ctx context.Context,
 	sdkLoadBalancer publicCloud.LoadBalancer,
 ) (*LoadBalancer, diag.Diagnostics) {
-
 	resourcesObject, diags := utils.ConvertSdkModelToResourceObject(
 		sdkLoadBalancer.GetResources(),
 		Resources{}.AttributeTypes(),

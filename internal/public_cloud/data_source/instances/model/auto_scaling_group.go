@@ -26,29 +26,36 @@ type autoScalingGroup struct {
 	LoadBalancer  *loadBalancer `tfsdk:"load_balancer"`
 }
 
-func newAutoScalingGroup(sdkAutoScalingGroupDetails publicCloud.AutoScalingGroupDetails) *autoScalingGroup {
-	autoScalingLoadBalancer, loadBalancerOk := sdkAutoScalingGroupDetails.GetLoadBalancerOk()
-
+func newAutoScalingGroup(
+	sdkAutoScalingGroupDetails publicCloud.AutoScalingGroupDetails,
+	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+) *autoScalingGroup {
 	return &autoScalingGroup{
 		Id:            basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetId()),
 		Type:          basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetType()),
 		State:         basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetState()),
-		DesiredAmount: utils.ConvertSdkNullableIntToInt64Value(sdkAutoScalingGroupDetails.GetDesiredAmountOk()),
+		DesiredAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetDesiredAmountOk()),
 		Region:        basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetRegion()),
 		Reference:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetReference()),
 		CreatedAt:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetCreatedAt().String()),
 		UpdatedAt:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetUpdatedAt().String()),
-		StartsAt:      utils.ConvertSdkNullableTimeToStringValue(sdkAutoScalingGroupDetails.GetStartsAtOk()),
-		EndsAt:        utils.ConvertSdkNullableTimeToStringValue(sdkAutoScalingGroupDetails.GetEndsAtOk()),
-		MinimumAmount: utils.ConvertSdkNullableIntToInt64Value(sdkAutoScalingGroupDetails.GetMinimumAmountOk()),
-		MaximumAmount: utils.ConvertSdkNullableIntToInt64Value(sdkAutoScalingGroupDetails.GetMaximumAmountOk()),
-		CpuThreshold:  utils.ConvertSdkNullableIntToInt64Value(sdkAutoScalingGroupDetails.GetCpuThresholdOk()),
-		WarmupTime:    utils.ConvertSdkNullableIntToInt64Value(sdkAutoScalingGroupDetails.GetWarmupTimeOk()),
-		CooldownTime:  utils.ConvertSdkNullableIntToInt64Value(sdkAutoScalingGroupDetails.GetCooldownTimeOk()),
-		LoadBalancer: utils.ConvertNullableSdkModelToDatasourceModel(
-			autoScalingLoadBalancer,
-			loadBalancerOk,
-			newLoadBalancer,
-		),
+		StartsAt:      utils.ConvertNullableSdkTimeToStringValue(sdkAutoScalingGroupDetails.GetStartsAtOk()),
+		EndsAt:        utils.ConvertNullableSdkTimeToStringValue(sdkAutoScalingGroupDetails.GetEndsAtOk()),
+		MinimumAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetMinimumAmountOk()),
+		MaximumAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetMaximumAmountOk()),
+		CpuThreshold:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCpuThresholdOk()),
+		WarmupTime:    utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetWarmupTimeOk()),
+		CooldownTime:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCooldownTimeOk()),
+		LoadBalancer:  generateLoadBalancerDetails(sdkLoadBalancerDetails),
 	}
+}
+
+func generateLoadBalancerDetails(
+	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+) *loadBalancer {
+	if sdkLoadBalancerDetails == nil {
+		return nil
+	}
+
+	return newLoadBalancer(*sdkLoadBalancerDetails)
 }

@@ -32,15 +32,17 @@ func TestInstance_Populate(t *testing.T) {
 		32,
 		"rootDiskStorageType",
 		publicCloud.Contract{Type: "contract"},
-		*publicCloud.NewNullableAutoScalingGroupDetails(nil),
 		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
 		*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
 		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
 		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
+		*publicCloud.NewNullableAutoScalingGroup(nil),
 	)
 
+	sdkAutoScalingGroupDetails := publicCloud.AutoScalingGroupDetails{Id: "autoScalingGroupId"}
+
 	instance := Instance{}
-	instance.Populate(sdkInstance, context.TODO())
+	instance.Populate(sdkInstance, &sdkAutoScalingGroupDetails, context.TODO())
 
 	assert.Equal(
 		t,
@@ -155,6 +157,19 @@ func TestInstance_Populate(t *testing.T) {
 		"privateNetworkId",
 		privateNetwork.Id.ValueString(),
 		"privateNetwork should be set",
+	)
+
+	autoScalingGroup := AutoScalingGroup{}
+	instance.AutoScalingGroup.As(
+		context.TODO(),
+		&autoScalingGroup,
+		basetypes.ObjectAsOptions{},
+	)
+	assert.Equal(
+		t,
+		"autoScalingGroupId",
+		autoScalingGroup.Id.ValueString(),
+		"autoScalingGroup should be set",
 	)
 
 	var ips []Ip

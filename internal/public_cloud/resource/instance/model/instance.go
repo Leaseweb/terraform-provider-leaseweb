@@ -35,6 +35,7 @@ type Instance struct {
 
 func (i *Instance) Populate(
 	instance *publicCloud.InstanceDetails,
+	autoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
 	ctx context.Context,
 ) diag.Diagnostics {
 	i.Id = basetypes.NewStringValue(instance.GetId())
@@ -105,10 +106,9 @@ func (i *Instance) Populate(
 	}
 	i.Resources = resourcesObject
 
-	sdkAutoScalingGroup, sdkAutoScalingGroupOk := instance.GetAutoScalingGroupOk()
 	autoScalingGroupObject, diags := utils.ConvertNullableSdkModelToResourceObject(
-		sdkAutoScalingGroup,
-		sdkAutoScalingGroupOk,
+		autoScalingGroupDetails,
+		true,
 		AutoScalingGroup{}.AttributeTypes(),
 		ctx,
 		newAutoScalingGroup,

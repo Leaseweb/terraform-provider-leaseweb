@@ -2,8 +2,11 @@ package instance
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 	"terraform-provider-leaseweb/internal/utils"
@@ -50,7 +53,34 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	plan.Populate(instance, ctx)
+	var autoScalingGroupDetails *publicCloud.AutoScalingGroupDetails
+	var autoScalingGroupDetailsResponse *http.Response
+	var err error
+
+	// Get autoScalingGroup details for each Instance as the instanceDetails
+	// endpoint is missing loadBalancer data.
+	autoScalingGroup, _ := instance.GetAutoScalingGroupOk()
+	if autoScalingGroup != nil {
+		autoScalingGroupDetails, autoScalingGroupDetailsResponse, err = i.client.PublicCloudClient.PublicCloudAPI.GetAutoScalingGroup(
+			i.client.AuthContext(ctx),
+			autoScalingGroup.GetId(),
+		).Execute()
+		if err != nil {
+			utils.HandleError(
+				ctx,
+				autoScalingGroupDetailsResponse,
+				&resp.Diagnostics,
+				fmt.Sprintf(
+					"Unable to Read Leaseweb Public Cloud Instance %v",
+					instance.GetId(),
+				),
+				err.Error(),
+			)
+			return
+		}
+	}
+
+	plan.Populate(instance, autoScalingGroupDetails, ctx)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

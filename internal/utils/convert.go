@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// ConvertSdkNullableIntToInt64Value Convert SDK NullableInt to terraform Int64.
-func ConvertSdkNullableIntToInt64Value(value *int32, ok bool) basetypes.Int64Value {
+// ConvertNullableSdkIntToInt64Value Convert SDK NullableInt to terraform Int64.
+func ConvertNullableSdkIntToInt64Value(value *int32, ok bool) basetypes.Int64Value {
 	if value == nil || !ok {
 		return basetypes.NewInt64Null()
 	}
@@ -19,13 +19,22 @@ func ConvertSdkNullableIntToInt64Value(value *int32, ok bool) basetypes.Int64Val
 	return basetypes.NewInt64Value(int64(*value))
 }
 
-// ConvertSdkNullableTimeToStringValue Convert SDK NullableTime to terraform String.
-func ConvertSdkNullableTimeToStringValue(value *time.Time, ok bool) basetypes.StringValue {
+// ConvertNullableSdkTimeToStringValue Convert SDK NullableTime to terraform String.
+func ConvertNullableSdkTimeToStringValue(value *time.Time, ok bool) basetypes.StringValue {
 	if value == nil || !ok {
 		return basetypes.NewStringNull()
 	}
 
 	return basetypes.NewStringValue(value.String())
+}
+
+// ConvertNullableSdkStringToStringValue Convert SDK NullableString to terraform String.
+func ConvertNullableSdkStringToStringValue(value *string, ok bool) basetypes.StringValue {
+	if value == nil || !ok {
+		return basetypes.NewStringNull()
+	}
+
+	return basetypes.NewStringValue(*value)
 }
 
 // ConvertNullableSdkModelToDatasourceModel Convert nullable SDK model to datasource model.

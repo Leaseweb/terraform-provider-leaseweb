@@ -29,9 +29,12 @@ type instance struct {
 	PrivateNetwork      privateNetwork    `tfsdk:"private_network"`
 }
 
-func newInstance(sdkInstanceDetails publicCloud.InstanceDetails) instance {
+func newInstance(
+	sdkInstanceDetails publicCloud.InstanceDetails,
+	sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
+	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+) instance {
 	instanceIso, instanceIsoOk := sdkInstanceDetails.GetIsoOk()
-	instanceAutoScalingGroup, instanceAutoScalingGroupOk := sdkInstanceDetails.GetAutoScalingGroupOk()
 
 	instance := instance{
 		Id:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
@@ -49,17 +52,16 @@ func newInstance(sdkInstanceDetails publicCloud.InstanceDetails) instance {
 		StartedAt:           basetypes.NewStringValue(sdkInstanceDetails.GetStartedAt().String()),
 		Contract:            newContract(sdkInstanceDetails.GetContract()),
 		MarketAppId:         basetypes.NewStringValue(sdkInstanceDetails.GetMarketAppId()),
-		AutoScalingGroup: utils.ConvertNullableSdkModelToDatasourceModel(
-			instanceAutoScalingGroup,
-			instanceAutoScalingGroupOk,
-			newAutoScalingGroup,
+		AutoScalingGroup: generateAutoScalingGroup(
+			sdkAutoScalingGroupDetails,
+			sdkLoadBalancerDetails,
 		),
 		Iso: utils.ConvertNullableSdkModelToDatasourceModel(
 			instanceIso,
 			instanceIsoOk,
 			newIso,
 		),
-		PrivateNetwork: newPrivateNetwork(sdkInstanceDetails.GetPrivateNetwork()),
+		PrivateNetwork: *newPrivateNetwork(sdkInstanceDetails.GetPrivateNetwork()),
 	}
 
 	for _, sdkIpDetails := range sdkInstanceDetails.Ips {
@@ -68,4 +70,15 @@ func newInstance(sdkInstanceDetails publicCloud.InstanceDetails) instance {
 	}
 
 	return instance
+}
+
+func generateAutoScalingGroup(
+	sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
+	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+) *autoScalingGroup {
+	if sdkAutoScalingGroupDetails == nil {
+		return nil
+	}
+
+	return newAutoScalingGroup(*sdkAutoScalingGroupDetails, sdkLoadBalancerDetails)
 }

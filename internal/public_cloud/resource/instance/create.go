@@ -2,8 +2,11 @@ package instance
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/public_cloud/opts"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 	"terraform-provider-leaseweb/internal/utils"
@@ -53,21 +56,48 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instanceRequest, instanceSdkResponse, instanceSdkError := i.client.PublicCloudClient.PublicCloudAPI.
+	sdkInstance, sdkInstanceResponse, sdkInstanceError := i.client.PublicCloudClient.PublicCloudAPI.
 		GetInstance(i.client.AuthContext(ctx), launchedInstance.GetId()).Execute()
 
-	if instanceSdkError != nil {
+	if sdkInstanceError != nil {
 		utils.HandleError(
 			ctx,
-			instanceSdkResponse,
+			sdkInstanceResponse,
 			&resp.Diagnostics,
 			"Error creating Public Cloud Instance",
-			instanceSdkError.Error(),
+			sdkInstanceError.Error(),
 		)
 		return
 	}
 
-	diags = plan.Populate(instanceRequest, ctx)
+	var sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails
+	var sdkAutoScalingGroupDetailsResponse *http.Response
+	var err error
+
+	// Get autoScalingGroup details for each Instance as the instanceDetails
+	// endpoint is missing loadBalancer data.
+	sdkAutoScalingGroup, _ := sdkInstance.GetAutoScalingGroupOk()
+	if sdkAutoScalingGroup != nil {
+		sdkAutoScalingGroupDetails, sdkAutoScalingGroupDetailsResponse, err = i.client.PublicCloudClient.PublicCloudAPI.GetAutoScalingGroup(
+			i.client.AuthContext(ctx),
+			sdkAutoScalingGroup.GetId(),
+		).Execute()
+		if err != nil {
+			utils.HandleError(
+				ctx,
+				sdkAutoScalingGroupDetailsResponse,
+				&resp.Diagnostics,
+				fmt.Sprintf(
+					"Unable to Read Leaseweb Public Cloud Instance %v",
+					sdkInstance.GetId(),
+				),
+				err.Error(),
+			)
+			return
+		}
+	}
+
+	diags = plan.Populate(sdkInstance, sdkAutoScalingGroupDetails, ctx)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
