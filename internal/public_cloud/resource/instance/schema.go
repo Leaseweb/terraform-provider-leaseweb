@@ -331,11 +331,6 @@ func (i *instanceResource) Schema(
 					},
 					"state": schema.StringAttribute{
 						Computed: true,
-						Validators: []validator.String{
-							stringvalidator.OneOf(
-								[]string{"ACTIVE", "DELETE_SCHEDULED"}...,
-							),
-						},
 					},
 				},
 				Validators: []validator.Object{customerValidator.ContractTermIsValid()},
@@ -429,6 +424,11 @@ func (i *instanceResource) Schema(
 							"type": schema.StringAttribute{
 								Computed:    true,
 								Description: "Load balancer type",
+								Validators: []validator.String{
+									stringvalidator.OneOf(
+										[]string{"HOURLY", "MONTHLY"}...,
+									),
+								},
 							},
 							"resources": schema.SingleNestedAttribute{
 								Attributes: map[string]schema.Attribute{
