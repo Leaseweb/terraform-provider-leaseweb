@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -204,7 +205,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
-	t.Run("invalid instance type", func(t *testing.T) {
+	t.Run("invalid instanceType", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
@@ -230,7 +231,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("invalid ssh key", func(t *testing.T) {
+	t.Run("invalid sshKey", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
@@ -440,6 +441,59 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
+	type errorTestCases struct {
+		requiredField string
+		expectedError string
+	}
+
+	for _, scenario := range []errorTestCases{
+		{
+			requiredField: "region",
+			expectedError: fmt.Sprintf(
+				"The argument %q is required, but no definition was found.",
+				"region",
+			),
+		},
+		{
+			requiredField: "root_disk_storage_type",
+			expectedError: fmt.Sprintf(
+				"The argument %q is required, but no definition was",
+				"root_disk_storage_type",
+			),
+		},
+		{
+			requiredField: "type",
+			expectedError: fmt.Sprintf(
+				"The argument %q is required, but no definition was found.",
+				"type",
+			),
+		},
+		{
+			requiredField: "operating_system.id",
+			expectedError: "Inappropriate value for attribute \"operating_system\": attribute \"id\"",
+		},
+		{
+			requiredField: "contract.type|contract.term|contract.billing_frequency",
+			expectedError: "Inappropriate value for attribute \"contract\": attributes \"billing_frequency\",\n\"term\", and \"type\" are required.",
+		},
+	} {
+		t.Run(scenario.requiredField+" should be set", func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  operating_system = {}
+  contract = {}
+}`,
+						ExpectError: regexp.MustCompile(scenario.expectedError),
+					},
+				},
+			})
+		})
+	}
 
 	t.Run("upgrading to invalid instanceType is not allowed", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
