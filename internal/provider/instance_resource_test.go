@@ -178,6 +178,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
 	t.Run("term must not be 0 when contract type is MONTHLY", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -228,6 +229,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
 	t.Run("invalid ssh key", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -254,6 +256,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
 	t.Run("rootDiskSize is too small", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -280,6 +283,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
 	t.Run("rootDiskSize is too big", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -306,6 +310,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
 	t.Run("invalid rootDiskStorageType", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -331,6 +336,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
 	t.Run("invalid billingFrequency", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -356,6 +362,33 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
+
+	t.Run("invalid operating_system_id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m3.large"
+  reference = "my webserver"
+  operating_system = {
+    id = "tralala"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					ExpectError: regexp.MustCompile("Attribute operating_system.id value must be one of"),
+				},
+			},
+		})
+	})
+
 	t.Run("upgrading to invalid instanceType is not allowed", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

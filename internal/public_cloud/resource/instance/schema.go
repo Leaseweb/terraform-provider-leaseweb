@@ -85,6 +85,29 @@ func (i *instanceResource) Schema(
 					"id": schema.StringAttribute{
 						Required:    true,
 						Description: "Operating System ID",
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								[]string{
+									"ALMALINUX_8_64BIT",
+									"ALMALINUX_9_64BIT",
+									"ARCH_LINUX_64BIT",
+									"CENTOS_7_64BIT",
+									"DEBIAN_10_64BIT",
+									"DEBIAN_11_64BIT",
+									"DEBIAN_12_64BIT",
+									"FREEBSD_13_64BIT",
+									"FREEBSD_14_64BIT",
+									"ROCKY_LINUX_8_64BIT",
+									"ROCKY_LINUX_9_64BIT",
+									"UBUNTU_20_04_64BIT",
+									"UBUNTU_22_04_64BIT",
+									"UBUNTU_24_04_64BIT",
+									"WINDOWS_SERVER_2016_STANDARD_64BIT",
+									"WINDOWS_SERVER_2019_STANDARD_64BIT",
+									"WINDOWS_SERVER_2022_STANDARD_64BIT",
+								}...,
+							),
+						},
 					},
 					"name": schema.StringAttribute{
 						Computed: true,
