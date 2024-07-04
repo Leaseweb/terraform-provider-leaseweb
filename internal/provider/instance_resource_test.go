@@ -338,6 +338,32 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
+	t.Run("invalid region", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "tralala"
+  type      = "lsw.m4.2xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					ExpectError: regexp.MustCompile("Invalid Region"),
+				},
+			},
+		})
+	})
+
 	t.Run("invalid contract.billingFrequency", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
