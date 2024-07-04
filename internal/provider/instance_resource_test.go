@@ -319,7 +319,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.4xlarge"
+  type      = "lsw.m4.2xlarge"
   reference = "my webserver"
   operating_system = {
     id = "UBUNTU_22_04_64BIT"
@@ -337,7 +337,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("invalid billingFrequency", func(t *testing.T) {
+	t.Run("invalid contract.billingFrequency", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
@@ -345,7 +345,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.4xlarge"
+  type      = "lsw.m3.2xlarge"
   reference = "my webserver"
   operating_system = {
     id = "UBUNTU_22_04_64BIT"
@@ -358,6 +358,58 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
 }`,
 					ExpectError: regexp.MustCompile("Attribute contract.billing_frequency value must be one of"),
+				},
+			},
+		})
+	})
+
+	t.Run("invalid contract.term", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m3.2xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 55
+    type              = "MONTHLY"
+  }
+}`,
+					ExpectError: regexp.MustCompile("Attribute contract.term value must be one of"),
+				},
+			},
+		})
+	})
+
+	t.Run("invalid contract.type", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = "lsw.m3.2xlarge"
+  reference = "my webserver"
+  operating_system = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 3
+    type              = "tralala"
+  }
+}`,
+					ExpectError: regexp.MustCompile("Attribute contract.type value must be one of"),
 				},
 			},
 		})
