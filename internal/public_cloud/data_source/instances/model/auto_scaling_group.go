@@ -46,16 +46,10 @@ func newAutoScalingGroup(
 		CpuThreshold:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCpuThresholdOk()),
 		WarmupTime:    utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetWarmupTimeOk()),
 		CooldownTime:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCooldownTimeOk()),
-		LoadBalancer:  generateLoadBalancerDetails(sdkLoadBalancerDetails),
+		LoadBalancer: utils.ConvertNullableSdkModelToDatasourceModel(
+			sdkLoadBalancerDetails,
+			true,
+			newLoadBalancer,
+		),
 	}
-}
-
-func generateLoadBalancerDetails(
-	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
-) *loadBalancer {
-	if sdkLoadBalancerDetails == nil {
-		return nil
-	}
-
-	return newLoadBalancer(*sdkLoadBalancerDetails)
 }

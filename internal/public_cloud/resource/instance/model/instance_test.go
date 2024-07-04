@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestInstance_Populate(t *testing.T) {
 	reference := "reference"
 	state, _ := publicCloud.NewStateFromValue("CREATING")
 
-	sdkInstance := publicCloud.NewInstanceDetails(
+	sdkInstanceDetails := publicCloud.NewInstanceDetails(
 		"id",
 		*sdkInstanceTypeName,
 		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
@@ -40,9 +41,15 @@ func TestInstance_Populate(t *testing.T) {
 	)
 
 	sdkAutoScalingGroupDetails := publicCloud.AutoScalingGroupDetails{Id: "autoScalingGroupId"}
+	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{Id: "loadBalancerId"}
 
 	instance := Instance{}
-	instance.Populate(sdkInstance, &sdkAutoScalingGroupDetails, context.TODO())
+	instance.Populate(
+		sdkInstanceDetails,
+		&sdkAutoScalingGroupDetails,
+		&sdkLoadBalancerDetails,
+		context.TODO(),
+	)
 
 	assert.Equal(
 		t,
@@ -172,6 +179,19 @@ func TestInstance_Populate(t *testing.T) {
 		"autoScalingGroup should be set",
 	)
 
+	loadBalancer := LoadBalancer{}
+	autoScalingGroup.LoadBalancer.As(
+		context.TODO(),
+		&loadBalancer,
+		basetypes.ObjectAsOptions{},
+	)
+	assert.Equal(
+		t,
+		"loadBalancerId",
+		loadBalancer.Id.ValueString(),
+		"loadBalancer should be set",
+	)
+
 	var ips []Ip
 	instance.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Equal(
@@ -191,4 +211,40 @@ func TestInstance_Populate(t *testing.T) {
 		cpu.Unit.ValueString(),
 		"privateNetwork should be set",
 	)
+}
+
+func Test_generateAutoScalingGroup(t *testing.T) {
+	t.Run("autoScalingGroup is not set", func(t *testing.T) {
+		got, diags := generateAutoScalingGroup(
+			context.TODO(),
+			nil,
+			nil,
+		)
+
+		assert.Nil(t, diags)
+		assert.Equal(t, types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), got)
+	})
+
+	t.Run("autoScalingGroup is set", func(t *testing.T) {
+		got, diags := generateAutoScalingGroup(
+			context.TODO(),
+			&publicCloud.AutoScalingGroupDetails{Id: "autoScalingGroupId"},
+			nil,
+		)
+
+		assert.Nil(t, diags)
+
+		autoScalingGroup := AutoScalingGroup{}
+		got.As(
+			context.TODO(),
+			&autoScalingGroup,
+			basetypes.ObjectAsOptions{},
+		)
+		assert.Equal(
+			t,
+			"autoScalingGroupId",
+			autoScalingGroup.Id.ValueString(),
+			"autoScalingGroup should be set",
+		)
+	})
 }

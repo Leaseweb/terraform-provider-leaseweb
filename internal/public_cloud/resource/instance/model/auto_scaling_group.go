@@ -54,12 +54,12 @@ func (a AutoScalingGroup) AttributeTypes() map[string]attr.Type {
 func newAutoScalingGroup(
 	ctx context.Context,
 	sdkAutoScalingGroupDetails publicCloud.AutoScalingGroupDetails,
+	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
 ) (*AutoScalingGroup, diag.Diagnostics) {
 
-	autoScalingLoadBalancer, loadBalancerOk := sdkAutoScalingGroupDetails.GetLoadBalancerOk()
 	autoScalingLoadBalancerObject, diags := utils.ConvertNullableSdkModelToResourceObject(
-		autoScalingLoadBalancer,
-		loadBalancerOk,
+		sdkLoadBalancerDetails,
+		true,
 		LoadBalancer{}.AttributeTypes(),
 		ctx,
 		newLoadBalancer,

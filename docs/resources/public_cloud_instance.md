@@ -108,6 +108,9 @@ Read-Only:
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--contract))
 - `id` (String) The load balancer unique identifier
+- `ips` (Attributes List) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--ips))
+- `load_balancer_configuration` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration))
+- `private_network` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--private_network))
 - `reference` (String) The identifying name set to the load balancer
 - `region` (String) The region where the load balancer was launched into
 - `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources))
@@ -127,6 +130,73 @@ Read-Only:
 - `state` (String)
 - `term` (Number) Contract term (in months). Used only when contract type is MONTHLY
 - `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--ips"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.ips`
+
+Read-Only:
+
+- `ddos` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--ips--ddos))
+- `ip` (String)
+- `main_ip` (Boolean)
+- `network_type` (String)
+- `null_routed` (Boolean)
+- `prefix_length` (String)
+- `reverse_lookup` (String)
+- `version` (Number)
+
+<a id="nestedatt--auto_scaling_group--load_balancer--ips--ddos"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.ips.ddos`
+
+Read-Only:
+
+- `detection_profile` (String)
+- `protection_type` (String)
+
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.load_balancer_configuration`
+
+Read-Only:
+
+- `balance` (String)
+- `health_check` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration--health_check))
+- `idle_timeout` (Number)
+- `sticky_session` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration--sticky_session))
+- `target_port` (Number)
+- `x_forwarded_for` (Boolean)
+
+<a id="nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration--health_check"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.load_balancer_configuration.health_check`
+
+Read-Only:
+
+- `host` (String)
+- `method` (String)
+- `port` (Number)
+- `uri` (String)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration--sticky_session"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.load_balancer_configuration.sticky_session`
+
+Read-Only:
+
+- `enabled` (Boolean)
+- `max_life_time` (Number)
+
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--private_network"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.private_network`
+
+Read-Only:
+
+- `id` (String)
+- `status` (String)
+- `subnet` (String)
 
 
 <a id="nestedatt--auto_scaling_group--load_balancer--resources"></a>

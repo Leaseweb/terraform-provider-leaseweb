@@ -36,6 +36,7 @@ type Instance struct {
 func (i *Instance) Populate(
 	instance *publicCloud.InstanceDetails,
 	autoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
+	loadBalancerDetails *publicCloud.LoadBalancerDetails,
 	ctx context.Context,
 ) diag.Diagnostics {
 	i.Id = basetypes.NewStringValue(instance.GetId())
@@ -106,13 +107,7 @@ func (i *Instance) Populate(
 	}
 	i.Resources = resourcesObject
 
-	autoScalingGroupObject, diags := utils.ConvertNullableSdkModelToResourceObject(
-		autoScalingGroupDetails,
-		true,
-		AutoScalingGroup{}.AttributeTypes(),
-		ctx,
-		newAutoScalingGroup,
-	)
+	autoScalingGroupObject, diags := generateAutoScalingGroup(ctx, autoScalingGroupDetails, loadBalancerDetails)
 	if diags.HasError() {
 		return diags
 	}
@@ -137,4 +132,34 @@ func (i *Instance) Populate(
 	i.Ips = ipsObject
 
 	return nil
+}
+
+func generateAutoScalingGroup(
+	ctx context.Context,
+	sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
+	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+) (basetypes.ObjectValue, diag.Diagnostics) {
+	if sdkAutoScalingGroupDetails == nil {
+		return types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), nil
+	}
+
+	autoScalingGroup, diags := newAutoScalingGroup(
+		ctx,
+		*sdkAutoScalingGroupDetails,
+		sdkLoadBalancerDetails,
+	)
+	if diags.HasError() {
+		return types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), diags
+	}
+
+	autoScalingGroupObject, diags := types.ObjectValueFrom(
+		ctx,
+		autoScalingGroup.AttributeTypes(),
+		autoScalingGroup,
+	)
+	if diags.HasError() {
+		return types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), diags
+	}
+
+	return autoScalingGroupObject, nil
 }

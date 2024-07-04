@@ -486,6 +486,92 @@ func (i *instanceResource) Schema(
 								Computed:    true,
 								Description: "Date and time when the load balancer was started for the first time, right after launching it",
 							},
+							"ips": schema.ListNestedAttribute{
+								Computed: true,
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"ip":            schema.StringAttribute{Computed: true},
+										"prefix_length": schema.StringAttribute{Computed: true},
+										"version":       schema.Int64Attribute{Computed: true},
+										"null_routed":   schema.BoolAttribute{Computed: true},
+										"main_ip":       schema.BoolAttribute{Computed: true},
+										"network_type": schema.StringAttribute{
+											Computed: true,
+										},
+										"reverse_lookup": schema.StringAttribute{Computed: true},
+										"ddos": schema.SingleNestedAttribute{
+											Computed: true,
+											Attributes: map[string]schema.Attribute{
+												"detection_profile": schema.StringAttribute{
+													Computed: true,
+												},
+												"protection_type": schema.StringAttribute{
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+							"private_network": schema.SingleNestedAttribute{
+								Computed: true,
+								Attributes: map[string]schema.Attribute{
+									"id": schema.StringAttribute{
+										Computed: true,
+									},
+									"status": schema.StringAttribute{
+										Computed: true,
+									},
+									"subnet": schema.StringAttribute{
+										Computed: true,
+									},
+								},
+							},
+							"load_balancer_configuration": schema.SingleNestedAttribute{
+								Computed: true,
+								Attributes: map[string]schema.Attribute{
+									"balance": schema.StringAttribute{
+										Computed: true,
+									},
+									"health_check": schema.SingleNestedAttribute{
+										Computed: true,
+										Attributes: map[string]schema.Attribute{
+											"method": schema.StringAttribute{
+												Computed: true,
+											},
+											"uri": schema.StringAttribute{
+												Computed: true,
+											},
+											"host": schema.StringAttribute{
+												Computed: true,
+											},
+											"port": schema.Int64Attribute{
+												Computed: true,
+											},
+										},
+									},
+									"sticky_session": schema.SingleNestedAttribute{
+										Computed: true,
+										Attributes: map[string]schema.Attribute{
+											"enabled": schema.BoolAttribute{
+												Computed: true,
+											},
+											"max_life_time": schema.Int64Attribute{
+												Computed: true,
+											},
+										},
+									},
+									"x_forwarded_for": schema.BoolAttribute{
+										Computed: true,
+									},
+									"idle_timeout": schema.Int64Attribute{
+										Computed: true,
+									},
+									"target_port": schema.Int64Attribute{
+										Computed: true,
+									},
+								},
+							},
 						},
 					},
 				},

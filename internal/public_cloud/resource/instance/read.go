@@ -39,10 +39,12 @@ func (i *instanceResource) Read(
 	}
 
 	var autoScalingGroupDetails *publicCloud.AutoScalingGroupDetails
+	var loadBalancerDetails *publicCloud.LoadBalancerDetails
 	var autoScalingGroupDetailsResponse *http.Response
+	var loadBalancerDetailsResponse *http.Response
 
-	// Get autoScalingGroup details for each Instance as the instanceDetails
-	// endpoint is missing loadBalancer data.
+	// Get autoScalingGroup details for the Instance as the instanceDetails
+	// endpoint is missing data.
 	sdkAutoScalingGroup, _ := instance.GetAutoScalingGroupOk()
 	if sdkAutoScalingGroup != nil {
 		autoScalingGroupDetails, autoScalingGroupDetailsResponse, err = i.client.PublicCloudClient.PublicCloudAPI.GetAutoScalingGroup(
@@ -59,9 +61,40 @@ func (i *instanceResource) Read(
 			)
 			return
 		}
+
+		// Get loadBalancer details for the AutoScalingGroup as the autoScalingGroupDetails
+		// endpoint is missing data.
+		if autoScalingGroupDetails != nil {
+			sdkLoadBalancer, _ := autoScalingGroupDetails.GetLoadBalancerOk()
+			if sdkLoadBalancer != nil {
+				loadBalancerDetails, loadBalancerDetailsResponse, err = i.client.PublicCloudClient.PublicCloudAPI.GetLoadBalancer(
+					i.client.AuthContext(ctx),
+					sdkLoadBalancer.GetId(),
+				).Execute()
+				if err != nil {
+					utils.HandleError(
+						ctx,
+						loadBalancerDetailsResponse,
+						&resp.Diagnostics,
+						fmt.Sprintf(
+							"Unable to Read Leaseweb LoadBalancer %v",
+							sdkLoadBalancer.GetId(),
+						),
+						err.Error(),
+					)
+					return
+				}
+
+			}
+		}
 	}
 
-	state.Populate(instance, autoScalingGroupDetails, ctx)
+	state.Populate(
+		instance,
+		autoScalingGroupDetails,
+		loadBalancerDetails,
+		ctx,
+	)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

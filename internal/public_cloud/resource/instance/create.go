@@ -72,10 +72,12 @@ func (i *instanceResource) Create(
 
 	var sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails
 	var sdkAutoScalingGroupDetailsResponse *http.Response
+	var sdkLoadBalancerDetailsResponse *http.Response
+	var sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails
 	var err error
 
-	// Get autoScalingGroup details for each Instance as the instanceDetails
-	// endpoint is missing loadBalancer data.
+	// Get autoScalingGroup details for the Instance as the instanceDetails
+	// endpoint is missing data.
 	sdkAutoScalingGroup, _ := sdkInstance.GetAutoScalingGroupOk()
 	if sdkAutoScalingGroup != nil {
 		sdkAutoScalingGroupDetails, sdkAutoScalingGroupDetailsResponse, err = i.client.PublicCloudClient.PublicCloudAPI.GetAutoScalingGroup(
@@ -88,16 +90,47 @@ func (i *instanceResource) Create(
 				sdkAutoScalingGroupDetailsResponse,
 				&resp.Diagnostics,
 				fmt.Sprintf(
-					"Unable to Read Leaseweb Public Cloud Instance %v",
-					sdkInstance.GetId(),
+					"Unable to Read Leaseweb AutoScalingGroup %v",
+					sdkAutoScalingGroup.GetId(),
 				),
 				err.Error(),
 			)
 			return
 		}
+
+		// Get loadBalancer details for the AutoScalingGroup as the autoScalingGroupDetails
+		// endpoint is missing data.
+		if sdkAutoScalingGroupDetails != nil {
+			sdkLoadBalancer, _ := sdkAutoScalingGroupDetails.GetLoadBalancerOk()
+			if sdkLoadBalancer != nil {
+				sdkLoadBalancerDetails, sdkLoadBalancerDetailsResponse, err = i.client.PublicCloudClient.PublicCloudAPI.GetLoadBalancer(
+					i.client.AuthContext(ctx),
+					sdkLoadBalancer.GetId(),
+				).Execute()
+				if err != nil {
+					utils.HandleError(
+						ctx,
+						sdkLoadBalancerDetailsResponse,
+						&resp.Diagnostics,
+						fmt.Sprintf(
+							"Unable to Read Leaseweb LoadBalancer %v",
+							sdkLoadBalancer.GetId(),
+						),
+						err.Error(),
+					)
+					return
+				}
+
+			}
+		}
 	}
 
-	diags = plan.Populate(sdkInstance, sdkAutoScalingGroupDetails, ctx)
+	diags = plan.Populate(
+		sdkInstance,
+		sdkAutoScalingGroupDetails,
+		sdkLoadBalancerDetails,
+		ctx,
+	)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

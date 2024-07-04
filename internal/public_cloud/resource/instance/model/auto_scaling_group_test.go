@@ -1,9 +1,11 @@
 package model
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 )
@@ -41,11 +43,13 @@ func Test_newAutoScalingGroup(t *testing.T) {
 
 	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{Id: "loadBalancerId"}
 
-	got := newAutoScalingGroup(
+	got, diags := newAutoScalingGroup(
+		context.TODO(),
 		*sdkAutoScalingGroupDetails,
 		&sdkLoadBalancerDetails,
 	)
 
+	assert.Nil(t, diags)
 	assert.Equal(t, "id", got.Id.ValueString())
 	assert.Equal(t, "type", got.Type.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
@@ -77,5 +81,12 @@ func Test_newAutoScalingGroup(t *testing.T) {
 	assert.Equal(t, int64(4), got.CpuThreshold.ValueInt64())
 	assert.Equal(t, int64(5), got.WarmupTime.ValueInt64())
 	assert.Equal(t, int64(6), got.CooldownTime.ValueInt64())
-	assert.Equal(t, "loadBalancerId", got.LoadBalancer.Id.ValueString())
+
+	loadBalancer := LoadBalancer{}
+	got.LoadBalancer.As(
+		context.TODO(),
+		&loadBalancer,
+		basetypes.ObjectAsOptions{},
+	)
+	assert.Equal(t, "loadBalancerId", loadBalancer.Id.ValueString())
 }

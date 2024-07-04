@@ -32,7 +32,10 @@ func (c Contract) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newContract(ctx context.Context, sdkContract publicCloud.Contract) (*Contract, diag.Diagnostics) {
+func newContract(
+	ctx context.Context,
+	sdkContract publicCloud.Contract,
+) (*Contract, diag.Diagnostics) {
 	return &Contract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
