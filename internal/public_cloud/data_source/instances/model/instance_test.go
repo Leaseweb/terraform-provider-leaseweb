@@ -33,7 +33,7 @@ func Test_newInstance(t *testing.T) {
 		publicCloud.Contract{Type: "contract"},
 		*publicCloud.NewNullableIso(&iso),
 		*publicCloud.NewNullablePrivateNetwork(&privateNetwork),
-		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
+		publicCloud.ImageDetails{Id: "imageId"},
 		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
 		*publicCloud.NewNullableAutoScalingGroup(nil),
 	)
@@ -115,9 +115,9 @@ func Test_newInstance(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"operatingSystemId",
-		got.OperatingSystem.Id.ValueString(),
-		"operating_system should be set",
+		"imageId",
+		got.Image.Id.ValueString(),
+		"image should be set",
 	)
 	assert.Equal(
 		t,
@@ -165,12 +165,18 @@ func Test_newInstance(t *testing.T) {
 
 func Test_generateAutoScalingGroup(t *testing.T) {
 	t.Run("sdkAutoScalingGroupDetails is empty", func(t *testing.T) {
-		got := generateAutoScalingGroup(nil, nil)
+		got := generateAutoScalingGroup(
+			nil,
+			nil,
+		)
 		assert.Nil(t, got)
 	})
 
 	t.Run("sdkAutoScalingGroupDetails is set", func(t *testing.T) {
-		got := generateAutoScalingGroup(&publicCloud.AutoScalingGroupDetails{}, nil)
+		got := generateAutoScalingGroup(
+			&publicCloud.AutoScalingGroupDetails{},
+			nil,
+		)
 		assert.NotNil(t, got)
 	})
 }

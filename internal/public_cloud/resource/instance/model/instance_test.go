@@ -35,7 +35,7 @@ func TestInstance_Populate(t *testing.T) {
 		publicCloud.Contract{Type: "contract"},
 		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
 		*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
-		publicCloud.OperatingSystemDetails{Id: "operatingSystemId"},
+		publicCloud.ImageDetails{Id: "imageId"},
 		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
 		*publicCloud.NewNullableAutoScalingGroup(nil),
 	)
@@ -122,17 +122,17 @@ func TestInstance_Populate(t *testing.T) {
 		"reference should be set",
 	)
 
-	operatingSystem := OperatingSystem{}
-	instance.OperatingSystem.As(
+	image := Image{}
+	instance.Image.As(
 		context.TODO(),
-		&operatingSystem,
+		&image,
 		basetypes.ObjectAsOptions{},
 	)
 	assert.Equal(
 		t,
-		"operatingSystemId",
-		operatingSystem.Id.ValueString(),
-		"operating_system should be set",
+		"imageId",
+		image.Id.ValueString(),
+		"image should be set",
 	)
 
 	contract := Contract{}

@@ -13,7 +13,7 @@ import (
 
 func setupSdkInstanceDetails(
 	instanceDetails *publicCloud.InstanceDetails,
-	operatingSystemDetails *publicCloud.OperatingSystemDetails,
+	imageDetails *publicCloud.ImageDetails,
 	contract *publicCloud.Contract,
 	instanceTypeName *publicCloud.InstanceTypeName,
 ) *publicCloud.InstanceDetails {
@@ -25,15 +25,15 @@ func setupSdkInstanceDetails(
 		instanceTypeName, _ = publicCloud.NewInstanceTypeNameFromValue("lsw.m5a.4xlarge")
 	}
 
-	if operatingSystemDetails == nil {
-		operatingSystemId, _ := publicCloud.NewOperatingSystemIdFromValue(
+	if imageDetails == nil {
+		imageId, _ := publicCloud.NewImageIdFromValue(
 			"UBUNTU_24_04_64BIT",
 		)
-		operatingSystemDetails = &publicCloud.OperatingSystemDetails{}
-		operatingSystemDetails.SetId(*operatingSystemId)
+		imageDetails = &publicCloud.ImageDetails{}
+		imageDetails.SetId(*imageId)
 	}
 
-	instanceDetails.SetOperatingSystem(*operatingSystemDetails)
+	instanceDetails.SetImage(*imageDetails)
 	instanceDetails.SetResources(publicCloud.Resources{})
 	instanceDetails.SetType(*instanceTypeName)
 
@@ -142,10 +142,8 @@ func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
 
 func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 	t.Run("required options should be set correctly", func(t *testing.T) {
-		sdkOperatingSystemId, _ := publicCloud.NewOperatingSystemIdFromValue(
-			"UBUNTU_24_04_64BIT",
-		)
-		sdkOperatingSystemDetails := publicCloud.OperatingSystemDetails{Id: *sdkOperatingSystemId}
+		sdkImageId, _ := publicCloud.NewImageIdFromValue("UBUNTU_24_04_64BIT")
+		sdkImageDetails := publicCloud.ImageDetails{Id: *sdkImageId}
 		sdkContract := publicCloud.Contract{
 			Term:             4,
 			Type:             "contractType",
@@ -154,7 +152,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 		rootDiskStorageType, _ := publicCloud.NewRootDiskStorageTypeFromValue("CENTRAL")
 
 		sdkInstanceDetails := publicCloud.InstanceDetails{
-			OperatingSystem:     sdkOperatingSystemDetails,
+			Image:               sdkImageDetails,
 			Region:              "eu-west-1",
 			RootDiskStorageType: *rootDiskStorageType,
 		}
@@ -163,7 +161,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 
 		sdkInstanceDetails = *setupSdkInstanceDetails(
 			&sdkInstanceDetails,
-			&sdkOperatingSystemDetails,
+			&sdkImageDetails,
 			&sdkContract,
 			sdkInstanceTypeName,
 		)
@@ -206,8 +204,8 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 		assert.Equal(
 			t,
 			"UBUNTU_24_04_64BIT",
-			string(launchInstanceOpts.GetOperatingSystemId()),
-			"operating_system id  should be UBUNTU_24_04_64BIT",
+			string(launchInstanceOpts.GetImageId()),
+			"image id  should be UBUNTU_24_04_64BIT",
 		)
 
 		assert.Equal(
@@ -284,12 +282,11 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run(
-		"invalid operatingSystemId should return an error",
+		"invalid imageId should return an error",
 		func(t *testing.T) {
-			sdkOperatingSystemDetails := publicCloud.OperatingSystemDetails{}
 			sdkInstance := setupSdkInstanceDetails(
 				nil,
-				&sdkOperatingSystemDetails,
+				&publicCloud.ImageDetails{},
 				nil,
 				nil,
 			)

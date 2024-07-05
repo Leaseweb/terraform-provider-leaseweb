@@ -18,7 +18,7 @@ description: |-
 ### Required
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
-- `operating_system` (Attributes) (see [below for nested schema](#nestedatt--operating_system))
+- `image` (Attributes) (see [below for nested schema](#nestedatt--image))
 - `region` (String) Region to launch the instance into
 - `root_disk_storage_type` (String) The root disk's storage type
 - `type` (String) Instance type
@@ -61,12 +61,12 @@ Read-Only:
 - `state` (String)
 
 
-<a id="nestedatt--operating_system"></a>
-### Nested Schema for `operating_system`
+<a id="nestedatt--image"></a>
+### Nested Schema for `image`
 
 Required:
 
-- `id` (String) Operating System ID
+- `id` (String) Image ID
 
 Read-Only:
 

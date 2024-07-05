@@ -10,7 +10,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type OperatingSystem struct {
+type Image struct {
 	Id           types.String   `tfsdk:"id"`
 	Name         types.String   `tfsdk:"name"`
 	Version      types.String   `tfsdk:"version"`
@@ -21,7 +21,7 @@ type OperatingSystem struct {
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }
 
-func (o OperatingSystem) AttributeTypes() map[string]attr.Type {
+func (i Image) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":            types.StringType,
 		"name":          types.StringType,
@@ -34,28 +34,28 @@ func (o OperatingSystem) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newOperatingSystem(
+func newImage(
 	ctx context.Context,
-	sdkOperatingSystem publicCloud.OperatingSystemDetails,
-) (*OperatingSystem, diag.Diagnostics) {
+	sdkImage publicCloud.ImageDetails,
+) (*Image, diag.Diagnostics) {
 	var marketApps []types.String
 	var storageTypes []types.String
 
-	for _, marketApp := range sdkOperatingSystem.MarketApps {
+	for _, marketApp := range sdkImage.MarketApps {
 		marketApps = append(marketApps, types.StringValue(marketApp))
 	}
 
-	for _, storageType := range sdkOperatingSystem.StorageTypes {
+	for _, storageType := range sdkImage.StorageTypes {
 		storageTypes = append(storageTypes, types.StringValue(storageType))
 	}
 
-	return &OperatingSystem{
-		Id:           basetypes.NewStringValue(string(sdkOperatingSystem.GetId())),
-		Name:         basetypes.NewStringValue(sdkOperatingSystem.GetName()),
-		Version:      basetypes.NewStringValue(sdkOperatingSystem.GetVersion()),
-		Family:       basetypes.NewStringValue(sdkOperatingSystem.GetFamily()),
-		Flavour:      basetypes.NewStringValue(sdkOperatingSystem.GetFlavour()),
-		Architecture: basetypes.NewStringValue(sdkOperatingSystem.GetArchitecture()),
+	return &Image{
+		Id:           basetypes.NewStringValue(string(sdkImage.GetId())),
+		Name:         basetypes.NewStringValue(sdkImage.GetName()),
+		Version:      basetypes.NewStringValue(sdkImage.GetVersion()),
+		Family:       basetypes.NewStringValue(sdkImage.GetFamily()),
+		Flavour:      basetypes.NewStringValue(sdkImage.GetFlavour()),
+		Architecture: basetypes.NewStringValue(sdkImage.GetArchitecture()),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}, nil

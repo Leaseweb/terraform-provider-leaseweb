@@ -79,12 +79,12 @@ func (i *instanceResource) Schema(
 				Description: "i available for the load balancer",
 				Computed:    true,
 			},
-			"operating_system": schema.SingleNestedAttribute{
+			"image": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Operating System ID",
+						Description: "Image ID",
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								[]string{

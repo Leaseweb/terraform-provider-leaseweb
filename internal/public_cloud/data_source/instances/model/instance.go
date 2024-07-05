@@ -12,7 +12,7 @@ type instance struct {
 	Region              types.String      `tfsdk:"region"`
 	Reference           types.String      `tfsdk:"reference"`
 	Resources           resources         `tfsdk:"resources"`
-	OperatingSystem     operatingSystem   `tfsdk:"operating_system"`
+	Image               image             `tfsdk:"image"`
 	State               types.String      `tfsdk:"state"`
 	ProductType         types.String      `tfsdk:"product_type"`
 	HasPublicIpv4       types.Bool        `tfsdk:"has_public_ipv4"`
@@ -41,7 +41,7 @@ func newInstance(
 		Region:              basetypes.NewStringValue(sdkInstanceDetails.GetRegion()),
 		Reference:           basetypes.NewStringValue(sdkInstanceDetails.GetReference()),
 		Resources:           newResources(sdkInstanceDetails.GetResources()),
-		OperatingSystem:     newOperatingSystem(sdkInstanceDetails.GetOperatingSystem()),
+		Image:               newImage(sdkInstanceDetails.GetImage()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
 		ProductType:         basetypes.NewStringValue(sdkInstanceDetails.GetProductType()),
 		HasPublicIpv4:       basetypes.NewBoolValue(sdkInstanceDetails.GetHasPublicIpV4()),

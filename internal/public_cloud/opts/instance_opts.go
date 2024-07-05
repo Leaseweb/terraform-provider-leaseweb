@@ -63,19 +63,22 @@ func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	return nil
 }
 
-func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts, *OptsError) {
+func (o *InstanceOpts) NewLaunchInstanceOpts() (
+	*publicCloud.LaunchInstanceOpts,
+	*OptsError,
+) {
 	contract := model.Contract{}
 	o.instance.Contract.As(o.ctx, &contract, basetypes.ObjectAsOptions{})
 
-	operatingSystemId, err := publicCloud.NewOperatingSystemIdFromValue(
+	imageId, err := publicCloud.NewImageIdFromValue(
 		strings.Trim(
-			o.instance.OperatingSystem.Attributes()["id"].String(),
+			o.instance.Image.Attributes()["id"].String(),
 			"\"",
 		),
 	)
 	if err != nil {
 		return nil, cannotSetOperatingSystemId(
-			o.instance.OperatingSystem.Attributes()["id"].String(),
+			o.instance.Image.Attributes()["id"].String(),
 		)
 	}
 
@@ -96,7 +99,7 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (*publicCloud.LaunchInstanceOpts,
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
 		*instanceTypeName,
-		*operatingSystemId,
+		*imageId,
 		contract.Type.ValueString(),
 		int32(contract.Term.ValueInt64()),
 		int32(contract.BillingFrequency.ValueInt64()),

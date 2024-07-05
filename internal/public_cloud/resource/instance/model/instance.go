@@ -15,7 +15,7 @@ type Instance struct {
 	Region              types.String `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
 	Resources           types.Object `tfsdk:"resources"`
-	OperatingSystem     types.Object `tfsdk:"operating_system"`
+	Image               types.Object `tfsdk:"image"`
 	State               types.String `tfsdk:"state"`
 	ProductType         types.String `tfsdk:"product_type"`
 	HasPublicIpv4       types.Bool   `tfsdk:"has_public_ipv4"`
@@ -52,16 +52,16 @@ func (i *Instance) Populate(
 	i.StartedAt = basetypes.NewStringValue(instance.GetStartedAt().String())
 	i.MarketAppId = basetypes.NewStringValue(instance.GetMarketAppId())
 
-	operatingSystemObject, diags := utils.ConvertSdkModelToResourceObject(
-		instance.GetOperatingSystem(),
-		OperatingSystem{}.AttributeTypes(),
+	imageObject, diags := utils.ConvertSdkModelToResourceObject(
+		instance.GetImage(),
+		Image{}.AttributeTypes(),
 		ctx,
-		newOperatingSystem,
+		newImage,
 	)
 	if diags.HasError() {
 		return diags
 	}
-	i.OperatingSystem = operatingSystemObject
+	i.Image = imageObject
 
 	contractObject, diags := utils.ConvertSdkModelToResourceObject(
 		instance.GetContract(),
@@ -107,7 +107,11 @@ func (i *Instance) Populate(
 	}
 	i.Resources = resourcesObject
 
-	autoScalingGroupObject, diags := generateAutoScalingGroup(ctx, autoScalingGroupDetails, loadBalancerDetails)
+	autoScalingGroupObject, diags := generateAutoScalingGroup(
+		ctx,
+		autoScalingGroupDetails,
+		loadBalancerDetails,
+	)
 	if diags.HasError() {
 		return diags
 	}

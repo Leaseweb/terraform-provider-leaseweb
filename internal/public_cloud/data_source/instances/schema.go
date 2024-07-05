@@ -61,12 +61,12 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 							Description: "Available resources",
 							Computed:    true,
 						},
-						"operating_system": schema.SingleNestedAttribute{
+						"image": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
 									Computed:    true,
-									Description: "Operating System ID",
+									Description: "Image ID",
 								},
 								"name": schema.StringAttribute{
 									Computed: true,

@@ -29,10 +29,10 @@ Read-Only:
 - `has_private_network` (Boolean)
 - `has_public_ipv4` (Boolean)
 - `id` (String) The instance unique identifier
+- `image` (Attributes) (see [below for nested schema](#nestedatt--instances--image))
 - `ips` (Attributes List) (see [below for nested schema](#nestedatt--instances--ips))
 - `iso` (Attributes) (see [below for nested schema](#nestedatt--instances--iso))
 - `market_app_id` (String) Market App ID
-- `operating_system` (Attributes) (see [below for nested schema](#nestedatt--instances--operating_system))
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--instances--private_network))
 - `product_type` (String) The product type
 - `reference` (String) The identifying name set to the instance
@@ -227,6 +227,21 @@ Read-Only:
 - `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
 
 
+<a id="nestedatt--instances--image"></a>
+### Nested Schema for `instances.image`
+
+Read-Only:
+
+- `architecture` (String)
+- `family` (String)
+- `flavour` (String)
+- `id` (String) Image ID
+- `market_apps` (List of String)
+- `name` (String)
+- `storage_types` (List of String) The supported storage types for the instance type
+- `version` (String)
+
+
 <a id="nestedatt--instances--ips"></a>
 ### Nested Schema for `instances.ips`
 
@@ -258,21 +273,6 @@ Read-Only:
 
 - `id` (String)
 - `name` (String)
-
-
-<a id="nestedatt--instances--operating_system"></a>
-### Nested Schema for `instances.operating_system`
-
-Read-Only:
-
-- `architecture` (String)
-- `family` (String)
-- `flavour` (String)
-- `id` (String) Operating System ID
-- `market_apps` (List of String)
-- `name` (String)
-- `storage_types` (List of String) The supported storage types for the instance type
-- `version` (String)
 
 
 <a id="nestedatt--instances--private_network"></a>

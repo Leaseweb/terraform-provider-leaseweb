@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -9,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newOperatingSystem(t *testing.T) {
-	sdkOperatingSystemDetails := publicCloud.NewOperatingSystemDetails(
+func Test_newImage(t *testing.T) {
+	sdkImage := publicCloud.NewImageDetails(
 		"id",
 		"name",
 		"version",
@@ -21,54 +22,66 @@ func Test_newOperatingSystem(t *testing.T) {
 		[]string{"storageType"},
 	)
 
-	got := newOperatingSystem(*sdkOperatingSystemDetails)
+	image, diags := newImage(context.TODO(), *sdkImage)
+
+	assert.Nil(t, diags)
 
 	assert.Equal(
 		t,
 		"id",
-		got.Id.ValueString(),
+		image.Id.ValueString(),
 		"id should be set",
 	)
 	assert.Equal(
 		t,
 		"name",
-		got.Name.ValueString(),
+		image.Name.ValueString(),
 		"name should be set",
 	)
 	assert.Equal(
 		t,
 		"version",
-		got.Version.ValueString(),
+		image.Version.ValueString(),
 		"version should be set",
 	)
 	assert.Equal(
 		t,
 		"family",
-		got.Family.ValueString(),
+		image.Family.ValueString(),
 		"family should be set",
 	)
 	assert.Equal(
 		t,
 		"flavour",
-		got.Flavour.ValueString(),
+		image.Flavour.ValueString(),
 		"flavour should be set",
 	)
 	assert.Equal(
 		t,
 		"architecture",
-		got.Architecture.ValueString(),
+		image.Architecture.ValueString(),
 		"architecture should be set",
 	)
 	assert.Equal(
 		t,
 		[]types.String{basetypes.NewStringValue("one")},
-		got.MarketApps,
+		image.MarketApps,
 		"marketApps should be set",
 	)
 	assert.Equal(
 		t,
 		[]types.String{basetypes.NewStringValue("storageType")},
-		got.StorageTypes,
+		image.StorageTypes,
 		"storageTypes should be set",
 	)
+}
+
+func TestImage_attributeTypes(t *testing.T) {
+	_, diags := types.ObjectValueFrom(
+		context.TODO(),
+		Image{}.AttributeTypes(),
+		Image{},
+	)
+
+	assert.Nil(t, diags, "attributes should be correct")
 }

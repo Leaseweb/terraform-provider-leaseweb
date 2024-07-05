@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -10,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newOperatingSystem(t *testing.T) {
-	sdkOperatingSystem := publicCloud.NewOperatingSystemDetails(
+func Test_newImage(t *testing.T) {
+	sdkImageDetails := publicCloud.NewImageDetails(
 		"id",
 		"name",
 		"version",
@@ -22,66 +21,54 @@ func Test_newOperatingSystem(t *testing.T) {
 		[]string{"storageType"},
 	)
 
-	operatingSystem, diags := newOperatingSystem(context.TODO(), *sdkOperatingSystem)
-
-	assert.Nil(t, diags)
+	got := newImage(*sdkImageDetails)
 
 	assert.Equal(
 		t,
 		"id",
-		operatingSystem.Id.ValueString(),
+		got.Id.ValueString(),
 		"id should be set",
 	)
 	assert.Equal(
 		t,
 		"name",
-		operatingSystem.Name.ValueString(),
+		got.Name.ValueString(),
 		"name should be set",
 	)
 	assert.Equal(
 		t,
 		"version",
-		operatingSystem.Version.ValueString(),
+		got.Version.ValueString(),
 		"version should be set",
 	)
 	assert.Equal(
 		t,
 		"family",
-		operatingSystem.Family.ValueString(),
+		got.Family.ValueString(),
 		"family should be set",
 	)
 	assert.Equal(
 		t,
 		"flavour",
-		operatingSystem.Flavour.ValueString(),
+		got.Flavour.ValueString(),
 		"flavour should be set",
 	)
 	assert.Equal(
 		t,
 		"architecture",
-		operatingSystem.Architecture.ValueString(),
+		got.Architecture.ValueString(),
 		"architecture should be set",
 	)
 	assert.Equal(
 		t,
 		[]types.String{basetypes.NewStringValue("one")},
-		operatingSystem.MarketApps,
+		got.MarketApps,
 		"marketApps should be set",
 	)
 	assert.Equal(
 		t,
 		[]types.String{basetypes.NewStringValue("storageType")},
-		operatingSystem.StorageTypes,
+		got.StorageTypes,
 		"storageTypes should be set",
 	)
-}
-
-func TestOperatingSystem_attributeTypes(t *testing.T) {
-	_, diags := types.ObjectValueFrom(
-		context.TODO(),
-		OperatingSystem{}.AttributeTypes(),
-		OperatingSystem{},
-	)
-
-	assert.Nil(t, diags, "attributes should be correct")
 }

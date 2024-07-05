@@ -20,7 +20,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -53,7 +53,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"operating_system.id",
+							"image.id",
 							"UBUNTU_22_04_64BIT",
 						),
 						resource.TestCheckResourceAttr(
@@ -91,7 +91,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -124,7 +124,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"operating_system.id",
+							"image.id",
 							"UBUNTU_22_04_64BIT",
 						),
 						resource.TestCheckResourceAttr(
@@ -164,7 +164,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -190,7 +190,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -215,7 +215,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "tralala"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -241,7 +241,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -268,7 +268,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -295,7 +295,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.4xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -322,7 +322,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.2xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "tralala"
@@ -348,7 +348,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "tralala"
   type      = "lsw.m4.2xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -374,7 +374,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.2xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -400,7 +400,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.2xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -426,7 +426,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.2xlarge"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -442,7 +442,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("invalid operating_system_id", func(t *testing.T) {
+	t.Run("invalid image_id", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
@@ -452,7 +452,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "tralala"
   }
   root_disk_storage_type = "CENTRAL"
@@ -462,7 +462,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute operating_system.id value must be one of"),
+					ExpectError: regexp.MustCompile("Attribute image.id value must be one of"),
 				},
 			},
 		})
@@ -496,8 +496,8 @@ resource "leaseweb_public_cloud_instance" "test" {
 			),
 		},
 		{
-			requiredField: "operating_system.id",
-			expectedError: "Inappropriate value for attribute \"operating_system\": attribute \"id\"",
+			requiredField: "image.id",
+			expectedError: "Inappropriate value for attribute \"image\": attribute \"id\"",
 		},
 		{
 			requiredField: "contract.type|contract.term|contract.billing_frequency",
@@ -511,7 +511,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  operating_system = {}
+  image = {}
   contract = {}
 }`,
 						ExpectError: regexp.MustCompile(scenario.expectedError),
@@ -531,7 +531,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m3.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
@@ -548,7 +548,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
   type      = "lsw.m4.large"
   reference = "my webserver"
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"

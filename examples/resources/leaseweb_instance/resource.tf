@@ -5,7 +5,7 @@ resource "leaseweb_public_cloud_instance" "example" {
     term              = 0
     type              = "HOURLY"
   }
-  operating_system = {
+  image = {
     id = "UBUNTU_22_04_64BIT"
   }
   reference              = "my webserver"
