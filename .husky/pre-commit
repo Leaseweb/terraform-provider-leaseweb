@@ -4,4 +4,9 @@ set -e
 
 go generate ./...
 go fmt ./...
+
+go mod download && go build -v .
+golangci-lint run .
+TF_ACC=1 go test -v -cover ./internal/provider/
+
 pnpm dlx lint-staged -r
