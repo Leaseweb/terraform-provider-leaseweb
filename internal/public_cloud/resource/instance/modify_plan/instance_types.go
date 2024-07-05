@@ -33,19 +33,6 @@ func (i InstanceTypes) GetAllowedInstanceTypes(instanceTypeId string) (
 	return convertSdkInstanceTypesToString(allowedInstanceTypes.GetInstanceTypes()), nil, nil
 }
 
-func (i InstanceTypes) GetAllInstanceTypes() ([]string, *http.Response, error) {
-	instanceTypesRequest := i.client.PublicCloudClient.PublicCloudAPI.
-		GetInstanceTypeList(i.client.AuthContext(i.ctx))
-	instanceTypes, sdkResponse, err := i.client.PublicCloudClient.PublicCloudAPI.
-		GetInstanceTypeListExecute(instanceTypesRequest)
-
-	if err != nil {
-		return nil, sdkResponse, err
-	}
-
-	return convertSdkInstanceTypesToString(instanceTypes.GetInstanceTypes()), nil, nil
-}
-
 func convertSdkInstanceTypesToString(sdkInstanceTypes []publicCloud.InstanceType) (instanceTypes []string) {
 	for _, instanceType := range sdkInstanceTypes {
 		instanceTypes = append(instanceTypes, instanceType.GetName())
