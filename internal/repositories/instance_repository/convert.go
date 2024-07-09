@@ -351,7 +351,7 @@ func convertAutoScalingGroup(
 	}
 
 	autoScalingGroupType, err := enum.FindEnumForString(
-		sdkAutoScalingGroup.GetType(),
+		string(sdkAutoScalingGroup.GetType()),
 		enum.AutoScalingGroupTypeValues,
 		enum.AutoScalingCpuTypeManual,
 	)
@@ -364,7 +364,7 @@ func convertAutoScalingGroup(
 	}
 
 	state, err := enum.FindEnumForString(
-		sdkAutoScalingGroup.GetState(),
+		string(sdkAutoScalingGroup.GetState()),
 		enum.StateValues,
 		enum.StateUnknown,
 	)

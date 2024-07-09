@@ -145,7 +145,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 		sdkImageId, _ := publicCloud.NewImageIdFromValue("UBUNTU_24_04_64BIT")
 		sdkImageDetails := publicCloud.ImageDetails{Id: *sdkImageId}
 		sdkContract := publicCloud.Contract{
-			Term:             4,
+			Term:             publicCloud.CONTRACTTERM__1,
 			Type:             "contractType",
 			BillingFrequency: 6,
 		}
@@ -216,9 +216,9 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 		)
 		assert.Equal(
 			t,
-			int32(4),
+			publicCloud.CONTRACTTERM__1,
 			launchInstanceOpts.GetContractTerm(),
-			"contract.term should be 4",
+			"contract.term should be 1",
 		)
 		assert.Equal(
 			t,

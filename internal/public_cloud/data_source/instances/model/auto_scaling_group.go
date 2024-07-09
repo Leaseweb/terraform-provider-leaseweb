@@ -32,8 +32,8 @@ func newAutoScalingGroup(
 ) *autoScalingGroup {
 	return &autoScalingGroup{
 		Id:            basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetId()),
-		Type:          basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetType()),
-		State:         basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetState()),
+		Type:          basetypes.NewStringValue(string(sdkAutoScalingGroupDetails.GetType())),
+		State:         basetypes.NewStringValue(string(sdkAutoScalingGroupDetails.GetState())),
 		DesiredAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetDesiredAmountOk()),
 		Region:        basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetRegion()),
 		Reference:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetReference()),

@@ -96,13 +96,23 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (
 		return nil, cannotSetRootDiskStorageType(o.instance.RootDiskStorageType.ValueString())
 	}
 
+	term, err := publicCloud.NewContractTermFromValue(int32(contract.Term.ValueInt64()))
+	if err != nil {
+		return nil, cannotSetContractTerm(contract.Term.ValueInt64())
+	}
+
+	billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(int32(contract.BillingFrequency.ValueInt64()))
+	if err != nil {
+		return nil, cannotSetContractBillingFrequency(contract.BillingFrequency.ValueInt64())
+	}
+
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
 		*instanceTypeName,
 		*imageId,
 		contract.Type.ValueString(),
-		int32(contract.Term.ValueInt64()),
-		int32(contract.BillingFrequency.ValueInt64()),
+		*term,
+		int32(*billingFrequency),
 		*rootDiskStorageType,
 	)
 

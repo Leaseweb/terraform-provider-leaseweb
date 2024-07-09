@@ -14,7 +14,7 @@ var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
 func Test_convertImage(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		sdkImage := publicCloud.NewImageDetails(
-			publicCloud.UBUNTU_20_04_64_BIT,
+			publicCloud.IMAGEID_UBUNTU_24_04_64_BIT,
 			"name",
 			"version",
 			"family",
@@ -27,7 +27,7 @@ func Test_convertImage(t *testing.T) {
 		got, err := convertImage(*sdkImage)
 
 		assert.Nil(t, err)
-		assert.Equal(t, enum.Ubuntu200464Bit, got.Id)
+		assert.Equal(t, enum.Ubuntu240464Bit, got.Id)
 		assert.Equal(t, "name", got.Name)
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
@@ -174,7 +174,7 @@ func Test_convertInstance(t *testing.T) {
 			publicCloud.InstanceDetails{
 				Id:    "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image: publicCloud.ImageDetails{Id: "tralala"},
-				State: publicCloud.RUNNING,
+				State: publicCloud.STATE_RUNNING,
 			},
 			nil,
 			nil,
@@ -188,8 +188,8 @@ func Test_convertInstance(t *testing.T) {
 			publicCloud.InstanceDetails{
 				Id:    "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image: publicCloud.ImageDetails{Id: "tralala"},
-				State: publicCloud.RUNNING,
-				Type:  publicCloud.M3_LARGE,
+				State: publicCloud.STATE_RUNNING,
+				Type:  publicCloud.INSTANCETYPENAME_M3_LARGE,
 			},
 			nil,
 			nil,
@@ -203,9 +203,9 @@ func Test_convertInstance(t *testing.T) {
 			publicCloud.InstanceDetails{
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.ImageDetails{Id: "tralala"},
-				State:               publicCloud.RUNNING,
-				Type:                publicCloud.M3_LARGE,
-				RootDiskStorageType: publicCloud.CENTRAL,
+				State:               publicCloud.STATE_RUNNING,
+				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Ips:                 []publicCloud.IpDetails{{NetworkType: "tralala"}},
 			},
 			nil,
@@ -220,9 +220,9 @@ func Test_convertInstance(t *testing.T) {
 			publicCloud.InstanceDetails{
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.ImageDetails{Id: "tralala"},
-				State:               publicCloud.RUNNING,
-				Type:                publicCloud.M3_LARGE,
-				RootDiskStorageType: publicCloud.CENTRAL,
+				State:               publicCloud.STATE_RUNNING,
+				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract:            publicCloud.Contract{BillingFrequency: 55},
 			},
 			nil,
@@ -237,9 +237,9 @@ func Test_convertInstance(t *testing.T) {
 			publicCloud.InstanceDetails{
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.ImageDetails{Id: "tralala"},
-				State:               publicCloud.RUNNING,
-				Type:                publicCloud.M3_LARGE,
-				RootDiskStorageType: publicCloud.CENTRAL,
+				State:               publicCloud.STATE_RUNNING,
+				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract:            publicCloud.Contract{BillingFrequency: 0},
 			},
 			&publicCloud.AutoScalingGroupDetails{Id: "tralala"},
@@ -266,13 +266,13 @@ func generateInstanceDetails(
 
 	return *publicCloud.NewInstanceDetails(
 		*id,
-		publicCloud.M3_LARGE,
+		publicCloud.INSTANCETYPENAME_M3_LARGE,
 		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
 		"region",
 		*publicCloud.NewNullableString(&reference),
 		*publicCloud.NewNullableTime(startedAt),
 		*publicCloud.NewNullableString(&marketAppId),
-		publicCloud.RUNNING,
+		publicCloud.STATE_RUNNING,
 		"productType",
 		true,
 		false,
@@ -280,13 +280,13 @@ func generateInstanceDetails(
 		"CENTRAL",
 		publicCloud.Contract{
 			BillingFrequency: 1,
-			Type:             publicCloud.HOURLY,
-			State:            publicCloud.ACTIVE,
+			Type:             publicCloud.CONTRACTTYPE_HOURLY,
+			State:            publicCloud.CONTRACTSTATE_ACTIVE,
 		},
 		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
 		*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
-		publicCloud.ImageDetails{Id: publicCloud.CENTOS_7_64_BIT},
-		[]publicCloud.IpDetails{{Ip: "1.2.3.4", NetworkType: publicCloud.PUBLIC}},
+		publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
+		[]publicCloud.IpDetails{{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC}},
 		*publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
 			Id: "autoscalingGroupId",
 		}),
@@ -313,7 +313,7 @@ func Test_convertIp(t *testing.T) {
 			5,
 			true,
 			false,
-			publicCloud.INTERNAL,
+			publicCloud.NETWORKTYPE_INTERNAL,
 			*publicCloud.NewNullableString(&reverseLookup),
 			*publicCloud.NewNullableDdos(&publicCloud.Ddos{DetectionProfile: "detectionProfile"}),
 		)
@@ -342,7 +342,7 @@ func Test_convertIps(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		got, err := convertIps([]publicCloud.IpDetails{{
 			Ip:          "1.2.3.4",
-			NetworkType: publicCloud.PUBLIC,
+			NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
 		}})
 
 		assert.NoError(t, err)
@@ -366,11 +366,11 @@ func Test_convertContract(t *testing.T) {
 		sdkContract := publicCloud.NewContract(
 			0,
 			1,
-			publicCloud.MONTHLY,
+			publicCloud.CONTRACTTYPE_MONTHLY,
 			*publicCloud.NewNullableTime(&endsAt),
 			renewalsAt,
 			createdAt,
-			publicCloud.ACTIVE,
+			publicCloud.CONTRACTSTATE_ACTIVE,
 		)
 
 		got, err := convertContract(*sdkContract)
@@ -417,7 +417,7 @@ func Test_convertContract(t *testing.T) {
 		sdkContract := publicCloud.Contract{
 			BillingFrequency: 0,
 			Term:             0,
-			Type:             publicCloud.HOURLY,
+			Type:             publicCloud.CONTRACTTYPE_HOURLY,
 			State:            "tralala",
 		}
 
@@ -501,9 +501,9 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 				Id:    loadBalancerId,
 				State: "RUNNING",
 				Contract: publicCloud.Contract{
-					Type:  publicCloud.MONTHLY,
-					State: publicCloud.ACTIVE,
-					Term:  int32(1),
+					Type:  publicCloud.CONTRACTTYPE_MONTHLY,
+					State: publicCloud.CONTRACTSTATE_ACTIVE,
+					Term:  publicCloud.CONTRACTTERM__1,
 				},
 			},
 		)
@@ -728,12 +728,15 @@ func Test_convertLoadBalancer(t *testing.T) {
 			"CREATING",
 			publicCloud.Contract{
 				BillingFrequency: 1,
-				Type:             publicCloud.MONTHLY,
-				State:            publicCloud.ACTIVE,
-				Term:             int32(1),
+				Type:             publicCloud.CONTRACTTYPE_MONTHLY,
+				State:            publicCloud.CONTRACTSTATE_ACTIVE,
+				Term:             publicCloud.CONTRACTTERM__1,
 			},
 			*publicCloud.NewNullableTime(&startedAt),
-			[]publicCloud.IpDetails{{Ip: "1.2.3.4", NetworkType: publicCloud.PUBLIC}},
+			[]publicCloud.IpDetails{{
+				Ip:          "1.2.3.4",
+				NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
+			}},
 			*publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{
 				TargetPort: 22,
 				Balance:    "ROUNDROBIN",
