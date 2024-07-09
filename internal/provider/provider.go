@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -9,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"os"
 	providerClient "terraform-provider-leaseweb/internal/client"
 	"terraform-provider-leaseweb/internal/public_cloud/data_source/instances"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance"
@@ -87,7 +88,7 @@ func (p *leasewebProvider) Configure(
 	if config.Token.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
-			"Unknown Leaseweb API Token",
+			"Unknown Leaseweb API token",
 			"The provider cannot create the Leaseweb API client as there is an unknown configuration value for the Leaseweb API token. "+
 				"Either target apply the source of the value first, set the value statically in the configuration, or use the LEASEWEB_TOKEN environment variable.",
 		)
@@ -116,7 +117,7 @@ func (p *leasewebProvider) Configure(
 	if token == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
-			"Missing Leaseweb API Token",
+			"Missing Leaseweb API token",
 			"The provider cannot create the Leaseweb API client as there is a missing or empty value for the Leaseweb API token. "+
 				"Set the token value in the configuration or use the LEASEWEB_TOKEN environment variable. "+
 				"If either is already set, ensure the value is not empty.",

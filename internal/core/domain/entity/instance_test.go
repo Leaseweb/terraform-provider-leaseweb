@@ -13,6 +13,7 @@ import (
 func TestNewInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instanceId, _ := uuid.NewUUID()
+		rootDiskSize, _ := value_object.NewRootDiskSize(5)
 
 		got := NewInstance(
 			instanceId,
@@ -23,8 +24,8 @@ func TestNewInstance(t *testing.T) {
 			"productType",
 			false,
 			true,
-			5,
-			InstanceType{Name: "instanceType"},
+			*rootDiskSize,
+			"instanceType",
 			enum.RootDiskStorageTypeCentral,
 			Ips{{Ip: "1.2.3.4"}},
 			Contract{BillingFrequency: enum.ContractBillingFrequencyOne},
@@ -39,7 +40,7 @@ func TestNewInstance(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.False(t, got.HasPublicIpv4)
 		assert.True(t, got.HasPrivateNetwork)
-		assert.Equal(t, "instanceType", got.Type.Name)
+		assert.Equal(t, "instanceType", got.Type)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(
@@ -47,7 +48,7 @@ func TestNewInstance(t *testing.T) {
 			enum.ContractBillingFrequencyOne,
 			got.Contract.BillingFrequency,
 		)
-		assert.Equal(t, int64(5), got.RootDiskSize)
+		assert.Equal(t, int64(5), got.RootDiskSize.Value)
 
 		assert.Nil(t, got.Reference)
 		assert.Nil(t, got.Iso)
@@ -75,8 +76,8 @@ func TestNewInstance(t *testing.T) {
 			"",
 			false,
 			true,
-			5,
-			InstanceType{},
+			value_object.RootDiskSize{},
+			"",
 			enum.RootDiskStorageTypeCentral,
 			Ips{},
 			Contract{},

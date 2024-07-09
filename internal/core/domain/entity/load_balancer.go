@@ -17,7 +17,7 @@ type LoadBalancer struct {
 	Reference      *string
 	StartedAt      *time.Time
 	Ips            Ips
-	Configuration  LoadBalancerConfiguration
+	Configuration  *LoadBalancerConfiguration
 	PrivateNetwork *PrivateNetwork
 }
 
@@ -25,6 +25,7 @@ type OptionalLoadBalancerValues struct {
 	Reference      *string
 	StartedAt      *time.Time
 	PrivateNetwork *PrivateNetwork
+	Configuration  *LoadBalancerConfiguration
 }
 
 func NewLoadBalancer(
@@ -35,23 +36,22 @@ func NewLoadBalancer(
 	state enum.State,
 	contract Contract,
 	ips Ips,
-	configuration LoadBalancerConfiguration,
 	options OptionalLoadBalancerValues,
 ) LoadBalancer {
 	loadBalancer := LoadBalancer{
-		Id:            id,
-		Type:          loadBalancerType,
-		Resources:     resources,
-		Region:        region,
-		State:         state,
-		Contract:      contract,
-		Ips:           ips,
-		Configuration: configuration,
+		Id:        id,
+		Type:      loadBalancerType,
+		Resources: resources,
+		Region:    region,
+		State:     state,
+		Contract:  contract,
+		Ips:       ips,
 	}
 
 	loadBalancer.Reference = options.Reference
 	loadBalancer.StartedAt = options.StartedAt
 	loadBalancer.PrivateNetwork = options.PrivateNetwork
+	loadBalancer.Configuration = options.Configuration
 
 	return loadBalancer
 

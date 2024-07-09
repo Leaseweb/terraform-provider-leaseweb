@@ -7,13 +7,13 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
-var ErrContractTypeCannotBeZero = fmt.Errorf(
-	"contract.type cannot be 0 when contract type is %q",
+var ErrContractTermCannotBeZero = fmt.Errorf(
+	"contract.term cannot be 0 when contract.type is %q",
 	enum.ContractTypeMonthly,
 )
 
-var ErrContractTypeMustBeZero = fmt.Errorf(
-	"contract.type must be 0 when contract type is %q",
+var ErrContractTermMustBeZero = fmt.Errorf(
+	"contract.term must be 0 when contract.type is %q",
 	enum.ContractTypeHourly,
 )
 
@@ -47,11 +47,11 @@ func NewContract(
 	}
 
 	if contractType == enum.ContractTypeMonthly && term == enum.ContractTermZero {
-		return nil, ErrContractTypeCannotBeZero
+		return nil, ErrContractTermCannotBeZero
 	}
 
 	if contractType == enum.ContractTypeHourly && term != enum.ContractTermZero {
-		return nil, ErrContractTypeMustBeZero
+		return nil, ErrContractTermMustBeZero
 	}
 
 	return &contract, nil

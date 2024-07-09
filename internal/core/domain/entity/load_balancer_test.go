@@ -21,7 +21,6 @@ func TestNewLoadBalancer(t *testing.T) {
 			enum.StateRunning,
 			Contract{Type: enum.ContractTypeMonthly},
 			Ips{{Ip: "1.2.3.4"}},
-			LoadBalancerConfiguration{TargetPort: 54},
 			OptionalLoadBalancerValues{},
 		)
 
@@ -31,12 +30,12 @@ func TestNewLoadBalancer(t *testing.T) {
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, enum.StateRunning, got.State)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
-		assert.Equal(t, int64(54), got.Configuration.TargetPort)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 
 		assert.Nil(t, got.Reference)
 		assert.Nil(t, got.StartedAt)
 		assert.Nil(t, got.PrivateNetwork)
+		assert.Nil(t, got.Configuration)
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
@@ -53,17 +52,18 @@ func TestNewLoadBalancer(t *testing.T) {
 			enum.StateRunning,
 			Contract{Type: enum.ContractTypeMonthly},
 			Ips{},
-			LoadBalancerConfiguration{},
 			OptionalLoadBalancerValues{
 				Reference:      &reference,
 				StartedAt:      &startedAt,
 				PrivateNetwork: &PrivateNetwork{Id: "privateNetworkId"},
+				Configuration:  &LoadBalancerConfiguration{TargetPort: 54},
 			},
 		)
 
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
+		assert.Equal(t, int64(54), got.Configuration.TargetPort)
 	})
 
 }

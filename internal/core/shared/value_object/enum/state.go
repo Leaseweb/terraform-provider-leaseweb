@@ -2,6 +2,12 @@ package enum
 
 type State string
 
+func (s State) String() string {
+	return string(s)
+}
+
+type States []State
+
 const (
 	StateCreating   State = "CREATING"
 	StateDestroyed  State = "DESTROYED"
@@ -13,3 +19,15 @@ const (
 	StateStopping   State = "STOPPING"
 	StateUnknown    State = "UNKNOWN"
 )
+
+var StateValues = States{
+	StateCreating,
+	StateDestroyed,
+	StateDestroying,
+	StateFailed,
+	StateRunning,
+	StateStarting,
+	StateStopped,
+	StateStopping,
+	StateUnknown,
+}

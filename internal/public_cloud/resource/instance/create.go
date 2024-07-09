@@ -113,7 +113,7 @@ func (i *instanceResource) Create(
 						sdkLoadBalancerDetailsResponse,
 						&resp.Diagnostics,
 						fmt.Sprintf(
-							"Unable to Read Leaseweb LoadBalancer %v",
+							"Unable to Read Leaseweb Configuration %v",
 							sdkLoadBalancer.GetId(),
 						),
 						err.Error(),

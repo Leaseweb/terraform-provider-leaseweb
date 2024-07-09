@@ -22,7 +22,7 @@ func TestNewSshKey(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("struct string value is correct", func(t *testing.T) {
+	t.Run("struct string Value is correct", func(t *testing.T) {
 		sshKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 		got, _ := NewSshKey(sshKey)

@@ -8,10 +8,10 @@ import (
 
 func TestNewAutoScalingGroupReference(t *testing.T) {
 	t.Run("valid reference is set", func(t *testing.T) {
-		got, err := NewAutoScalingGroupReference("value")
+		got, err := NewAutoScalingGroupReference("Value")
 
 		assert.Nil(t, err)
-		assert.Equal(t, "value", got.value)
+		assert.Equal(t, "Value", got.value)
 	})
 
 	t.Run("error is returned if reference is too long", func(t *testing.T) {
@@ -20,11 +20,11 @@ func TestNewAutoScalingGroupReference(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("string value is correct", func(t *testing.T) {
-		got, err := NewAutoScalingGroupReference("value")
+	t.Run("string Value is correct", func(t *testing.T) {
+		got, err := NewAutoScalingGroupReference("Value")
 
 		assert.Nil(t, err)
-		assert.Equal(t, "value", got.String())
+		assert.Equal(t, "Value", got.String())
 	})
 
 }

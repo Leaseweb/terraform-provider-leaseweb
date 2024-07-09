@@ -9,7 +9,7 @@ import (
 
 func TestNewImage(t *testing.T) {
 	image := NewImage(
-		enum.UBUNTU_24_04_64_BIT,
+		enum.Ubuntu240464Bit,
 		"name",
 		"version",
 		"family",
@@ -18,7 +18,7 @@ func TestNewImage(t *testing.T) {
 		[]string{"marketApp"},
 		[]string{"storageType"})
 
-	assert.Equal(t, enum.UBUNTU_24_04_64_BIT, image.Id)
+	assert.Equal(t, enum.Ubuntu240464Bit, image.Id)
 	assert.Equal(t, "name", image.Name)
 	assert.Equal(t, "version", image.Version)
 	assert.Equal(t, "family", image.Family)

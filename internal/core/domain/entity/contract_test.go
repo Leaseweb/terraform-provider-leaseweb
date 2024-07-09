@@ -20,11 +20,11 @@ func TestNewContract(t *testing.T) {
 			enum.ContractTypeMonthly,
 			renewalsAt,
 			createdAt,
-			enum.Active,
+			enum.ContractStateActive,
 			&endsAt,
 		)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(
 			t,
 			enum.ContractBillingFrequencySix,
@@ -34,7 +34,7 @@ func TestNewContract(t *testing.T) {
 		assert.Equal(t, enum.ContractTypeMonthly, got.Type)
 		assert.Equal(t, renewalsAt, got.RenewalsAt)
 		assert.Equal(t, createdAt, got.CreatedAt)
-		assert.Equal(t, enum.Active, got.State)
+		assert.Equal(t, enum.ContractStateActive, got.State)
 		assert.Equal(t, endsAt, *got.EndsAt)
 	})
 
@@ -47,11 +47,11 @@ func TestNewContract(t *testing.T) {
 				enum.ContractTypeMonthly,
 				time.Now(),
 				time.Now(),
-				enum.Active,
+				enum.ContractStateActive,
 				nil,
 			)
 
-			assert.NotNil(t, err)
+			assert.Error(t, ErrContractTermCannotBeZero, err)
 		},
 	)
 
@@ -64,11 +64,11 @@ func TestNewContract(t *testing.T) {
 				enum.ContractTypeHourly,
 				time.Now(),
 				time.Now(),
-				enum.Active,
+				enum.ContractStateActive,
 				nil,
 			)
 
-			assert.NotNil(t, err)
+			assert.NotNil(t, ErrContractTermMustBeZero, err)
 		},
 	)
 

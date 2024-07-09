@@ -16,7 +16,7 @@ func TestNewIp(t *testing.T) {
 			1,
 			false,
 			true,
-			enum.Public,
+			enum.NetworkTypePublic,
 			OptionalIpValues{},
 		)
 
@@ -25,7 +25,7 @@ func TestNewIp(t *testing.T) {
 		assert.Equal(t, int64(1), ip.Version)
 		assert.False(t, ip.NullRouted)
 		assert.True(t, ip.MainIp)
-		assert.Equal(t, enum.Public, ip.NetworkType)
+		assert.Equal(t, enum.NetworkTypePublic, ip.NetworkType)
 
 		assert.Nil(t, ip.Ddos)
 		assert.Nil(t, ip.ReverseLookup)
@@ -40,7 +40,7 @@ func TestNewIp(t *testing.T) {
 			0,
 			false,
 			false,
-			enum.Public,
+			enum.NetworkTypePublic,
 			OptionalIpValues{Ddos: &Ddos{}, ReverseLookup: &reverseLookup},
 		)
 
