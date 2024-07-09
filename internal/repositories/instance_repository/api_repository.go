@@ -10,8 +10,8 @@ import (
 )
 
 type ApiRepository struct {
-	client publicCloud.APIClient
-	token  string
+	publicCLoudAPI publicCloud.PublicCloudAPI
+	token          string
 }
 
 func (a ApiRepository) authContext(ctx context.Context) context.Context {
@@ -28,8 +28,8 @@ func (a ApiRepository) GetAllInstances(ctx context.Context) (
 	entity.Instances,
 	error,
 ) {
-	request := a.client.PublicCloudAPI.GetInstanceList(a.authContext(ctx))
-	result, _, err := a.client.PublicCloudAPI.GetInstanceListExecute(request)
+	request := a.publicCLoudAPI.GetInstanceList(a.authContext(ctx))
+	result, _, err := a.publicCLoudAPI.GetInstanceListExecute(request)
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve instances: %w", err)
@@ -66,14 +66,14 @@ func (a ApiRepository) GetInstance(
 	id uuid.UUID,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	instanceRequest := a.client.PublicCloudAPI.GetInstance(
+	instanceRequest := a.publicCLoudAPI.GetInstance(
 		a.authContext(ctx),
 		id.String(),
 	)
 	var autoScalingGroupDetails *publicCloud.AutoScalingGroupDetails
 	var loadBalancerDetails *publicCloud.LoadBalancerDetails
 
-	instance, _, err := a.client.PublicCloudAPI.GetInstanceExecute(instanceRequest)
+	instance, _, err := a.publicCLoudAPI.GetInstanceExecute(instanceRequest)
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve instance: %w", err)
@@ -82,11 +82,11 @@ func (a ApiRepository) GetInstance(
 	autoScalingGroup, _ := instance.GetAutoScalingGroupOk()
 
 	if autoScalingGroup != nil {
-		autoScalingGroupDetailsRequest := a.client.PublicCloudAPI.GetAutoScalingGroup(
+		autoScalingGroupDetailsRequest := a.publicCLoudAPI.GetAutoScalingGroup(
 			a.authContext(ctx),
 			autoScalingGroup.GetId(),
 		)
-		autoScalingGroupDetails, _, err = a.client.PublicCloudAPI.GetAutoScalingGroupExecute(autoScalingGroupDetailsRequest)
+		autoScalingGroupDetails, _, err = a.publicCLoudAPI.GetAutoScalingGroupExecute(autoScalingGroupDetailsRequest)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"cannot retrieve auto scaling group details %s: %w",
@@ -96,12 +96,12 @@ func (a ApiRepository) GetInstance(
 		}
 
 		if autoScalingGroupDetails.LoadBalancer.Get() != nil {
-			loadBalancerDetailsRequest := a.client.PublicCloudAPI.GetLoadBalancer(
+			loadBalancerDetailsRequest := a.publicCLoudAPI.GetLoadBalancer(
 				a.authContext(ctx),
 				autoScalingGroupDetails.LoadBalancer.Get().GetId(),
 			)
 
-			loadBalancerDetails, _, err = a.client.PublicCloudAPI.GetLoadBalancerExecute(loadBalancerDetailsRequest)
+			loadBalancerDetails, _, err = a.publicCLoudAPI.GetLoadBalancerExecute(loadBalancerDetailsRequest)
 			if err != nil {
 				return nil, fmt.Errorf(
 					"cannot retrieve auto loadBalancer details %s: %w",
@@ -130,8 +130,10 @@ func NewApiRepository(token string, optional Optional) ApiRepository {
 		configuration.Scheme = *optional.Scheme
 	}
 
+	client := *publicCloud.NewAPIClient(configuration)
+
 	return ApiRepository{
-		client: *publicCloud.NewAPIClient(configuration),
-		token:  token,
+		publicCLoudAPI: client.PublicCloudAPI,
+		token:          token,
 	}
 }
