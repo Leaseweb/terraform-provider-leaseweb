@@ -145,6 +145,8 @@ github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240705062556-602dd2f897
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240705062556-602dd2f897e8/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240709093520-0a3d4e79befd h1:4xphH+PfxadIINblovbnXocDkgd44q2eHfQ0oaR5WZo=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240709093520-0a3d4e79befd/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
+github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240709124328-d8ff3867394f h1:jR3VSaLgcxnMkJkGHSoemOSTTh11bp+1Jc8NIDRokfw=
+github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240709124328-d8ff3867394f/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/mattn/go-colorable v0.1.9/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb520KVy5xxl4=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
