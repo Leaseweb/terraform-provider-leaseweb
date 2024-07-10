@@ -4,8 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
@@ -41,7 +43,8 @@ func Test_convertImage(t *testing.T) {
 		sdkImage := publicCloud.ImageDetails{Id: "tralala"}
 
 		_, err := convertImage(sdkImage)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -88,19 +91,12 @@ func Test_convertResources(t *testing.T) {
 func Test_convertInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		startedAt := time.Now()
-		autoScalingGroupId := "6e11653e-5863-4dcc-bcd5-769b22b8baac"
+		autoScalingGroupId, _ := uuid.NewUUID()
 
 		sdkInstance := generateInstanceDetails(t, &startedAt, nil)
+		autoScalingGroup := entity.AutoScalingGroup{Id: autoScalingGroupId}
 
-		got, err := convertInstance(
-			sdkInstance,
-			&publicCloud.AutoScalingGroupDetails{
-				Id:    autoScalingGroupId,
-				Type:  "MANUAL",
-				State: "RUNNING",
-			},
-			nil,
-		)
+		got, err := convertInstance(sdkInstance, &autoScalingGroup)
 
 		assert.NoError(t, err)
 		assert.Equal(
@@ -129,124 +125,109 @@ func Test_convertInstance(t *testing.T) {
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
 		assert.Equal(t, enum.Centos764Bit, got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id.String())
+		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id)
 	})
 
 	t.Run("invalid id returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{Id: "tralala"},
 			nil,
-			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid Image returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{
-				Id:    "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
+				Id:    uuid.New().String(),
 				Image: publicCloud.ImageDetails{Id: "tralala"},
 			},
-			nil,
 			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{
-				Id:    "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-				Image: publicCloud.ImageDetails{Id: "tralala"},
+				Id:    uuid.New().String(),
+				Image: publicCloud.ImageDetails{Id: publicCloud.IMAGEID_ALMALINUX_8_64_BIT},
 				State: "tralala",
 			},
-			nil,
 			nil,
 		)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("invalid instanceType returns error", func(t *testing.T) {
+	t.Run("invalid rootDiskSize returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{
-				Id:    "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-				Image: publicCloud.ImageDetails{Id: "tralala"},
-				State: publicCloud.STATE_RUNNING,
+				Id:           uuid.New().String(),
+				Image:        publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
+				State:        publicCloud.STATE_RUNNING,
+				RootDiskSize: 5000,
 			},
-			nil,
 			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "5000")
 	})
 
 	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{
-				Id:    "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-				Image: publicCloud.ImageDetails{Id: "tralala"},
-				State: publicCloud.STATE_RUNNING,
-				Type:  publicCloud.INSTANCETYPENAME_M3_LARGE,
+				Id:                  uuid.New().String(),
+				Image:               publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
+				State:               publicCloud.STATE_RUNNING,
+				RootDiskSize:        50,
+				RootDiskStorageType: "tralala",
 			},
-			nil,
 			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid ip returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{
-				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-				Image:               publicCloud.ImageDetails{Id: "tralala"},
+				Id:                  uuid.New().String(),
+				Image:               publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
 				State:               publicCloud.STATE_RUNNING,
-				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				RootDiskSize:        50,
 				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Ips:                 []publicCloud.IpDetails{{NetworkType: "tralala"}},
 			},
 			nil,
-			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid contract returns error", func(t *testing.T) {
 		_, err := convertInstance(
 			publicCloud.InstanceDetails{
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-				Image:               publicCloud.ImageDetails{Id: "tralala"},
+				Image:               publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
 				State:               publicCloud.STATE_RUNNING,
 				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				RootDiskSize:        50,
 				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract:            publicCloud.Contract{BillingFrequency: 55},
 			},
 			nil,
-			nil,
 		)
 
 		assert.Error(t, err)
-	})
-
-	t.Run("invalid autoScalingGroup returns error", func(t *testing.T) {
-		_, err := convertInstance(
-			publicCloud.InstanceDetails{
-				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-				Image:               publicCloud.ImageDetails{Id: "tralala"},
-				State:               publicCloud.STATE_RUNNING,
-				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
-				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
-				Contract:            publicCloud.Contract{BillingFrequency: 0},
-			},
-			&publicCloud.AutoScalingGroupDetails{Id: "tralala"},
-			nil,
-		)
-
-		assert.Error(t, err)
+		assert.ErrorContains(t, err, "55")
 	})
 }
 
@@ -335,6 +316,7 @@ func Test_convertIp(t *testing.T) {
 		_, err := convertIp(publicCloud.IpDetails{NetworkType: "tralala"})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -354,6 +336,7 @@ func Test_convertIps(t *testing.T) {
 		_, err := convertIps([]publicCloud.IpDetails{{NetworkType: "tralala"}})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -391,6 +374,7 @@ func Test_convertContract(t *testing.T) {
 		_, err := convertContract(sdkContract)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "45")
 	})
 
 	t.Run("error returned for invalid term", func(t *testing.T) {
@@ -399,6 +383,7 @@ func Test_convertContract(t *testing.T) {
 		_, err := convertContract(sdkContract)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "55")
 	})
 
 	t.Run("error returned for invalid type", func(t *testing.T) {
@@ -411,6 +396,7 @@ func Test_convertContract(t *testing.T) {
 		_, err := convertContract(sdkContract)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("error returned for invalid state", func(t *testing.T) {
@@ -424,7 +410,25 @@ func Test_convertContract(t *testing.T) {
 		_, err := convertContract(sdkContract)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
+
+	t.Run(
+		"error returned when contract cannot be created",
+		func(t *testing.T) {
+			sdkContract := publicCloud.Contract{
+				BillingFrequency: 0,
+				Term:             0,
+				Type:             publicCloud.CONTRACTTYPE_MONTHLY,
+				State:            publicCloud.CONTRACTSTATE_ACTIVE,
+			}
+
+			_, err := convertContract(sdkContract)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "contract.term cannot be 0")
+		},
+	)
 
 }
 
@@ -459,6 +463,7 @@ func Test_convertStringToUuid(t *testing.T) {
 		_, err := convertStringToUuid("invalid")
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "cannot convert string to uuid")
 	})
 }
 
@@ -474,7 +479,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		warmupTime := int32(4)
 		cooldownTime := int32(5)
 		desiredAmount := int32(6)
-		loadBalancerId := "d526d8a4-3ec3-48df-9a65-042458c6bade"
+		loadBalancerId, _ := uuid.NewUUID()
 
 		sdkAutoScalingGroup := publicCloud.NewAutoScalingGroupDetails(
 			instanceId,
@@ -497,15 +502,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 
 		got, err := convertAutoScalingGroup(
 			*sdkAutoScalingGroup,
-			&publicCloud.LoadBalancerDetails{
-				Id:    loadBalancerId,
-				State: "RUNNING",
-				Contract: publicCloud.Contract{
-					Type:  publicCloud.CONTRACTTYPE_MONTHLY,
-					State: publicCloud.CONTRACTSTATE_ACTIVE,
-					Term:  publicCloud.CONTRACTTERM__1,
-				},
-			},
+			&entity.LoadBalancer{Id: loadBalancerId},
 		)
 
 		assert.NoError(t, err)
@@ -524,7 +521,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, int64(3), *got.CpuThreshold)
 		assert.Equal(t, int64(4), *got.WarmupTime)
 		assert.Equal(t, int64(5), *got.CooldownTime)
-		assert.Equal(t, loadBalancerId, got.LoadBalancer.Id.String())
+		assert.Equal(t, loadBalancerId, got.LoadBalancer.Id)
 	})
 
 	t.Run(
@@ -536,6 +533,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 			)
 
 			assert.Error(t, err)
+			assert.ErrorContains(t, err, "details cannot be found")
 		},
 	)
 
@@ -546,24 +544,31 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "cannot convert string to uuid")
 	})
 
 	t.Run("invalid type returns error", func(t *testing.T) {
 		_, err := convertAutoScalingGroup(
-			publicCloud.AutoScalingGroupDetails{Id: instanceId},
+			publicCloud.AutoScalingGroupDetails{Id: instanceId, Type: "tralala"},
 			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
 		_, err := convertAutoScalingGroup(
-			publicCloud.AutoScalingGroupDetails{Id: instanceId, Type: "MANUAL"},
+			publicCloud.AutoScalingGroupDetails{
+				Id:    instanceId,
+				Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
+				State: "tralala",
+			},
 			nil,
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid reference returns error", func(t *testing.T) {
@@ -578,19 +583,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		)
 
 		assert.Error(t, err)
-	})
-
-	t.Run("invalid loadBalancer returns error", func(t *testing.T) {
-		_, err := convertAutoScalingGroup(
-			publicCloud.AutoScalingGroupDetails{
-				Id:    instanceId,
-				Type:  "MANUAL",
-				State: "RUNNING",
-			},
-			&publicCloud.LoadBalancerDetails{Id: "tralala"},
-		)
-
-		assert.Error(t, err)
+		assert.ErrorContains(t, err, "characters long")
 	})
 }
 
@@ -677,6 +670,7 @@ func Test_convertHealthCheck(t *testing.T) {
 		_, err := convertHealthCheck(publicCloud.HealthCheck{Method: "tralala"})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 }
@@ -702,6 +696,7 @@ func Test_convertLoadBalancerConfiguration(t *testing.T) {
 		_, err := convertLoadBalancerConfiguration(publicCloud.LoadBalancerConfiguration{Balance: "tralala"})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid HealthCheck returns error", func(t *testing.T) {
@@ -711,6 +706,7 @@ func Test_convertLoadBalancerConfiguration(t *testing.T) {
 		})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -767,6 +763,7 @@ func Test_convertLoadBalancer(t *testing.T) {
 		_, err := convertLoadBalancer(publicCloud.LoadBalancerDetails{Id: "tralala"})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
@@ -776,38 +773,50 @@ func Test_convertLoadBalancer(t *testing.T) {
 		})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid contract returns error", func(t *testing.T) {
 		_, err := convertLoadBalancer(publicCloud.LoadBalancerDetails{
 			Id:       instanceId,
-			State:    "Running",
+			State:    publicCloud.STATE_RUNNING,
 			Contract: publicCloud.Contract{BillingFrequency: 55},
 		})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "55")
 	})
 
 	t.Run("invalid ips returns error", func(t *testing.T) {
 		_, err := convertLoadBalancer(publicCloud.LoadBalancerDetails{
-			Id:       instanceId,
-			State:    "Running",
-			Contract: publicCloud.Contract{},
-			Ips:      []publicCloud.IpDetails{{NetworkType: "tralala"}},
+			Id:    instanceId,
+			State: publicCloud.STATE_RUNNING,
+			Contract: publicCloud.Contract{
+				Type:  publicCloud.CONTRACTTYPE_MONTHLY,
+				State: publicCloud.CONTRACTSTATE_ACTIVE,
+				Term:  publicCloud.CONTRACTTERM__1,
+			},
+			Ips: []publicCloud.IpDetails{{NetworkType: "tralala"}},
 		})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid configuration returns error", func(t *testing.T) {
 		_, err := convertLoadBalancer(publicCloud.LoadBalancerDetails{
-			Id:            instanceId,
-			State:         "Running",
-			Contract:      publicCloud.Contract{},
+			Id:    instanceId,
+			State: publicCloud.STATE_RUNNING,
+			Contract: publicCloud.Contract{
+				Type:  publicCloud.CONTRACTTYPE_MONTHLY,
+				State: publicCloud.CONTRACTSTATE_ACTIVE,
+				Term:  publicCloud.CONTRACTTERM__1,
+			},
 			Configuration: *publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{Balance: "tralala"}),
 		})
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 }

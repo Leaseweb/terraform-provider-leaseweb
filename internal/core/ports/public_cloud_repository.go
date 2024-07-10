@@ -7,7 +7,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
-type InstanceService interface {
+type PublicCloudRepository interface {
 	GetAllInstances(ctx context.Context) (entity.Instances, error)
 
 	GetInstance(id uuid.UUID, ctx context.Context) (*entity.Instance, error)
@@ -23,4 +23,14 @@ type InstanceService interface {
 	) (*entity.Instance, error)
 
 	DeleteInstance(id uuid.UUID, ctx context.Context) error
+
+	GetAutoScalingGroup(
+		id uuid.UUID,
+		ctx context.Context,
+	) (*entity.AutoScalingGroup, error)
+
+	GetLoadBalancer(
+		id uuid.UUID,
+		ctx context.Context,
+	) (*entity.LoadBalancer, error)
 }

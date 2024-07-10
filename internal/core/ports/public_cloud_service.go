@@ -7,7 +7,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
-type InstanceRepository interface {
+type PublicCloudService interface {
 	GetAllInstances(ctx context.Context) (entity.Instances, error)
 
 	GetInstance(id uuid.UUID, ctx context.Context) (*entity.Instance, error)

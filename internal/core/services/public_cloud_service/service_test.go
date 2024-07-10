@@ -1,4 +1,4 @@
-package instance_service
+package public_cloud_service
 
 import (
 	"context"
@@ -8,86 +8,74 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/ports"
+)
+
+var (
+	_ ports.PublicCloudRepository = &repositorySpy{}
 )
 
 type repositorySpy struct {
-	Error     error
-	Instances entity.Instances
-	Instance  *entity.Instance
+	instances                entity.Instances
+	instance                 *entity.Instance
+	autoScalingGroup         *entity.AutoScalingGroup
+	loadBalancer             *entity.LoadBalancer
+	getAutoScalingGroupError error
+	getLoadBalancerError     error
+	getAllInstancesError     error
+	getInstanceError         error
+	createInstanceError      error
+	updateInstanceError      error
+	deleteInstanceError      error
 }
 
-func newRepositorySpy(
-	hasError bool,
-	instances entity.Instances,
-	instance *entity.Instance,
-) repositorySpy {
-	var returnedError error = nil
+func (r repositorySpy) GetAutoScalingGroup(
+	id uuid.UUID,
+	ctx context.Context,
+) (*entity.AutoScalingGroup, error) {
+	return r.autoScalingGroup, r.getAutoScalingGroupError
+}
 
-	if hasError {
-		returnedError = errors.New("some error")
-	}
-
-	return repositorySpy{
-		Error:     returnedError,
-		Instances: instances,
-		Instance:  instance,
-	}
+func (r repositorySpy) GetLoadBalancer(
+	id uuid.UUID,
+	ctx context.Context,
+) (*entity.LoadBalancer, error) {
+	return r.loadBalancer, r.getLoadBalancerError
 }
 
 func (r repositorySpy) GetAllInstances(ctx context.Context) (
 	entity.Instances,
 	error,
 ) {
-	if r.Error != nil {
-		return nil, r.Error
-	}
-
-	return r.Instances, nil
+	return r.instances, r.getAllInstancesError
 }
 
 func (r repositorySpy) GetInstance(
 	id uuid.UUID,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	if r.Error != nil {
-		return nil, r.Error
-	}
-
-	r.Instance.Id = id
-	return r.Instance, nil
+	return r.instance, r.getInstanceError
 }
 
 func (r repositorySpy) CreateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	if r.Error != nil {
-		return nil, r.Error
-	}
-
-	return r.Instance, nil
+	return r.instance, r.createInstanceError
 }
 
 func (r repositorySpy) UpdateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	if r.Error != nil {
-		return nil, r.Error
-	}
-
-	return r.Instance, nil
+	return r.instance, r.updateInstanceError
 }
 
 func (r repositorySpy) DeleteInstance(
 	id uuid.UUID,
 	ctx context.Context,
 ) error {
-	if r.Error != nil {
-		return r.Error
-	}
-
-	return nil
+	return r.deleteInstanceError
 }
 
 func TestService_GetAllInstances(t *testing.T) {
@@ -95,11 +83,7 @@ func TestService_GetAllInstances(t *testing.T) {
 		"service passes back instances from repository",
 		func(t *testing.T) {
 			id := uuid.New()
-			instanceService := New(newRepositorySpy(
-				false,
-				entity.Instances{{Id: id}},
-				nil,
-			))
+			instanceService := New(repositorySpy{instances: entity.Instances{{Id: id}}})
 
 			got, err := instanceService.GetAllInstances(context.TODO())
 
@@ -110,15 +94,12 @@ func TestService_GetAllInstances(t *testing.T) {
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(newRepositorySpy(
-			true,
-			nil,
-			nil,
-		))
+		instanceService := New(repositorySpy{getAllInstancesError: errors.New("some error")})
 
 		_, err := instanceService.GetAllInstances(context.TODO())
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
 	})
 }
 
@@ -127,11 +108,7 @@ func TestService_GetInstance(t *testing.T) {
 		"service passes back instance from repository",
 		func(t *testing.T) {
 			id := uuid.New()
-			instanceService := New(newRepositorySpy(
-				false,
-				nil,
-				&entity.Instance{Id: id},
-			))
+			instanceService := New(repositorySpy{instance: &entity.Instance{Id: id}})
 
 			got, err := instanceService.GetInstance(id, context.TODO())
 
@@ -141,15 +118,12 @@ func TestService_GetInstance(t *testing.T) {
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(newRepositorySpy(
-			true,
-			nil,
-			nil,
-		))
+		instanceService := New(repositorySpy{getInstanceError: errors.New("some error")})
 
 		_, err := instanceService.GetInstance(uuid.New(), context.TODO())
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
 	})
 }
 
@@ -158,11 +132,7 @@ func TestService_CreateInstance(t *testing.T) {
 		"service passes back instance from repository",
 		func(t *testing.T) {
 			id := uuid.New()
-			instanceService := New(newRepositorySpy(
-				false,
-				nil,
-				&entity.Instance{Id: id},
-			))
+			instanceService := New(repositorySpy{instance: &entity.Instance{Id: id}})
 
 			got, err := instanceService.CreateInstance(
 				entity.Instance{},
@@ -175,15 +145,12 @@ func TestService_CreateInstance(t *testing.T) {
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(newRepositorySpy(
-			true,
-			nil,
-			nil,
-		))
+		instanceService := New(repositorySpy{createInstanceError: errors.New("some error")})
 
 		_, err := instanceService.CreateInstance(entity.Instance{}, context.TODO())
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
 	})
 }
 
@@ -192,11 +159,7 @@ func TestService_UpdateInstance(t *testing.T) {
 		"service passes back instance from repository",
 		func(t *testing.T) {
 			id := uuid.New()
-			instanceService := New(newRepositorySpy(
-				false,
-				nil,
-				&entity.Instance{Id: id},
-			))
+			instanceService := New(repositorySpy{instance: &entity.Instance{Id: id}})
 
 			got, err := instanceService.UpdateInstance(
 				entity.Instance{},
@@ -209,11 +172,7 @@ func TestService_UpdateInstance(t *testing.T) {
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(newRepositorySpy(
-			true,
-			nil,
-			nil,
-		))
+		instanceService := New(repositorySpy{updateInstanceError: errors.New("some error")})
 
 		_, err := instanceService.UpdateInstance(
 			entity.Instance{},
@@ -221,6 +180,7 @@ func TestService_UpdateInstance(t *testing.T) {
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
 	})
 }
 
@@ -234,14 +194,11 @@ func TestService_DeleteInstance(t *testing.T) {
 	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(newRepositorySpy(
-			true,
-			nil,
-			nil,
-		))
+		instanceService := New(repositorySpy{deleteInstanceError: errors.New("some error")})
 
 		err := instanceService.DeleteInstance(uuid.New(), context.TODO())
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
 	})
 }

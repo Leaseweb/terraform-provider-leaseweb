@@ -1,4 +1,4 @@
-package instance_service
+package public_cloud_service
 
 import (
 	"context"
@@ -10,14 +10,14 @@ import (
 )
 
 type Service struct {
-	instanceRepository ports.InstanceRepository
+	publicCloudRepository ports.PublicCloudRepository
 }
 
 func (srv Service) GetAllInstances(ctx context.Context) (
 	entity.Instances,
 	error,
 ) {
-	instances, err := srv.instanceRepository.GetAllInstances(ctx)
+	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
 		return entity.Instances{}, fmt.Errorf(
 			"failed to retrieve instances from repository: %w",
@@ -32,7 +32,7 @@ func (srv Service) GetInstance(
 	id uuid.UUID,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	instance, err := srv.instanceRepository.GetInstance(id, ctx)
+	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to retrieve instance %q from repository of: %w",
@@ -48,7 +48,7 @@ func (srv Service) CreateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	createdInstance, err := srv.instanceRepository.CreateInstance(instance, ctx)
+	createdInstance, err := srv.publicCloudRepository.CreateInstance(instance, ctx)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to create instance %q in repository: %w",
@@ -64,7 +64,7 @@ func (srv Service) UpdateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	updatedInstance, err := srv.instanceRepository.UpdateInstance(instance, ctx)
+	updatedInstance, err := srv.publicCloudRepository.UpdateInstance(instance, ctx)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to update instance %q in repository: %w",
@@ -77,7 +77,7 @@ func (srv Service) UpdateInstance(
 }
 
 func (srv Service) DeleteInstance(id uuid.UUID, ctx context.Context) error {
-	err := srv.instanceRepository.DeleteInstance(id, ctx)
+	err := srv.publicCloudRepository.DeleteInstance(id, ctx)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to delete instance %q in repository: %w",
@@ -89,6 +89,6 @@ func (srv Service) DeleteInstance(id uuid.UUID, ctx context.Context) error {
 	return nil
 }
 
-func New(instanceRepository ports.InstanceRepository) Service {
-	return Service{instanceRepository: instanceRepository}
+func New(publicCloudRepository ports.PublicCloudRepository) Service {
+	return Service{publicCloudRepository: publicCloudRepository}
 }

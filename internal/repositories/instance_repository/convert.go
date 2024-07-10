@@ -17,8 +17,7 @@ var ErrNoLoadBalancerDetails = fmt.Errorf("loadBalancer details cannot be found"
 
 func convertInstance(
 	sdkInstance publicCloud.InstanceDetails,
-	sdkAutoScalingGroup *publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancer *publicCloud.LoadBalancerDetails,
+	autoScalingGroup *entity.AutoScalingGroup,
 ) (*entity.Instance, error) {
 	instanceId, err := convertStringToUuid(sdkInstance.GetId())
 	if err != nil {
@@ -54,8 +53,8 @@ func convertInstance(
 	rootDiskSize, err := value_object.NewRootDiskSize(int64(sdkInstance.GetRootDiskSize()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing rootDiskSize %q: %w",
-			string(sdkInstance.GetRootDiskSize()),
+			"error parsing rootDiskSize %d: %w",
+			sdkInstance.GetRootDiskSize(),
 			err,
 		)
 	}
@@ -67,8 +66,8 @@ func convertInstance(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing state %q: %w",
-			string(sdkInstance.GetState()),
+			"error parsing rootDiskStorageType %q: %w",
+			string(sdkInstance.GetRootDiskStorageType()),
 			err,
 		)
 	}
@@ -90,9 +89,10 @@ func convertInstance(
 	}
 
 	optionalValues := entity.OptionalInstanceValues{
-		Reference:   convertNullableStringToValue(sdkInstance.Reference),
-		MarketAppId: convertNullableStringToValue(sdkInstance.MarketAppId),
-		StartedAt:   convertNullableTimeToValue(sdkInstance.StartedAt),
+		Reference:        convertNullableStringToValue(sdkInstance.Reference),
+		MarketAppId:      convertNullableStringToValue(sdkInstance.MarketAppId),
+		StartedAt:        convertNullableTimeToValue(sdkInstance.StartedAt),
+		AutoScalingGroup: autoScalingGroup,
 	}
 	if sdkInstance.Iso.Get() != nil {
 		iso := convertIso(*sdkInstance.Iso.Get())
@@ -101,17 +101,6 @@ func convertInstance(
 	if sdkInstance.PrivateNetwork.Get() != nil {
 		privateNetwork := convertPrivateNetwork(*sdkInstance.PrivateNetwork.Get())
 		optionalValues.PrivateNetwork = &privateNetwork
-	}
-	if sdkAutoScalingGroup != nil {
-		autoScalingGroup, err := convertAutoScalingGroup(*sdkAutoScalingGroup, sdkLoadBalancer)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"error converting autoScalingGroup:  %w",
-				err,
-			)
-		}
-
-		optionalValues.AutoScalingGroup = autoScalingGroup
 	}
 
 	instance := entity.NewInstance(
@@ -332,12 +321,12 @@ func convertPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) entity.
 
 func convertAutoScalingGroup(
 	sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancer *publicCloud.LoadBalancerDetails,
+	loadBalancer *entity.LoadBalancer,
 ) (
 	*entity.AutoScalingGroup,
 	error,
 ) {
-	if sdkAutoScalingGroup.LoadBalancer.Get() != nil && sdkLoadBalancer == nil {
+	if sdkAutoScalingGroup.LoadBalancer.Get() != nil && loadBalancer == nil {
 		return nil, ErrNoLoadBalancerDetails
 	}
 
@@ -395,17 +384,7 @@ func convertAutoScalingGroup(
 		StartsAt:      convertNullableTimeToValue(sdkAutoScalingGroup.StartsAt),
 		EndsAt:        convertNullableTimeToValue(sdkAutoScalingGroup.EndsAt),
 		WarmupTime:    convertNullableInt32ToValue(sdkAutoScalingGroup.WarmupTime),
-	}
-	if sdkLoadBalancer != nil {
-		loadBalancer, err := convertLoadBalancer(*sdkLoadBalancer)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"error processing loadBalancer %q: %w",
-				sdkLoadBalancer.GetId(),
-				err,
-			)
-		}
-		options.LoadBalancer = loadBalancer
+		LoadBalancer:  loadBalancer,
 	}
 
 	autoScalingGroup := entity.NewAutoScalingGroup(
@@ -448,7 +427,10 @@ func convertNullableInt32ToValue(nullableInt publicCloud.NullableInt32) *int64 {
 	return &value
 }
 
-func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (*entity.LoadBalancer, error) {
+func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
+	*entity.LoadBalancer,
+	error,
+) {
 	loadBalancerId, err := convertStringToUuid(sdkLoadBalancer.Id)
 	if err != nil {
 		return nil, fmt.Errorf(
