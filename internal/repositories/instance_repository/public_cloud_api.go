@@ -48,4 +48,23 @@ type publicCloudApi interface {
 		*http.Response,
 		error,
 	)
+
+	LaunchInstance(ctx context.Context) publicCloud.ApiLaunchInstanceRequest
+
+	LaunchInstanceExecute(r publicCloud.ApiLaunchInstanceRequest) (
+		*publicCloud.Instance,
+		*http.Response,
+		error,
+	)
+
+	UpdateInstance(
+		ctx context.Context,
+		instanceId string,
+	) publicCloud.ApiUpdateInstanceRequest
+
+	UpdateInstanceExecute(r publicCloud.ApiUpdateInstanceRequest) (
+		*publicCloud.InstanceDetails,
+		*http.Response,
+		error,
+	)
 }

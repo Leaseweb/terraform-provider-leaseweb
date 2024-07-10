@@ -202,6 +202,27 @@ func (p PublicCloudRepository) GetLoadBalancer(
 	return loadBalancer, nil
 }
 
+func (p PublicCloudRepository) CreateInstance(
+	instance entity.Instance,
+	ctx context.Context,
+) (*entity.Instance, error) {
+	return &entity.Instance{}, nil
+}
+
+func (p PublicCloudRepository) UpdateInstance(
+	instance entity.Instance,
+	ctx context.Context,
+) (*entity.Instance, error) {
+	return &entity.Instance{}, nil
+}
+
+func (p PublicCloudRepository) DeleteInstance(
+	id uuid.UUID,
+	ctx context.Context,
+) error {
+	return nil
+}
+
 func NewPublicCloudRepository(token string, optional Optional) PublicCloudRepository {
 	configuration := publicCloud.NewConfiguration()
 

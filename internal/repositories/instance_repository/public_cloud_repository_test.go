@@ -21,10 +21,40 @@ type publicCloudApiSpy struct {
 	instanceList                    []publicCloud.Instance
 	autoScalingGroup                *publicCloud.AutoScalingGroupDetails
 	loadBalancer                    *publicCloud.LoadBalancerDetails
+	launchedInstance                *publicCloud.Instance
 	getInstanceListExecuteError     error
 	getInstanceExecuteError         error
 	getAutoScalingGroupExecuteError error
 	getLoadBalancerExecuteError     error
+	launchInstanceExecuteError      error
+	updateInstanceExecuteError      error
+}
+
+func (a publicCloudApiSpy) LaunchInstance(ctx context.Context) publicCloud.ApiLaunchInstanceRequest {
+	return publicCloud.ApiLaunchInstanceRequest{}
+}
+
+func (a publicCloudApiSpy) LaunchInstanceExecute(r publicCloud.ApiLaunchInstanceRequest) (
+	*publicCloud.Instance,
+	*http.Response,
+	error,
+) {
+	return a.launchedInstance, nil, a.launchInstanceExecuteError
+}
+
+func (a publicCloudApiSpy) UpdateInstance(
+	ctx context.Context,
+	instanceId string,
+) publicCloud.ApiUpdateInstanceRequest {
+	return publicCloud.ApiUpdateInstanceRequest{}
+}
+
+func (a publicCloudApiSpy) UpdateInstanceExecute(r publicCloud.ApiUpdateInstanceRequest) (
+	*publicCloud.InstanceDetails,
+	*http.Response,
+	error,
+) {
+	return a.instance, nil, a.updateInstanceExecuteError
 }
 
 func (a publicCloudApiSpy) GetInstanceList(ctx context.Context) publicCloud.ApiGetInstanceListRequest {
@@ -503,4 +533,39 @@ func TestPublicCloudRepository_GetAllInstances(t *testing.T) {
 			assert.ErrorContains(t, err, "error getting instance")
 		},
 	)
+}
+
+func TestPublicCloudRepository_CreateInstance(t *testing.T) {
+	t.Run("expected instance entity is created", func(t *testing.T) {
+		publicCloudRepository := PublicCloudRepository{}
+		got, err := publicCloudRepository.CreateInstance(
+			entity.Instance{},
+			context.TODO(),
+		)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, got)
+	})
+}
+
+func TestPublicCloudRepository_UpdateInstance(t *testing.T) {
+	t.Run("expected instance entity is updated", func(t *testing.T) {
+		publicCloudRepository := PublicCloudRepository{}
+		got, err := publicCloudRepository.UpdateInstance(
+			entity.Instance{},
+			context.TODO(),
+		)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, got)
+	})
+}
+
+func TestPublicCloudRepository_DeleteInstance(t *testing.T) {
+	t.Run("expected instance entity is deleted", func(t *testing.T) {
+		publicCloudRepository := PublicCloudRepository{}
+		err := publicCloudRepository.DeleteInstance(uuid.New(), context.TODO())
+
+		assert.NoError(t, err)
+	})
 }
