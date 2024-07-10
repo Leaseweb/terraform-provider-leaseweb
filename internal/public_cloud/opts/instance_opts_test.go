@@ -146,8 +146,8 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 		sdkImageDetails := publicCloud.ImageDetails{Id: *sdkImageId}
 		sdkContract := publicCloud.Contract{
 			Term:             publicCloud.CONTRACTTERM__1,
-			Type:             "contractType",
-			BillingFrequency: 6,
+			Type:             publicCloud.CONTRACTTYPE_MONTHLY,
+			BillingFrequency: publicCloud.BILLINGFREQUENCY__6,
 		}
 		rootDiskStorageType, _ := publicCloud.NewRootDiskStorageTypeFromValue("CENTRAL")
 
@@ -210,7 +210,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 
 		assert.Equal(
 			t,
-			"contractType",
+			publicCloud.CONTRACTTYPE_MONTHLY,
 			launchInstanceOpts.GetContractType(),
 			"contract.type should be contractType",
 		)
@@ -222,7 +222,7 @@ func TestInstanceOpts_NewLaunchInstanceOpts(t *testing.T) {
 		)
 		assert.Equal(
 			t,
-			int32(6),
+			publicCloud.BILLINGFREQUENCY__6,
 			launchInstanceOpts.GetBillingFrequency(),
 			"contract.billing_frequency should be 6",
 		)

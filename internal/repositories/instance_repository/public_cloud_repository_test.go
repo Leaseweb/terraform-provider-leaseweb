@@ -10,11 +10,15 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 var (
 	_ publicCloudApi = &publicCloudApiSpy{}
 )
+
+var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 type publicCloudApiSpy struct {
 	instance                        *publicCloud.InstanceDetails
@@ -537,15 +541,269 @@ func TestPublicCloudRepository_GetAllInstances(t *testing.T) {
 
 func TestPublicCloudRepository_CreateInstance(t *testing.T) {
 	t.Run("expected instance entity is created", func(t *testing.T) {
-		publicCloudRepository := PublicCloudRepository{}
+		id := uuid.New()
+		convertedId := uuid.New()
+
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: id.String()},
+			instance:         &publicCloud.InstanceDetails{Id: id.String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+			convertInstance: func(sdkInstance publicCloud.InstanceDetails, sdkAutoScalingGroup *entity.AutoScalingGroup) (*entity.Instance, error) {
+				return &entity.Instance{Id: convertedId}, nil
+			},
+		}
+
+		marketAppId := "marketAppId"
+		reference := "reference"
+		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+
+		instance := entity.NewCreateInstance(
+			"region",
+			"lsw.m3.large",
+			enum.RootDiskStorageTypeCentral,
+			enum.Almalinux864Bit,
+			enum.ContractTypeMonthly,
+			enum.ContractTermSix,
+			enum.ContractBillingFrequencyThree,
+			entity.OptionalCreateInstanceValues{
+				MarketAppId: &marketAppId,
+				Reference:   &reference,
+				SshKey:      sshKeyValueObject,
+			},
+		)
+
 		got, err := publicCloudRepository.CreateInstance(
-			entity.Instance{},
+			instance,
 			context.TODO(),
 		)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, got)
+		assert.Equal(t, convertedId, got.Id)
 	})
+
+	t.Run("invalid instanceType returns error", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
+			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+		}
+
+		_, err := publicCloudRepository.CreateInstance(
+			entity.Instance{Type: "tralala"},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
+			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+		}
+
+		_, err := publicCloudRepository.CreateInstance(
+			entity.Instance{Type: "lsw.m3.large", RootDiskStorageType: "tralala"},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("invalid imageId returns error", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
+			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+		}
+
+		_, err := publicCloudRepository.CreateInstance(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: "tralala"},
+			},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("invalid contractType returns error", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
+			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+		}
+
+		_, err := publicCloudRepository.CreateInstance(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
+				Contract:            entity.Contract{Type: "tralala"},
+			},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("invalid contractTerm returns error", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
+			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+		}
+
+		_, err := publicCloudRepository.CreateInstance(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
+				Contract: entity.Contract{
+					Type: enum.ContractTypeMonthly,
+					Term: 55,
+				},
+			},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "55")
+	})
+
+	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{
+			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
+			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
+		}
+		publicCloudRepository := PublicCloudRepository{
+			publicCLoudAPI: apiSpy,
+		}
+
+		_, err := publicCloudRepository.CreateInstance(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
+				Contract: entity.Contract{
+					Type:             enum.ContractTypeMonthly,
+					Term:             enum.ContractTermThree,
+					BillingFrequency: 55,
+				},
+			},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "55")
+	})
+
+	t.Run(
+		"error is returned when instance cannot be launched in sdk",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				launchInstanceExecuteError: errors.New("some error"),
+			}
+			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+
+			instance := entity.NewCreateInstance(
+				"region",
+				"lsw.m3.large",
+				enum.RootDiskStorageTypeCentral,
+				enum.Almalinux864Bit,
+				enum.ContractTypeMonthly,
+				enum.ContractTermSix,
+				enum.ContractBillingFrequencyThree,
+				entity.OptionalCreateInstanceValues{},
+			)
+
+			_, err := publicCloudRepository.CreateInstance(
+				instance,
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned when id of launched instance is invalid",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				launchedInstance: &publicCloud.Instance{Id: "tralala"},
+			}
+			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+
+			instance := entity.NewCreateInstance(
+				"region",
+				"lsw.m3.large",
+				enum.RootDiskStorageTypeCentral,
+				enum.Almalinux864Bit,
+				enum.ContractTypeMonthly,
+				enum.ContractTermSix,
+				enum.ContractBillingFrequencyThree,
+				entity.OptionalCreateInstanceValues{},
+			)
+
+			_, err := publicCloudRepository.CreateInstance(
+				instance,
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "tralala")
+		},
+	)
+
+	t.Run(
+		"error is returned when instanceDetails cannot be retrieved",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				launchedInstance:        &publicCloud.Instance{Id: uuid.New().String()},
+				getInstanceExecuteError: errors.New("some error"),
+			}
+			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+
+			instance := entity.NewCreateInstance(
+				"region",
+				"lsw.m3.large",
+				enum.RootDiskStorageTypeCentral,
+				enum.Almalinux864Bit,
+				enum.ContractTypeMonthly,
+				enum.ContractTermSix,
+				enum.ContractBillingFrequencyThree,
+				entity.OptionalCreateInstanceValues{},
+			)
+
+			_, err := publicCloudRepository.CreateInstance(
+				instance,
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }
 
 func TestPublicCloudRepository_UpdateInstance(t *testing.T) {

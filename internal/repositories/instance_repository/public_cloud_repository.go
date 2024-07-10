@@ -206,7 +206,100 @@ func (p PublicCloudRepository) CreateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	return &entity.Instance{}, nil
+	instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(instance.Type)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse instanceType %q: %w",
+			instance.Type,
+			err,
+		)
+	}
+
+	rootDiskStorageType, err := publicCloud.NewRootDiskStorageTypeFromValue(instance.RootDiskStorageType.String())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse rootDiskStorageType %q: %w",
+			instance.RootDiskStorageType,
+			err,
+		)
+	}
+
+	imageId, err := publicCloud.NewImageIdFromValue(instance.Image.Id.String())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse imageId %q: %w",
+			instance.Image.Id,
+			err,
+		)
+	}
+
+	contractType, err := publicCloud.NewContractTypeFromValue(instance.Contract.Type.String())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse contract.type %q: %w",
+			instance.Contract.Type,
+			err,
+		)
+	}
+
+	contractTerm, err := publicCloud.NewContractTermFromValue(int32(instance.Contract.Term.Value()))
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse contract.term %q: %w",
+			instance.Contract.Term,
+			err,
+		)
+	}
+
+	billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(int32(instance.Contract.BillingFrequency.Value()))
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse contract.billingFrequency %d: %w",
+			instance.Contract.BillingFrequency,
+			err,
+		)
+	}
+
+	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
+		instance.Region,
+		*instanceTypeName,
+		*imageId,
+		*contractType,
+		*contractTerm,
+		*billingFrequency,
+		*rootDiskStorageType,
+	)
+	launchInstanceOpts.MarketAppId = instance.MarketAppId
+	launchInstanceOpts.Reference = instance.Reference
+
+	if instance.SshKey != nil {
+		sshKey := instance.SshKey.String()
+		launchInstanceOpts.SshKey = &sshKey
+	}
+
+	request := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx))
+	request.LaunchInstanceOpts(*launchInstanceOpts)
+
+	launchedInstance, _, err := p.publicCLoudAPI.LaunchInstanceExecute(request)
+	if err != nil {
+		return nil, fmt.Errorf("cannot launch instance: %w", err)
+	}
+
+	instanceId, err := uuid.Parse(launchedInstance.GetId())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse instanceId %q: %w",
+			launchedInstance.GetId(),
+			err,
+		)
+	}
+
+	instanceDetails, err := p.GetInstance(instanceId, ctx)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get instance %s: %w", instanceId, err)
+	}
+
+	return instanceDetails, nil
 }
 
 func (p PublicCloudRepository) UpdateInstance(

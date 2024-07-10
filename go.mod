@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.23.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.8.0
-	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240709124328-d8ff3867394f
+	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240710133724-845fadca3231
 	github.com/stretchr/testify v1.9.0
 )
 

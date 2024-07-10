@@ -10,6 +10,8 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
+var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
+
 func TestNewInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instanceId, _ := uuid.NewUUID()
@@ -64,7 +66,7 @@ func TestNewInstance(t *testing.T) {
 
 		reference := "Reference"
 		marketAppId := "marketAppId"
-		sshKey, _ := value_object.NewSshKey("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w==")
+		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 		startedAt := time.Now()
 
 		got := NewInstance(
@@ -84,7 +86,7 @@ func TestNewInstance(t *testing.T) {
 			OptionalInstanceValues{
 				Reference:        &reference,
 				MarketAppId:      &marketAppId,
-				SshKey:           sshKey,
+				SshKey:           sshKeyValueObject,
 				Iso:              &Iso{Id: "isoId"},
 				StartedAt:        &startedAt,
 				PrivateNetwork:   &PrivateNetwork{Id: "privateNetworkId"},
@@ -102,10 +104,67 @@ func TestNewInstance(t *testing.T) {
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
 		assert.Equal(
 			t,
-			"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w==",
+			sshKey,
 			got.SshKey.String(),
 		)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "autoScalingGroupRegion", got.AutoScalingGroup.Region)
 	})
+}
+
+func TestNewCreateInstance(t *testing.T) {
+	t.Run("required values are set", func(t *testing.T) {
+		got := NewCreateInstance(
+			"region",
+			"instanceType",
+			enum.RootDiskStorageTypeCentral,
+			enum.Almalinux864Bit,
+			enum.ContractTypeMonthly,
+			enum.ContractTermSix,
+			enum.ContractBillingFrequencyThree,
+			OptionalCreateInstanceValues{},
+		)
+
+		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, "instanceType", got.Type)
+		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
+		assert.Equal(t, enum.Almalinux864Bit, got.Image.Id)
+		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
+		assert.Equal(t, enum.ContractTermSix, got.Contract.Term)
+		assert.Equal(
+			t,
+			enum.ContractBillingFrequencyThree,
+			got.Contract.BillingFrequency,
+		)
+
+		assert.Nil(t, got.MarketAppId)
+		assert.Nil(t, got.Reference)
+		assert.Nil(t, got.SshKey)
+	})
+
+	t.Run("optional values are set", func(t *testing.T) {
+		marketAppId := "marketAppId"
+		reference := "reference"
+		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+
+		got := NewCreateInstance(
+			"",
+			"",
+			enum.RootDiskStorageTypeCentral,
+			enum.Almalinux864Bit,
+			enum.ContractTypeMonthly,
+			enum.ContractTermSix,
+			enum.ContractBillingFrequencyThree,
+			OptionalCreateInstanceValues{
+				MarketAppId: &marketAppId,
+				Reference:   &reference,
+				SshKey:      sshKeyValueObject,
+			},
+		)
+
+		assert.Equal(t, marketAppId, *got.MarketAppId)
+		assert.Equal(t, reference, *got.Reference)
+		assert.Equal(t, sshKeyValueObject, got.SshKey)
+	})
+
 }

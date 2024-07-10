@@ -106,13 +106,18 @@ func (o *InstanceOpts) NewLaunchInstanceOpts() (
 		return nil, cannotSetContractBillingFrequency(contract.BillingFrequency.ValueInt64())
 	}
 
+	contractType, err := publicCloud.NewContractTypeFromValue(contract.Type.ValueString())
+	if err != nil {
+		return nil, cannotSetContractType(contract.Type.ValueString())
+	}
+
 	opts := publicCloud.NewLaunchInstanceOpts(
 		o.instance.Region.ValueString(),
 		*instanceTypeName,
 		*imageId,
-		contract.Type.ValueString(),
+		*contractType,
 		*term,
-		int32(*billingFrequency),
+		*billingFrequency,
 		*rootDiskStorageType,
 	)
 

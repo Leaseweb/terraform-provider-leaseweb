@@ -41,6 +41,12 @@ type OptionalInstanceValues struct {
 	AutoScalingGroup *AutoScalingGroup
 }
 
+type OptionalCreateInstanceValues struct {
+	MarketAppId *string
+	Reference   *string
+	SshKey      *value_object.SshKey
+}
+
 func NewInstance(
 	id uuid.UUID,
 	region string,
@@ -55,7 +61,7 @@ func NewInstance(
 	rootDiskStorageType enum.RootDiskStorageType,
 	ips Ips,
 	contract Contract,
-	options OptionalInstanceValues,
+	optional OptionalInstanceValues,
 ) Instance {
 	instance := Instance{
 		Id:                  id,
@@ -73,13 +79,42 @@ func NewInstance(
 		Contract:            contract,
 	}
 
-	instance.Iso = options.Iso
-	instance.Reference = options.Reference
-	instance.MarketAppId = options.MarketAppId
-	instance.SshKey = options.SshKey
-	instance.StartedAt = options.StartedAt
-	instance.PrivateNetwork = options.PrivateNetwork
-	instance.AutoScalingGroup = options.AutoScalingGroup
+	instance.Iso = optional.Iso
+	instance.Reference = optional.Reference
+	instance.MarketAppId = optional.MarketAppId
+	instance.SshKey = optional.SshKey
+	instance.StartedAt = optional.StartedAt
+	instance.PrivateNetwork = optional.PrivateNetwork
+	instance.AutoScalingGroup = optional.AutoScalingGroup
+
+	return instance
+}
+
+func NewCreateInstance(
+	region string,
+	instanceType string,
+	rootDiskStorageType enum.RootDiskStorageType,
+	imageId enum.ImageId,
+	contractType enum.ContractType,
+	contractTerm enum.ContractTerm,
+	billingFrequency enum.ContractBillingFrequency,
+	optional OptionalCreateInstanceValues,
+) Instance {
+	instance := Instance{
+		Region:              region,
+		Type:                instanceType,
+		RootDiskStorageType: rootDiskStorageType,
+		Image:               Image{Id: imageId},
+		Contract: Contract{
+			Type:             contractType,
+			Term:             contractTerm,
+			BillingFrequency: billingFrequency,
+		},
+	}
+
+	instance.MarketAppId = optional.MarketAppId
+	instance.Reference = optional.Reference
+	instance.SshKey = optional.SshKey
 
 	return instance
 }

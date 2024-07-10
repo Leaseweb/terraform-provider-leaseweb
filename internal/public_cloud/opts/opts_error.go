@@ -45,3 +45,12 @@ func cannotSetContractBillingFrequency(billingFrequency int64) *OptsError {
 		),
 	}
 }
+
+func cannotSetContractType(contractType string) *OptsError {
+	return &OptsError{
+		fmt.Sprintf(
+			"Cannot set contract.type %q",
+			contractType,
+		),
+	}
+}
