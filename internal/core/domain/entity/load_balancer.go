@@ -3,12 +3,12 @@ package entity
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 type LoadBalancer struct {
-	Id             uuid.UUID
+	Id             value_object.Uuid
 	Type           string
 	Resources      Resources
 	Region         string
@@ -29,7 +29,7 @@ type OptionalLoadBalancerValues struct {
 }
 
 func NewLoadBalancer(
-	id uuid.UUID,
+	id value_object.Uuid,
 	loadBalancerType string,
 	resources Resources,
 	region string,

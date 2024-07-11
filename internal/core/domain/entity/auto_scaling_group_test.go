@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
@@ -12,7 +11,7 @@ import (
 
 func TestNewAutoScalingGroup(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		id, _ := uuid.NewUUID()
+		id := value_object.NewGeneratedUuid()
 		createdAt := time.Now()
 		updatedAt := time.Now()
 		reference, _ := value_object.NewAutoScalingGroupReference("reference")
@@ -47,7 +46,6 @@ func TestNewAutoScalingGroup(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		id, _ := uuid.NewUUID()
 		reference, _ := value_object.NewAutoScalingGroupReference("")
 
 		desiredAmount := int64(5)
@@ -60,7 +58,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		CoolDownTime := int64(10)
 
 		got := NewAutoScalingGroup(
-			id,
+			value_object.NewGeneratedUuid(),
 			enum.AutoScalingGroupTypeCpuBased,
 			enum.StateRunning,
 			"region",

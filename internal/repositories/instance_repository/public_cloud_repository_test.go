@@ -6,22 +6,19 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 var (
 	_ publicCloudApi = &publicCloudApiSpy{}
 )
 
-var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
-
 type publicCloudApiSpy struct {
 	instance                        *publicCloud.InstanceDetails
+	updatedInstance                 *publicCloud.InstanceDetails
 	instanceList                    []publicCloud.Instance
 	autoScalingGroup                *publicCloud.AutoScalingGroupDetails
 	loadBalancer                    *publicCloud.LoadBalancerDetails
@@ -32,92 +29,129 @@ type publicCloudApiSpy struct {
 	getLoadBalancerExecuteError     error
 	launchInstanceExecuteError      error
 	updateInstanceExecuteError      error
+	terminateInstanceExecuteError   error
+	wantedGetInstanceId             *string
+	wantedGetAutoScalingGroupId     *string
+	wantedGetLoadBalancerId         *string
+	wantedTerminateInstanceId       *string
+	t                               *testing.T
 }
 
-func (a publicCloudApiSpy) LaunchInstance(ctx context.Context) publicCloud.ApiLaunchInstanceRequest {
+func (p publicCloudApiSpy) TerminateInstance(
+	ctx context.Context,
+	instanceId string,
+) publicCloud.ApiTerminateInstanceRequest {
+	if p.wantedTerminateInstanceId != nil {
+		assert.Equal(p.t, *p.wantedTerminateInstanceId, instanceId)
+	}
+
+	return publicCloud.ApiTerminateInstanceRequest{}
+}
+
+func (p publicCloudApiSpy) TerminateInstanceExecute(r publicCloud.ApiTerminateInstanceRequest) (
+	*http.Response,
+	error,
+) {
+	return nil, p.terminateInstanceExecuteError
+}
+
+func (p publicCloudApiSpy) LaunchInstance(ctx context.Context) publicCloud.ApiLaunchInstanceRequest {
 	return publicCloud.ApiLaunchInstanceRequest{}
 }
 
-func (a publicCloudApiSpy) LaunchInstanceExecute(r publicCloud.ApiLaunchInstanceRequest) (
+func (p publicCloudApiSpy) LaunchInstanceExecute(r publicCloud.ApiLaunchInstanceRequest) (
 	*publicCloud.Instance,
 	*http.Response,
 	error,
 ) {
-	return a.launchedInstance, nil, a.launchInstanceExecuteError
+	return p.launchedInstance, nil, p.launchInstanceExecuteError
 }
 
-func (a publicCloudApiSpy) UpdateInstance(
+func (p publicCloudApiSpy) UpdateInstance(
 	ctx context.Context,
 	instanceId string,
 ) publicCloud.ApiUpdateInstanceRequest {
 	return publicCloud.ApiUpdateInstanceRequest{}
 }
 
-func (a publicCloudApiSpy) UpdateInstanceExecute(r publicCloud.ApiUpdateInstanceRequest) (
+func (p publicCloudApiSpy) UpdateInstanceExecute(r publicCloud.ApiUpdateInstanceRequest) (
 	*publicCloud.InstanceDetails,
 	*http.Response,
 	error,
 ) {
-	return a.instance, nil, a.updateInstanceExecuteError
+	return p.updatedInstance, nil, p.updateInstanceExecuteError
 }
 
-func (a publicCloudApiSpy) GetInstanceList(ctx context.Context) publicCloud.ApiGetInstanceListRequest {
+func (p publicCloudApiSpy) GetInstanceList(ctx context.Context) publicCloud.ApiGetInstanceListRequest {
 	return publicCloud.ApiGetInstanceListRequest{}
 }
 
-func (a publicCloudApiSpy) GetInstanceListExecute(r publicCloud.ApiGetInstanceListRequest) (
+func (p publicCloudApiSpy) GetInstanceListExecute(r publicCloud.ApiGetInstanceListRequest) (
 	*publicCloud.GetInstanceListResult,
 	*http.Response,
 	error,
 ) {
-	return &publicCloud.GetInstanceListResult{Instances: a.instanceList}, nil, a.getInstanceListExecuteError
+	return &publicCloud.GetInstanceListResult{Instances: p.instanceList},
+		nil,
+		p.getInstanceListExecuteError
 }
 
-func (a publicCloudApiSpy) GetAutoScalingGroup(
+func (p publicCloudApiSpy) GetAutoScalingGroup(
 	ctx context.Context,
 	autoScalingGroupId string,
 ) publicCloud.ApiGetAutoScalingGroupRequest {
-	return publicCloud.ApiGetAutoScalingGroupRequest{}
+	if p.wantedGetAutoScalingGroupId != nil {
+		assert.Equal(p.t, *p.wantedGetAutoScalingGroupId, autoScalingGroupId)
+	}
 
+	return publicCloud.ApiGetAutoScalingGroupRequest{}
 }
 
-func (a publicCloudApiSpy) GetAutoScalingGroupExecute(r publicCloud.ApiGetAutoScalingGroupRequest) (
+func (p publicCloudApiSpy) GetAutoScalingGroupExecute(r publicCloud.ApiGetAutoScalingGroupRequest) (
 	*publicCloud.AutoScalingGroupDetails,
 	*http.Response,
 	error,
 ) {
 
-	return a.autoScalingGroup, nil, a.getAutoScalingGroupExecuteError
+	return p.autoScalingGroup, nil, p.getAutoScalingGroupExecuteError
 }
 
-func (a publicCloudApiSpy) GetLoadBalancer(
+func (p publicCloudApiSpy) GetLoadBalancer(
 	ctx context.Context,
 	loadBalancerId string,
 ) publicCloud.ApiGetLoadBalancerRequest {
+	if p.wantedGetLoadBalancerId != nil {
+		assert.Equal(p.t, *p.wantedGetLoadBalancerId, loadBalancerId)
+	}
+
 	return publicCloud.ApiGetLoadBalancerRequest{}
 }
 
-func (a publicCloudApiSpy) GetLoadBalancerExecute(r publicCloud.ApiGetLoadBalancerRequest) (
+func (p publicCloudApiSpy) GetLoadBalancerExecute(r publicCloud.ApiGetLoadBalancerRequest) (
 	*publicCloud.LoadBalancerDetails,
 	*http.Response,
 	error,
 ) {
-	return a.loadBalancer, nil, a.getLoadBalancerExecuteError
+	return p.loadBalancer, nil, p.getLoadBalancerExecuteError
 }
 
-func (a publicCloudApiSpy) GetInstance(
+func (p publicCloudApiSpy) GetInstance(
 	ctx context.Context,
 	instanceId string,
 ) publicCloud.ApiGetInstanceRequest {
+	if p.wantedGetInstanceId != nil {
+		assert.Equal(p.t, *p.wantedGetInstanceId, instanceId)
+	}
+
 	return publicCloud.ApiGetInstanceRequest{}
 }
 
-func (a publicCloudApiSpy) GetInstanceExecute(r publicCloud.ApiGetInstanceRequest) (
+func (p publicCloudApiSpy) GetInstanceExecute(r publicCloud.ApiGetInstanceRequest) (
 	*publicCloud.InstanceDetails,
 	*http.Response,
 	error,
 ) {
-	return a.instance, nil, a.getInstanceExecuteError
+	return p.instance, nil, p.getInstanceExecuteError
 }
 
 func TestNewPublicCloudRepository(t *testing.T) {
@@ -130,7 +164,9 @@ func TestNewPublicCloudRepository(t *testing.T) {
 
 func TestPublicCloudRepository_authContext(t *testing.T) {
 	publicCloudRepository := NewPublicCloudRepository("token", Optional{})
-	got := publicCloudRepository.authContext(context.TODO()).Value(publicCloud.ContextAPIKeys)
+	got := publicCloudRepository.authContext(context.TODO()).Value(
+		publicCloud.ContextAPIKeys,
+	)
 
 	assert.Equal(
 		t,
@@ -141,42 +177,51 @@ func TestPublicCloudRepository_authContext(t *testing.T) {
 
 func TestPublicCloudRepository_GetInstance(t *testing.T) {
 	t.Run("expected instance entity is returned", func(t *testing.T) {
-		id := uuid.New()
-		convertedInstanceId, _ := uuid.NewUUID()
+		id := value_object.NewGeneratedUuid()
+		expectedId := id.String()
 
-		apiSpy := publicCloudApiSpy{instance: &publicCloud.InstanceDetails{Id: id.String()}}
+		sdkInstance := publicCloud.InstanceDetails{Id: value_object.NewGeneratedUuid().String()}
+		expected := entity.Instance{}
+
+		apiSpy := publicCloudApiSpy{
+			instance:            &sdkInstance,
+			wantedGetInstanceId: &expectedId,
+			t:                   t,
+		}
 
 		publicCloudRepository := PublicCloudRepository{
 			publicCLoudAPI: apiSpy,
 			convertInstance: func(
-				skInstance publicCloud.InstanceDetails,
+				sdkInstance publicCloud.InstanceDetails,
 				autoScalingGroup *entity.AutoScalingGroup,
 			) (*entity.Instance, error) {
 				assert.Equal(
 					t,
-					id.String(),
-					skInstance.GetId(),
+					apiSpy.instance,
+					&sdkInstance,
 					"sdkInstance is converted",
 				)
 
-				return &entity.Instance{Id: convertedInstanceId}, nil
+				return &expected, nil
 			},
 		}
 
 		got, err := publicCloudRepository.GetInstance(id, context.TODO())
 
 		assert.NoError(t, err)
-		assert.Equal(t, convertedInstanceId, got.Id)
+		assert.Same(t, &expected, got)
 	})
 
 	t.Run(
 		"error is returned if instance cannot be retrieved from the sdk",
 		func(t *testing.T) {
-			apiSpy := publicCloudApiSpy{getInstanceExecuteError: errors.New("error getting instance")}
+			apiSpy := publicCloudApiSpy{
+				getInstanceExecuteError: errors.New("error getting instance"),
+			}
 
 			PublicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
-			_, err := PublicCloudRepository.GetInstance(uuid.New(), context.TODO())
+			_, err := PublicCloudRepository.GetInstance(value_object.NewGeneratedUuid(), context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "error getting instance")
@@ -184,8 +229,8 @@ func TestPublicCloudRepository_GetInstance(t *testing.T) {
 	)
 
 	t.Run("expected autoScalingGroup is set", func(t *testing.T) {
-		autoScalingGroupId := uuid.New()
-		convertedAutoScalingGroupId := uuid.New()
+		autoScalingGroupId := value_object.NewGeneratedUuid()
+		convertedAutoScalingGroupId := value_object.NewGeneratedUuid()
 
 		apiSpy := publicCloudApiSpy{
 			instance: &publicCloud.InstanceDetails{
@@ -225,55 +270,69 @@ func TestPublicCloudRepository_GetInstance(t *testing.T) {
 			},
 		}
 
-		got, err := PublicCloudRepository.GetInstance(uuid.New(), context.TODO())
+		got, err := PublicCloudRepository.GetInstance(value_object.NewGeneratedUuid(), context.TODO())
 
 		assert.NoError(t, err)
 		assert.Equal(t, convertedAutoScalingGroupId, got.AutoScalingGroup.Id)
 	})
 
-	t.Run("error is returned if autoScalingGroup uuid is invalid", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			instance: &publicCloud.InstanceDetails{
-				AutoScalingGroup: *publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
-					Id: "tralala"},
-				),
-			},
-		}
+	t.Run(
+		"error is returned if autoScalingGroup uuid is invalid",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				instance: &publicCloud.InstanceDetails{
+					AutoScalingGroup: *publicCloud.NewNullableAutoScalingGroup(
+						&publicCloud.AutoScalingGroup{
+							Id: "tralala",
+						},
+					),
+				},
+			}
 
-		PublicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+			PublicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
-		_, err := PublicCloudRepository.GetInstance(uuid.New(), context.TODO())
+			_, err := PublicCloudRepository.GetInstance(value_object.NewGeneratedUuid(), context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "cannot convert string to uuid")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "cannot convert string to uuid")
+		},
+	)
 
-	t.Run("error is returned if autoScalingGroup cannot be retrieved", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			instance: &publicCloud.InstanceDetails{
-				AutoScalingGroup: *publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
-					Id: uuid.New().String()},
-				),
-			},
-			getAutoScalingGroupExecuteError: errors.New("error getting autoScalingGroup"),
-		}
+	t.Run(
+		"error is returned if autoScalingGroup cannot be retrieved",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				instance: &publicCloud.InstanceDetails{
+					AutoScalingGroup: *publicCloud.NewNullableAutoScalingGroup(
+						&publicCloud.AutoScalingGroup{
+							Id: value_object.NewGeneratedUuid().String(),
+						},
+					),
+				},
+				getAutoScalingGroupExecuteError: errors.New("error getting autoScalingGroup"),
+			}
 
-		PublicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+			PublicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
-		_, err := PublicCloudRepository.GetInstance(uuid.New(), context.TODO())
+			_, err := PublicCloudRepository.GetInstance(value_object.NewGeneratedUuid(), context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "error getting autoScalingGroup")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "error getting autoScalingGroup")
+		},
+	)
 }
 
 func TestPublicCLoudRepository_GetLoadBalancer(t *testing.T) {
 	t.Run("expected loadBalancer entity is returned", func(t *testing.T) {
-		id := uuid.New()
-		convertedId := uuid.New()
+		id := value_object.NewGeneratedUuid()
+		wantedLoadBalancerId := id.String()
+
+		convertedId := value_object.NewGeneratedUuid()
 
 		apiSpy := publicCloudApiSpy{
-			loadBalancer: &publicCloud.LoadBalancerDetails{Id: id.String()},
+			loadBalancer:            &publicCloud.LoadBalancerDetails{Id: id.String()},
+			wantedGetLoadBalancerId: &wantedLoadBalancerId,
+			t:                       t,
 		}
 
 		publicCloudRepository := PublicCloudRepository{
@@ -307,7 +366,7 @@ func TestPublicCLoudRepository_GetLoadBalancer(t *testing.T) {
 
 			PublicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
-			_, err := PublicCloudRepository.GetLoadBalancer(uuid.New(), context.TODO())
+			_, err := PublicCloudRepository.GetLoadBalancer(value_object.NewGeneratedUuid(), context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "error getting loadBalancer")
@@ -318,7 +377,7 @@ func TestPublicCLoudRepository_GetLoadBalancer(t *testing.T) {
 		"error is returned if loadBalancer cannot be converted",
 		func(t *testing.T) {
 			apiSpy := publicCloudApiSpy{
-				loadBalancer: &publicCloud.LoadBalancerDetails{Id: uuid.New().String()},
+				loadBalancer: &publicCloud.LoadBalancerDetails{Id: value_object.NewGeneratedUuid().String()},
 			}
 
 			publicCloudRepository := PublicCloudRepository{
@@ -332,7 +391,7 @@ func TestPublicCLoudRepository_GetLoadBalancer(t *testing.T) {
 			}
 
 			_, err := publicCloudRepository.GetLoadBalancer(
-				uuid.New(),
+				value_object.NewGeneratedUuid(),
 				context.TODO(),
 			)
 
@@ -346,10 +405,14 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 	t.Run(
 		"expected autoScalingGroup entity is returned",
 		func(t *testing.T) {
-			id := uuid.New()
-			convertedId := uuid.New()
+			id := value_object.NewGeneratedUuid()
+			wantedAutoScalingGroupId := id.String()
+			convertedId := value_object.NewGeneratedUuid()
+
 			apiSpy := publicCloudApiSpy{
-				autoScalingGroup: &publicCloud.AutoScalingGroupDetails{Id: id.String()},
+				autoScalingGroup:            &publicCloud.AutoScalingGroupDetails{Id: id.String()},
+				wantedGetAutoScalingGroupId: &wantedAutoScalingGroupId,
+				t:                           t,
 			}
 
 			publicCloudRepository := PublicCloudRepository{
@@ -386,7 +449,7 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
 			_, err := publicCloudRepository.GetAutoScalingGroup(
-				uuid.New(),
+				value_object.NewGeneratedUuid(),
 				context.TODO(),
 			)
 
@@ -398,14 +461,16 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 	t.Run("return error if loadBalancer id is invalid", func(t *testing.T) {
 		apiSpy := publicCloudApiSpy{
 			autoScalingGroup: &publicCloud.AutoScalingGroupDetails{
-				LoadBalancer: *publicCloud.NewNullableLoadBalancer(&publicCloud.LoadBalancer{Id: "tralala"}),
+				LoadBalancer: *publicCloud.NewNullableLoadBalancer(
+					&publicCloud.LoadBalancer{Id: "tralala"},
+				),
 			},
 		}
 
 		publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
 		_, err := publicCloudRepository.GetAutoScalingGroup(
-			uuid.New(),
+			value_object.NewGeneratedUuid(),
 			context.TODO(),
 		)
 
@@ -419,8 +484,10 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 		func(t *testing.T) {
 			apiSpy := publicCloudApiSpy{
 				autoScalingGroup: &publicCloud.AutoScalingGroupDetails{
-					LoadBalancer: *publicCloud.NewNullableLoadBalancer(&publicCloud.LoadBalancer{
-						Id: uuid.New().String()},
+					LoadBalancer: *publicCloud.NewNullableLoadBalancer(
+						&publicCloud.LoadBalancer{
+							Id: value_object.NewGeneratedUuid().String(),
+						},
 					),
 				},
 				getLoadBalancerExecuteError: errors.New("error getting loadBalancer"),
@@ -429,7 +496,7 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
 
 			_, err := publicCloudRepository.GetAutoScalingGroup(
-				uuid.New(),
+				value_object.NewGeneratedUuid(),
 				context.TODO(),
 			)
 
@@ -456,7 +523,7 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 			}
 
 			_, err := publicCloudRepository.GetAutoScalingGroup(
-				uuid.New(),
+				value_object.NewGeneratedUuid(),
 				context.TODO(),
 			)
 
@@ -469,11 +536,14 @@ func TestPublicCloudRepository_GetAutoScalingGroup(t *testing.T) {
 
 func TestPublicCloudRepository_GetAllInstances(t *testing.T) {
 	t.Run("expected instances entity is returned", func(t *testing.T) {
-		id := uuid.New()
+		id := value_object.NewGeneratedUuid()
+		wantedInstanceId := id.String()
 
 		apiSpy := publicCloudApiSpy{
-			instanceList: []publicCloud.Instance{{Id: id.String()}},
-			instance:     &publicCloud.InstanceDetails{Id: id.String()},
+			instanceList:        []publicCloud.Instance{{Id: id.String()}},
+			instance:            &publicCloud.InstanceDetails{Id: id.String()},
+			wantedGetInstanceId: &wantedInstanceId,
+			t:                   t,
 		}
 		publicCloudRepository := PublicCloudRepository{
 			publicCLoudAPI: apiSpy,
@@ -526,7 +596,9 @@ func TestPublicCloudRepository_GetAllInstances(t *testing.T) {
 		"return error when instance cannot be retrieved",
 		func(t *testing.T) {
 			apiSpy := publicCloudApiSpy{
-				instanceList:            []publicCloud.Instance{{Id: uuid.New().String()}},
+				instanceList: []publicCloud.Instance{
+					{Id: value_object.NewGeneratedUuid().String()},
+				},
 				getInstanceExecuteError: errors.New("error getting instance"),
 			}
 			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
@@ -541,181 +613,65 @@ func TestPublicCloudRepository_GetAllInstances(t *testing.T) {
 
 func TestPublicCloudRepository_CreateInstance(t *testing.T) {
 	t.Run("expected instance entity is created", func(t *testing.T) {
-		id := uuid.New()
-		convertedId := uuid.New()
+		passedInstance := entity.Instance{Id: value_object.NewGeneratedUuid()}
+
+		expected := entity.Instance{}
 
 		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: id.String()},
-			instance:         &publicCloud.InstanceDetails{Id: id.String()},
+			launchedInstance: &publicCloud.Instance{Id: value_object.NewGeneratedUuid().String()},
+			instance:         &publicCloud.InstanceDetails{},
 		}
 		publicCloudRepository := PublicCloudRepository{
 			publicCLoudAPI: apiSpy,
-			convertInstance: func(sdkInstance publicCloud.InstanceDetails, sdkAutoScalingGroup *entity.AutoScalingGroup) (*entity.Instance, error) {
-				return &entity.Instance{Id: convertedId}, nil
+			convertInstance: func(
+				sdkInstance publicCloud.InstanceDetails,
+				sdkAutoScalingGroup *entity.AutoScalingGroup,
+			) (*entity.Instance, error) {
+				return &expected, nil
+			},
+			convertEntityToLaunchInstanceOpts: func(instance entity.Instance) (
+				*publicCloud.LaunchInstanceOpts,
+				error,
+			) {
+				assert.Equal(
+					t,
+					passedInstance,
+					instance,
+					"passed instance entity is converted to launchInstanceOpts",
+				)
+				return &publicCloud.LaunchInstanceOpts{}, nil
 			},
 		}
 
-		marketAppId := "marketAppId"
-		reference := "reference"
-		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
-
-		instance := entity.NewCreateInstance(
-			"region",
-			"lsw.m3.large",
-			enum.RootDiskStorageTypeCentral,
-			enum.Almalinux864Bit,
-			enum.ContractTypeMonthly,
-			enum.ContractTermSix,
-			enum.ContractBillingFrequencyThree,
-			entity.OptionalCreateInstanceValues{
-				MarketAppId: &marketAppId,
-				Reference:   &reference,
-				SshKey:      sshKeyValueObject,
-			},
-		)
-
 		got, err := publicCloudRepository.CreateInstance(
-			instance,
+			passedInstance,
 			context.TODO(),
 		)
 
 		assert.NoError(t, err)
-		assert.Equal(t, convertedId, got.Id)
+		assert.Same(t, &expected, got)
 	})
 
-	t.Run("invalid instanceType returns error", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
-			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
-		}
-		publicCloudRepository := PublicCloudRepository{
-			publicCLoudAPI: apiSpy,
-		}
-
-		_, err := publicCloudRepository.CreateInstance(
-			entity.Instance{Type: "tralala"},
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
-			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
-		}
-		publicCloudRepository := PublicCloudRepository{
-			publicCLoudAPI: apiSpy,
-		}
-
-		_, err := publicCloudRepository.CreateInstance(
-			entity.Instance{Type: "lsw.m3.large", RootDiskStorageType: "tralala"},
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid imageId returns error", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
-			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
-		}
-		publicCloudRepository := PublicCloudRepository{
-			publicCLoudAPI: apiSpy,
-		}
-
-		_, err := publicCloudRepository.CreateInstance(
-			entity.Instance{
-				Type:                "lsw.m3.large",
-				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: "tralala"},
-			},
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid contractType returns error", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
-			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
-		}
-		publicCloudRepository := PublicCloudRepository{
-			publicCLoudAPI: apiSpy,
-		}
-
-		_, err := publicCloudRepository.CreateInstance(
-			entity.Instance{
-				Type:                "lsw.m3.large",
-				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-				Contract:            entity.Contract{Type: "tralala"},
-			},
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid contractTerm returns error", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
-			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
-		}
-		publicCloudRepository := PublicCloudRepository{
-			publicCLoudAPI: apiSpy,
-		}
-
-		_, err := publicCloudRepository.CreateInstance(
-			entity.Instance{
-				Type:                "lsw.m3.large",
-				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-				Contract: entity.Contract{
-					Type: enum.ContractTypeMonthly,
-					Term: 55,
+	t.Run(
+		"error is returned when launchInstanceOpts cannot be created",
+		func(t *testing.T) {
+			publicCloudRepository := PublicCloudRepository{
+				convertEntityToLaunchInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.LaunchInstanceOpts,
+					error,
+				) {
+					return nil, errors.New("error getting launchInstanceOpts")
 				},
-			},
-			context.TODO(),
-		)
+			}
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "55")
-	})
+			_, err := publicCloudRepository.CreateInstance(
+				entity.Instance{},
+				context.TODO(),
+			)
 
-	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
-		apiSpy := publicCloudApiSpy{
-			launchedInstance: &publicCloud.Instance{Id: uuid.New().String()},
-			instance:         &publicCloud.InstanceDetails{Id: uuid.New().String()},
-		}
-		publicCloudRepository := PublicCloudRepository{
-			publicCLoudAPI: apiSpy,
-		}
-
-		_, err := publicCloudRepository.CreateInstance(
-			entity.Instance{
-				Type:                "lsw.m3.large",
-				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-				Contract: entity.Contract{
-					Type:             enum.ContractTypeMonthly,
-					Term:             enum.ContractTermThree,
-					BillingFrequency: 55,
-				},
-			},
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "55")
-	})
+			assert.ErrorContains(t, err, "error getting launchInstanceOpts")
+		},
+	)
 
 	t.Run(
 		"error is returned when instance cannot be launched in sdk",
@@ -723,21 +679,18 @@ func TestPublicCloudRepository_CreateInstance(t *testing.T) {
 			apiSpy := publicCloudApiSpy{
 				launchInstanceExecuteError: errors.New("some error"),
 			}
-			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
-
-			instance := entity.NewCreateInstance(
-				"region",
-				"lsw.m3.large",
-				enum.RootDiskStorageTypeCentral,
-				enum.Almalinux864Bit,
-				enum.ContractTypeMonthly,
-				enum.ContractTermSix,
-				enum.ContractBillingFrequencyThree,
-				entity.OptionalCreateInstanceValues{},
-			)
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertEntityToLaunchInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.LaunchInstanceOpts,
+					error,
+				) {
+					return &publicCloud.LaunchInstanceOpts{}, nil
+				},
+			}
 
 			_, err := publicCloudRepository.CreateInstance(
-				instance,
+				entity.Instance{},
 				context.TODO(),
 			)
 
@@ -752,21 +705,18 @@ func TestPublicCloudRepository_CreateInstance(t *testing.T) {
 			apiSpy := publicCloudApiSpy{
 				launchedInstance: &publicCloud.Instance{Id: "tralala"},
 			}
-			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
-
-			instance := entity.NewCreateInstance(
-				"region",
-				"lsw.m3.large",
-				enum.RootDiskStorageTypeCentral,
-				enum.Almalinux864Bit,
-				enum.ContractTypeMonthly,
-				enum.ContractTermSix,
-				enum.ContractBillingFrequencyThree,
-				entity.OptionalCreateInstanceValues{},
-			)
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertEntityToLaunchInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.LaunchInstanceOpts,
+					error,
+				) {
+					return &publicCloud.LaunchInstanceOpts{}, nil
+				},
+			}
 
 			_, err := publicCloudRepository.CreateInstance(
-				instance,
+				entity.Instance{},
 				context.TODO(),
 			)
 
@@ -779,24 +729,23 @@ func TestPublicCloudRepository_CreateInstance(t *testing.T) {
 		"error is returned when instanceDetails cannot be retrieved",
 		func(t *testing.T) {
 			apiSpy := publicCloudApiSpy{
-				launchedInstance:        &publicCloud.Instance{Id: uuid.New().String()},
+				launchedInstance: &publicCloud.Instance{
+					Id: value_object.NewGeneratedUuid().String(),
+				},
 				getInstanceExecuteError: errors.New("some error"),
 			}
-			publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
-
-			instance := entity.NewCreateInstance(
-				"region",
-				"lsw.m3.large",
-				enum.RootDiskStorageTypeCentral,
-				enum.Almalinux864Bit,
-				enum.ContractTypeMonthly,
-				enum.ContractTermSix,
-				enum.ContractBillingFrequencyThree,
-				entity.OptionalCreateInstanceValues{},
-			)
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertEntityToLaunchInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.LaunchInstanceOpts,
+					error,
+				) {
+					return &publicCloud.LaunchInstanceOpts{}, nil
+				},
+			}
 
 			_, err := publicCloudRepository.CreateInstance(
-				instance,
+				entity.Instance{},
 				context.TODO(),
 			)
 
@@ -807,23 +756,178 @@ func TestPublicCloudRepository_CreateInstance(t *testing.T) {
 }
 
 func TestPublicCloudRepository_UpdateInstance(t *testing.T) {
-	t.Run("expected instance entity is updated", func(t *testing.T) {
-		publicCloudRepository := PublicCloudRepository{}
-		got, err := publicCloudRepository.UpdateInstance(
-			entity.Instance{},
-			context.TODO(),
-		)
+	t.Run(
+		"expected instance entity is returned on update",
+		func(t *testing.T) {
+			passedInstance := entity.Instance{Id: value_object.NewGeneratedUuid()}
 
-		assert.NoError(t, err)
-		assert.NotNil(t, got)
-	})
+			expected := entity.Instance{}
+
+			apiSpy := publicCloudApiSpy{
+				updatedInstance: &publicCloud.InstanceDetails{
+					Id: value_object.NewGeneratedUuid().String(),
+				},
+				instance: &publicCloud.InstanceDetails{},
+			}
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertInstance: func(
+					sdkInstance publicCloud.InstanceDetails,
+					sdkAutoScalingGroup *entity.AutoScalingGroup,
+				) (*entity.Instance, error) {
+					return &expected, nil
+				},
+				convertEntityToUpdateInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.UpdateInstanceOpts,
+					error,
+				) {
+					assert.Equal(
+						t,
+						passedInstance,
+						instance,
+						"passed instance entity is converted to updateInstanceOpts",
+					)
+					return &publicCloud.UpdateInstanceOpts{}, nil
+				},
+			}
+
+			got, err := publicCloudRepository.UpdateInstance(
+				passedInstance,
+				context.TODO(),
+			)
+
+			assert.NoError(t, err)
+			assert.Same(t, &expected, got)
+		},
+	)
+
+	t.Run(
+		"error is returned when updateInstanceOpts cannot be created",
+		func(t *testing.T) {
+			publicCloudRepository := PublicCloudRepository{
+				convertEntityToUpdateInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.UpdateInstanceOpts,
+					error,
+				) {
+					return nil, errors.New("error getting updateInstanceOpts")
+				},
+			}
+
+			_, err := publicCloudRepository.UpdateInstance(
+				entity.Instance{},
+				context.TODO(),
+			)
+
+			assert.ErrorContains(t, err, "error getting updateInstanceOpts")
+		},
+	)
+
+	t.Run(
+		"error is returned when instance cannot be updated in sdk",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				updateInstanceExecuteError: errors.New("some error"),
+			}
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertEntityToUpdateInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.UpdateInstanceOpts,
+					error,
+				) {
+					return &publicCloud.UpdateInstanceOpts{}, nil
+				},
+			}
+
+			_, err := publicCloudRepository.UpdateInstance(
+				entity.Instance{},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned when id of updated instance is invalid",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				updatedInstance: &publicCloud.InstanceDetails{Id: "tralala"},
+			}
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertEntityToUpdateInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.UpdateInstanceOpts,
+					error,
+				) {
+					return &publicCloud.UpdateInstanceOpts{}, nil
+				},
+			}
+
+			_, err := publicCloudRepository.UpdateInstance(
+				entity.Instance{},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "tralala")
+		},
+	)
+
+	t.Run(
+		"error is returned when instanceDetails cannot be retrieved",
+		func(t *testing.T) {
+			apiSpy := publicCloudApiSpy{
+				updatedInstance: &publicCloud.InstanceDetails{
+					Id: value_object.NewGeneratedUuid().String(),
+				},
+				getInstanceExecuteError: errors.New("some error"),
+			}
+			publicCloudRepository := PublicCloudRepository{
+				publicCLoudAPI: apiSpy,
+				convertEntityToUpdateInstanceOpts: func(instance entity.Instance) (
+					*publicCloud.UpdateInstanceOpts,
+					error,
+				) {
+					return &publicCloud.UpdateInstanceOpts{}, nil
+				},
+			}
+
+			_, err := publicCloudRepository.UpdateInstance(
+				entity.Instance{},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
 }
 
 func TestPublicCloudRepository_DeleteInstance(t *testing.T) {
 	t.Run("expected instance entity is deleted", func(t *testing.T) {
-		publicCloudRepository := PublicCloudRepository{}
-		err := publicCloudRepository.DeleteInstance(uuid.New(), context.TODO())
+		id := value_object.NewGeneratedUuid()
+		wantedId := id.String()
+
+		apiSpy := publicCloudApiSpy{wantedTerminateInstanceId: &wantedId, t: t}
+
+		publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+		err := publicCloudRepository.DeleteInstance(id, context.TODO())
 
 		assert.NoError(t, err)
+	})
+
+	t.Run("error is returned when instance deletion fails", func(t *testing.T) {
+		apiSpy := publicCloudApiSpy{terminateInstanceExecuteError: errors.New("some error")}
+
+		publicCloudRepository := PublicCloudRepository{publicCLoudAPI: apiSpy}
+		err := publicCloudRepository.DeleteInstance(
+			value_object.NewGeneratedUuid(),
+			context.TODO(),
+		)
+
+		assert.ErrorIs(t, ErrSomethingWentWrongDeletingTheInstance, err)
+
 	})
 }

@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
@@ -14,7 +13,7 @@ var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS
 
 func TestNewInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		instanceId, _ := uuid.NewUUID()
+		instanceId := value_object.NewGeneratedUuid()
 		rootDiskSize, _ := value_object.NewRootDiskSize(5)
 
 		got := NewInstance(
@@ -34,7 +33,7 @@ func TestNewInstance(t *testing.T) {
 			OptionalInstanceValues{},
 		)
 
-		assert.Equal(t, instanceId.String(), got.Id.String())
+		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "image", got.Image.Name)
@@ -62,15 +61,13 @@ func TestNewInstance(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		instanceId, _ := uuid.NewUUID()
-
 		reference := "Reference"
 		marketAppId := "marketAppId"
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 		startedAt := time.Now()
 
 		got := NewInstance(
-			instanceId,
+			value_object.NewGeneratedUuid(),
 			"",
 			Resources{},
 			Image{},
@@ -165,6 +162,56 @@ func TestNewCreateInstance(t *testing.T) {
 		assert.Equal(t, marketAppId, *got.MarketAppId)
 		assert.Equal(t, reference, *got.Reference)
 		assert.Equal(t, sshKeyValueObject, got.SshKey)
+	})
+
+}
+
+func TestNewUpdateInstance(t *testing.T) {
+	t.Run("required values are set", func(t *testing.T) {
+		id := value_object.NewGeneratedUuid()
+
+		got := NewUpdateInstance(id, OptionalUpdateInstanceValues{})
+
+		assert.Equal(t, id, got.Id)
+
+		assert.Empty(t, got.Type)
+		assert.Empty(t, got.Reference)
+		assert.Empty(t, got.Contract.Type)
+		assert.Empty(t, got.Contract.Term)
+		assert.Empty(t, got.Contract.BillingFrequency)
+		assert.Empty(t, got.RootDiskSize)
+	})
+
+	t.Run("optional values are set", func(t *testing.T) {
+		instanceType := "lsw.m4.large"
+		reference := "reference"
+		contractType := enum.ContractTypeMonthly
+		contractTerm := enum.ContractTermSix
+		billingFrequency := enum.ContractBillingFrequencyThree
+		rootDiskSize, _ := value_object.NewRootDiskSize(50)
+
+		got := NewUpdateInstance(
+			value_object.NewGeneratedUuid(),
+			OptionalUpdateInstanceValues{
+				Type:             &instanceType,
+				Reference:        &reference,
+				ContractType:     &contractType,
+				Term:             &contractTerm,
+				BillingFrequency: &billingFrequency,
+				RootDiskSize:     rootDiskSize,
+			},
+		)
+
+		assert.Equal(t, "lsw.m4.large", got.Type)
+		assert.Equal(t, "reference", *got.Reference)
+		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
+		assert.Equal(t, enum.ContractTermSix, got.Contract.Term)
+		assert.Equal(
+			t,
+			enum.ContractBillingFrequencyThree,
+			got.Contract.BillingFrequency,
+		)
+		assert.Equal(t, int64(50), got.RootDiskSize.Value)
 	})
 
 }

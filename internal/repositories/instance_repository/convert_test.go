@@ -8,10 +8,13 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
+
+var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 func Test_convertImage(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
@@ -91,7 +94,7 @@ func Test_convertResources(t *testing.T) {
 func Test_convertInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		startedAt := time.Now()
-		autoScalingGroupId, _ := uuid.NewUUID()
+		autoScalingGroupId := value_object.NewGeneratedUuid()
 
 		sdkInstance := generateInstanceDetails(t, &startedAt, nil)
 		autoScalingGroup := entity.AutoScalingGroup{Id: autoScalingGroupId}
@@ -479,7 +482,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		warmupTime := int32(4)
 		cooldownTime := int32(5)
 		desiredAmount := int32(6)
-		loadBalancerId, _ := uuid.NewUUID()
+		loadBalancerId := value_object.NewGeneratedUuid()
 
 		sdkAutoScalingGroup := publicCloud.NewAutoScalingGroupDetails(
 			instanceId,
@@ -818,5 +821,209 @@ func Test_convertLoadBalancer(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
 	})
+}
 
+func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
+	t.Run("invalid instanceType returns error", func(t *testing.T) {
+
+		_, err := convertEntityToLaunchInstanceOpts(
+			entity.Instance{Type: "tralala"},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseInstanceType, err)
+	})
+
+	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
+		_, err := convertEntityToLaunchInstanceOpts(
+			entity.Instance{Type: "lsw.m3.large", RootDiskStorageType: "tralala"},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseRootDiskStorageType, err)
+	})
+
+	t.Run("invalid imageId returns error", func(t *testing.T) {
+		_, err := convertEntityToLaunchInstanceOpts(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: "tralala"},
+			},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseImageId, err)
+	})
+
+	t.Run("invalid contractType returns error", func(t *testing.T) {
+		_, err := convertEntityToLaunchInstanceOpts(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
+				Contract:            entity.Contract{Type: "tralala"},
+			},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseContractType, err)
+	})
+
+	t.Run("invalid contractTerm returns error", func(t *testing.T) {
+		_, err := convertEntityToLaunchInstanceOpts(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
+				Contract: entity.Contract{
+					Type: enum.ContractTypeMonthly,
+					Term: 55,
+				},
+			},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseContractTerm, err)
+	})
+
+	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
+		_, err := convertEntityToLaunchInstanceOpts(
+			entity.Instance{
+				Type:                "lsw.m3.large",
+				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
+				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
+				Contract: entity.Contract{
+					Type:             enum.ContractTypeMonthly,
+					Term:             enum.ContractTermThree,
+					BillingFrequency: 55,
+				},
+			},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseBillingFrequency, err)
+	})
+
+	t.Run("required values are set", func(t *testing.T) {
+		instance := entity.NewCreateInstance(
+			"region",
+			"lsw.c3.4xlarge",
+			enum.RootDiskStorageTypeCentral,
+			enum.Almalinux864Bit,
+			enum.ContractTypeMonthly,
+			enum.ContractTermSix,
+			enum.ContractBillingFrequencyThree,
+			entity.OptionalCreateInstanceValues{},
+		)
+
+		got, err := convertEntityToLaunchInstanceOpts(instance)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, publicCloud.INSTANCETYPENAME_C3_4XLARGE, got.Type)
+		assert.Equal(
+			t,
+			publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
+			got.RootDiskStorageType,
+		)
+		assert.Equal(t, publicCloud.IMAGEID_ALMALINUX_8_64_BIT, got.ImageId)
+		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.ContractType)
+		assert.Equal(t, publicCloud.CONTRACTTERM__6, got.ContractTerm)
+		assert.Equal(t, publicCloud.BILLINGFREQUENCY__3, got.BillingFrequency)
+
+		assert.Nil(t, got.MarketAppId)
+		assert.Nil(t, got.Reference)
+		assert.Nil(t, got.SshKey)
+	})
+
+	t.Run("optional values are set", func(t *testing.T) {
+		marketAppId := "marketAppId"
+		reference := "reference"
+		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+
+		instance := entity.NewCreateInstance(
+			"",
+			"lsw.c3.4xlarge",
+			enum.RootDiskStorageTypeCentral,
+			enum.Almalinux864Bit,
+			enum.ContractTypeMonthly,
+			enum.ContractTermSix,
+			enum.ContractBillingFrequencyThree,
+			entity.OptionalCreateInstanceValues{
+				MarketAppId: &marketAppId,
+				Reference:   &reference,
+				SshKey:      sshKeyValueObject,
+			},
+		)
+
+		got, err := convertEntityToLaunchInstanceOpts(instance)
+
+		assert.NoError(t, err)
+		assert.Equal(t, marketAppId, *got.MarketAppId)
+		assert.Equal(t, reference, *got.Reference)
+		assert.Equal(t, sshKey, *got.SshKey)
+	})
+}
+
+func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
+	t.Run("invalid instanceType returns error", func(t *testing.T) {
+
+		_, err := convertEntityToUpdateInstanceOpts(
+			entity.Instance{Type: "tralala"},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseInstanceType, err)
+	})
+
+	t.Run("invalid contractType returns error", func(t *testing.T) {
+
+		_, err := convertEntityToUpdateInstanceOpts(
+			entity.Instance{Contract: entity.Contract{Type: "tralala"}},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseContractType, err)
+	})
+
+	t.Run("invalid contractTerm returns error", func(t *testing.T) {
+
+		_, err := convertEntityToUpdateInstanceOpts(
+			entity.Instance{Contract: entity.Contract{Term: 55}},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseContractTerm, err)
+	})
+
+	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
+
+		_, err := convertEntityToUpdateInstanceOpts(
+			entity.Instance{Contract: entity.Contract{BillingFrequency: 55}},
+		)
+
+		assert.ErrorIs(t, ErrCannotParseBillingFrequency, err)
+	})
+
+	t.Run("values are set", func(t *testing.T) {
+		instanceType := "lsw.c3.large"
+		reference := "reference"
+		contractType := enum.ContractTypeMonthly
+		contractTerm := enum.ContractTermThree
+		billingFrequency := enum.ContractBillingFrequencySix
+		rootDiskSize, _ := value_object.NewRootDiskSize(23)
+
+		instance := entity.NewUpdateInstance(
+			value_object.NewGeneratedUuid(),
+			entity.OptionalUpdateInstanceValues{
+				Type:             &instanceType,
+				Reference:        &reference,
+				ContractType:     &contractType,
+				Term:             &contractTerm,
+				BillingFrequency: &billingFrequency,
+				RootDiskSize:     rootDiskSize,
+			})
+
+		got, err := convertEntityToUpdateInstanceOpts(instance)
+
+		assert.NoError(t, err)
+		assert.Equal(t, publicCloud.INSTANCETYPENAME_C3_LARGE, got.GetType())
+		assert.Equal(t, "reference", got.GetReference())
+		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.GetContractType())
+		assert.Equal(t, publicCloud.CONTRACTTERM__3, got.GetContractTerm())
+		assert.Equal(t, publicCloud.BILLINGFREQUENCY__6, got.GetBillingFrequency())
+		assert.Equal(t, int32(23), got.GetRootDiskSize())
+	})
 }

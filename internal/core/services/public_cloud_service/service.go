@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/core/ports"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 type Service struct {
@@ -29,7 +29,7 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 }
 
 func (srv Service) GetInstance(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.Instance, error) {
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
@@ -76,7 +76,10 @@ func (srv Service) UpdateInstance(
 	return updatedInstance, nil
 }
 
-func (srv Service) DeleteInstance(id uuid.UUID, ctx context.Context) error {
+func (srv Service) DeleteInstance(
+	id value_object.Uuid,
+	ctx context.Context,
+) error {
 	err := srv.publicCloudRepository.DeleteInstance(id, ctx)
 	if err != nil {
 		return fmt.Errorf(

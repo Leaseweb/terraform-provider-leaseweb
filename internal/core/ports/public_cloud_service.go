@@ -3,14 +3,17 @@ package ports
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 type PublicCloudService interface {
 	GetAllInstances(ctx context.Context) (entity.Instances, error)
 
-	GetInstance(id uuid.UUID, ctx context.Context) (*entity.Instance, error)
+	GetInstance(
+		id value_object.Uuid,
+		ctx context.Context,
+	) (*entity.Instance, error)
 
 	CreateInstance(
 		instance entity.Instance,
@@ -22,5 +25,5 @@ type PublicCloudService interface {
 		ctx context.Context,
 	) (*entity.Instance, error)
 
-	DeleteInstance(id uuid.UUID, ctx context.Context) error
+	DeleteInstance(id value_object.Uuid, ctx context.Context) error
 }

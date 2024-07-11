@@ -3,13 +3,12 @@ package entity
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 type Instance struct {
-	Id                  uuid.UUID
+	Id                  value_object.Uuid
 	Region              string
 	Reference           *string
 	StartedAt           *time.Time
@@ -47,8 +46,17 @@ type OptionalCreateInstanceValues struct {
 	SshKey      *value_object.SshKey
 }
 
+type OptionalUpdateInstanceValues struct {
+	Type             *string
+	Reference        *string
+	ContractType     *enum.ContractType
+	Term             *enum.ContractTerm
+	BillingFrequency *enum.ContractBillingFrequency
+	RootDiskSize     *value_object.RootDiskSize
+}
+
 func NewInstance(
-	id uuid.UUID,
+	id value_object.Uuid,
 	region string,
 	resources Resources,
 	image Image,
@@ -115,6 +123,34 @@ func NewCreateInstance(
 	instance.MarketAppId = optional.MarketAppId
 	instance.Reference = optional.Reference
 	instance.SshKey = optional.SshKey
+
+	return instance
+}
+
+func NewUpdateInstance(
+	id value_object.Uuid,
+	options OptionalUpdateInstanceValues,
+) Instance {
+	instance := Instance{Id: id}
+
+	instance.Reference = options.Reference
+
+	if options.Type != nil {
+		instance.Type = *options.Type
+	}
+
+	if options.ContractType != nil {
+		instance.Contract.Type = *options.ContractType
+	}
+	if options.Term != nil {
+		instance.Contract.Term = *options.Term
+	}
+	if options.BillingFrequency != nil {
+		instance.Contract.BillingFrequency = *options.BillingFrequency
+	}
+	if options.RootDiskSize != nil {
+		instance.RootDiskSize = *options.RootDiskSize
+	}
 
 	return instance
 }

@@ -4,14 +4,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func TestNewLoadBalancer(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		id, _ := uuid.NewUUID()
+		id := value_object.NewGeneratedUuid()
 
 		got := NewLoadBalancer(
 			id,
@@ -39,13 +39,11 @@ func TestNewLoadBalancer(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		id, _ := uuid.NewUUID()
-
 		reference := "reference"
 		startedAt := time.Now()
 
 		got := NewLoadBalancer(
-			id,
+			value_object.NewGeneratedUuid(),
 			"",
 			Resources{},
 			"",

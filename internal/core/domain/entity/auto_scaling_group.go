@@ -3,13 +3,12 @@ package entity
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 type AutoScalingGroup struct {
-	Id            uuid.UUID
+	Id            value_object.Uuid
 	Type          enum.AutoScalingGroupType
 	State         enum.State
 	Region        string
@@ -40,7 +39,7 @@ type AutoScalingGroupOptions struct {
 }
 
 func NewAutoScalingGroup(
-	id uuid.UUID,
+	id value_object.Uuid,
 	autoScalingGroupType enum.AutoScalingGroupType,
 	state enum.State,
 	region string,

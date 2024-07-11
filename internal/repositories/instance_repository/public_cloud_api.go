@@ -67,4 +67,14 @@ type publicCloudApi interface {
 		*http.Response,
 		error,
 	)
+
+	TerminateInstance(
+		ctx context.Context,
+		instanceId string,
+	) publicCloud.ApiTerminateInstanceRequest
+
+	TerminateInstanceExecute(r publicCloud.ApiTerminateInstanceRequest) (
+		*http.Response,
+		error,
+	)
 }

@@ -2,12 +2,15 @@ package instance_repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
+
+var ErrSomethingWentWrongDeletingTheInstance = errors.New("something went wrong deleting the instance")
 
 type Optional struct {
 	Host   *string
@@ -28,6 +31,10 @@ type PublicCloudRepository struct {
 	convertLoadBalancer func(
 		sdkLoadBalancer publicCloud.LoadBalancerDetails,
 	) (*entity.LoadBalancer, error)
+	convertEntityToLaunchInstanceOpts func(instance entity.Instance) (
+		*publicCloud.LaunchInstanceOpts, error)
+	convertEntityToUpdateInstanceOpts func(instance entity.Instance) (
+		*publicCloud.UpdateInstanceOpts, error)
 }
 
 func (p PublicCloudRepository) authContext(ctx context.Context) context.Context {
@@ -54,7 +61,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	var instances entity.Instances
 
 	for _, instance := range result.Instances {
-		instanceId, err := uuid.Parse(instance.GetId())
+		instanceId, err := value_object.NewUuid(instance.GetId())
 		if err != nil {
 			return nil, fmt.Errorf(
 				"cannot parse uuid %s: %w",
@@ -63,7 +70,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 			)
 
 		}
-		instanceDetail, err := p.GetInstance(instanceId, ctx)
+		instanceDetail, err := p.GetInstance(*instanceId, ctx)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"cannot retrieve instance details %s: %w",
@@ -79,7 +86,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 }
 
 func (p PublicCloudRepository) GetInstance(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.Instance, error) {
 	var autoScalingGroup *entity.AutoScalingGroup
@@ -119,7 +126,7 @@ func (p PublicCloudRepository) GetInstance(
 }
 
 func (p PublicCloudRepository) GetAutoScalingGroup(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.AutoScalingGroup, error) {
 	var loadBalancer *entity.LoadBalancer
@@ -174,7 +181,7 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 }
 
 func (p PublicCloudRepository) GetLoadBalancer(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.LoadBalancer, error) {
 	var loadBalancer *entity.LoadBalancer
@@ -206,75 +213,10 @@ func (p PublicCloudRepository) CreateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(instance.Type)
+
+	launchInstanceOpts, err := p.convertEntityToLaunchInstanceOpts(instance)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse instanceType %q: %w",
-			instance.Type,
-			err,
-		)
-	}
-
-	rootDiskStorageType, err := publicCloud.NewRootDiskStorageTypeFromValue(instance.RootDiskStorageType.String())
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse rootDiskStorageType %q: %w",
-			instance.RootDiskStorageType,
-			err,
-		)
-	}
-
-	imageId, err := publicCloud.NewImageIdFromValue(instance.Image.Id.String())
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse imageId %q: %w",
-			instance.Image.Id,
-			err,
-		)
-	}
-
-	contractType, err := publicCloud.NewContractTypeFromValue(instance.Contract.Type.String())
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse contract.type %q: %w",
-			instance.Contract.Type,
-			err,
-		)
-	}
-
-	contractTerm, err := publicCloud.NewContractTermFromValue(int32(instance.Contract.Term.Value()))
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse contract.term %q: %w",
-			instance.Contract.Term,
-			err,
-		)
-	}
-
-	billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(int32(instance.Contract.BillingFrequency.Value()))
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse contract.billingFrequency %d: %w",
-			instance.Contract.BillingFrequency,
-			err,
-		)
-	}
-
-	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
-		instance.Region,
-		*instanceTypeName,
-		*imageId,
-		*contractType,
-		*contractTerm,
-		*billingFrequency,
-		*rootDiskStorageType,
-	)
-	launchInstanceOpts.MarketAppId = instance.MarketAppId
-	launchInstanceOpts.Reference = instance.Reference
-
-	if instance.SshKey != nil {
-		sshKey := instance.SshKey.String()
-		launchInstanceOpts.SshKey = &sshKey
+		return nil, fmt.Errorf("cannot generate launchInstanceOpts: %w", err)
 	}
 
 	request := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx))
@@ -285,7 +227,7 @@ func (p PublicCloudRepository) CreateInstance(
 		return nil, fmt.Errorf("cannot launch instance: %w", err)
 	}
 
-	instanceId, err := uuid.Parse(launchedInstance.GetId())
+	instanceId, err := value_object.NewUuid(launchedInstance.GetId())
 	if err != nil {
 		return nil, fmt.Errorf(
 			"cannot parse instanceId %q: %w",
@@ -294,7 +236,7 @@ func (p PublicCloudRepository) CreateInstance(
 		)
 	}
 
-	instanceDetails, err := p.GetInstance(instanceId, ctx)
+	instanceDetails, err := p.GetInstance(*instanceId, ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get instance %s: %w", instanceId, err)
 	}
@@ -306,17 +248,57 @@ func (p PublicCloudRepository) UpdateInstance(
 	instance entity.Instance,
 	ctx context.Context,
 ) (*entity.Instance, error) {
-	return &entity.Instance{}, nil
+
+	updateInstanceOpts, err := p.convertEntityToUpdateInstanceOpts(instance)
+	if err != nil {
+		return nil, fmt.Errorf("cannot generate updateInstanceOpts: %w", err)
+	}
+
+	request := p.publicCLoudAPI.UpdateInstance(
+		p.authContext(ctx),
+		instance.Id.String(),
+	)
+	request.UpdateInstanceOpts(*updateInstanceOpts)
+
+	updatedInstance, _, err := p.publicCLoudAPI.UpdateInstanceExecute(request)
+	if err != nil {
+		return nil, fmt.Errorf("cannot update instance: %w", err)
+	}
+
+	instanceId, err := value_object.NewUuid(updatedInstance.GetId())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot parse instanceId %q: %w",
+			updatedInstance.GetId(),
+			err,
+		)
+	}
+
+	instanceDetails, err := p.GetInstance(*instanceId, ctx)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get instance %s: %w", instanceId, err)
+	}
+
+	return instanceDetails, nil
 }
 
 func (p PublicCloudRepository) DeleteInstance(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) error {
+	request := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String())
+	_, err := p.publicCLoudAPI.TerminateInstanceExecute(request)
+	if err != nil {
+		return ErrSomethingWentWrongDeletingTheInstance
+	}
+
 	return nil
 }
 
-func NewPublicCloudRepository(token string, optional Optional) PublicCloudRepository {
+func NewPublicCloudRepository(
+	token string,
+	optional Optional,
+) PublicCloudRepository {
 	configuration := publicCloud.NewConfiguration()
 
 	if optional.Host != nil {
@@ -329,10 +311,12 @@ func NewPublicCloudRepository(token string, optional Optional) PublicCloudReposi
 	client := *publicCloud.NewAPIClient(configuration)
 
 	return PublicCloudRepository{
-		publicCLoudAPI:          client.PublicCloudAPI,
-		token:                   token,
-		convertInstance:         convertInstance,
-		convertAutoScalingGroup: convertAutoScalingGroup,
-		convertLoadBalancer:     convertLoadBalancer,
+		publicCLoudAPI:                    client.PublicCloudAPI,
+		token:                             token,
+		convertInstance:                   convertInstance,
+		convertAutoScalingGroup:           convertAutoScalingGroup,
+		convertLoadBalancer:               convertLoadBalancer,
+		convertEntityToLaunchInstanceOpts: convertEntityToLaunchInstanceOpts,
+		convertEntityToUpdateInstanceOpts: convertEntityToUpdateInstanceOpts,
 	}
 }

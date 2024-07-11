@@ -71,9 +71,9 @@ func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
 		sdkInstanceDetails.SetRootDiskSize(23)
 
 		sdkContract := publicCloud.Contract{}
-		sdkContract.SetTerm(4)
-		sdkContract.SetType("contractType")
-		sdkContract.SetBillingFrequency(6)
+		sdkContract.SetTerm(publicCloud.CONTRACTTERM__3)
+		sdkContract.SetType(publicCloud.CONTRACTTYPE_MONTHLY)
+		sdkContract.SetBillingFrequency(publicCloud.BILLINGFREQUENCY__6)
 
 		sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.xlarge")
 
@@ -121,19 +121,19 @@ func TestInstanceOpts_NewUpdateInstanceOpts(t *testing.T) {
 
 		assert.Equal(
 			t,
-			"contractType",
+			publicCloud.CONTRACTTYPE_MONTHLY,
 			updateInstanceOpts.GetContractType(),
-			"contract.type should be contractType",
+			"contract.type should be monthly",
 		)
 		assert.Equal(
 			t,
-			int32(4),
+			publicCloud.CONTRACTTERM__3,
 			updateInstanceOpts.GetContractTerm(),
-			"contract.term should be 4",
+			"contract.term should be 3",
 		)
 		assert.Equal(
 			t,
-			int32(6),
+			publicCloud.BILLINGFREQUENCY__6,
 			updateInstanceOpts.GetBillingFrequency(),
 			"contract.billing_frequency should be 6",
 		)

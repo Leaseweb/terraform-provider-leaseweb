@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/core/ports"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 var (
@@ -30,14 +30,14 @@ type repositorySpy struct {
 }
 
 func (r repositorySpy) GetAutoScalingGroup(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.AutoScalingGroup, error) {
 	return r.autoScalingGroup, r.getAutoScalingGroupError
 }
 
 func (r repositorySpy) GetLoadBalancer(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.LoadBalancer, error) {
 	return r.loadBalancer, r.getLoadBalancerError
@@ -51,7 +51,7 @@ func (r repositorySpy) GetAllInstances(ctx context.Context) (
 }
 
 func (r repositorySpy) GetInstance(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) (*entity.Instance, error) {
 	return r.instance, r.getInstanceError
@@ -72,7 +72,7 @@ func (r repositorySpy) UpdateInstance(
 }
 
 func (r repositorySpy) DeleteInstance(
-	id uuid.UUID,
+	id value_object.Uuid,
 	ctx context.Context,
 ) error {
 	return r.deleteInstanceError
@@ -82,21 +82,23 @@ func TestService_GetAllInstances(t *testing.T) {
 	t.Run(
 		"service passes back instances from repository",
 		func(t *testing.T) {
-			id := uuid.New()
-			instanceService := New(repositorySpy{instances: entity.Instances{{Id: id}}})
+			want := entity.Instances{{Id: value_object.NewGeneratedUuid()}}
 
-			got, err := instanceService.GetAllInstances(context.TODO())
+			service := New(repositorySpy{instances: want})
+
+			got, err := service.GetAllInstances(context.TODO())
 
 			assert.NoError(t, err)
-			assert.Len(t, got, 1)
-			assert.Equal(t, id, got[0].Id)
+			assert.Equal(t, want, got)
 		},
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(repositorySpy{getAllInstancesError: errors.New("some error")})
+		service := New(
+			repositorySpy{getAllInstancesError: errors.New("some error")},
+		)
 
-		_, err := instanceService.GetAllInstances(context.TODO())
+		_, err := service.GetAllInstances(context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
@@ -107,20 +109,29 @@ func TestService_GetInstance(t *testing.T) {
 	t.Run(
 		"service passes back instance from repository",
 		func(t *testing.T) {
-			id := uuid.New()
-			instanceService := New(repositorySpy{instance: &entity.Instance{Id: id}})
+			want := entity.Instance{}
 
-			got, err := instanceService.GetInstance(id, context.TODO())
+			service := New(repositorySpy{instance: &want})
+
+			got, err := service.GetInstance(
+				value_object.NewGeneratedUuid(),
+				context.TODO(),
+			)
 
 			assert.NoError(t, err)
-			assert.Equal(t, id, got.Id)
+			assert.Same(t, &want, got)
 		},
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(repositorySpy{getInstanceError: errors.New("some error")})
+		service := New(
+			repositorySpy{getInstanceError: errors.New("some error")},
+		)
 
-		_, err := instanceService.GetInstance(uuid.New(), context.TODO())
+		_, err := service.GetInstance(
+			value_object.NewGeneratedUuid(),
+			context.TODO(),
+		)
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
@@ -128,24 +139,21 @@ func TestService_GetInstance(t *testing.T) {
 }
 
 func TestService_CreateInstance(t *testing.T) {
-	t.Run(
-		"service passes back instance from repository",
-		func(t *testing.T) {
-			id := uuid.New()
-			instanceService := New(repositorySpy{instance: &entity.Instance{Id: id}})
+	t.Run("service passes back instance from repository", func(t *testing.T) {
+		want := entity.Instance{}
 
-			got, err := instanceService.CreateInstance(
-				entity.Instance{},
-				context.TODO(),
-			)
+		service := New(repositorySpy{instance: &want})
 
-			assert.NoError(t, err)
-			assert.Equal(t, id, got.Id)
-		},
-	)
+		got, err := service.CreateInstance(entity.Instance{}, context.TODO())
+
+		assert.NoError(t, err)
+		assert.Same(t, &want, got)
+	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(repositorySpy{createInstanceError: errors.New("some error")})
+		instanceService := New(
+			repositorySpy{createInstanceError: errors.New("some error")},
+		)
 
 		_, err := instanceService.CreateInstance(entity.Instance{}, context.TODO())
 
@@ -155,26 +163,23 @@ func TestService_CreateInstance(t *testing.T) {
 }
 
 func TestService_UpdateInstance(t *testing.T) {
-	t.Run(
-		"service passes back instance from repository",
-		func(t *testing.T) {
-			id := uuid.New()
-			instanceService := New(repositorySpy{instance: &entity.Instance{Id: id}})
+	t.Run("service passes back instance from repository", func(t *testing.T) {
+		want := entity.Instance{}
 
-			got, err := instanceService.UpdateInstance(
-				entity.Instance{},
-				context.TODO(),
-			)
+		service := New(repositorySpy{instance: &want})
 
-			assert.NoError(t, err)
-			assert.Equal(t, id, got.Id)
-		},
-	)
+		got, err := service.UpdateInstance(entity.Instance{}, context.TODO())
+
+		assert.NoError(t, err)
+		assert.Equal(t, &want, got)
+	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(repositorySpy{updateInstanceError: errors.New("some error")})
+		service := New(
+			repositorySpy{updateInstanceError: errors.New("some error")},
+		)
 
-		_, err := instanceService.UpdateInstance(
+		_, err := service.UpdateInstance(
 			entity.Instance{},
 			context.TODO(),
 		)
@@ -186,17 +191,25 @@ func TestService_UpdateInstance(t *testing.T) {
 
 func TestService_DeleteInstance(t *testing.T) {
 	t.Run("service passes back nil from repository", func(t *testing.T) {
-		instanceService := New(repositorySpy{})
+		service := New(repositorySpy{})
 
-		err := instanceService.DeleteInstance(uuid.New(), context.TODO())
+		err := service.DeleteInstance(
+			value_object.NewGeneratedUuid(),
+			context.TODO(),
+		)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		instanceService := New(repositorySpy{deleteInstanceError: errors.New("some error")})
+		service := New(
+			repositorySpy{deleteInstanceError: errors.New("some error")},
+		)
 
-		err := instanceService.DeleteInstance(uuid.New(), context.TODO())
+		err := service.DeleteInstance(
+			value_object.NewGeneratedUuid(),
+			context.TODO(),
+		)
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")

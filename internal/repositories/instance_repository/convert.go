@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
@@ -12,8 +11,13 @@ import (
 )
 
 var ErrCannotConvertStringToUUid = fmt.Errorf("cannot convert string to uuid")
-
 var ErrNoLoadBalancerDetails = fmt.Errorf("loadBalancer details cannot be found")
+var ErrCannotParseInstanceType = fmt.Errorf("cannot parse instance type")
+var ErrCannotParseRootDiskStorageType = fmt.Errorf("cannot parse root disk storage type")
+var ErrCannotParseImageId = fmt.Errorf("cannot parse image id")
+var ErrCannotParseContractType = fmt.Errorf("cannot parse contract type")
+var ErrCannotParseContractTerm = fmt.Errorf("cannot parse contract term")
+var ErrCannotParseBillingFrequency = fmt.Errorf("cannot parse billing frequency")
 
 func convertInstance(
 	sdkInstance publicCloud.InstanceDetails,
@@ -401,13 +405,13 @@ func convertAutoScalingGroup(
 	return &autoScalingGroup, nil
 }
 
-func convertStringToUuid(id string) (*uuid.UUID, error) {
-	convertedId, err := uuid.Parse(id)
+func convertStringToUuid(id string) (*value_object.Uuid, error) {
+	convertedId, err := value_object.NewUuid(id)
 	if err != nil {
 		return nil, ErrCannotConvertStringToUUid
 	}
 
-	return &convertedId, nil
+	return convertedId, nil
 }
 
 func convertNullableStringToValue(nullableString publicCloud.NullableString) *string {
@@ -558,7 +562,10 @@ func convertStickySession(sdkStickySession publicCloud.StickySession) entity.Sti
 	)
 }
 
-func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (*entity.HealthCheck, error) {
+func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
+	*entity.HealthCheck,
+	error,
+) {
 	method, err := enum.FindEnumForString(
 		sdkHealthCheck.GetMethod(),
 		enum.MethodValues,
@@ -576,8 +583,121 @@ func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (*entity.HealthC
 		method,
 		sdkHealthCheck.GetUri(),
 		int64(sdkHealthCheck.GetPort()),
-		entity.OptionalHealthCheckValues{Host: convertNullableStringToValue(sdkHealthCheck.Host)},
+		entity.OptionalHealthCheckValues{
+			Host: convertNullableStringToValue(sdkHealthCheck.Host),
+		},
 	)
 
 	return &healthCheck, nil
+}
+
+func convertEntityToLaunchInstanceOpts(instance entity.Instance) (
+	*publicCloud.LaunchInstanceOpts,
+	error,
+) {
+	instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(
+		instance.Type,
+	)
+	if err != nil {
+		return nil, ErrCannotParseInstanceType
+	}
+
+	rootDiskStorageType, err := publicCloud.NewRootDiskStorageTypeFromValue(
+		instance.RootDiskStorageType.String(),
+	)
+	if err != nil {
+		return nil, ErrCannotParseRootDiskStorageType
+	}
+
+	imageId, err := publicCloud.NewImageIdFromValue(instance.Image.Id.String())
+	if err != nil {
+		return nil, ErrCannotParseImageId
+	}
+
+	contractType, err := publicCloud.NewContractTypeFromValue(
+		instance.Contract.Type.String(),
+	)
+	if err != nil {
+		return nil, ErrCannotParseContractType
+	}
+
+	contractTerm, err := publicCloud.NewContractTermFromValue(
+		int32(instance.Contract.Term.Value()),
+	)
+	if err != nil {
+		return nil, ErrCannotParseContractTerm
+	}
+
+	billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+		int32(instance.Contract.BillingFrequency.Value()),
+	)
+	if err != nil {
+		return nil, ErrCannotParseBillingFrequency
+	}
+
+	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
+		instance.Region,
+		*instanceTypeName,
+		*imageId,
+		*contractType,
+		*contractTerm,
+		*billingFrequency,
+		*rootDiskStorageType,
+	)
+	launchInstanceOpts.MarketAppId = instance.MarketAppId
+	launchInstanceOpts.Reference = instance.Reference
+
+	if instance.SshKey != nil {
+		sshKey := instance.SshKey.String()
+		launchInstanceOpts.SshKey = &sshKey
+	}
+
+	return launchInstanceOpts, nil
+}
+
+func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
+	*publicCloud.UpdateInstanceOpts,
+	error,
+) {
+	updateInstanceOpts := publicCloud.NewUpdateInstanceOpts()
+	updateInstanceOpts.Reference = instance.Reference
+
+	if instance.RootDiskSize.Value != 0 {
+		rootDiskSize := int32(instance.RootDiskSize.Value)
+		updateInstanceOpts.RootDiskSize = &rootDiskSize
+	}
+
+	if instance.Type != "" {
+		instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(instance.Type)
+		if err != nil {
+			return nil, ErrCannotParseInstanceType
+		}
+		updateInstanceOpts.Type = instanceTypeName
+	}
+
+	if instance.Contract.Type != "" {
+		contractType, err := publicCloud.NewContractTypeFromValue(instance.Contract.Type.String())
+		if err != nil {
+			return nil, ErrCannotParseContractType
+		}
+		updateInstanceOpts.ContractType = contractType
+	}
+
+	if instance.Contract.Term != 0 {
+		contractTerm, err := publicCloud.NewContractTermFromValue(int32(instance.Contract.Term.Value()))
+		if err != nil {
+			return nil, ErrCannotParseContractTerm
+		}
+		updateInstanceOpts.ContractTerm = contractTerm
+	}
+
+	if instance.Contract.BillingFrequency != 0 {
+		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(int32(instance.Contract.BillingFrequency.Value()))
+		if err != nil {
+			return nil, ErrCannotParseBillingFrequency
+		}
+		updateInstanceOpts.BillingFrequency = billingFrequency
+	}
+
+	return updateInstanceOpts, nil
 }

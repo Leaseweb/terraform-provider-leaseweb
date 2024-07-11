@@ -51,13 +51,36 @@ func (o *InstanceOpts) setOptionalUpdateInstanceOpts(
 	}
 
 	if !contract.Type.IsNull() && !contract.Type.IsUnknown() {
-		opts.SetContractType(contract.Type.ValueString())
+		contractType, err := publicCloud.NewContractTypeFromValue(
+			contract.Type.ValueString(),
+		)
+		if err != nil {
+			return cannotSetContractType(contract.Type.ValueString())
+		}
+
+		opts.SetContractType(*contractType)
 	}
+
 	if !contract.Term.IsNull() && !contract.Term.IsUnknown() {
-		opts.SetContractTerm(int32(contract.Term.ValueInt64()))
+		contractTerm, err := publicCloud.NewContractTermFromValue(
+			int32(contract.Term.ValueInt64()),
+		)
+		if err != nil {
+			return cannotSetContractTerm(contract.Term.ValueInt64())
+		}
+
+		opts.SetContractTerm(*contractTerm)
 	}
-	if !contract.BillingFrequency.IsNull() {
-		opts.SetBillingFrequency(int32(contract.BillingFrequency.ValueInt64()))
+
+	if !contract.BillingFrequency.IsNull() && !contract.BillingFrequency.IsUnknown() {
+		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+			int32(contract.BillingFrequency.ValueInt64()),
+		)
+		if err != nil {
+			return cannotSetContractBillingFrequency(contract.BillingFrequency.ValueInt64())
+		}
+
+		opts.SetBillingFrequency(*billingFrequency)
 	}
 
 	return nil
