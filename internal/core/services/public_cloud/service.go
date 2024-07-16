@@ -107,7 +107,7 @@ func (srv Service) GetRegions(ctx context.Context) (domain.Regions, error) {
 	return regions, nil
 }
 
-// Populate instance with autoScalingGroupDetails & loadBalancerDetails
+// Populate instance with autoScalingGroupDetails & loadBalancerDetails.
 func (srv Service) populateMissingInstanceAttributes(
 	instance domain.Instance,
 	ctx context.Context,
