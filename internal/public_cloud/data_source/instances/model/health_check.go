@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -14,13 +14,12 @@ type healthCheck struct {
 	Port   types.Int64  `tfsdk:"port"`
 }
 
-func newHealthCheck(sdkHealthCheck publicCloud.HealthCheck) *healthCheck {
-	host, hostOk := sdkHealthCheck.GetHostOk()
+func newHealthCheck(entityHealthCheck entity.HealthCheck) *healthCheck {
 
 	return &healthCheck{
-		Method: basetypes.NewStringValue(sdkHealthCheck.GetMethod()),
-		Uri:    basetypes.NewStringValue(sdkHealthCheck.GetUri()),
-		Host:   utils.ConvertNullableSdkStringToStringValue(host, hostOk),
-		Port:   basetypes.NewInt64Value(int64(sdkHealthCheck.GetPort())),
+		Method: basetypes.NewStringValue(entityHealthCheck.Method.String()),
+		Uri:    basetypes.NewStringValue(entityHealthCheck.Uri),
+		Host:   utils.ConvertNullableStringToStringValue(entityHealthCheck.Host),
+		Port:   basetypes.NewInt64Value(int64(entityHealthCheck.Port)),
 	}
 }

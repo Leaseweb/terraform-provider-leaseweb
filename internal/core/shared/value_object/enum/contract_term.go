@@ -2,11 +2,9 @@ package enum
 
 type ContractTerm int64
 
-func (t ContractTerm) Value() int64 {
-	return int64(t)
+func (t ContractTerm) Value() int {
+	return int(t)
 }
-
-type ContractTerms []ContractTerm
 
 const (
 	ContractTermZero ContractTerm = iota
@@ -16,10 +14,14 @@ const (
 	ContractTermTwelve ContractTerm = iota + 8
 )
 
-var ContractTermValues = ContractTerms{
+var contractTerms = []ContractTerm{
 	ContractTermZero,
 	ContractTermOne,
 	ContractTermThree,
 	ContractTermSix,
 	ContractTermTwelve,
+}
+
+func NewContractTerm(value int) (ContractTerm, error) {
+	return findEnumForInt(value, contractTerms, ContractTermZero)
 }

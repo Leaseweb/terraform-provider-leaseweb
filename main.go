@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"log"
+
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"terraform-provider-leaseweb/internal/provider"
 )
 
@@ -18,7 +19,12 @@ var (
 func main() {
 	var debug bool
 
-	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.BoolVar(
+		&debug,
+		"debug",
+		false,
+		"set to true to run the provider with support for debuggers like delve",
+	)
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
@@ -26,7 +32,11 @@ func main() {
 		Debug:   debug,
 	}
 
-	err := providerserver.Serve(context.Background(), provider.NewProvider(version), opts)
+	err := providerserver.Serve(
+		context.Background(),
+		provider.NewProvider(version),
+		opts,
+	)
 
 	if err != nil {
 		log.Fatal(err.Error())

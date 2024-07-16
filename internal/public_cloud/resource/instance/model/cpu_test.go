@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newCpu(t *testing.T) {
-	sdkCpu := publicCloud.NewCpu(1, "unit")
-	got := newCpu(sdkCpu)
+	entityCpu := entity.NewCpu(1, "unit")
+	got := newCpu(entityCpu)
 
 	assert.Equal(t, int64(1), got.Value.ValueInt64(), "value should be set")
 	assert.Equal(t, "unit", got.Unit.ValueString(), "unit should be set")

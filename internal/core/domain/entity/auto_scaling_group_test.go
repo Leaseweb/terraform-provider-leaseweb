@@ -19,7 +19,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		got := NewAutoScalingGroup(
 			id,
 			enum.AutoScalingGroupTypeCpuBased,
-			enum.StateRunning,
+			enum.AutoScalingGroupStateScaling,
 			"region",
 			*reference,
 			createdAt,
@@ -28,7 +28,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 
 		assert.Equal(t, id, got.Id)
 		assert.Equal(t, enum.AutoScalingGroupTypeCpuBased, got.Type)
-		assert.Equal(t, enum.StateRunning, got.State)
+		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", got.Reference.String())
 		assert.Equal(t, createdAt, got.CreatedAt)
@@ -48,19 +48,19 @@ func TestNewAutoScalingGroup(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
 		reference, _ := value_object.NewAutoScalingGroupReference("")
 
-		desiredAmount := int64(5)
+		desiredAmount := 5
 		startsAt := time.Now()
 		endsAt := time.Now()
-		minimumAmount := int64(6)
-		maximumAmount := int64(7)
-		cpuThreshold := int64(8)
-		WarmupTime := int64(9)
-		CoolDownTime := int64(10)
+		minimumAmount := 6
+		maximumAmount := 7
+		cpuThreshold := 8
+		WarmupTime := 9
+		CoolDownTime := 10
 
 		got := NewAutoScalingGroup(
 			value_object.NewGeneratedUuid(),
 			enum.AutoScalingGroupTypeCpuBased,
-			enum.StateRunning,
+			enum.AutoScalingGroupStateScaling,
 			"region",
 			*reference,
 			time.Now(),

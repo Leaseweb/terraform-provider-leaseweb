@@ -26,4 +26,13 @@ type PublicCloudService interface {
 	) (*entity.Instance, error)
 
 	DeleteInstance(id value_object.Uuid, ctx context.Context) error
+
+	GetAvailableInstanceTypesForUpdate(
+		id value_object.Uuid,
+		ctx context.Context,
+	) (entity.InstanceTypes, error)
+
+	GetRegions(
+		ctx context.Context,
+	) (entity.Regions, error)
 }

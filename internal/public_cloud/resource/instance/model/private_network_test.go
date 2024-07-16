@@ -5,18 +5,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newPrivateNetwork(t *testing.T) {
-	sdkPrivateNetwork := publicCloud.NewPrivateNetwork(
+	privateNetwork := entity.NewPrivateNetwork(
 		"id",
 		"status",
 		"subnet",
 	)
 
-	got, diags := newPrivateNetwork(context.TODO(), *sdkPrivateNetwork)
+	got, diags := newPrivateNetwork(context.TODO(), privateNetwork)
 
 	assert.Nil(t, diags)
 

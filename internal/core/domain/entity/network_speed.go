@@ -1,10 +1,10 @@
 package entity
 
 type NetworkSpeed struct {
-	Value int64
+	Value int
 	Unit  string
 }
 
-func NewNetworkSpeed(value int64, unit string) NetworkSpeed {
+func NewNetworkSpeed(value int, unit string) NetworkSpeed {
 	return NetworkSpeed{Value: value, Unit: unit}
 }

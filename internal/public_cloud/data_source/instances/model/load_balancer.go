@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -21,33 +21,29 @@ type loadBalancer struct {
 	PrivateNetwork            *privateNetwork            `tfsdk:"private_network"`
 }
 
-func newLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) *loadBalancer {
-	loadBalancerConfiguration, loadBalancerConfigurationOk := sdkLoadBalancer.GetConfigurationOk()
-	loadBalancerPrivateNetwork, loadBalancerPrivateNetworkOk := sdkLoadBalancer.GetPrivateNetworkOk()
+func newLoadBalancer(entityLoadBalancer entity.LoadBalancer) *loadBalancer {
 
 	var ips []ip
-	for _, ip := range sdkLoadBalancer.Ips {
+	for _, ip := range entityLoadBalancer.Ips {
 		ips = append(ips, newIp(ip))
 	}
 
 	return &loadBalancer{
-		Id:        basetypes.NewStringValue(sdkLoadBalancer.GetId()),
-		Type:      basetypes.NewStringValue(sdkLoadBalancer.GetType()),
-		Resources: newResources(sdkLoadBalancer.GetResources()),
-		Region:    basetypes.NewStringValue(sdkLoadBalancer.GetRegion()),
-		Reference: basetypes.NewStringValue(sdkLoadBalancer.GetReference()),
-		State:     basetypes.NewStringValue(string(sdkLoadBalancer.GetState())),
-		Contract:  newContract(sdkLoadBalancer.GetContract()),
-		StartedAt: basetypes.NewStringValue(sdkLoadBalancer.GetStartedAt().String()),
+		Id:        basetypes.NewStringValue(entityLoadBalancer.Id.String()),
+		Type:      basetypes.NewStringValue(entityLoadBalancer.Type),
+		Resources: newResources(entityLoadBalancer.Resources),
+		Region:    basetypes.NewStringValue(entityLoadBalancer.Region),
+		Reference: utils.ConvertNullableStringToStringValue(entityLoadBalancer.Reference),
+		State:     basetypes.NewStringValue(string(entityLoadBalancer.State)),
+		Contract:  newContract(entityLoadBalancer.Contract),
+		StartedAt: utils.ConvertNullableTimeToStringValue(entityLoadBalancer.StartedAt),
 		Ips:       ips,
-		LoadBalancerConfiguration: utils.ConvertNullableSdkModelToDatasourceModel(
-			loadBalancerConfiguration,
-			loadBalancerConfigurationOk,
+		LoadBalancerConfiguration: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityLoadBalancer.Configuration,
 			newLoadBalancerConfiguration,
 		),
-		PrivateNetwork: utils.ConvertNullableSdkModelToDatasourceModel(
-			loadBalancerPrivateNetwork,
-			loadBalancerPrivateNetworkOk,
+		PrivateNetwork: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityLoadBalancer.PrivateNetwork,
 			newPrivateNetwork,
 		),
 	}

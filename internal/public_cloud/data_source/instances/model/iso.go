@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type iso struct {
@@ -11,9 +11,9 @@ type iso struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func newIso(sdkIso publicCloud.Iso) *iso {
+func newIso(entityIso entity.Iso) *iso {
 	return &iso{
-		Id:   basetypes.NewStringValue(sdkIso.GetId()),
-		Name: basetypes.NewStringValue(sdkIso.GetName()),
+		Id:   basetypes.NewStringValue(entityIso.Id),
+		Name: basetypes.NewStringValue(entityIso.Name),
 	}
 }

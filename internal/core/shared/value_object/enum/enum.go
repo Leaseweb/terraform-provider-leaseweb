@@ -1,13 +1,18 @@
 package enum
 
 import (
-	"errors"
 	"fmt"
 )
 
-var ErrCannotFindEnumForValue = errors.New("cannot find enum for value")
+type errCannotFindEnumForValue[T string | int] struct {
+	msg string
+}
 
-func FindEnumForString[T fmt.Stringer](
+func (c errCannotFindEnumForValue[T]) Error() string {
+	return c.msg
+}
+
+func findEnumForString[T fmt.Stringer](
 	value string,
 	enumValues []T,
 	defaultEnum T,
@@ -17,11 +22,15 @@ func FindEnumForString[T fmt.Stringer](
 			return enum, nil
 		}
 	}
-	return defaultEnum, ErrCannotFindEnumForValue
+	return defaultEnum, &errCannotFindEnumForValue[string]{msg: fmt.Sprintf(
+		"cannot find %T for %q",
+		defaultEnum,
+		value,
+	)}
 }
 
-func FindEnumForInt[T intEnum](
-	value int64,
+func findEnumForInt[T intEnum](
+	value int,
 	enumValues []T,
 	defaultEnum T,
 ) (T, error) {
@@ -30,5 +39,9 @@ func FindEnumForInt[T intEnum](
 			return enum, nil
 		}
 	}
-	return defaultEnum, ErrCannotFindEnumForValue
+	return defaultEnum, &errCannotFindEnumForValue[int]{msg: fmt.Sprintf(
+		"cannot find %T for %d",
+		defaultEnum,
+		value,
+	)}
 }

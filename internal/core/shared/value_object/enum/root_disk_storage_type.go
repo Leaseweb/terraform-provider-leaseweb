@@ -2,8 +2,6 @@ package enum
 
 type RootDiskStorageType string
 
-type RootDiskStorageTypes []RootDiskStorageType
-
 func (r RootDiskStorageType) String() string {
 	return string(r)
 }
@@ -13,7 +11,11 @@ const (
 	RootDiskStorageTypeCentral RootDiskStorageType = "CENTRAL"
 )
 
-var RootDiskStorageTypeValues = RootDiskStorageTypes{
+var rootDiskStorageTypes = []RootDiskStorageType{
 	RootDiskStorageTypeLocal,
 	RootDiskStorageTypeCentral,
+}
+
+func NewRootDiskStorageType(value string) (RootDiskStorageType, error) {
+	return findEnumForString(value, rootDiskStorageTypes, RootDiskStorageTypeLocal)
 }

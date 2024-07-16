@@ -5,12 +5,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newImage(t *testing.T) {
-	sdkImageDetails := publicCloud.NewImageDetails(
+	image := entity.NewImage(
 		"id",
 		"name",
 		"version",
@@ -21,7 +21,7 @@ func Test_newImage(t *testing.T) {
 		[]string{"storageType"},
 	)
 
-	got := newImage(*sdkImageDetails)
+	got := newImage(image)
 
 	assert.Equal(
 		t,

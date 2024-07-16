@@ -6,8 +6,6 @@ func (i ImageId) String() string {
 	return string(i)
 }
 
-type ImageIds []ImageId
-
 const (
 	Almalinux864Bit                ImageId = "ALMALINUX_8_64BIT"
 	Almalinux964Bit                ImageId = "ALMALINUX_9_64BIT"
@@ -28,7 +26,7 @@ const (
 	WindowsServer2022Standard64Bit ImageId = "WINDOWS_SERVER_2022_STANDARD_64BIT"
 )
 
-var ImageIdValues = ImageIds{
+var imageIds = []ImageId{
 	Almalinux864Bit,
 	Almalinux964Bit,
 	ArchLinux64Bit,
@@ -47,4 +45,8 @@ var ImageIdValues = ImageIds{
 	WindowsServer2016Standard64Bit,
 	WindowsServer2019Standard64Bit,
 	WindowsServer2022Standard64Bit,
+}
+
+func NewImageId(value string) (ImageId, error) {
+	return findEnumForString(value, imageIds, Almalinux864Bit)
 }

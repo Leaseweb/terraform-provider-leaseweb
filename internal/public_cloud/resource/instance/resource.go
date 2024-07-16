@@ -17,5 +17,5 @@ func NewInstanceResource() resource.Resource {
 }
 
 type instanceResource struct {
-	client *client.Client
+	client client.Client
 }

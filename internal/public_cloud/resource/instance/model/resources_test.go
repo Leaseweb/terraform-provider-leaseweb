@@ -6,23 +6,22 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newResources(t *testing.T) {
-
-	sdkResources := publicCloud.NewResources(
-		publicCloud.Cpu{Unit: "cpu"},
-		publicCloud.Memory{Unit: "memory"},
-		publicCloud.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		publicCloud.NetworkSpeed{Unit: "privateNetworkSpeed"},
+	resources := entity.NewResources(
+		entity.Cpu{Unit: "cpu"},
+		entity.Memory{Unit: "memory"},
+		entity.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		entity.NetworkSpeed{Unit: "privateNetworkSpeed"},
 	)
 
-	resources, _ := newResources(context.TODO(), *sdkResources)
+	got, _ := newResources(context.TODO(), resources)
 
 	cpu := Cpu{}
-	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
+	got.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
 	assert.Equal(
 		t,
 		"cpu",
@@ -31,7 +30,7 @@ func Test_newResources(t *testing.T) {
 	)
 
 	memory := Memory{}
-	resources.Memory.As(context.TODO(), &memory, basetypes.ObjectAsOptions{})
+	got.Memory.As(context.TODO(), &memory, basetypes.ObjectAsOptions{})
 	assert.Equal(
 		t,
 		"memory",
@@ -40,7 +39,7 @@ func Test_newResources(t *testing.T) {
 	)
 
 	publicNetworkSpeed := NetworkSpeed{}
-	resources.PublicNetworkSpeed.As(
+	got.PublicNetworkSpeed.As(
 		context.TODO(),
 		&publicNetworkSpeed,
 		basetypes.ObjectAsOptions{},
@@ -53,7 +52,7 @@ func Test_newResources(t *testing.T) {
 	)
 
 	privateNetworkSpeed := NetworkSpeed{}
-	resources.PrivateNetworkSpeed.As(
+	got.PrivateNetworkSpeed.As(
 		context.TODO(),
 		&privateNetworkSpeed,
 		basetypes.ObjectAsOptions{},
@@ -67,7 +66,7 @@ func Test_newResources(t *testing.T) {
 }
 
 func TestResources_attributeTypes(t *testing.T) {
-	resources, _ := newResources(context.TODO(), publicCloud.Resources{})
+	resources, _ := newResources(context.TODO(), entity.Resources{})
 
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),

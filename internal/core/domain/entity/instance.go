@@ -41,9 +41,10 @@ type OptionalInstanceValues struct {
 }
 
 type OptionalCreateInstanceValues struct {
-	MarketAppId *string
-	Reference   *string
-	SshKey      *value_object.SshKey
+	MarketAppId  *string
+	Reference    *string
+	SshKey       *value_object.SshKey
+	RootDiskSize *value_object.RootDiskSize
 }
 
 type OptionalUpdateInstanceValues struct {
@@ -123,6 +124,10 @@ func NewCreateInstance(
 	instance.MarketAppId = optional.MarketAppId
 	instance.Reference = optional.Reference
 	instance.SshKey = optional.SshKey
+
+	if optional.RootDiskSize != nil {
+		instance.RootDiskSize = *optional.RootDiskSize
+	}
 
 	return instance
 }

@@ -6,27 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newLoadBalancerConfiguration(t *testing.T) {
-	sdkLoadBalancerConfiguration := publicCloud.NewLoadBalancerConfiguration(
-		*publicCloud.NewNullableStickySession(&publicCloud.StickySession{MaxLifeTime: 5}),
-		"balance",
-		*publicCloud.NewNullableHealthCheck(&publicCloud.HealthCheck{Method: "method"}),
+	entityLoadBalancerConfiguration := entity.NewLoadBalancerConfiguration(
+		enum.BalanceSource,
 		false,
 		5,
 		6,
+		entity.OptionalLoadBalancerConfigurationOptions{
+			StickySession: &entity.StickySession{MaxLifeTime: 5},
+			HealthCheck:   &entity.HealthCheck{Method: enum.MethodHead},
+		},
 	)
 
 	got, err := newLoadBalancerConfiguration(
 		context.TODO(),
-		*sdkLoadBalancerConfiguration,
+		entityLoadBalancerConfiguration,
 	)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "balance", got.Balance.ValueString())
+	assert.Equal(t, "source", got.Balance.ValueString())
 	assert.False(t, got.XForwardedFor.ValueBool())
 	assert.Equal(t, int64(5), got.IdleTimeout.ValueInt64())
 	assert.Equal(t, int64(6), got.TargetPort.ValueInt64())
@@ -45,13 +48,13 @@ func Test_newLoadBalancerConfiguration(t *testing.T) {
 		&healthCheck,
 		basetypes.ObjectAsOptions{},
 	)
-	assert.Equal(t, "method", healthCheck.Method.ValueString())
+	assert.Equal(t, "HEAD", healthCheck.Method.ValueString())
 }
 
 func TestLoadBalancerConfiguration_attributeTypes(t *testing.T) {
 	loadBalancerConfiguration, _ := newLoadBalancerConfiguration(
 		context.TODO(),
-		publicCloud.LoadBalancerConfiguration{},
+		entity.LoadBalancerConfiguration{},
 	)
 
 	_, diags := types.ObjectValueFrom(

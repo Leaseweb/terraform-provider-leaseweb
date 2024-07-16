@@ -6,31 +6,33 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newIp(t *testing.T) {
 	reverseLookup := "reverse-lookup"
 
-	sdkIpDetails := publicCloud.NewIpDetails(
-		"got",
+	entityIp := entity.NewIp(
+		"1.2.3.4",
 		"prefix-length",
 		46,
 		true,
 		false,
 		"tralala",
-		*publicCloud.NewNullableString(&reverseLookup),
-		*publicCloud.NewNullableDdos(&publicCloud.Ddos{ProtectionType: "protection-type"}),
+		entity.OptionalIpValues{
+			Ddos:          &entity.Ddos{ProtectionType: "protection-type"},
+			ReverseLookup: &reverseLookup,
+		},
 	)
-	got, diags := newIp(context.TODO(), sdkIpDetails)
+	got, diags := newIp(context.TODO(), entityIp)
 
 	assert.Nil(t, diags)
 	assert.Equal(
 		t,
-		"got",
+		"1.2.3.4",
 		got.Ip.ValueString(),
-		"got should be set",
+		"ip should be set",
 	)
 	assert.Equal(
 		t,
@@ -80,7 +82,7 @@ func Test_newIp(t *testing.T) {
 }
 
 func TestIp_attributeTypes(t *testing.T) {
-	ip, _ := newIp(context.TODO(), &publicCloud.IpDetails{})
+	ip, _ := newIp(context.TODO(), entity.Ip{})
 
 	_, diags := types.ObjectValueFrom(context.TODO(), ip.AttributeTypes(), ip)
 

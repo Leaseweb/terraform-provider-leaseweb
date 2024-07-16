@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type cpu struct {
@@ -11,9 +11,9 @@ type cpu struct {
 	Unit  types.String `tfsdk:"unit"`
 }
 
-func newCpu(sdkCpu publicCloud.Cpu) cpu {
+func newCpu(entityCpu entity.Cpu) cpu {
 	return cpu{
-		Value: basetypes.NewInt64Value(int64(sdkCpu.GetValue())),
-		Unit:  basetypes.NewStringValue(sdkCpu.GetUnit()),
+		Value: basetypes.NewInt64Value(int64(entityCpu.Value)),
+		Unit:  basetypes.NewStringValue(entityCpu.Unit),
 	}
 }

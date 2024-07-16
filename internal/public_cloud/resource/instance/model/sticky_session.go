@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type StickySession struct {
@@ -24,10 +24,10 @@ func (s StickySession) AttributeTypes() map[string]attr.Type {
 
 func newStickySession(
 	ctx context.Context,
-	sdkStickySession publicCloud.StickySession,
+	entityStickySession entity.StickySession,
 ) (*StickySession, diag.Diagnostics) {
 	return &StickySession{
-		Enabled:     basetypes.NewBoolValue(sdkStickySession.GetEnabled()),
-		MaxLifeTime: basetypes.NewInt64Value(int64(sdkStickySession.GetMaxLifeTime())),
+		Enabled:     basetypes.NewBoolValue(entityStickySession.Enabled),
+		MaxLifeTime: basetypes.NewInt64Value(int64(entityStickySession.MaxLifeTime)),
 	}, nil
 }

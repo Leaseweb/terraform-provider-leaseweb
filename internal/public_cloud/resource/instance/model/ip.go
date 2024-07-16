@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -37,27 +37,27 @@ func (i Ip) AttributeTypes() map[string]attr.Type {
 
 func newIp(
 	ctx context.Context,
-	sdkIpDetails *publicCloud.IpDetails,
-) (Ip, diag.Diagnostics) {
-	ddosObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkIpDetails.GetDdos(),
+	entityIp entity.Ip,
+) (*Ip, diag.Diagnostics) {
+	ddosObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		entityIp.Ddos,
 		Ddos{}.AttributeTypes(),
 		ctx,
 		newDdos,
 	)
 
 	if diags != nil {
-		return Ip{}, diags
+		return nil, diags
 	}
 
-	return Ip{
-		Ip:            basetypes.NewStringValue(sdkIpDetails.GetIp()),
-		PrefixLength:  basetypes.NewStringValue(sdkIpDetails.GetPrefixLength()),
-		Version:       basetypes.NewInt64Value(int64(sdkIpDetails.GetVersion())),
-		NullRouted:    basetypes.NewBoolValue(sdkIpDetails.GetNullRouted()),
-		MainIp:        basetypes.NewBoolValue(sdkIpDetails.GetMainIp()),
-		NetworkType:   basetypes.NewStringValue(string(sdkIpDetails.GetNetworkType())),
-		ReverseLookup: basetypes.NewStringValue(sdkIpDetails.GetReverseLookup()),
+	return &Ip{
+		Ip:            basetypes.NewStringValue(entityIp.Ip),
+		PrefixLength:  basetypes.NewStringValue(entityIp.PrefixLength),
+		Version:       basetypes.NewInt64Value(int64(entityIp.Version)),
+		NullRouted:    basetypes.NewBoolValue(entityIp.NullRouted),
+		MainIp:        basetypes.NewBoolValue(entityIp.MainIp),
+		NetworkType:   basetypes.NewStringValue(string(entityIp.NetworkType)),
+		ReverseLookup: utils.ConvertNullableStringToStringValue(entityIp.ReverseLookup),
 		Ddos:          ddosObject,
 	}, nil
 }

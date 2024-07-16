@@ -1,10 +1,10 @@
 package entity
 
 type Cpu struct {
-	Value int64
+	Value int
 	Unit  string
 }
 
-func NewCpu(value int64, unit string) Cpu {
+func NewCpu(value int, unit string) Cpu {
 	return Cpu{Value: value, Unit: unit}
 }

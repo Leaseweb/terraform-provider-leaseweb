@@ -49,7 +49,7 @@ func TestNewInstance(t *testing.T) {
 			enum.ContractBillingFrequencyOne,
 			got.Contract.BillingFrequency,
 		)
-		assert.Equal(t, int64(5), got.RootDiskSize.Value)
+		assert.Equal(t, 5, got.RootDiskSize.Value)
 
 		assert.Nil(t, got.Reference)
 		assert.Nil(t, got.Iso)
@@ -137,12 +137,14 @@ func TestNewCreateInstance(t *testing.T) {
 		assert.Nil(t, got.MarketAppId)
 		assert.Nil(t, got.Reference)
 		assert.Nil(t, got.SshKey)
+		assert.Equal(t, value_object.RootDiskSize{}, got.RootDiskSize)
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
 		marketAppId := "marketAppId"
 		reference := "reference"
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+		rootDiskSize, _ := value_object.NewRootDiskSize(6)
 
 		got := NewCreateInstance(
 			"",
@@ -153,15 +155,17 @@ func TestNewCreateInstance(t *testing.T) {
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
 			OptionalCreateInstanceValues{
-				MarketAppId: &marketAppId,
-				Reference:   &reference,
-				SshKey:      sshKeyValueObject,
+				MarketAppId:  &marketAppId,
+				Reference:    &reference,
+				SshKey:       sshKeyValueObject,
+				RootDiskSize: rootDiskSize,
 			},
 		)
 
 		assert.Equal(t, marketAppId, *got.MarketAppId)
 		assert.Equal(t, reference, *got.Reference)
 		assert.Equal(t, sshKeyValueObject, got.SshKey)
+		assert.Equal(t, *rootDiskSize, got.RootDiskSize)
 	})
 
 }
@@ -211,7 +215,7 @@ func TestNewUpdateInstance(t *testing.T) {
 			enum.ContractBillingFrequencyThree,
 			got.Contract.BillingFrequency,
 		)
-		assert.Equal(t, int64(50), got.RootDiskSize.Value)
+		assert.Equal(t, 50, got.RootDiskSize.Value)
 	})
 
 }

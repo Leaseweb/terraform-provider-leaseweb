@@ -6,51 +6,39 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newLoadBalancer(t *testing.T) {
-	contractType, _ := publicCloud.NewContractTypeFromValue("HOURLY")
-	contract := *publicCloud.NewContract(
-		5,
-		0,
-		*contractType,
-		*publicCloud.NewNullableTime(nil),
-		time.Now(),
-		time.Now(),
-		"state",
-	)
-
 	t.Run("loadBalancer Conversion works", func(t *testing.T) {
 		reference := "reference"
 		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
+		id := value_object.NewGeneratedUuid()
 
-		sdkLoadBalancerDetails := publicCloud.NewLoadBalancerDetails(
-			"id",
+		entityLoadBalancer := entity.NewLoadBalancer(
+			id,
 			"type",
-			*publicCloud.NewResources(
-				*publicCloud.NewCpu(0, "cpu"),
-				*publicCloud.NewMemory(0, ""),
-				*publicCloud.NewNetworkSpeed(0, ""),
-				*publicCloud.NewNetworkSpeed(0, ""),
-			),
+			entity.Resources{Cpu: entity.Cpu{Unit: "cpu"}},
 			"region",
-			*publicCloud.NewNullableString(&reference),
-			"state",
-			contract,
-			*publicCloud.NewNullableTime(&startedAt),
-			[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
-			*publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{Balance: "balance"}),
-			*publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{Id: "autoScalingGroupId"}),
-			*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
+			enum.StateCreating,
+			entity.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
+			entity.Ips{{Ip: "1.2.3.4"}},
+			entity.OptionalLoadBalancerValues{
+				Reference:      &reference,
+				StartedAt:      &startedAt,
+				PrivateNetwork: &entity.PrivateNetwork{Id: "privateNetworkId"},
+				Configuration:  &entity.LoadBalancerConfiguration{Balance: enum.BalanceSource},
+			},
 		)
 
-		got, gotDiags := newLoadBalancer(context.TODO(), *sdkLoadBalancerDetails)
+		got, gotDiags := newLoadBalancer(context.TODO(), entityLoadBalancer)
 
 		assert.Nil(t, gotDiags)
 
-		assert.Equal(t, "id", got.Id.ValueString())
+		assert.Equal(t, id.String(), got.Id.ValueString())
 		assert.Equal(t, "type", got.Type.ValueString())
 		assert.Equal(
 			t,
@@ -59,11 +47,11 @@ func Test_newLoadBalancer(t *testing.T) {
 		)
 		assert.Equal(t, "region", got.Region.ValueString())
 		assert.Equal(t, "reference", got.Reference.ValueString())
-		assert.Equal(t, "state", got.State.ValueString())
+		assert.Equal(t, "CREATING", got.State.ValueString())
 
 		assert.Equal(
 			t,
-			"5",
+			"6",
 			got.Contract.Attributes()["billing_frequency"].String(),
 		)
 
@@ -89,7 +77,7 @@ func Test_newLoadBalancer(t *testing.T) {
 		)
 		assert.Equal(
 			t,
-			"balance",
+			"source",
 			loadBalancerConfiguration.Balance.ValueString(),
 		)
 

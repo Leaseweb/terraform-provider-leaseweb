@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -16,24 +16,20 @@ type loadBalancerConfiguration struct {
 	TargetPort    types.Int64    `tfsdk:"target_port"`
 }
 
-func newLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.LoadBalancerConfiguration) *loadBalancerConfiguration {
-	healthCheck, healthCheckOk := sdkLoadBalancerConfiguration.GetHealthCheckOk()
-	stickySession, stickySessionOk := sdkLoadBalancerConfiguration.GetStickySessionOk()
+func newLoadBalancerConfiguration(entityConfiguration entity.LoadBalancerConfiguration) *loadBalancerConfiguration {
 
 	return &loadBalancerConfiguration{
-		Balance: basetypes.NewStringValue(sdkLoadBalancerConfiguration.GetBalance()),
-		HealthCheck: utils.ConvertNullableSdkModelToDatasourceModel(
-			healthCheck,
-			healthCheckOk,
+		Balance: basetypes.NewStringValue(entityConfiguration.Balance.String()),
+		HealthCheck: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityConfiguration.HealthCheck,
 			newHealthCheck,
 		),
-		StickySession: utils.ConvertNullableSdkModelToDatasourceModel(
-			stickySession,
-			stickySessionOk,
+		StickySession: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityConfiguration.StickySession,
 			newStickySession,
 		),
-		XForwardedFor: basetypes.NewBoolValue(sdkLoadBalancerConfiguration.GetXForwardedFor()),
-		IdleTimeout:   basetypes.NewInt64Value(int64(sdkLoadBalancerConfiguration.GetIdleTimeOut())),
-		TargetPort:    basetypes.NewInt64Value(int64(sdkLoadBalancerConfiguration.GetTargetPort())),
+		XForwardedFor: basetypes.NewBoolValue(entityConfiguration.XForwardedFor),
+		IdleTimeout:   basetypes.NewInt64Value(int64(entityConfiguration.IdleTimeout)),
+		TargetPort:    basetypes.NewInt64Value(int64(entityConfiguration.TargetPort)),
 	}
 }

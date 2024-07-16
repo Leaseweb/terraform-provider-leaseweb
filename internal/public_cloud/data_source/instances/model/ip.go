@@ -3,7 +3,8 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type ip struct {
@@ -14,18 +15,21 @@ type ip struct {
 	MainIp        types.Bool   `tfsdk:"main_ip"`
 	NetworkType   types.String `tfsdk:"network_type"`
 	ReverseLookup types.String `tfsdk:"reverse_lookup"`
-	Ddos          ddos         `tfsdk:"ddos"`
+	Ddos          *ddos        `tfsdk:"ddos"`
 }
 
-func newIp(sdkIp publicCloud.IpDetails) ip {
+func newIp(entityIp entity.Ip) ip {
 	return ip{
-		Ip:            basetypes.NewStringValue(sdkIp.GetIp()),
-		PrefixLength:  basetypes.NewStringValue(sdkIp.GetPrefixLength()),
-		Version:       basetypes.NewInt64Value(int64(sdkIp.GetVersion())),
-		NullRouted:    basetypes.NewBoolValue(sdkIp.GetNullRouted()),
-		MainIp:        basetypes.NewBoolValue(sdkIp.GetMainIp()),
-		NetworkType:   basetypes.NewStringValue(string(sdkIp.GetNetworkType())),
-		ReverseLookup: basetypes.NewStringValue(sdkIp.GetReverseLookup()),
-		Ddos:          newDdos(sdkIp.GetDdos()),
+		Ip:            basetypes.NewStringValue(entityIp.Ip),
+		PrefixLength:  basetypes.NewStringValue(entityIp.PrefixLength),
+		Version:       basetypes.NewInt64Value(int64(entityIp.Version)),
+		NullRouted:    basetypes.NewBoolValue(entityIp.NullRouted),
+		MainIp:        basetypes.NewBoolValue(entityIp.MainIp),
+		NetworkType:   basetypes.NewStringValue(string(entityIp.NetworkType)),
+		ReverseLookup: utils.ConvertNullableStringToStringValue(entityIp.ReverseLookup),
+		Ddos: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityIp.Ddos,
+			newDdos,
+		),
 	}
 }

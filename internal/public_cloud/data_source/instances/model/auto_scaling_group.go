@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -27,28 +27,26 @@ type autoScalingGroup struct {
 }
 
 func newAutoScalingGroup(
-	sdkAutoScalingGroupDetails publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+	entity entity.AutoScalingGroup,
 ) *autoScalingGroup {
 	return &autoScalingGroup{
-		Id:            basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetId()),
-		Type:          basetypes.NewStringValue(string(sdkAutoScalingGroupDetails.GetType())),
-		State:         basetypes.NewStringValue(string(sdkAutoScalingGroupDetails.GetState())),
-		DesiredAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetDesiredAmountOk()),
-		Region:        basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetRegion()),
-		Reference:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetReference()),
-		CreatedAt:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetCreatedAt().String()),
-		UpdatedAt:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetUpdatedAt().String()),
-		StartsAt:      utils.ConvertNullableSdkTimeToStringValue(sdkAutoScalingGroupDetails.GetStartsAtOk()),
-		EndsAt:        utils.ConvertNullableSdkTimeToStringValue(sdkAutoScalingGroupDetails.GetEndsAtOk()),
-		MinimumAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetMinimumAmountOk()),
-		MaximumAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetMaximumAmountOk()),
-		CpuThreshold:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCpuThresholdOk()),
-		WarmupTime:    utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetWarmupTimeOk()),
-		CooldownTime:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCooldownTimeOk()),
-		LoadBalancer: utils.ConvertNullableSdkModelToDatasourceModel(
-			sdkLoadBalancerDetails,
-			true,
+		Id:            basetypes.NewStringValue(entity.Id.String()),
+		Type:          basetypes.NewStringValue(string(entity.Type)),
+		State:         basetypes.NewStringValue(string(entity.State)),
+		DesiredAmount: utils.ConvertNullableIntToInt64Value(entity.DesiredAmount),
+		Region:        basetypes.NewStringValue(entity.Region),
+		Reference:     basetypes.NewStringValue(entity.Reference.String()),
+		CreatedAt:     basetypes.NewStringValue(entity.CreatedAt.String()),
+		UpdatedAt:     basetypes.NewStringValue(entity.UpdatedAt.String()),
+		StartsAt:      utils.ConvertNullableTimeToStringValue(entity.StartsAt),
+		EndsAt:        utils.ConvertNullableTimeToStringValue(entity.EndsAt),
+		MinimumAmount: utils.ConvertNullableIntToInt64Value(entity.MinimumAmount),
+		MaximumAmount: utils.ConvertNullableIntToInt64Value(entity.MaximumAmount),
+		CpuThreshold:  utils.ConvertNullableIntToInt64Value(entity.CpuThreshold),
+		WarmupTime:    utils.ConvertNullableIntToInt64Value(entity.WarmupTime),
+		CooldownTime:  utils.ConvertNullableIntToInt64Value(entity.CooldownTime),
+		LoadBalancer: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entity.LoadBalancer,
 			newLoadBalancer,
 		),
 	}

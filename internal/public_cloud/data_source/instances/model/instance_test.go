@@ -4,52 +4,56 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
+
+var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 func Test_newInstance(t *testing.T) {
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-	sdkInstanceTypeName, _ := publicCloud.NewInstanceTypeNameFromValue("lsw.m3.large")
 	marketAppId := "marketAppId"
 	reference := "reference"
-	iso := publicCloud.Iso{Id: "isoId"}
-	privateNetwork := publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}
+	id := value_object.NewGeneratedUuid()
+	sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+	autoScalingGroupId := value_object.NewGeneratedUuid()
+	loadBalancerId := value_object.NewGeneratedUuid()
 
-	sdkInstanceDetails := publicCloud.NewInstanceDetails(
-		"id",
-		*sdkInstanceTypeName,
-		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
+	instance := entity.NewInstance(
+		id,
 		"region",
-		*publicCloud.NewNullableString(&reference),
-		*publicCloud.NewNullableTime(&startedAt),
-		*publicCloud.NewNullableString(&marketAppId),
+		entity.Resources{Cpu: entity.Cpu{Unit: "cpu"}},
+		entity.Image{Id: enum.Ubuntu200464Bit},
 		"state",
 		"productType",
 		true,
 		false,
-		32,
-		"rootDiskStorageType",
-		publicCloud.Contract{Type: "contract"},
-		*publicCloud.NewNullableIso(&iso),
-		*publicCloud.NewNullablePrivateNetwork(&privateNetwork),
-		publicCloud.ImageDetails{Id: "imageId"},
-		[]publicCloud.IpDetails{{Ip: "1.2.3.4"}},
-		*publicCloud.NewNullableAutoScalingGroup(nil),
+		value_object.RootDiskSize{Value: 55},
+		"lsw.m3.large",
+		enum.RootDiskStorageTypeCentral,
+		entity.Ips{{Ip: "1.2.3.4"}},
+		entity.Contract{Type: enum.ContractTypeMonthly},
+		entity.OptionalInstanceValues{
+			Reference:      &reference,
+			Iso:            &entity.Iso{Id: "isoId"},
+			MarketAppId:    &marketAppId,
+			SshKey:         sshKeyValueObject,
+			StartedAt:      &startedAt,
+			PrivateNetwork: &entity.PrivateNetwork{Id: "privateNetworkId"},
+			AutoScalingGroup: &entity.AutoScalingGroup{
+				Id:           autoScalingGroupId,
+				LoadBalancer: &entity.LoadBalancer{Id: loadBalancerId},
+			},
+		},
 	)
 
-	sdkAutoScalingGroupDetails := publicCloud.AutoScalingGroupDetails{Id: "autoScalingGroup"}
-	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{Id: "loadBalancerId"}
-
-	got := newInstance(
-		*sdkInstanceDetails,
-		&sdkAutoScalingGroupDetails,
-		&sdkLoadBalancerDetails,
-	)
+	got := newInstance(instance)
 
 	assert.Equal(
 		t,
-		"id",
+		id.String(),
 		got.Id.ValueString(),
 		"id should be set",
 	)
@@ -91,13 +95,13 @@ func Test_newInstance(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		int64(32),
+		int64(55),
 		got.RootDiskSize.ValueInt64(),
 		"rootDiskSize should be set",
 	)
 	assert.Equal(
 		t,
-		"rootDiskStorageType",
+		"CENTRAL",
 		got.RootDiskStorageType.ValueString(),
 		"rootDiskStorageType should be set",
 	)
@@ -115,13 +119,13 @@ func Test_newInstance(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"imageId",
+		"UBUNTU_20_04_64BIT",
 		got.Image.Id.ValueString(),
 		"image should be set",
 	)
 	assert.Equal(
 		t,
-		"contract",
+		"MONTHLY",
 		got.Contract.Type.ValueString(),
 		"contract should be set",
 	)
@@ -139,7 +143,7 @@ func Test_newInstance(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"autoScalingGroup",
+		autoScalingGroupId.String(),
 		got.AutoScalingGroup.Id.ValueString(),
 		"autoScalingGroup should be set",
 	)
@@ -157,26 +161,8 @@ func Test_newInstance(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"loadBalancerId",
+		loadBalancerId.String(),
 		got.AutoScalingGroup.LoadBalancer.Id.ValueString(),
 		"loadBalancer should be set",
 	)
-}
-
-func Test_generateAutoScalingGroup(t *testing.T) {
-	t.Run("sdkAutoScalingGroupDetails is empty", func(t *testing.T) {
-		got := generateAutoScalingGroup(
-			nil,
-			nil,
-		)
-		assert.Nil(t, got)
-	})
-
-	t.Run("sdkAutoScalingGroupDetails is set", func(t *testing.T) {
-		got := generateAutoScalingGroup(
-			&publicCloud.AutoScalingGroupDetails{},
-			nil,
-		)
-		assert.NotNil(t, got)
-	})
 }

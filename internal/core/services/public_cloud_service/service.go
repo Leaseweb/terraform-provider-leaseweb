@@ -19,10 +19,7 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 ) {
 	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
-		return entity.Instances{}, fmt.Errorf(
-			"failed to retrieve instances from repository: %w",
-			err,
-		)
+		return entity.Instances{}, fmt.Errorf("GetALlInstances: %w", err)
 	}
 
 	return instances, nil
@@ -34,11 +31,7 @@ func (srv Service) GetInstance(
 ) (*entity.Instance, error) {
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to retrieve instance %q from repository of: %w",
-			id,
-			err,
-		)
+		return nil, fmt.Errorf("GetInstance: %w", err)
 	}
 
 	return instance, nil
@@ -50,11 +43,7 @@ func (srv Service) CreateInstance(
 ) (*entity.Instance, error) {
 	createdInstance, err := srv.publicCloudRepository.CreateInstance(instance, ctx)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to create instance %q in repository: %w",
-			instance.Id,
-			err,
-		)
+		return nil, fmt.Errorf("CreateInstance: %w", err)
 	}
 
 	return createdInstance, nil
@@ -66,11 +55,7 @@ func (srv Service) UpdateInstance(
 ) (*entity.Instance, error) {
 	updatedInstance, err := srv.publicCloudRepository.UpdateInstance(instance, ctx)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to update instance %q in repository: %w",
-			instance.Id,
-			err,
-		)
+		return nil, fmt.Errorf("UpdateInstance: %w", err)
 	}
 
 	return updatedInstance, nil
@@ -82,14 +67,31 @@ func (srv Service) DeleteInstance(
 ) error {
 	err := srv.publicCloudRepository.DeleteInstance(id, ctx)
 	if err != nil {
-		return fmt.Errorf(
-			"failed to delete instance %q in repository: %w",
-			id,
-			err,
-		)
+		return fmt.Errorf("DeleteInstance: %w", err)
 	}
 
 	return nil
+}
+
+func (srv Service) GetAvailableInstanceTypesForUpdate(
+	id value_object.Uuid,
+	ctx context.Context,
+) (entity.InstanceTypes, error) {
+	instanceTypes, err := srv.publicCloudRepository.GetAvailableInstanceTypesForUpdate(id, ctx)
+	if err != nil {
+		return nil, fmt.Errorf("GetAvailableInstanceTypesForUpdate: %w", err)
+	}
+
+	return instanceTypes, nil
+}
+
+func (srv Service) GetRegions(ctx context.Context) (entity.Regions, error) {
+	regions, err := srv.publicCloudRepository.GetRegions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("GetRegions: %w", err)
+	}
+
+	return regions, nil
 }
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {

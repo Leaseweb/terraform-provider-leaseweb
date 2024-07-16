@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -26,59 +26,47 @@ type instance struct {
 	MarketAppId         types.String      `tfsdk:"market_app_id"`
 	AutoScalingGroup    *autoScalingGroup `tfsdk:"auto_scaling_group"`
 	Iso                 *iso              `tfsdk:"iso"`
-	PrivateNetwork      privateNetwork    `tfsdk:"private_network"`
+	PrivateNetwork      *privateNetwork   `tfsdk:"private_network"`
 }
 
 func newInstance(
-	sdkInstanceDetails publicCloud.InstanceDetails,
-	sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+	entityInstance entity.Instance,
 ) instance {
-	instanceIso, instanceIsoOk := sdkInstanceDetails.GetIsoOk()
 
 	instance := instance{
-		Id:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
-		Region:              basetypes.NewStringValue(sdkInstanceDetails.GetRegion()),
-		Reference:           basetypes.NewStringValue(sdkInstanceDetails.GetReference()),
-		Resources:           newResources(sdkInstanceDetails.GetResources()),
-		Image:               newImage(sdkInstanceDetails.GetImage()),
-		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
-		ProductType:         basetypes.NewStringValue(sdkInstanceDetails.GetProductType()),
-		HasPublicIpv4:       basetypes.NewBoolValue(sdkInstanceDetails.GetHasPublicIpV4()),
-		HasPrivateNetwork:   basetypes.NewBoolValue(sdkInstanceDetails.GetIncludesPrivateNetwork()),
-		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.GetRootDiskSize())),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
-		StartedAt:           basetypes.NewStringValue(sdkInstanceDetails.GetStartedAt().String()),
-		Contract:            newContract(sdkInstanceDetails.GetContract()),
-		MarketAppId:         basetypes.NewStringValue(sdkInstanceDetails.GetMarketAppId()),
-		AutoScalingGroup: generateAutoScalingGroup(
-			sdkAutoScalingGroupDetails,
-			sdkLoadBalancerDetails,
+		Id:                  basetypes.NewStringValue(entityInstance.Id.String()),
+		Region:              basetypes.NewStringValue(entityInstance.Region),
+		Reference:           utils.ConvertNullableStringToStringValue(entityInstance.Reference),
+		Resources:           newResources(entityInstance.Resources),
+		Image:               newImage(entityInstance.Image),
+		State:               basetypes.NewStringValue(string(entityInstance.State)),
+		ProductType:         basetypes.NewStringValue(entityInstance.ProductType),
+		HasPublicIpv4:       basetypes.NewBoolValue(entityInstance.HasPublicIpv4),
+		HasPrivateNetwork:   basetypes.NewBoolValue(entityInstance.HasPrivateNetwork),
+		Type:                basetypes.NewStringValue(entityInstance.Type),
+		RootDiskSize:        basetypes.NewInt64Value(int64(entityInstance.RootDiskSize.Value)),
+		RootDiskStorageType: basetypes.NewStringValue(string(entityInstance.RootDiskStorageType)),
+		StartedAt:           utils.ConvertNullableTimeToStringValue(entityInstance.StartedAt),
+		Contract:            newContract(entityInstance.Contract),
+		MarketAppId:         utils.ConvertNullableStringToStringValue(entityInstance.MarketAppId),
+		AutoScalingGroup: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityInstance.AutoScalingGroup,
+			newAutoScalingGroup,
 		),
-		Iso: utils.ConvertNullableSdkModelToDatasourceModel(
-			instanceIso,
-			instanceIsoOk,
+		Iso: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityInstance.Iso,
 			newIso,
 		),
-		PrivateNetwork: *newPrivateNetwork(sdkInstanceDetails.GetPrivateNetwork()),
+		PrivateNetwork: utils.ConvertNullableDomainEntityToDatasourceModel(
+			entityInstance.PrivateNetwork,
+			newPrivateNetwork,
+		),
 	}
 
-	for _, sdkIpDetails := range sdkInstanceDetails.Ips {
-		ip := newIp(sdkIpDetails)
+	for _, entityIp := range entityInstance.Ips {
+		ip := newIp(entityIp)
 		instance.Ips = append(instance.Ips, ip)
 	}
 
 	return instance
-}
-
-func generateAutoScalingGroup(
-	sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
-) *autoScalingGroup {
-	if sdkAutoScalingGroupDetails == nil {
-		return nil
-	}
-
-	return newAutoScalingGroup(*sdkAutoScalingGroupDetails, sdkLoadBalancerDetails)
 }

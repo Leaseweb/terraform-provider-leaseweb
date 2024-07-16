@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type image struct {
@@ -17,23 +17,23 @@ type image struct {
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }
 
-func newImage(sdkImageDetails publicCloud.ImageDetails) image {
+func newImage(entityImage entity.Image) image {
 	image := image{
-		Id:           basetypes.NewStringValue(string(sdkImageDetails.GetId())),
-		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
-		Version:      basetypes.NewStringValue(sdkImageDetails.GetVersion()),
-		Family:       basetypes.NewStringValue(sdkImageDetails.GetFamily()),
-		Flavour:      basetypes.NewStringValue(sdkImageDetails.GetFlavour()),
-		Architecture: basetypes.NewStringValue(sdkImageDetails.GetArchitecture()),
+		Id:           basetypes.NewStringValue(string(entityImage.Id)),
+		Name:         basetypes.NewStringValue(entityImage.Name),
+		Version:      basetypes.NewStringValue(entityImage.Version),
+		Family:       basetypes.NewStringValue(entityImage.Family),
+		Flavour:      basetypes.NewStringValue(entityImage.Flavour),
+		Architecture: basetypes.NewStringValue(entityImage.Architecture),
 	}
 
-	for _, marketApp := range sdkImageDetails.MarketApps {
+	for _, marketApp := range entityImage.MarketApps {
 		image.MarketApps = append(
 			image.MarketApps, types.StringValue(marketApp),
 		)
 	}
 
-	for _, storageType := range sdkImageDetails.StorageTypes {
+	for _, storageType := range entityImage.StorageTypes {
 		image.StorageTypes = append(
 			image.StorageTypes, types.StringValue(storageType),
 		)

@@ -61,7 +61,7 @@ func TestNewLoadBalancer(t *testing.T) {
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
-		assert.Equal(t, int64(54), got.Configuration.TargetPort)
+		assert.Equal(t, 54, got.Configuration.TargetPort)
 	})
 
 }

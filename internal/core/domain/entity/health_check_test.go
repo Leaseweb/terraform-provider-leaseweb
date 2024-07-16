@@ -18,7 +18,7 @@ func TestNewHealthCheck(t *testing.T) {
 
 		assert.Equal(t, enum.MethodPost, got.Method)
 		assert.Equal(t, "uri", got.Uri)
-		assert.Equal(t, int64(22), got.Port)
+		assert.Equal(t, 22, got.Port)
 
 		assert.Nil(t, got.Host)
 	})

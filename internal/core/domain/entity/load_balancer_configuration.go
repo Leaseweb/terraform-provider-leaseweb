@@ -9,8 +9,8 @@ type LoadBalancerConfiguration struct {
 	Balance       enum.Balance
 	HealthCheck   *HealthCheck
 	XForwardedFor bool
-	IdleTimeout   int64
-	TargetPort    int64
+	IdleTimeout   int
+	TargetPort    int
 }
 
 type OptionalLoadBalancerConfigurationOptions struct {
@@ -21,8 +21,8 @@ type OptionalLoadBalancerConfigurationOptions struct {
 func NewLoadBalancerConfiguration(
 	balance enum.Balance,
 	xForwardedFor bool,
-	idleTimeout int64,
-	targetPort int64,
+	idleTimeout int,
+	targetPort int,
 	options OptionalLoadBalancerConfigurationOptions,
 ) LoadBalancerConfiguration {
 	loadBalancerConfiguration := LoadBalancerConfiguration{

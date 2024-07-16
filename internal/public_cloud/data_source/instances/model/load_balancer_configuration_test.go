@@ -3,25 +3,28 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newLoadBalancerConfiguration(t *testing.T) {
-	sdkLoadBalancerConfiguration := publicCloud.NewLoadBalancerConfiguration(
-		*publicCloud.NewNullableStickySession(&publicCloud.StickySession{MaxLifeTime: 32}),
-		"balance",
-		*publicCloud.NewNullableHealthCheck(&publicCloud.HealthCheck{Method: "method"}),
+	configuration := entity.NewLoadBalancerConfiguration(
+		enum.BalanceSource,
 		false,
 		1,
 		2,
+		entity.OptionalLoadBalancerConfigurationOptions{
+			StickySession: &entity.StickySession{MaxLifeTime: 32},
+			HealthCheck:   &entity.HealthCheck{Method: enum.MethodGet},
+		},
 	)
 
-	got := newLoadBalancerConfiguration(*sdkLoadBalancerConfiguration)
+	got := newLoadBalancerConfiguration(configuration)
 
 	assert.Equal(t, int64(32), got.StickySession.MaxLifeTime.ValueInt64())
-	assert.Equal(t, "balance", got.Balance.ValueString())
-	assert.Equal(t, "method", got.HealthCheck.Method.ValueString())
+	assert.Equal(t, "source", got.Balance.ValueString())
+	assert.Equal(t, "GET", got.HealthCheck.Method.ValueString())
 	assert.False(t, got.XForwardedFor.ValueBool())
 	assert.Equal(t, int64(1), got.IdleTimeout.ValueInt64())
 	assert.Equal(t, int64(2), got.TargetPort.ValueInt64())

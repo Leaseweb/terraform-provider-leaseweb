@@ -6,11 +6,13 @@ func (n NetworkType) String() string {
 	return string(n)
 }
 
-type NetworkTypes []NetworkType
-
 const (
 	NetworkTypeInternal NetworkType = "INTERNAL"
 	NetworkTypePublic   NetworkType = "PUBLIC"
 )
 
-var NetworkTypeValues = NetworkTypes{NetworkTypeInternal, NetworkTypePublic}
+var networkTypes = []NetworkType{NetworkTypeInternal, NetworkTypePublic}
+
+func NewNetworkType(s string) (NetworkType, error) {
+	return findEnumForString(s, networkTypes, NetworkTypePublic)
+}

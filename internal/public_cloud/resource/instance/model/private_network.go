@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type PrivateNetwork struct {
@@ -26,11 +26,11 @@ func (p PrivateNetwork) AttributeTypes() map[string]attr.Type {
 
 func newPrivateNetwork(
 	ctx context.Context,
-	sdkPrivateNetwork publicCloud.PrivateNetwork,
+	privateNetwork entity.PrivateNetwork,
 ) (*PrivateNetwork, diag.Diagnostics) {
 	return &PrivateNetwork{
-		Id:     basetypes.NewStringValue(sdkPrivateNetwork.GetPrivateNetworkId()),
-		Status: basetypes.NewStringValue(sdkPrivateNetwork.GetStatus()),
-		Subnet: basetypes.NewStringValue(sdkPrivateNetwork.GetSubnet()),
+		Id:     basetypes.NewStringValue(privateNetwork.Id),
+		Status: basetypes.NewStringValue(privateNetwork.Status),
+		Subnet: basetypes.NewStringValue(privateNetwork.Subnet),
 	}, nil
 }

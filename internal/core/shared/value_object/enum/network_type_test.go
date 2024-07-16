@@ -12,3 +12,11 @@ func TestNetworkType_String(t *testing.T) {
 	assert.Equal(t, "INTERNAL", got)
 
 }
+
+func TestNewNetworkType(t *testing.T) {
+	want := NetworkTypeInternal
+	got, err := NewNetworkType("INTERNAL")
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}

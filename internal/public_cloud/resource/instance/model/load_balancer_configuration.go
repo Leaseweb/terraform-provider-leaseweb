@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -33,10 +33,10 @@ func (l LoadBalancerConfiguration) AttributeTypes() map[string]attr.Type {
 
 func newLoadBalancerConfiguration(
 	ctx context.Context,
-	sdkLoadBalancerConfiguration publicCloud.LoadBalancerConfiguration,
+	entityConfiguration entity.LoadBalancerConfiguration,
 ) (*LoadBalancerConfiguration, diag.Diagnostics) {
-	healthCheckObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkLoadBalancerConfiguration.GetHealthCheck(),
+	healthCheckObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		entityConfiguration.HealthCheck,
 		HealthCheck{}.AttributeTypes(),
 		ctx,
 		newHealthCheck,
@@ -45,8 +45,8 @@ func newLoadBalancerConfiguration(
 		return nil, diags
 	}
 
-	stickySessionObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkLoadBalancerConfiguration.GetStickySession(),
+	stickySessionObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		entityConfiguration.StickySession,
 		StickySession{}.AttributeTypes(),
 		ctx,
 		newStickySession,
@@ -56,11 +56,11 @@ func newLoadBalancerConfiguration(
 	}
 
 	return &LoadBalancerConfiguration{
-		Balance:       basetypes.NewStringValue(sdkLoadBalancerConfiguration.GetBalance()),
+		Balance:       basetypes.NewStringValue(entityConfiguration.Balance.String()),
 		HealthCheck:   healthCheckObject,
 		StickySession: stickySessionObject,
-		XForwardedFor: basetypes.NewBoolValue(sdkLoadBalancerConfiguration.GetXForwardedFor()),
-		IdleTimeout:   basetypes.NewInt64Value(int64(sdkLoadBalancerConfiguration.GetIdleTimeOut())),
-		TargetPort:    basetypes.NewInt64Value(int64(sdkLoadBalancerConfiguration.GetTargetPort())),
+		XForwardedFor: basetypes.NewBoolValue(entityConfiguration.XForwardedFor),
+		IdleTimeout:   basetypes.NewInt64Value(int64(entityConfiguration.IdleTimeout)),
+		TargetPort:    basetypes.NewInt64Value(int64(entityConfiguration.TargetPort)),
 	}, nil
 }

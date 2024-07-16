@@ -6,13 +6,15 @@ func (t ContractType) String() string {
 	return string(t)
 }
 
-type ContractTypes []ContractType
-
 const (
 	ContractTypeHourly  ContractType = "HOURLY"
 	ContractTypeMonthly ContractType = "MONTHLY"
 )
 
-var ContractTypeValues = ContractTypes{
+var contractTypes = []ContractType{
 	ContractTypeHourly, ContractTypeMonthly,
+}
+
+func NewContractType(s string) (ContractType, error) {
+	return findEnumForString(s, contractTypes, ContractTypeHourly)
 }

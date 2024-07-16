@@ -3,19 +3,19 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newResources(t *testing.T) {
-	sdkResources := publicCloud.NewResources(
-		publicCloud.Cpu{Unit: "cpu"},
-		publicCloud.Memory{Unit: "memory"},
-		publicCloud.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		publicCloud.NetworkSpeed{Unit: "NetworkSpeed"},
+	entityResources := entity.NewResources(
+		entity.Cpu{Unit: "cpu"},
+		entity.Memory{Unit: "memory"},
+		entity.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		entity.NetworkSpeed{Unit: "NetworkSpeed"},
 	)
 
-	got := newResources(*sdkResources)
+	got := newResources(entityResources)
 
 	assert.Equal(
 		t,

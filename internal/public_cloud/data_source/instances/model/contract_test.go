@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newContract(t *testing.T) {
@@ -22,33 +23,33 @@ func Test_newContract(t *testing.T) {
 		"2021-12-14 17:09:47",
 	)
 
-	sdkContract := publicCloud.NewContract(
-		1,
-		4,
-		"HOURLY",
-		*publicCloud.NewNullableTime(&endsAt),
+	contract, _ := entity.NewContract(
+		enum.ContractBillingFrequencySix,
+		enum.ContractTermThree,
+		enum.ContractTypeMonthly,
 		renewalsAt,
 		createdAt,
-		"RUNNING",
+		enum.ContractStateActive,
+		&endsAt,
 	)
 
-	got := newContract(*sdkContract)
+	got := newContract(*contract)
 
 	assert.Equal(
 		t,
-		int64(1),
+		int64(6),
 		got.BillingFrequency.ValueInt64(),
 		"billingFrequency should be set",
 	)
 	assert.Equal(
 		t,
-		int64(4),
+		int64(3),
 		got.Term.ValueInt64(),
 		"term should be set",
 	)
 	assert.Equal(
 		t,
-		"HOURLY",
+		"MONTHLY",
 		got.Type.ValueString(),
 		"type should be set",
 	)
@@ -72,7 +73,7 @@ func Test_newContract(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"RUNNING",
+		"ACTIVE",
 		got.State.ValueString(),
 		"state should be set",
 	)

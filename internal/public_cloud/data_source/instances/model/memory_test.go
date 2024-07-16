@@ -3,14 +3,14 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newMemory(t *testing.T) {
-	sdkMemory := publicCloud.NewMemory(1, "unit")
+	entityMemory := entity.NewMemory(1, "unit")
 
-	got := newMemory(*sdkMemory)
+	got := newMemory(entityMemory)
 
 	assert.Equal(
 		t,

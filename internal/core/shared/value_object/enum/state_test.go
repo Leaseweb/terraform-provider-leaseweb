@@ -11,3 +11,11 @@ func TestState_String(t *testing.T) {
 
 	assert.Equal(t, "CREATING", got)
 }
+
+func TestNewState(t *testing.T) {
+	want := StateCreating
+	got, err := NewState("CREATING")
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}

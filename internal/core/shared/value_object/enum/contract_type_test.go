@@ -11,3 +11,11 @@ func TestContractType_String(t *testing.T) {
 
 	assert.Equal(t, "HOURLY", got)
 }
+
+func TestNewContractType(t *testing.T) {
+	want := ContractTypeMonthly
+	got, err := NewContractType("MONTHLY")
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}

@@ -19,8 +19,8 @@ func TestNewLoadBalancerConfiguration(t *testing.T) {
 
 		assert.Equal(t, enum.BalanceRoundRobin, got.Balance)
 		assert.False(t, got.XForwardedFor)
-		assert.Equal(t, int64(1), got.IdleTimeout)
-		assert.Equal(t, int64(2), got.TargetPort)
+		assert.Equal(t, 1, got.IdleTimeout)
+		assert.Equal(t, 2, got.TargetPort)
 
 		assert.Nil(t, got.StickySession)
 		assert.Nil(t, got.HealthCheck)
@@ -38,7 +38,7 @@ func TestNewLoadBalancerConfiguration(t *testing.T) {
 			},
 		)
 
-		assert.Equal(t, int64(4), got.StickySession.MaxLifeTime)
+		assert.Equal(t, 4, got.StickySession.MaxLifeTime)
 		assert.Equal(t, "uri", got.HealthCheck.Uri)
 	})
 

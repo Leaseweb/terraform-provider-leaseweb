@@ -19,7 +19,7 @@ func TestNewUuid(t *testing.T) {
 	t.Run("valid uuid is not accepted", func(t *testing.T) {
 		_, err := NewUuid("tralala")
 
-		assert.ErrorIs(t, ErrCouldNotConvertValueIntoUUID, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 }
 

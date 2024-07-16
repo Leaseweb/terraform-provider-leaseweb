@@ -3,20 +3,20 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newHealthCheck(t *testing.T) {
 	host := "host"
-	sdkHealthCheck := publicCloud.NewHealthCheck(
+	healthCheck := entity.NewHealthCheck(
 		"method",
 		"uri",
-		*publicCloud.NewNullableString(&host),
 		22,
+		entity.OptionalHealthCheckValues{Host: &host},
 	)
 
-	got := newHealthCheck(*sdkHealthCheck)
+	got := newHealthCheck(healthCheck)
 
 	assert.Equal(t, "method", got.Method.ValueString())
 	assert.Equal(t, "uri", got.Uri.ValueString())

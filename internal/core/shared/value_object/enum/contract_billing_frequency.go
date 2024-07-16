@@ -1,11 +1,9 @@
 package enum
 
-type ContractBillingFrequency int64
+type ContractBillingFrequency int
 
-type ContractBillingFrequencies []ContractBillingFrequency
-
-func (c ContractBillingFrequency) Value() int64 {
-	return int64(c)
+func (c ContractBillingFrequency) Value() int {
+	return int(c)
 }
 
 const (
@@ -16,10 +14,18 @@ const (
 	ContractBillingFrequencyTwelve ContractBillingFrequency = iota + 8
 )
 
-var ContractBillingFrequencyValues = ContractBillingFrequencies{
+var contractBillingFrequencies = []ContractBillingFrequency{
 	ContractBillingFrequencyZero,
 	ContractBillingFrequencyOne,
 	ContractBillingFrequencyThree,
 	ContractBillingFrequencySix,
 	ContractBillingFrequencyTwelve,
+}
+
+func NewContractBillingFrequency(value int) (ContractBillingFrequency, error) {
+	return findEnumForInt(
+		value,
+		contractBillingFrequencies,
+		ContractBillingFrequencyZero,
+	)
 }

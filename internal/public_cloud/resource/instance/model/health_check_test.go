@@ -5,20 +5,20 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newHealthCheck(t *testing.T) {
 	host := "host"
-	sdkHealthCheck := publicCloud.NewHealthCheck(
+	entityHealthCheck := entity.NewHealthCheck(
 		"method",
 		"uri",
-		*publicCloud.NewNullableString(&host),
 		22,
+		entity.OptionalHealthCheckValues{Host: &host},
 	)
 
-	got, err := newHealthCheck(context.TODO(), *sdkHealthCheck)
+	got, err := newHealthCheck(context.TODO(), entityHealthCheck)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "method", got.Method.ValueString())
@@ -28,7 +28,7 @@ func Test_newHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheck_attributeTypes(t *testing.T) {
-	healthCheck, _ := newHealthCheck(context.TODO(), publicCloud.HealthCheck{})
+	healthCheck, _ := newHealthCheck(context.TODO(), entity.HealthCheck{})
 
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),

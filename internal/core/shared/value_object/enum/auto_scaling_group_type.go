@@ -6,16 +6,18 @@ func (t AutoScalingGroupType) String() string {
 	return string(t)
 }
 
-type AutoScalingGroupTypes []AutoScalingGroupType
-
 const (
 	AutoScalingCpuTypeManual      AutoScalingGroupType = "MANUAL"
 	AutoScalingGroupTypeScheduled AutoScalingGroupType = "SCHEDULED"
 	AutoScalingGroupTypeCpuBased  AutoScalingGroupType = "CPU_BASED"
 )
 
-var AutoScalingGroupTypeValues = AutoScalingGroupTypes{
+var autoScalingGroupTypes = []AutoScalingGroupType{
 	AutoScalingCpuTypeManual,
 	AutoScalingGroupTypeScheduled,
 	AutoScalingGroupTypeCpuBased,
+}
+
+func NewAutoScalingGroupType(s string) (AutoScalingGroupType, error) {
+	return findEnumForString(s, autoScalingGroupTypes, AutoScalingCpuTypeManual)
 }

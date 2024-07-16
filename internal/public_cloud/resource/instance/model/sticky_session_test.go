@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newStickySession(t *testing.T) {
-	sdkStickySession := publicCloud.NewStickySession(false, 1)
+	entityStickySession := entity.NewStickySession(false, 1)
 
-	got, err := newStickySession(context.TODO(), *sdkStickySession)
+	got, err := newStickySession(context.TODO(), entityStickySession)
 
 	assert.Nil(t, err)
 	assert.False(t, got.Enabled.ValueBool())
@@ -20,7 +20,7 @@ func Test_newStickySession(t *testing.T) {
 }
 
 func TestStickySession_attributeTypes(t *testing.T) {
-	stickySession, _ := newStickySession(context.TODO(), publicCloud.StickySession{})
+	stickySession, _ := newStickySession(context.TODO(), entity.StickySession{})
 
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),

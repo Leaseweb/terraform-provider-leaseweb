@@ -4,15 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newImage(t *testing.T) {
-	sdkImage := publicCloud.NewImageDetails(
-		"id",
+	entityImage := entity.NewImage(
+		enum.Ubuntu200464Bit,
 		"name",
 		"version",
 		"family",
@@ -22,66 +21,64 @@ func Test_newImage(t *testing.T) {
 		[]string{"storageType"},
 	)
 
-	image, diags := newImage(context.TODO(), *sdkImage)
+	got, diags := newImage(context.TODO(), entityImage)
 
 	assert.Nil(t, diags)
 
 	assert.Equal(
 		t,
-		"id",
-		image.Id.ValueString(),
+		"UBUNTU_20_04_64BIT",
+		got.Id.ValueString(),
 		"id should be set",
 	)
 	assert.Equal(
 		t,
 		"name",
-		image.Name.ValueString(),
+		got.Name.ValueString(),
 		"name should be set",
 	)
 	assert.Equal(
 		t,
 		"version",
-		image.Version.ValueString(),
+		got.Version.ValueString(),
 		"version should be set",
 	)
 	assert.Equal(
 		t,
 		"family",
-		image.Family.ValueString(),
+		got.Family.ValueString(),
 		"family should be set",
 	)
 	assert.Equal(
 		t,
 		"flavour",
-		image.Flavour.ValueString(),
+		got.Flavour.ValueString(),
 		"flavour should be set",
 	)
 	assert.Equal(
 		t,
 		"architecture",
-		image.Architecture.ValueString(),
+		got.Architecture.ValueString(),
 		"architecture should be set",
 	)
+
+	var marketApps []string
+	got.MarketApps.ElementsAs(context.TODO(), &marketApps, false)
+	assert.Len(t, marketApps, 1)
 	assert.Equal(
 		t,
-		[]types.String{basetypes.NewStringValue("one")},
-		image.MarketApps,
+		"one",
+		marketApps[0],
 		"marketApps should be set",
 	)
+
+	var storageTypes []string
+	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
+	assert.Len(t, storageTypes, 1)
 	assert.Equal(
 		t,
-		[]types.String{basetypes.NewStringValue("storageType")},
-		image.StorageTypes,
+		"storageType",
+		storageTypes[0],
 		"storageTypes should be set",
 	)
-}
-
-func TestImage_attributeTypes(t *testing.T) {
-	_, diags := types.ObjectValueFrom(
-		context.TODO(),
-		Image{}.AttributeTypes(),
-		Image{},
-	)
-
-	assert.Nil(t, diags, "attributes should be correct")
 }

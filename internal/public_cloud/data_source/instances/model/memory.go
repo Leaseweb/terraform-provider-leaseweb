@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type memory struct {
@@ -11,9 +11,9 @@ type memory struct {
 	Unit  types.String  `tfsdk:"unit"`
 }
 
-func newMemory(sdkMemory publicCloud.Memory) memory {
+func newMemory(entityMemory entity.Memory) memory {
 	return memory{
-		Value: basetypes.NewFloat64Value(float64(sdkMemory.GetValue())),
-		Unit:  basetypes.NewStringValue(sdkMemory.GetUnit()),
+		Value: basetypes.NewFloat64Value(entityMemory.Value),
+		Unit:  basetypes.NewStringValue(entityMemory.Unit),
 	}
 }

@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type NetworkSpeed struct {
@@ -12,10 +12,10 @@ type NetworkSpeed struct {
 }
 
 func newNetworkSpeed(
-	sdkNetworkSpeed publicCloud.NetworkSpeed,
+	entityNetworkSpeed entity.NetworkSpeed,
 ) NetworkSpeed {
 	return NetworkSpeed{
-		Value: basetypes.NewInt64Value(int64(sdkNetworkSpeed.GetValue())),
-		Unit:  basetypes.NewStringValue(sdkNetworkSpeed.GetUnit()),
+		Value: basetypes.NewInt64Value(int64(entityNetworkSpeed.Value)),
+		Unit:  basetypes.NewStringValue(entityNetworkSpeed.Unit),
 	}
 }

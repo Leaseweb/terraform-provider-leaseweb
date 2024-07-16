@@ -11,7 +11,7 @@ func TestNewRootDiskSize(t *testing.T) {
 		got, err := NewRootDiskSize(10)
 
 		assert.NoError(t, err)
-		assert.Equal(t, int64(10), got.Value)
+		assert.Equal(t, 10, got.Value)
 	})
 
 	t.Run("return error when rootDiskSize is too small", func(t *testing.T) {

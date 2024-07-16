@@ -3,13 +3,14 @@ package instance
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/model"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance/modify_plan"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 func (i *instanceResource) ModifyPlan(
@@ -23,15 +24,21 @@ func (i *instanceResource) ModifyPlan(
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
-	i.validateInstanceType(
+	err := i.validateInstanceType(
 		ctx,
 		stateInstance.Id,
 		stateInstance.Type,
 		planInstance.Type,
 		response,
 	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	i.validateRegion(ctx, response, planInstance.Region.ValueString())
+	err = i.validateRegion(ctx, response, planInstance.Region.ValueString())
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (i *instanceResource) validateInstanceType(
@@ -40,40 +47,32 @@ func (i *instanceResource) validateInstanceType(
 	stateType types.String,
 	planType types.String,
 	response *resource.ModifyPlanResponse,
-) {
+) error {
 	typeValidator := modify_plan.NewTypeValidator(
 		stateId,
 		stateType,
 		planType,
 	)
 
-	instanceTypes := modify_plan.NewInstanceTypes(*i.client, ctx)
-
 	hasTypeChanged := typeValidator.HashTypeChanged()
 
 	if !hasTypeChanged {
-		return
+		return nil
 	}
 
-	allowedInstanceTypes, sdkResponse, err := instanceTypes.
-		GetAllowedInstanceTypes(stateId.ValueString())
+	uuid, err := value_object.NewUuid(stateId.ValueString())
+	if err != nil {
+		return fmt.Errorf("validateInstanceType: %w", err)
+	}
+
+	allowedInstanceTypes, err := i.client.PublicCloud.GetAvailableInstanceTypesForUpdate(*uuid, ctx)
 
 	if err != nil {
-		utils.HandleError(
-			ctx,
-			sdkResponse,
-			&response.Diagnostics,
-			fmt.Sprintf(
-				"Error getting updateInstanceType list for %q",
-				stateId.ValueString(),
-			),
-			err.Error(),
-		)
-		return
+		return fmt.Errorf("validateInstanceType: %w", err)
 	}
 
 	if typeValidator.IsTypeValid(allowedInstanceTypes) {
-		return
+		return nil
 	}
 
 	response.Diagnostics.AddAttributeError(
@@ -84,36 +83,28 @@ func (i *instanceResource) validateInstanceType(
 			allowedInstanceTypes,
 		),
 	)
+
+	return nil
 }
 
 func (i *instanceResource) validateRegion(
 	ctx context.Context,
 	response *resource.ModifyPlanResponse,
 	region string,
-) {
+) error {
 	// Region has not changed here.
 	if region == "" {
-		return
+		return nil
 	}
 
-	request := i.client.PublicCloudClient.PublicCloudAPI.GetRegionList(i.client.AuthContext(ctx))
-	sdkRegions, sdkResponse, err := i.client.PublicCloudClient.PublicCloudAPI.GetRegionListExecute(request)
+	regions, err := i.client.PublicCloud.GetRegions(ctx)
 
 	if err != nil {
-		utils.HandleError(
-			ctx,
-			sdkResponse,
-			&response.Diagnostics,
-			"Error getting region list",
-			err.Error(),
-		)
-		return
+		return fmt.Errorf("validateRegion: %w", err)
 	}
 
-	regions := modify_plan.NewRegions(sdkRegions.GetRegions())
-
 	if regions.Contains(region) {
-		return
+		return nil
 	}
 
 	response.Diagnostics.AddAttributeError(
@@ -124,4 +115,6 @@ func (i *instanceResource) validateRegion(
 			regions,
 		),
 	)
+
+	return nil
 }

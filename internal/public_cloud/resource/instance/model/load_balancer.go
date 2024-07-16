@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -43,10 +43,10 @@ func (l LoadBalancer) AttributeTypes() map[string]attr.Type {
 
 func newLoadBalancer(
 	ctx context.Context,
-	sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
+	entityLoadBalancer entity.LoadBalancer,
 ) (*LoadBalancer, diag.Diagnostics) {
-	resourcesObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkLoadBalancerDetails.GetResources(),
+	resources, diags := utils.ConvertDomainEntityToResourceObject(
+		entityLoadBalancer.Resources,
 		Resources{}.AttributeTypes(),
 		ctx,
 		newResources,
@@ -55,8 +55,8 @@ func newLoadBalancer(
 		return nil, diags
 	}
 
-	contractObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkLoadBalancerDetails.GetContract(),
+	contract, diags := utils.ConvertDomainEntityToResourceObject(
+		entityLoadBalancer.Contract,
 		Contract{}.AttributeTypes(),
 		ctx,
 		newContract,
@@ -65,8 +65,8 @@ func newLoadBalancer(
 		return nil, diags
 	}
 
-	loadBalancerConfigurationObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkLoadBalancerDetails.GetConfiguration(),
+	configuration, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		entityLoadBalancer.Configuration,
 		LoadBalancerConfiguration{}.AttributeTypes(),
 		ctx,
 		newLoadBalancerConfiguration,
@@ -75,8 +75,8 @@ func newLoadBalancer(
 		return nil, diags
 	}
 
-	privateNetworkObject, diags := utils.ConvertSdkModelToResourceObject(
-		sdkLoadBalancerDetails.GetPrivateNetwork(),
+	privateNetwork, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		entityLoadBalancer.PrivateNetwork,
 		PrivateNetwork{}.AttributeTypes(),
 		ctx,
 		newPrivateNetwork,
@@ -85,34 +85,27 @@ func newLoadBalancer(
 		return nil, diags
 	}
 
-	var ips []Ip
-	for _, ip := range sdkLoadBalancerDetails.Ips {
-		ipObject, diags := newIp(ctx, &ip)
-		if diags != nil {
-			return nil, diags
-		}
-		ips = append(ips, ipObject)
-	}
-	ipsObject, diags := types.ListValueFrom(
+	ips, diags := utils.ConvertEntitiesToListValue(
+		entityLoadBalancer.Ips,
+		Ip{}.AttributeTypes(),
 		ctx,
-		types.ObjectType{AttrTypes: Ip{}.AttributeTypes()},
-		ips,
+		newIp,
 	)
 	if diags != nil {
 		return nil, diags
 	}
 
 	return &LoadBalancer{
-		Id:                        basetypes.NewStringValue(sdkLoadBalancerDetails.GetId()),
-		Type:                      basetypes.NewStringValue(sdkLoadBalancerDetails.GetType()),
-		Resources:                 resourcesObject,
-		Region:                    basetypes.NewStringValue(sdkLoadBalancerDetails.GetRegion()),
-		Reference:                 basetypes.NewStringValue(sdkLoadBalancerDetails.GetReference()),
-		State:                     basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetState())),
-		Contract:                  contractObject,
-		StartedAt:                 basetypes.NewStringValue(sdkLoadBalancerDetails.GetStartedAt().String()),
-		LoadBalancerConfiguration: loadBalancerConfigurationObject,
-		PrivateNetwork:            privateNetworkObject,
-		Ips:                       ipsObject,
+		Id:                        basetypes.NewStringValue(entityLoadBalancer.Id.String()),
+		Type:                      basetypes.NewStringValue(entityLoadBalancer.Type),
+		Resources:                 resources,
+		Region:                    basetypes.NewStringValue(entityLoadBalancer.Region),
+		Reference:                 utils.ConvertNullableStringToStringValue(entityLoadBalancer.Reference),
+		State:                     basetypes.NewStringValue(string(entityLoadBalancer.State)),
+		Contract:                  contract,
+		StartedAt:                 basetypes.NewStringValue(entityLoadBalancer.StartedAt.String()),
+		LoadBalancerConfiguration: configuration,
+		PrivateNetwork:            privateNetwork,
+		Ips:                       ips,
 	}, nil
 }

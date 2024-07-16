@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	providerClient "terraform-provider-leaseweb/internal/client"
+	"terraform-provider-leaseweb/internal/client"
 	"terraform-provider-leaseweb/internal/public_cloud/data_source/instances"
 	"terraform-provider-leaseweb/internal/public_cloud/resource/instance"
 )
@@ -135,13 +135,18 @@ func (p *leasewebProvider) Configure(
 
 	tflog.Debug(ctx, "Creating Leaseweb client")
 
-	client := providerClient.NewClient(
-		token,
-		&providerClient.Options{Host: host, Scheme: scheme},
-	)
+	optional := client.Optional{}
+	if host != "" {
+		optional.Host = &host
+	}
+	if scheme != "" {
+		optional.Scheme = &scheme
+	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	coreClient := client.NewClient(token, optional)
+
+	resp.DataSourceData = coreClient
+	resp.ResourceData = coreClient
 
 	tflog.Info(
 		ctx,

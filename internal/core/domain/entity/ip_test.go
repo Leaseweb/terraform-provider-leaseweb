@@ -22,7 +22,7 @@ func TestNewIp(t *testing.T) {
 
 		assert.Equal(t, "ip", ip.Ip)
 		assert.Equal(t, "prefixLength", ip.PrefixLength)
-		assert.Equal(t, int64(1), ip.Version)
+		assert.Equal(t, 1, ip.Version)
 		assert.False(t, ip.NullRouted)
 		assert.True(t, ip.MainIp)
 		assert.Equal(t, enum.NetworkTypePublic, ip.NetworkType)

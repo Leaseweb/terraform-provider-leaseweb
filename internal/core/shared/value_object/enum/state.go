@@ -6,8 +6,6 @@ func (s State) String() string {
 	return string(s)
 }
 
-type States []State
-
 const (
 	StateCreating   State = "CREATING"
 	StateDestroyed  State = "DESTROYED"
@@ -20,7 +18,7 @@ const (
 	StateUnknown    State = "UNKNOWN"
 )
 
-var StateValues = States{
+var states = []State{
 	StateCreating,
 	StateDestroyed,
 	StateDestroying,
@@ -30,4 +28,8 @@ var StateValues = States{
 	StateStopped,
 	StateStopping,
 	StateUnknown,
+}
+
+func NewState(s string) (State, error) {
+	return findEnumForString(s, states, StateUnknown)
 }

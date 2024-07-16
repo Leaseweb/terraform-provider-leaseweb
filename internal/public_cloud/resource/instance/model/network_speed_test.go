@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newNetworkSpeed(t *testing.T) {
-	sdkNetworkSpeed := publicCloud.NewNetworkSpeed(23, "unit")
+	entityNetworkSpeed := entity.NewNetworkSpeed(23, "unit")
 
-	networkSpeed := newNetworkSpeed(sdkNetworkSpeed)
+	networkSpeed := newNetworkSpeed(entityNetworkSpeed)
 
 	assert.Equal(
 		t,

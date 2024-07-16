@@ -5,17 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newDdos(t *testing.T) {
-	sdkDdos := publicCloud.NewNullableDdos(publicCloud.NewDdos(
-		"detectionProfile",
-		"protectionType",
-	))
+	entityDdos := entity.NewDdos("detectionProfile", "protectionType")
 
-	got, diags := newDdos(context.TODO(), *sdkDdos.Get())
+	got, diags := newDdos(context.TODO(), entityDdos)
 
 	assert.Nil(t, diags)
 

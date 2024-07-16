@@ -10,24 +10,22 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
-var ErrCannotConvertStringToUUid = fmt.Errorf("cannot convert string to uuid")
-var ErrNoLoadBalancerDetails = fmt.Errorf("loadBalancer details cannot be found")
-var ErrCannotParseInstanceType = fmt.Errorf("cannot parse instance type")
-var ErrCannotParseRootDiskStorageType = fmt.Errorf("cannot parse root disk storage type")
-var ErrCannotParseImageId = fmt.Errorf("cannot parse image id")
-var ErrCannotParseContractType = fmt.Errorf("cannot parse contract type")
-var ErrCannotParseContractTerm = fmt.Errorf("cannot parse contract term")
-var ErrCannotParseBillingFrequency = fmt.Errorf("cannot parse billing frequency")
+type errLoadBalancerNotFound struct {
+	msg string
+}
+
+func (e errLoadBalancerNotFound) Error() string {
+	return e.msg
+}
 
 func convertInstance(
 	sdkInstance publicCloud.InstanceDetails,
 	autoScalingGroup *entity.AutoScalingGroup,
 ) (*entity.Instance, error) {
-	instanceId, err := convertStringToUuid(sdkInstance.GetId())
+	instanceId, err := value_object.NewUuid(sdkInstance.GetId())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing Instance id %q: %w",
-			sdkInstance.GetId(),
+			"convertInstance: %w",
 			err,
 		)
 	}
@@ -35,43 +33,33 @@ func convertInstance(
 	image, err := convertImage(sdkInstance.GetImage())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error converting Image %q: %w",
-			sdkInstance.GetImage().Id,
+			"convertInstance: %w",
 			err,
 		)
 	}
 
-	state, err := enum.FindEnumForString(
-		string(sdkInstance.GetState()),
-		enum.StateValues,
-		enum.StateUnknown,
-	)
+	state, err := enum.NewState(string(sdkInstance.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing state %q: %w",
-			string(sdkInstance.GetState()),
+			"convertInstance: %w",
 			err,
 		)
 	}
 
-	rootDiskSize, err := value_object.NewRootDiskSize(int64(sdkInstance.GetRootDiskSize()))
+	rootDiskSize, err := value_object.NewRootDiskSize(int(sdkInstance.GetRootDiskSize()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing rootDiskSize %d: %w",
-			sdkInstance.GetRootDiskSize(),
+			"convertInstance: %w",
 			err,
 		)
 	}
 
-	rootDiskStorageType, err := enum.FindEnumForString(
+	rootDiskStorageType, err := enum.NewRootDiskStorageType(
 		string(sdkInstance.GetRootDiskStorageType()),
-		enum.RootDiskStorageTypeValues,
-		enum.RootDiskStorageTypeCentral,
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing rootDiskStorageType %q: %w",
-			string(sdkInstance.GetRootDiskStorageType()),
+			"convertInstance: %w",
 			err,
 		)
 	}
@@ -79,7 +67,7 @@ func convertInstance(
 	ips, err := convertIps(sdkInstance.GetIps())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error converting ips:  %w",
+			"convertInstance:  %w",
 			err,
 		)
 	}
@@ -87,7 +75,7 @@ func convertInstance(
 	contract, err := convertContract(sdkInstance.GetContract())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error converting contract:  %w",
+			"convertInstance:  %w",
 			err,
 		)
 	}
@@ -139,7 +127,7 @@ func convertResources(sdkResources publicCloud.Resources) entity.Resources {
 }
 
 func convertCpu(sdkCpu publicCloud.Cpu) entity.Cpu {
-	return entity.NewCpu(int64(sdkCpu.GetValue()), sdkCpu.GetUnit())
+	return entity.NewCpu(int(sdkCpu.GetValue()), sdkCpu.GetUnit())
 }
 
 func convertMemory(sdkMemory publicCloud.Memory) entity.Memory {
@@ -148,21 +136,16 @@ func convertMemory(sdkMemory publicCloud.Memory) entity.Memory {
 
 func convertNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) entity.NetworkSpeed {
 	return entity.NewNetworkSpeed(
-		int64(sdkNetworkSpeed.GetValue()),
+		int(sdkNetworkSpeed.GetValue()),
 		sdkNetworkSpeed.GetUnit(),
 	)
 }
 
 func convertImage(sdkImage publicCloud.ImageDetails) (*entity.Image, error) {
-	imageId, err := enum.FindEnumForString(
-		string(sdkImage.GetId()),
-		enum.ImageIdValues,
-		enum.Almalinux864Bit,
-	)
+	imageId, err := enum.NewImageId(string(sdkImage.GetId()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"cannot convert Image %q: %w",
-			sdkImage.GetId(),
+			"convertImage: %w",
 			err,
 		)
 	}
@@ -186,7 +169,7 @@ func convertIps(sdkIps []publicCloud.IpDetails) (entity.Ips, error) {
 	for _, sdkIp := range sdkIps {
 		ip, err := convertIp(sdkIp)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing ip: %w", err)
+			return nil, fmt.Errorf("convertIps: %w", err)
 		}
 		ips = append(ips, *ip)
 	}
@@ -195,15 +178,10 @@ func convertIps(sdkIps []publicCloud.IpDetails) (entity.Ips, error) {
 }
 
 func convertIp(sdkIp publicCloud.IpDetails) (*entity.Ip, error) {
-	networkType, err := enum.FindEnumForString(
-		string(sdkIp.GetNetworkType()),
-		enum.NetworkTypeValues,
-		enum.NetworkTypePublic,
-	)
+	networkType, err := enum.NewNetworkType(string(sdkIp.GetNetworkType()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing networkType %q: %w",
-			string(sdkIp.GetNetworkType()),
+			"convertIp: %w",
 			err,
 		)
 	}
@@ -221,7 +199,7 @@ func convertIp(sdkIp publicCloud.IpDetails) (*entity.Ip, error) {
 	ip := entity.NewIp(
 		sdkIp.GetIp(),
 		sdkIp.GetPrefixLength(),
-		int64(sdkIp.GetVersion()),
+		int(sdkIp.GetVersion()),
 		sdkIp.GetNullRouted(),
 		sdkIp.GetMainIp(),
 		networkType,
@@ -239,54 +217,36 @@ func convertDdos(sdkDdos publicCloud.Ddos) entity.Ddos {
 }
 
 func convertContract(sdkContract publicCloud.Contract) (*entity.Contract, error) {
-	billingFrequency, err := enum.FindEnumForInt(
-		int64(sdkContract.GetBillingFrequency()),
-		enum.ContractBillingFrequencyValues,
-		enum.ContractBillingFrequencyZero,
+	billingFrequency, err := enum.NewContractBillingFrequency(
+		int(sdkContract.GetBillingFrequency()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing billingFrequency %d: %w",
-			sdkContract.GetBillingFrequency(),
+			"convertContract: %w",
 			err,
 		)
 	}
 
-	contractTerm, err := enum.FindEnumForInt(
-		int64(sdkContract.GetTerm()),
-		enum.ContractTermValues,
-		enum.ContractTermZero,
-	)
+	contractTerm, err := enum.NewContractTerm(int(sdkContract.GetTerm()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing contractTerm %d: %w",
-			sdkContract.GetTerm(),
+			"convertContract: %w",
 			err,
 		)
 	}
 
-	contractType, err := enum.FindEnumForString(
-		string(sdkContract.GetType()),
-		enum.ContractTypeValues,
-		enum.ContractTypeHourly,
-	)
+	contractType, err := enum.NewContractType(string(sdkContract.GetType()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing contractType %q: %w",
-			string(sdkContract.GetType()),
+			"convertContract: %w",
 			err,
 		)
 	}
 
-	contractState, err := enum.FindEnumForString(
-		string(sdkContract.GetState()),
-		enum.ContractStateValues,
-		enum.ContractStateActive,
-	)
+	contractState, err := enum.NewContractState(string(sdkContract.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing contractState %q: %w",
-			string(sdkContract.GetState()),
+			"convertContract: %w",
 			err,
 		)
 	}
@@ -303,7 +263,7 @@ func convertContract(sdkContract publicCloud.Contract) (*entity.Contract, error)
 
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing contract: %w",
+			"convertContract: %w",
 			err,
 		)
 	}
@@ -331,40 +291,35 @@ func convertAutoScalingGroup(
 	error,
 ) {
 	if sdkAutoScalingGroup.LoadBalancer.Get() != nil && loadBalancer == nil {
-		return nil, ErrNoLoadBalancerDetails
-	}
-
-	autoScalingGroupId, err := convertStringToUuid(sdkAutoScalingGroup.GetId())
-	if err != nil {
-		return nil, fmt.Errorf(
-			"error parsing autoScalingGroup id %q: %w",
+		return nil, errLoadBalancerNotFound{msg: fmt.Sprintf(
+			"required loadBalacner %q linked to autoScalingGroup %q has not been passed",
+			sdkAutoScalingGroup.LoadBalancer.Get().GetId(),
 			sdkAutoScalingGroup.GetId(),
+		)}
+	}
+
+	autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"convertAutoScalingGroup: %w",
 			err,
 		)
 	}
 
-	autoScalingGroupType, err := enum.FindEnumForString(
+	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
 		string(sdkAutoScalingGroup.GetType()),
-		enum.AutoScalingGroupTypeValues,
-		enum.AutoScalingCpuTypeManual,
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing autoScalingGroupType %q: %w",
-			sdkAutoScalingGroup.GetType(),
+			"convertAutoScalingGroup: %w",
 			err,
 		)
 	}
 
-	state, err := enum.FindEnumForString(
-		string(sdkAutoScalingGroup.GetState()),
-		enum.StateValues,
-		enum.StateUnknown,
-	)
+	state, err := enum.NewAutoScalingGroupState(string(sdkAutoScalingGroup.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing state %q: %w",
-			sdkAutoScalingGroup.GetState(),
+			"convertAutoScalingGroup: %w",
 			err,
 		)
 	}
@@ -373,8 +328,7 @@ func convertAutoScalingGroup(
 
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing reference %q: %w",
-			sdkAutoScalingGroup.GetReference(),
+			"convertAutoScalingGroup: %w",
 			err,
 		)
 	}
@@ -405,15 +359,6 @@ func convertAutoScalingGroup(
 	return &autoScalingGroup, nil
 }
 
-func convertStringToUuid(id string) (*value_object.Uuid, error) {
-	convertedId, err := value_object.NewUuid(id)
-	if err != nil {
-		return nil, ErrCannotConvertStringToUUid
-	}
-
-	return convertedId, nil
-}
-
 func convertNullableStringToValue(nullableString publicCloud.NullableString) *string {
 	return nullableString.Get()
 }
@@ -422,12 +367,12 @@ func convertNullableTimeToValue(nullableTime publicCloud.NullableTime) *time.Tim
 	return nullableTime.Get()
 }
 
-func convertNullableInt32ToValue(nullableInt publicCloud.NullableInt32) *int64 {
+func convertNullableInt32ToValue(nullableInt publicCloud.NullableInt32) *int {
 	if nullableInt.Get() == nil {
 		return nil
 	}
 
-	value := int64(*nullableInt.Get())
+	value := int(*nullableInt.Get())
 	return &value
 }
 
@@ -435,24 +380,18 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 	*entity.LoadBalancer,
 	error,
 ) {
-	loadBalancerId, err := convertStringToUuid(sdkLoadBalancer.Id)
+	loadBalancerId, err := value_object.NewUuid(sdkLoadBalancer.Id)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing loadBalancer id %q: %w",
-			sdkLoadBalancer.GetId(),
+			"convertLoadBalancer: %w",
 			err,
 		)
 	}
 
-	state, err := enum.FindEnumForString(
-		string(sdkLoadBalancer.GetState()),
-		enum.StateValues,
-		enum.StateUnknown,
-	)
+	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing load balancer state %q: %w",
-			string(sdkLoadBalancer.GetState()),
+			"convertLoadBalancer: %w",
 			err,
 		)
 	}
@@ -460,7 +399,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 	contract, err := convertContract(sdkLoadBalancer.GetContract())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing contract: %w",
+			"convertLoadBalancer: %w",
 			err,
 		)
 	}
@@ -468,7 +407,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 	ips, err := convertIps(sdkLoadBalancer.GetIps())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error converting ips:  %w",
+			"convertLoadBalancer:  %w",
 			err,
 		)
 	}
@@ -482,7 +421,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 		configuration, err := convertLoadBalancerConfiguration(sdkLoadBalancer.GetConfiguration())
 		if err != nil {
 			return nil, fmt.Errorf(
-				"error converting configuration:  %w",
+				"convertLoadBalancer:  %w",
 				err,
 			)
 		}
@@ -512,15 +451,10 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 	*entity.LoadBalancerConfiguration,
 	error,
 ) {
-	balance, err := enum.FindEnumForString(
-		sdkLoadBalancerConfiguration.GetBalance(),
-		enum.BalanceValues,
-		enum.BalanceRoundRobin,
-	)
+	balance, err := enum.NewBalance(string(sdkLoadBalancerConfiguration.GetBalance()))
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing balance %q: %w",
-			sdkLoadBalancerConfiguration.GetBalance(),
+			"convertLoadBalancerConfiguration: %w",
 			err,
 		)
 	}
@@ -536,7 +470,7 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 		healthCheck, err := convertHealthCheck(*sdkLoadBalancerConfiguration.HealthCheck.Get())
 		if err != nil {
 			return nil, fmt.Errorf(
-				"error parsing healthCheck: %w",
+				"convertLoadBalancerConfiguration: %w",
 				err,
 			)
 		}
@@ -547,8 +481,8 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 	configuration := entity.NewLoadBalancerConfiguration(
 		balance,
 		sdkLoadBalancerConfiguration.GetXForwardedFor(),
-		int64(sdkLoadBalancerConfiguration.GetIdleTimeOut()),
-		int64(sdkLoadBalancerConfiguration.GetTargetPort()),
+		int(sdkLoadBalancerConfiguration.GetIdleTimeOut()),
+		int(sdkLoadBalancerConfiguration.GetTargetPort()),
 		options,
 	)
 
@@ -558,7 +492,7 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 func convertStickySession(sdkStickySession publicCloud.StickySession) entity.StickySession {
 	return entity.NewStickySession(
 		sdkStickySession.GetEnabled(),
-		int64(sdkStickySession.GetMaxLifeTime()),
+		int(sdkStickySession.GetMaxLifeTime()),
 	)
 }
 
@@ -566,15 +500,10 @@ func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 	*entity.HealthCheck,
 	error,
 ) {
-	method, err := enum.FindEnumForString(
-		sdkHealthCheck.GetMethod(),
-		enum.MethodValues,
-		enum.MethodGet,
-	)
+	method, err := enum.NewMethod(sdkHealthCheck.GetMethod())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error parsing method %q: %w",
-			sdkHealthCheck.GetMethod(),
+			"convertHealthCheck: %w",
 			err,
 		)
 	}
@@ -582,7 +511,7 @@ func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 	healthCheck := entity.NewHealthCheck(
 		method,
 		sdkHealthCheck.GetUri(),
-		int64(sdkHealthCheck.GetPort()),
+		int(sdkHealthCheck.GetPort()),
 		entity.OptionalHealthCheckValues{
 			Host: convertNullableStringToValue(sdkHealthCheck.Host),
 		},
@@ -599,40 +528,40 @@ func convertEntityToLaunchInstanceOpts(instance entity.Instance) (
 		instance.Type,
 	)
 	if err != nil {
-		return nil, ErrCannotParseInstanceType
+		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
 	}
 
 	rootDiskStorageType, err := publicCloud.NewRootDiskStorageTypeFromValue(
 		instance.RootDiskStorageType.String(),
 	)
 	if err != nil {
-		return nil, ErrCannotParseRootDiskStorageType
+		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
 	}
 
 	imageId, err := publicCloud.NewImageIdFromValue(instance.Image.Id.String())
 	if err != nil {
-		return nil, ErrCannotParseImageId
+		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
 	}
 
 	contractType, err := publicCloud.NewContractTypeFromValue(
 		instance.Contract.Type.String(),
 	)
 	if err != nil {
-		return nil, ErrCannotParseContractType
+		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
 	}
 
 	contractTerm, err := publicCloud.NewContractTermFromValue(
 		int32(instance.Contract.Term.Value()),
 	)
 	if err != nil {
-		return nil, ErrCannotParseContractTerm
+		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
 	}
 
 	billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
 		int32(instance.Contract.BillingFrequency.Value()),
 	)
 	if err != nil {
-		return nil, ErrCannotParseBillingFrequency
+		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
 	}
 
 	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
@@ -670,7 +599,7 @@ func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
 	if instance.Type != "" {
 		instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(instance.Type)
 		if err != nil {
-			return nil, ErrCannotParseInstanceType
+			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
 		updateInstanceOpts.Type = instanceTypeName
 	}
@@ -678,7 +607,7 @@ func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
 	if instance.Contract.Type != "" {
 		contractType, err := publicCloud.NewContractTypeFromValue(instance.Contract.Type.String())
 		if err != nil {
-			return nil, ErrCannotParseContractType
+			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
 		updateInstanceOpts.ContractType = contractType
 	}
@@ -686,7 +615,7 @@ func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
 	if instance.Contract.Term != 0 {
 		contractTerm, err := publicCloud.NewContractTermFromValue(int32(instance.Contract.Term.Value()))
 		if err != nil {
-			return nil, ErrCannotParseContractTerm
+			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
 		updateInstanceOpts.ContractTerm = contractTerm
 	}
@@ -694,10 +623,18 @@ func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
 	if instance.Contract.BillingFrequency != 0 {
 		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(int32(instance.Contract.BillingFrequency.Value()))
 		if err != nil {
-			return nil, ErrCannotParseBillingFrequency
+			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
 		updateInstanceOpts.BillingFrequency = billingFrequency
 	}
 
 	return updateInstanceOpts, nil
+}
+
+func convertInstanceType(sdkInstanceType publicCloud.InstanceType) entity.InstanceType {
+	return entity.NewInstanceType(sdkInstanceType.GetName())
+}
+
+func convertRegion(sdkRegion publicCloud.Region) entity.Region {
+	return entity.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
 }

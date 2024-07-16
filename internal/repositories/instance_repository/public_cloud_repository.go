@@ -2,15 +2,12 @@ package instance_repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
-
-var ErrSomethingWentWrongDeletingTheInstance = errors.New("something went wrong deleting the instance")
 
 type Optional struct {
 	Host   *string
@@ -35,6 +32,8 @@ type PublicCloudRepository struct {
 		*publicCloud.LaunchInstanceOpts, error)
 	convertEntityToUpdateInstanceOpts func(instance entity.Instance) (
 		*publicCloud.UpdateInstanceOpts, error)
+	convertRegion       func(sdkRegion publicCloud.Region) entity.Region
+	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) entity.InstanceType
 }
 
 func (p PublicCloudRepository) authContext(ctx context.Context) context.Context {
@@ -51,11 +50,10 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	entity.Instances,
 	error,
 ) {
-	request := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx))
-	result, _, err := p.publicCLoudAPI.GetInstanceListExecute(request)
+	result, _, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
 
 	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve instances: %w", err)
+		return nil, fmt.Errorf("GetAllInstances: %w", err)
 	}
 
 	var instances entity.Instances
@@ -63,20 +61,12 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	for _, instance := range result.Instances {
 		instanceId, err := value_object.NewUuid(instance.GetId())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"cannot parse uuid %s: %w",
-				instance.GetId(),
-				err,
-			)
+			return nil, fmt.Errorf("GetAllInstances: %w", err)
 
 		}
 		instanceDetail, err := p.GetInstance(*instanceId, ctx)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"cannot retrieve instance details %s: %w",
-				instanceId,
-				err,
-			)
+			return nil, fmt.Errorf("GetAllInstances: %w", err)
 		}
 
 		instances = append(instances, *instanceDetail)
@@ -91,32 +81,23 @@ func (p PublicCloudRepository) GetInstance(
 ) (*entity.Instance, error) {
 	var autoScalingGroup *entity.AutoScalingGroup
 
-	request := p.publicCLoudAPI.GetInstance(p.authContext(ctx), id.String())
-	instance, _, err := p.publicCLoudAPI.GetInstanceExecute(request)
+	instance, _, err := p.publicCLoudAPI.GetInstance(p.authContext(ctx), id.String()).Execute()
 
 	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve instance: %w", err)
+		return nil, fmt.Errorf("GetInstance %q: %w", id, err)
 	}
 
 	sdkAutoScalingGroup, _ := instance.GetAutoScalingGroupOk()
 
 	if sdkAutoScalingGroup != nil {
-		autoScalingGroupId, err := convertStringToUuid(sdkAutoScalingGroup.GetId())
+		autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"error parsing autoScalingGroup id %q: %w",
-				sdkAutoScalingGroup.GetId(),
-				err,
-			)
+			return nil, fmt.Errorf("GetInstance: %w", err)
 		}
-		autoScalingGroup, err = p.GetAutoScalingGroup(
-			*autoScalingGroupId,
-			ctx,
-		)
+		autoScalingGroup, err = p.GetAutoScalingGroup(*autoScalingGroupId, ctx)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"cannot retrieve auto scaling group details %s: %w",
-				sdkAutoScalingGroup.GetId(),
+				"GetInstance: %w",
 				err,
 			)
 		}
@@ -131,37 +112,23 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 ) (*entity.AutoScalingGroup, error) {
 	var loadBalancer *entity.LoadBalancer
 
-	request := p.publicCLoudAPI.GetAutoScalingGroup(
+	sdkAutoScalingGroup, _, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
 		id.String(),
-	)
-
-	sdkAutoScalingGroup, _, err := p.publicCLoudAPI.GetAutoScalingGroupExecute(request)
+	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot retrieve auto scaling group details %s: %w",
-			id,
-			err,
-		)
+		return nil, fmt.Errorf("GetAutoScalingGroup %q: %w", id, err)
 	}
 
 	if sdkAutoScalingGroup.LoadBalancer.Get() != nil {
-		loadBalancerId, err := convertStringToUuid(sdkAutoScalingGroup.LoadBalancer.Get().GetId())
+		loadBalancerId, err := value_object.NewUuid(sdkAutoScalingGroup.LoadBalancer.Get().GetId())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"error parsing sdkAutoScalingGroup id %q: %w",
-				sdkAutoScalingGroup.LoadBalancer.Get().GetId(),
-				err,
-			)
+			return nil, fmt.Errorf("GetAutoScalingGroup: %w", err)
 		}
 
 		loadBalancer, err = p.GetLoadBalancer(*loadBalancerId, ctx)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"cannot retrieve auto loadBalancer details %s: %w",
-				sdkAutoScalingGroup.LoadBalancer.Get().GetId(),
-				err,
-			)
+			return nil, fmt.Errorf("GetAutoScalingGroup: %w", err)
 		}
 	}
 
@@ -171,8 +138,8 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"cannot convert sdkAutoScalingGroup %s: %w",
-			id,
+			"GetAutoScalingGroup %q: %w",
+			sdkAutoScalingGroup.GetId(),
 			err,
 		)
 	}
@@ -186,22 +153,16 @@ func (p PublicCloudRepository) GetLoadBalancer(
 ) (*entity.LoadBalancer, error) {
 	var loadBalancer *entity.LoadBalancer
 
-	request := p.publicCLoudAPI.GetLoadBalancer(p.authContext(ctx), id.String())
-
-	sdkLoadBalancer, _, err := p.publicCLoudAPI.GetLoadBalancerExecute(request)
+	sdkLoadBalancer, _, err := p.publicCLoudAPI.GetLoadBalancer(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot retrieve auto loadBalancer details %s: %w",
-			id,
-			err,
-		)
+		return nil, fmt.Errorf("GetLoadBalancer %q: %w", id, err)
 	}
 
 	loadBalancer, err = p.convertLoadBalancer(*sdkLoadBalancer)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"cannot convert loadBalancer %s: %w",
-			id,
+			"GetLoadBalancer %q: %w",
+			sdkLoadBalancer.GetId(),
 			err,
 		)
 	}
@@ -216,29 +177,26 @@ func (p PublicCloudRepository) CreateInstance(
 
 	launchInstanceOpts, err := p.convertEntityToLaunchInstanceOpts(instance)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate launchInstanceOpts: %w", err)
+		return nil, fmt.Errorf("CreateInstance : %w", err)
 	}
 
-	request := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx))
-	request.LaunchInstanceOpts(*launchInstanceOpts)
+	launchedInstance, _, err := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx)).LaunchInstanceOpts(*launchInstanceOpts).Execute()
 
-	launchedInstance, _, err := p.publicCLoudAPI.LaunchInstanceExecute(request)
 	if err != nil {
-		return nil, fmt.Errorf("cannot launch instance: %w", err)
+		return nil, fmt.Errorf("CreateInstance: %w", err)
 	}
 
 	instanceId, err := value_object.NewUuid(launchedInstance.GetId())
 	if err != nil {
 		return nil, fmt.Errorf(
-			"cannot parse instanceId %q: %w",
-			launchedInstance.GetId(),
+			"CreateInstance: %w",
 			err,
 		)
 	}
 
 	instanceDetails, err := p.GetInstance(*instanceId, ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get instance %s: %w", instanceId, err)
+		return nil, fmt.Errorf("CreateInstance: %w", err)
 	}
 
 	return instanceDetails, nil
@@ -251,32 +209,25 @@ func (p PublicCloudRepository) UpdateInstance(
 
 	updateInstanceOpts, err := p.convertEntityToUpdateInstanceOpts(instance)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate updateInstanceOpts: %w", err)
+		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
 	}
 
-	request := p.publicCLoudAPI.UpdateInstance(
+	updatedInstance, _, err := p.publicCLoudAPI.UpdateInstance(
 		p.authContext(ctx),
 		instance.Id.String(),
-	)
-	request.UpdateInstanceOpts(*updateInstanceOpts)
-
-	updatedInstance, _, err := p.publicCLoudAPI.UpdateInstanceExecute(request)
+	).UpdateInstanceOpts(*updateInstanceOpts).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("cannot update instance: %w", err)
+		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
 	}
 
 	instanceId, err := value_object.NewUuid(updatedInstance.GetId())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot parse instanceId %q: %w",
-			updatedInstance.GetId(),
-			err,
-		)
+		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
 	}
 
 	instanceDetails, err := p.GetInstance(*instanceId, ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get instance %s: %w", instanceId, err)
+		return nil, fmt.Errorf("UpdateInstance: %w", err)
 	}
 
 	return instanceDetails, nil
@@ -286,13 +237,55 @@ func (p PublicCloudRepository) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) error {
-	request := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String())
-	_, err := p.publicCLoudAPI.TerminateInstanceExecute(request)
+	_, err := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
-		return ErrSomethingWentWrongDeletingTheInstance
+		return fmt.Errorf("DeleteInstance %q: %w", id, err)
 	}
 
 	return nil
+}
+
+func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
+	id value_object.Uuid,
+	ctx context.Context,
+) (entity.InstanceTypes, error) {
+	var instanceTypes entity.InstanceTypes
+
+	sdkInstanceTypes, _, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(p.authContext(ctx), id.String()).Execute()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"GetAvailableInstanceTypesForUpdate %q: %w",
+			id,
+			err,
+		)
+	}
+
+	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
+		instanceTypes = append(
+			instanceTypes,
+			p.convertInstanceType(sdkInstanceType),
+		)
+	}
+
+	return instanceTypes, nil
+}
+
+func (p PublicCloudRepository) GetRegions(ctx context.Context) (
+	entity.Regions,
+	error,
+) {
+	var regions entity.Regions
+
+	sdkRegions, _, err := p.publicCLoudAPI.GetRegionList(p.authContext(ctx)).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("GetRegions: %w", err)
+	}
+
+	for _, sdkRegion := range sdkRegions.Regions {
+		regions = append(regions, p.convertRegion(sdkRegion))
+	}
+
+	return regions, nil
 }
 
 func NewPublicCloudRepository(
@@ -316,6 +309,8 @@ func NewPublicCloudRepository(
 		convertInstance:                   convertInstance,
 		convertAutoScalingGroup:           convertAutoScalingGroup,
 		convertLoadBalancer:               convertLoadBalancer,
+		convertInstanceType:               convertInstanceType,
+		convertRegion:                     convertRegion,
 		convertEntityToLaunchInstanceOpts: convertEntityToLaunchInstanceOpts,
 		convertEntityToUpdateInstanceOpts: convertEntityToUpdateInstanceOpts,
 	}

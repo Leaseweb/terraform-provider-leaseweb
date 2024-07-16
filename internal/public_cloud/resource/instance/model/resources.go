@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type Resources struct {
@@ -27,21 +27,21 @@ func (r Resources) AttributeTypes() map[string]attr.Type {
 
 func newResources(
 	ctx context.Context,
-	sdkResources publicCloud.Resources,
+	entityResources entity.Resources,
 ) (*Resources, diag.Diagnostics) {
-	cpu := newCpu(&sdkResources.Cpu)
+	cpu := newCpu(entityResources.Cpu)
 	cpuObject, diags := types.ObjectValueFrom(ctx, cpu.AttributeTypes(), cpu)
 	if diags != nil {
 		return &Resources{}, diags
 	}
 
-	memory := newMemory(&sdkResources.Memory)
+	memory := newMemory(entityResources.Memory)
 	memoryObject, diags := types.ObjectValueFrom(ctx, memory.AttributeTypes(), memory)
 	if diags != nil {
 		return &Resources{}, diags
 	}
 
-	publicNetworkSpeed := newNetworkSpeed(&sdkResources.PublicNetworkSpeed)
+	publicNetworkSpeed := newNetworkSpeed(entityResources.PublicNetworkSpeed)
 	publicNetworkSpeedObject, diags := types.ObjectValueFrom(
 		ctx,
 		publicNetworkSpeed.AttributeTypes(),
@@ -51,7 +51,7 @@ func newResources(
 		return &Resources{}, diags
 	}
 
-	privateNetworkSpeed := newNetworkSpeed(&sdkResources.PrivateNetworkSpeed)
+	privateNetworkSpeed := newNetworkSpeed(entityResources.PrivateNetworkSpeed)
 	privateNetworkSpeedObject, diags := types.ObjectValueFrom(
 		ctx,
 		privateNetworkSpeed.AttributeTypes(),

@@ -12,3 +12,11 @@ func TestContractState_String(t *testing.T) {
 	assert.Equal(t, "ACTIVE", got)
 
 }
+
+func TestNewContractState(t *testing.T) {
+	want := ContractStateDeleteScheduled
+	got, err := NewContractState("DELETE_SCHEDULED")
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}

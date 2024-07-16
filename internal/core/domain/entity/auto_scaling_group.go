@@ -10,38 +10,38 @@ import (
 type AutoScalingGroup struct {
 	Id            value_object.Uuid
 	Type          enum.AutoScalingGroupType
-	State         enum.State
+	State         enum.AutoScalingGroupState
 	Region        string
 	Reference     value_object.AutoScalingGroupReference
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	DesiredAmount *int64
+	DesiredAmount *int
 	StartsAt      *time.Time
 	EndsAt        *time.Time
-	MinimumAmount *int64
-	MaximumAmount *int64
-	CpuThreshold  *int64
-	WarmupTime    *int64
-	CooldownTime  *int64
+	MinimumAmount *int
+	MaximumAmount *int
+	CpuThreshold  *int
+	WarmupTime    *int
+	CooldownTime  *int
 	LoadBalancer  *LoadBalancer
 }
 
 type AutoScalingGroupOptions struct {
-	DesiredAmount *int64
+	DesiredAmount *int
 	StartsAt      *time.Time
 	EndsAt        *time.Time
-	MinimumAmount *int64
-	MaximumAmount *int64
-	CpuThreshold  *int64
-	WarmupTime    *int64
-	CoolDownTime  *int64
+	MinimumAmount *int
+	MaximumAmount *int
+	CpuThreshold  *int
+	WarmupTime    *int
+	CoolDownTime  *int
 	LoadBalancer  *LoadBalancer
 }
 
 func NewAutoScalingGroup(
 	id value_object.Uuid,
 	autoScalingGroupType enum.AutoScalingGroupType,
-	state enum.State,
+	state enum.AutoScalingGroupState,
 	region string,
 	reference value_object.AutoScalingGroupReference,
 	createdAt time.Time,

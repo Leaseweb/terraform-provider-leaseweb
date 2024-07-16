@@ -2,9 +2,9 @@ package entity
 
 type StickySession struct {
 	Enabled     bool
-	MaxLifeTime int64
+	MaxLifeTime int
 }
 
-func NewStickySession(enabled bool, maxLifeTime int64) StickySession {
+func NewStickySession(enabled bool, maxLifeTime int) StickySession {
 	return StickySession{Enabled: enabled, MaxLifeTime: maxLifeTime}
 }

@@ -2,11 +2,14 @@ package model
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -33,27 +36,28 @@ type Instance struct {
 	SshKey              types.String `tfsdk:"ssh_key"`
 }
 
-func (i *Instance) Populate(
-	instance *publicCloud.InstanceDetails,
-	autoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
-	loadBalancerDetails *publicCloud.LoadBalancerDetails,
+func (i *Instance) Populate(instance entity.Instance,
 	ctx context.Context,
 ) diag.Diagnostics {
-	i.Id = basetypes.NewStringValue(instance.GetId())
-	i.Region = basetypes.NewStringValue(instance.GetRegion())
-	i.Reference = basetypes.NewStringValue(instance.GetReference())
-	i.State = basetypes.NewStringValue(string(instance.GetState()))
-	i.ProductType = basetypes.NewStringValue(instance.GetProductType())
-	i.HasPublicIpv4 = basetypes.NewBoolValue(instance.GetHasPublicIpV4())
-	i.HasPrivateNetwork = basetypes.NewBoolValue(instance.GetIncludesPrivateNetwork())
-	i.Type = basetypes.NewStringValue(string(instance.GetType()))
-	i.RootDiskSize = basetypes.NewInt64Value(int64(instance.GetRootDiskSize()))
-	i.RootDiskStorageType = basetypes.NewStringValue(string(instance.GetRootDiskStorageType()))
-	i.StartedAt = basetypes.NewStringValue(instance.GetStartedAt().String())
-	i.MarketAppId = basetypes.NewStringValue(instance.GetMarketAppId())
+	i.Id = basetypes.NewStringValue(instance.Id.String())
+	i.Region = basetypes.NewStringValue(instance.Region)
+	i.Reference = utils.ConvertNullableStringToStringValue(instance.Reference)
+	i.State = basetypes.NewStringValue(string(instance.State))
+	i.ProductType = basetypes.NewStringValue(instance.ProductType)
+	i.HasPublicIpv4 = basetypes.NewBoolValue(instance.HasPublicIpv4)
+	i.HasPrivateNetwork = basetypes.NewBoolValue(instance.HasPrivateNetwork)
+	i.Type = basetypes.NewStringValue(instance.Type)
+	i.RootDiskSize = basetypes.NewInt64Value(int64(instance.RootDiskSize.Value))
+	i.RootDiskStorageType = basetypes.NewStringValue(string(instance.RootDiskStorageType))
+	i.StartedAt = utils.ConvertNullableTimeToStringValue(instance.StartedAt)
+	i.MarketAppId = utils.ConvertNullableStringToStringValue(instance.MarketAppId)
 
-	imageObject, diags := utils.ConvertSdkModelToResourceObject(
-		instance.GetImage(),
+	if instance.SshKey != nil {
+		i.SshKey = basetypes.NewStringValue(instance.SshKey.String())
+	}
+
+	image, diags := utils.ConvertDomainEntityToResourceObject(
+		instance.Image,
 		Image{}.AttributeTypes(),
 		ctx,
 		newImage,
@@ -61,10 +65,10 @@ func (i *Instance) Populate(
 	if diags.HasError() {
 		return diags
 	}
-	i.Image = imageObject
+	i.Image = image
 
-	contractObject, diags := utils.ConvertSdkModelToResourceObject(
-		instance.GetContract(),
+	contract, diags := utils.ConvertDomainEntityToResourceObject(
+		instance.Contract,
 		Contract{}.AttributeTypes(),
 		ctx,
 		newContract,
@@ -72,10 +76,10 @@ func (i *Instance) Populate(
 	if diags.HasError() {
 		return diags
 	}
-	i.Contract = contractObject
+	i.Contract = contract
 
-	isoObject, diags := utils.ConvertSdkModelToResourceObject(
-		instance.GetIso(),
+	iso, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		instance.Iso,
 		Iso{}.AttributeTypes(),
 		ctx,
 		newIso,
@@ -83,10 +87,10 @@ func (i *Instance) Populate(
 	if diags.HasError() {
 		return diags
 	}
-	i.Iso = isoObject
+	i.Iso = iso
 
-	privateNetworkObject, diags := utils.ConvertSdkModelToResourceObject(
-		instance.GetPrivateNetwork(),
+	privateNetwork, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		instance.PrivateNetwork,
 		PrivateNetwork{}.AttributeTypes(),
 		ctx,
 		newPrivateNetwork,
@@ -94,10 +98,10 @@ func (i *Instance) Populate(
 	if diags.HasError() {
 		return diags
 	}
-	i.PrivateNetwork = privateNetworkObject
+	i.PrivateNetwork = privateNetwork
 
-	resourcesObject, diags := utils.ConvertSdkModelToResourceObject(
-		instance.GetResources(),
+	resources, diags := utils.ConvertDomainEntityToResourceObject(
+		instance.Resources,
 		Resources{}.AttributeTypes(),
 		ctx,
 		newResources,
@@ -105,65 +109,250 @@ func (i *Instance) Populate(
 	if diags.HasError() {
 		return diags
 	}
-	i.Resources = resourcesObject
+	i.Resources = resources
 
-	autoScalingGroupObject, diags := generateAutoScalingGroup(
+	autoScalingGroup, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		instance.AutoScalingGroup,
+		AutoScalingGroup{}.AttributeTypes(),
 		ctx,
-		autoScalingGroupDetails,
-		loadBalancerDetails,
+		newAutoScalingGroup,
 	)
 	if diags.HasError() {
 		return diags
 	}
-	i.AutoScalingGroup = autoScalingGroupObject
+	i.AutoScalingGroup = autoScalingGroup
 
-	var ips []Ip
-	for _, ip := range instance.Ips {
-		ipObject, diags := newIp(ctx, &ip)
-		if diags != nil {
-			return diags
-		}
-		ips = append(ips, ipObject)
-	}
-	ipsObject, diags := types.ListValueFrom(
+	ips, diags := utils.ConvertEntitiesToListValue(
+		instance.Ips,
+		Ip{}.AttributeTypes(),
 		ctx,
-		types.ObjectType{AttrTypes: Ip{}.AttributeTypes()},
-		ips,
+		newIp,
 	)
-	if diags != nil {
+	if diags.HasError() {
 		return diags
 	}
-	i.Ips = ipsObject
+	i.Ips = ips
 
 	return nil
 }
 
-func generateAutoScalingGroup(
-	ctx context.Context,
-	sdkAutoScalingGroupDetails *publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
-) (basetypes.ObjectValue, diag.Diagnostics) {
-	if sdkAutoScalingGroupDetails == nil {
-		return types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), nil
-	}
+func (i *Instance) GenerateCreateInstanceEntity(ctx context.Context) (
+	*entity.Instance,
+	diag.Diagnostics,
+) {
+	var sshKey *value_object.SshKey
+	var rootDiskSize *value_object.RootDiskSize
+	var diags diag.Diagnostics
 
-	autoScalingGroup, diags := newAutoScalingGroup(
-		ctx,
-		*sdkAutoScalingGroupDetails,
-		sdkLoadBalancerDetails,
-	)
+	image := Image{}
+	diags = i.Image.As(ctx, &image, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
-		return types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), diags
+		return nil, diags
 	}
 
-	autoScalingGroupObject, diags := types.ObjectValueFrom(
-		ctx,
-		autoScalingGroup.AttributeTypes(),
-		autoScalingGroup,
-	)
+	contract := Contract{}
+	diags = i.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
-		return types.ObjectNull(AutoScalingGroup{}.AttributeTypes()), diags
+		return nil, diags
 	}
 
-	return autoScalingGroupObject, nil
+	rootDiskStorageType, err := enum.NewRootDiskStorageType(i.RootDiskStorageType.ValueString())
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"cannot parse rootDisStorageType %q",
+				i.RootDiskStorageType.ValueString(),
+			),
+			err.Error(),
+		)
+		return nil, diags
+	}
+
+	imageId, err := enum.NewImageId(image.Id.ValueString())
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"cannot parse imageId %q",
+				image.Id.ValueString(),
+			),
+			err.Error(),
+		)
+		return nil, diags
+	}
+
+	contractType, err := enum.NewContractType(contract.Type.ValueString())
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"cannot parse contractType %s",
+				contract.Type.ValueString(),
+			),
+			err.Error(),
+		)
+		return nil, diags
+	}
+
+	contractTerm, err := enum.NewContractTerm(int(contract.Term.ValueInt64()))
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"cannot parse contractTerm %d",
+				contract.Term.ValueInt64(),
+			),
+			err.Error(),
+		)
+		return nil, diags
+	}
+
+	billingFrequency, err := enum.NewContractBillingFrequency(int(contract.BillingFrequency.ValueInt64()))
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"cannot parse billingFrequency %d",
+				contract.BillingFrequency.ValueInt64(),
+			),
+			err.Error(),
+		)
+		return nil, diags
+	}
+
+	if i.SshKey.ValueString() != "" {
+		sshKey, err = value_object.NewSshKey(i.SshKey.ValueString())
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf(
+					"invalid sshKey %q",
+					i.SshKey.ValueString(),
+				),
+				err.Error(),
+			)
+			return nil, diags
+		}
+	}
+
+	if i.RootDiskSize.ValueInt64() != 0 {
+		rootDiskSize, err = value_object.NewRootDiskSize(int(i.RootDiskSize.ValueInt64()))
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf(
+					"invalid rootDiskSize %d",
+					i.RootDiskSize.ValueInt64(),
+				),
+				err.Error(),
+			)
+			return nil, diags
+		}
+	}
+
+	instance := entity.NewCreateInstance(
+		i.Region.ValueString(),
+		i.Type.ValueString(),
+		rootDiskStorageType,
+		imageId,
+		contractType,
+		contractTerm,
+		billingFrequency,
+		entity.OptionalCreateInstanceValues{
+			MarketAppId:  i.MarketAppId.ValueStringPointer(),
+			Reference:    i.Reference.ValueStringPointer(),
+			SshKey:       sshKey,
+			RootDiskSize: rootDiskSize,
+		},
+	)
+
+	return &instance, nil
+}
+
+func (i *Instance) GenerateUpdateInstanceEntity(ctx context.Context) (
+	*entity.Instance,
+	diag.Diagnostics,
+) {
+	diags := diag.Diagnostics{}
+
+	id, err := value_object.NewUuid(i.Id.ValueString())
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf(
+				"invalid id %q",
+				i.Id.ValueString(),
+			),
+			err.Error(),
+		)
+		return nil, diags
+	}
+
+	optionalValues := entity.OptionalUpdateInstanceValues{
+		Type:      i.Type.ValueStringPointer(),
+		Reference: i.Reference.ValueStringPointer(),
+	}
+
+	if i.RootDiskSize.ValueInt64() != 0 {
+		rootDiskSize, err := value_object.NewRootDiskSize(int(i.RootDiskSize.ValueInt64()))
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf(
+					"invalid rootDiskSize %d",
+					i.RootDiskSize.ValueInt64(),
+				),
+				err.Error(),
+			)
+			return nil, diags
+		}
+		optionalValues.RootDiskSize = rootDiskSize
+	}
+
+	contract := Contract{}
+	diags = i.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	if contract.Type.ValueString() != "" {
+		contractType, err := enum.NewContractType(contract.Type.ValueString())
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf(
+					"cannot convert parse contractType %s",
+					contract.Type.ValueString(),
+				),
+				err.Error(),
+			)
+			return nil, diags
+		}
+		optionalValues.ContractType = &contractType
+	}
+
+	if contract.Term.ValueInt64() != 0 {
+		contractTerm, err := enum.NewContractTerm(int(contract.Term.ValueInt64()))
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf(
+					"cannot convert parse contractTerm %d",
+					contract.Term.ValueInt64(),
+				),
+				err.Error(),
+			)
+			return nil, diags
+		}
+		optionalValues.Term = &contractTerm
+	}
+
+	if contract.BillingFrequency.ValueInt64() != 0 {
+		billingFrequency, err := enum.NewContractBillingFrequency(int(contract.BillingFrequency.ValueInt64()))
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf(
+					"cannot convert parse billingFrequency %d",
+					contract.BillingFrequency.ValueInt64(),
+				),
+				err.Error(),
+			)
+			return nil, diags
+		}
+		optionalValues.BillingFrequency = &billingFrequency
+	}
+
+	instance := entity.NewUpdateInstance(*id, optionalValues)
+
+	return &instance, nil
 }

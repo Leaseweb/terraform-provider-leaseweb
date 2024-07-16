@@ -1,5 +1,5 @@
 package enum
 
 type intEnum interface {
-	Value() int64
+	Value() int
 }

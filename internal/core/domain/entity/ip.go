@@ -7,7 +7,7 @@ import (
 type Ip struct {
 	Ip            string
 	PrefixLength  string
-	Version       int64
+	Version       int
 	NullRouted    bool
 	MainIp        bool
 	NetworkType   enum.NetworkType
@@ -23,7 +23,7 @@ type OptionalIpValues struct {
 func NewIp(
 	ip string,
 	prefixLength string,
-	version int64,
+	version int,
 	nullRouted bool,
 	mainIp bool,
 	networkType enum.NetworkType,

@@ -15,5 +15,5 @@ func NewInstancesDataSource() datasource.DataSource {
 }
 
 type instancesDataSource struct {
-	client *client.Client
+	client client.Client
 }

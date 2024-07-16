@@ -3,16 +3,13 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newDDos(t *testing.T) {
-	sdkDdos := publicCloud.Ddos{
-		DetectionProfile: "detectionProfile",
-		ProtectionType:   "protectionType",
-	}
-	got := newDdos(sdkDdos)
+	ddos := entity.NewDdos("detectionProfile", "protectionType")
+	got := newDdos(ddos)
 
 	assert.Equal(
 		t,

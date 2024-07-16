@@ -6,12 +6,14 @@ func (b Balance) String() string {
 	return string(b)
 }
 
-type Balances []Balance
-
 const (
-	BalanceRoundRobin Balance = "ROUNDROBIN"
-	BalanceLeastConn  Balance = "LEASTCONN"
-	BalanceSource     Balance = "SOURCE"
+	BalanceRoundRobin Balance = "roundrobin"
+	BalanceLeastConn  Balance = "leastconn"
+	BalanceSource     Balance = "source"
 )
 
-var BalanceValues = Balances{BalanceRoundRobin, BalanceLeastConn, BalanceSource}
+var balances = []Balance{BalanceRoundRobin, BalanceLeastConn, BalanceSource}
+
+func NewBalance(value string) (Balance, error) {
+	return findEnumForString(value, balances, BalanceRoundRobin)
+}

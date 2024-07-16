@@ -7,7 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type HealthCheck struct {
@@ -28,12 +29,12 @@ func (h HealthCheck) AttributeTypes() map[string]attr.Type {
 
 func newHealthCheck(
 	ctx context.Context,
-	sdkHealthCheck publicCloud.HealthCheck,
+	entityHealthCheck entity.HealthCheck,
 ) (*HealthCheck, diag.Diagnostics) {
 	return &HealthCheck{
-		Method: basetypes.NewStringValue(sdkHealthCheck.GetMethod()),
-		Uri:    basetypes.NewStringValue(sdkHealthCheck.GetUri()),
-		Host:   basetypes.NewStringValue(sdkHealthCheck.GetHost()),
-		Port:   basetypes.NewInt64Value(int64(sdkHealthCheck.GetPort())),
+		Method: basetypes.NewStringValue(string(entityHealthCheck.Method)),
+		Uri:    basetypes.NewStringValue(entityHealthCheck.Uri),
+		Host:   utils.ConvertNullableStringToStringValue(entityHealthCheck.Host),
+		Port:   basetypes.NewInt64Value(int64(entityHealthCheck.Port)),
 	}, nil
 }

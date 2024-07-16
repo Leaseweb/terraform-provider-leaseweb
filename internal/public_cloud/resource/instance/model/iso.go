@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type Iso struct {
@@ -24,10 +24,10 @@ func (i Iso) AttributeTypes() map[string]attr.Type {
 
 func newIso(
 	ctx context.Context,
-	sdkIso publicCloud.Iso,
+	iso entity.Iso,
 ) (*Iso, diag.Diagnostics) {
 	return &Iso{
-		Id:   basetypes.NewStringValue(sdkIso.GetId()),
-		Name: basetypes.NewStringValue(sdkIso.GetName()),
+		Id:   basetypes.NewStringValue(iso.Id),
+		Name: basetypes.NewStringValue(iso.Name),
 	}, nil
 }

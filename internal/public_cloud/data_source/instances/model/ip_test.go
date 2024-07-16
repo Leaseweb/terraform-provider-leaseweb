@@ -3,26 +3,25 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newIp(t *testing.T) {
+	entityIp := entity.NewIp(
+		"ip",
+		"prefixLength",
+		46,
+		true,
+		false,
+		enum.NetworkTypeInternal,
+		entity.OptionalIpValues{
+			Ddos: &entity.Ddos{ProtectionType: "protection-type"},
+		},
+	)
 
-	sdkDdos := publicCloud.NewNullableDdos(&publicCloud.Ddos{})
-	sdkDdos.Get().SetProtectionType("protection-type")
-
-	sdkIp := publicCloud.IpDetails{}
-	sdkIp.SetIp("ip")
-	sdkIp.SetPrefixLength("prefix-length")
-	sdkIp.SetVersion(46)
-	sdkIp.SetNullRouted(true)
-	sdkIp.SetMainIp(false)
-	sdkIp.SetNetworkType("tralala")
-	sdkIp.SetReverseLookup("reverse-lookup")
-	sdkIp.Ddos = *sdkDdos
-
-	ip := newIp(sdkIp)
+	ip := newIp(entityIp)
 
 	assert.Equal(
 		t,
@@ -32,7 +31,7 @@ func Test_newIp(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"prefix-length",
+		"prefixLength",
 		ip.PrefixLength.ValueString(),
 		"prefix-length should be set",
 	)
@@ -56,15 +55,9 @@ func Test_newIp(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"tralala",
+		"INTERNAL",
 		ip.NetworkType.ValueString(),
 		"networkType should be set",
-	)
-	assert.Equal(
-		t,
-		"reverse-lookup",
-		ip.ReverseLookup.ValueString(),
-		"reverseLookup should be set",
 	)
 	assert.Equal(
 		t,

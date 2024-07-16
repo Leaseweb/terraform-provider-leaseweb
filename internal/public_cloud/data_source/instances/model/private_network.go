@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type privateNetwork struct {
@@ -12,10 +12,10 @@ type privateNetwork struct {
 	Subnet types.String `tfsdk:"subnet"`
 }
 
-func newPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) *privateNetwork {
+func newPrivateNetwork(entityPrivateNetwork entity.PrivateNetwork) *privateNetwork {
 	return &privateNetwork{
-		Id:     basetypes.NewStringValue(sdkPrivateNetwork.GetPrivateNetworkId()),
-		Status: basetypes.NewStringValue(sdkPrivateNetwork.GetStatus()),
-		Subnet: basetypes.NewStringValue(sdkPrivateNetwork.GetSubnet()),
+		Id:     basetypes.NewStringValue(entityPrivateNetwork.Id),
+		Status: basetypes.NewStringValue(entityPrivateNetwork.Status),
+		Subnet: basetypes.NewStringValue(entityPrivateNetwork.Subnet),
 	}
 }

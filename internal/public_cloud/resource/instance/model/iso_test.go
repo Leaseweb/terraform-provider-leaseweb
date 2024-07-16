@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newIso(t *testing.T) {
-	sdkIso := publicCloud.NewIso("id", "name")
-	got, diags := newIso(context.TODO(), *sdkIso)
+	entityIso := entity.NewIso("id", "name")
+	got, diags := newIso(context.TODO(), entityIso)
 
 	assert.Nil(t, diags)
 

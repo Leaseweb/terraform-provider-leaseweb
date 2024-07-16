@@ -6,51 +6,51 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 func Test_newAutoScalingGroup(t *testing.T) {
-	desiredAmount := int32(1)
+	desiredAmount := 1
 	createdAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	updatedAt, _ := time.Parse(time.RFC3339, "2020-09-08T00:00:00Z")
 	startsAt, _ := time.Parse(time.RFC3339, "2010-09-08T00:00:00Z")
 	endsAt, _ := time.Parse(time.RFC3339, "2011-09-08T00:00:00Z")
-	minimumAmount := int32(2)
-	maximumAmount := int32(3)
-	cpuThreshold := int32(4)
-	warmupTime := int32(5)
-	cooldownTime := int32(6)
+	minimumAmount := 2
+	maximumAmount := 3
+	cpuThreshold := 4
+	warmupTime := 5
+	cooldownTime := 6
+	id := value_object.NewGeneratedUuid()
+	reference, _ := value_object.NewAutoScalingGroupReference("reference")
+	loadBalancerId := value_object.NewGeneratedUuid()
 
-	sdkAutoScalingGroupDetails := publicCloud.NewAutoScalingGroupDetails(
-		"id",
+	autoScalingGroup := entity.NewAutoScalingGroup(
+		id,
 		"type",
 		"state",
-		*publicCloud.NewNullableInt32(&desiredAmount),
 		"region",
-		"reference",
+		*reference,
 		createdAt,
 		updatedAt,
-		*publicCloud.NewNullableTime(&startsAt),
-		*publicCloud.NewNullableTime(&endsAt),
-		*publicCloud.NewNullableInt32(&minimumAmount),
-		*publicCloud.NewNullableInt32(&maximumAmount),
-		*publicCloud.NewNullableInt32(&cpuThreshold),
-		*publicCloud.NewNullableInt32(&warmupTime),
-		*publicCloud.NewNullableInt32(&cooldownTime),
-		*publicCloud.NewNullableLoadBalancer(nil),
+		entity.AutoScalingGroupOptions{
+			DesiredAmount: &desiredAmount,
+			StartsAt:      &startsAt,
+			EndsAt:        &endsAt,
+			MinimumAmount: &minimumAmount,
+			MaximumAmount: &maximumAmount,
+			CpuThreshold:  &cpuThreshold,
+			WarmupTime:    &warmupTime,
+			CoolDownTime:  &cooldownTime,
+			LoadBalancer:  &entity.LoadBalancer{Id: loadBalancerId, StartedAt: &time.Time{}},
+		},
 	)
 
-	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{Id: "loadBalancerId"}
-
-	got, diags := newAutoScalingGroup(
-		context.TODO(),
-		*sdkAutoScalingGroupDetails,
-		&sdkLoadBalancerDetails,
-	)
+	got, diags := newAutoScalingGroup(context.TODO(), autoScalingGroup)
 
 	assert.Nil(t, diags)
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, id.String(), got.Id.ValueString())
 	assert.Equal(t, "type", got.Type.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
 	assert.Equal(t, int64(1), got.DesiredAmount.ValueInt64())
@@ -88,5 +88,5 @@ func Test_newAutoScalingGroup(t *testing.T) {
 		&loadBalancer,
 		basetypes.ObjectAsOptions{},
 	)
-	assert.Equal(t, "loadBalancerId", loadBalancer.Id.ValueString())
+	assert.Equal(t, loadBalancerId.String(), loadBalancer.Id.ValueString())
 }

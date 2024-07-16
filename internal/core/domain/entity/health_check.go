@@ -8,7 +8,7 @@ type HealthCheck struct {
 	Method enum.Method
 	Uri    string
 	Host   *string
-	Port   int64
+	Port   int
 }
 
 type OptionalHealthCheckValues struct {
@@ -18,7 +18,7 @@ type OptionalHealthCheckValues struct {
 func NewHealthCheck(
 	method enum.Method,
 	uri string,
-	port int64,
+	port int,
 	options OptionalHealthCheckValues,
 ) HealthCheck {
 	healthCheck := HealthCheck{Method: method, Uri: uri, Port: port}

@@ -1,40 +1,25 @@
 package client
 
 import (
-	"context"
-
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/ports"
+	"terraform-provider-leaseweb/internal/core/services/public_cloud_service"
+	"terraform-provider-leaseweb/internal/repositories/instance_repository"
 )
 
 type Client struct {
-	PublicCloudClient *publicCloud.APIClient
-	Token             string
+	PublicCloud ports.PublicCloudService
 }
 
-type Options struct {
-	Host   string
-	Scheme string
+type Optional struct {
+	Host   *string
+	Scheme *string
 }
 
-func NewClient(token string, options *Options) *Client {
-	configuration := publicCloud.NewConfiguration()
-
-	if options.Host != "" {
-		configuration.Host = options.Host
-	}
-	if options.Scheme != "" {
-		configuration.Scheme = options.Scheme
-	}
-
-	return &Client{PublicCloudClient: publicCloud.NewAPIClient(configuration), Token: token}
-}
-
-func (c *Client) AuthContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		publicCloud.ContextAPIKeys,
-		map[string]publicCloud.APIKey{
-			"X-LSW-Auth": {Key: c.Token, Prefix: ""},
-		},
+func NewClient(token string, optional Optional) Client {
+	publicCloudRepository := instance_repository.NewPublicCloudRepository(
+		token,
+		instance_repository.Optional{Host: optional.Host, Scheme: optional.Scheme},
 	)
+
+	return Client{PublicCloud: public_cloud_service.New(publicCloudRepository)}
 }

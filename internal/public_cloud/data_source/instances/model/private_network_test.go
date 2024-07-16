@@ -3,17 +3,17 @@ package model
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 func Test_newPrivateNetwork(t *testing.T) {
-	sdkPrivateNetwork := publicCloud.NewPrivateNetwork(
+	entityPrivateNetwork := entity.NewPrivateNetwork(
 		"id",
 		"status",
 		"subnet",
 	)
-	got := newPrivateNetwork(*sdkPrivateNetwork)
+	got := newPrivateNetwork(entityPrivateNetwork)
 
 	assert.Equal(
 		t,

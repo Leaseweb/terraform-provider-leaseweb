@@ -1,27 +1,47 @@
 package value_object
 
 import (
-	"errors"
+	"fmt"
 )
 
-var ErrRootDiskSizeIsTooSmall = errors.New("rootDiskSize is too small")
-var ErrRootDiskSizeIsTooLarge = errors.New("rootDiskSize is too large")
-
-const minRootDiskSize int64 = 5
-const maxRootDiskSize int64 = 1000
-
-type RootDiskSize struct {
-	Value           int64
-	MinRootDiskSize int64
-	MaxRootDiskSize int64
+type InvalidRootDiskSize struct {
+	msg   string
+	value int
 }
 
-func NewRootDiskSize(value int64) (*RootDiskSize, error) {
+func (e InvalidRootDiskSize) Error() string {
+	return e.msg
+}
+
+const minRootDiskSize int = 5
+const maxRootDiskSize int = 1000
+
+type RootDiskSize struct {
+	Value           int
+	MinRootDiskSize int
+	MaxRootDiskSize int
+}
+
+func NewRootDiskSize(value int) (*RootDiskSize, error) {
 	if value < minRootDiskSize {
-		return nil, ErrRootDiskSizeIsTooSmall
+		return nil, InvalidRootDiskSize{
+			msg: fmt.Sprintf(
+				"value %d is too small, minimum rootDiskSize is %d",
+				value,
+				minRootDiskSize,
+			),
+			value: value,
+		}
 	}
 	if value > maxRootDiskSize {
-		return nil, ErrRootDiskSizeIsTooLarge
+		return nil, InvalidRootDiskSize{
+			msg: fmt.Sprintf(
+				"value %d is too large, maximum rootDiskSize is %d",
+				value,
+				maxRootDiskSize,
+			),
+			value: value,
+		}
 	}
 
 	return &RootDiskSize{Value: value}, nil

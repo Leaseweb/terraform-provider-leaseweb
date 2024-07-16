@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type Cpu struct {
@@ -19,9 +19,9 @@ func (c Cpu) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newCpu(sdkCpu *publicCloud.Cpu) Cpu {
+func newCpu(entityCpu entity.Cpu) Cpu {
 	return Cpu{
-		Value: basetypes.NewInt64Value(int64(sdkCpu.GetValue())),
-		Unit:  basetypes.NewStringValue(sdkCpu.GetUnit()),
+		Value: basetypes.NewInt64Value(int64(entityCpu.Value)),
+		Unit:  basetypes.NewStringValue(entityCpu.Unit),
 	}
 }

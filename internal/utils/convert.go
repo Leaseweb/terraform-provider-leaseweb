@@ -10,42 +10,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// ConvertNullableSdkIntToInt64Value Convert SDK NullableInt to terraform Int64.
-func ConvertNullableSdkIntToInt64Value(value *int32, ok bool) basetypes.Int64Value {
-	if value == nil || !ok {
+// ConvertNullableIntToInt64Value Convert NullableInt to terraform Int64.
+func ConvertNullableIntToInt64Value(value *int) basetypes.Int64Value {
+	if value == nil {
 		return basetypes.NewInt64Null()
 	}
 
 	return basetypes.NewInt64Value(int64(*value))
 }
 
-// ConvertNullableSdkTimeToStringValue Convert SDK NullableTime to terraform String.
-func ConvertNullableSdkTimeToStringValue(value *time.Time, ok bool) basetypes.StringValue {
-	if value == nil || !ok {
+// ConvertNullableTimeToStringValue Convert NullableTime to terraform String.
+func ConvertNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
+	if value == nil {
 		return basetypes.NewStringNull()
 	}
 
 	return basetypes.NewStringValue(value.String())
 }
 
-// ConvertNullableSdkStringToStringValue Convert SDK NullableString to terraform String.
-func ConvertNullableSdkStringToStringValue(value *string, ok bool) basetypes.StringValue {
-	if value == nil || !ok {
+// ConvertNullableStringToStringValue Convert NullableString to terraform String.
+func ConvertNullableStringToStringValue(value *string) basetypes.StringValue {
+	if value == nil {
 		return basetypes.NewStringNull()
 	}
 
 	return basetypes.NewStringValue(*value)
 }
 
-// ConvertNullableSdkModelToDatasourceModel Convert nullable SDK model to datasource model.
-func ConvertNullableSdkModelToDatasourceModel[T interface{}, U interface{}](
+// ConvertNullableDomainEntityToDatasourceModel Convert nullable domain entity to datasource model.
+func ConvertNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
 	value *T,
-	ok bool,
 	generateModel func(sdkEntity T) *U,
 ) *U {
-	if !ok {
-		return nil
-	}
 	if value == nil {
 		return nil
 	}
@@ -53,63 +49,92 @@ func ConvertNullableSdkModelToDatasourceModel[T interface{}, U interface{}](
 	return generateModel(*value)
 }
 
-// ConvertNullableSdkModelToResourceObject Convert nullable SDK model to resource object.
-func ConvertNullableSdkModelToResourceObject[T any, U any](
-	sdkEntity *T,
-	ok bool,
+// ConvertNullableDomainEntityToResourceObject Convert nullable domain entity to resource object.
+func ConvertNullableDomainEntityToResourceObject[T any, U any](
+	entity *T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateTerraformModel func(
+	generateResourceObject func(
 		ctx context.Context,
-		sdkEntity T,
+		entity T,
 	) (
 		model *U,
 		diagnostics diag.Diagnostics,
 	)) (basetypes.ObjectValue, diag.Diagnostics) {
-	if !ok {
-		return types.ObjectNull(attributeTypes), nil
-	}
-	if sdkEntity == nil {
+	if entity == nil {
 		return types.ObjectNull(attributeTypes), nil
 	}
 
-	object, diags := ConvertSdkModelToResourceObject(
-		*sdkEntity,
+	resourceObject, diags := ConvertDomainEntityToResourceObject(
+		*entity,
 		attributeTypes,
 		ctx,
-		generateTerraformModel,
+		generateResourceObject,
 	)
 
 	if diags.HasError() {
-		return types.ObjectNull(attributeTypes), diags
+		return types.ObjectUnknown(attributeTypes), diags
 	}
 
-	return object, nil
+	return resourceObject, nil
 }
 
-// ConvertSdkModelToResourceObject Convert SDK model to resource object.
-func ConvertSdkModelToResourceObject[T any, U any](
-	sdkEntity T,
+// ConvertDomainEntityToResourceObject Convert domain entity to resource object.
+func ConvertDomainEntityToResourceObject[T any, U any](
+	entity T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateTerraformModel func(
+	generateResourceObject func(
 		ctx context.Context,
-		sdkEntity T,
+		entity T,
 	) (model *U, diagnostics diag.Diagnostics),
 ) (basetypes.ObjectValue, diag.Diagnostics) {
-	terraformModel, diags := generateTerraformModel(ctx, sdkEntity)
+	resourceObject, diags := generateResourceObject(ctx, entity)
 	if diags.HasError() {
-		return types.ObjectNull(attributeTypes), diags
+		return types.ObjectUnknown(attributeTypes), diags
 	}
 
 	objectValue, diags := types.ObjectValueFrom(
 		ctx,
 		attributeTypes,
-		terraformModel,
+		resourceObject,
 	)
-	if diags != nil {
-		return types.ObjectNull(attributeTypes), diags
+	if diags.HasError() {
+		return types.ObjectUnknown(attributeTypes), diags
 	}
 
 	return objectValue, nil
+}
+
+// ConvertEntitiesToListValue Convert a slice of entities to a list value.
+func ConvertEntitiesToListValue[T any, U any](
+	entities []T,
+	attributeTypes map[string]attr.Type,
+	ctx context.Context,
+	generateTerraformModel func(
+		ctx context.Context,
+		entity T,
+	) (model *U, diagnostics diag.Diagnostics),
+) (basetypes.ListValue, diag.Diagnostics) {
+	var listValues []U
+
+	for _, value := range entities {
+		resourceObject, diags := generateTerraformModel(ctx, value)
+		if diags.HasError() {
+			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), diags
+		}
+		listValues = append(listValues, *resourceObject)
+	}
+
+	listObject, diags := types.ListValueFrom(
+		ctx,
+		types.ObjectType{AttrTypes: attributeTypes},
+		listValues,
+	)
+
+	if diags.HasError() {
+		return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), diags
+	}
+
+	return listObject, nil
 }

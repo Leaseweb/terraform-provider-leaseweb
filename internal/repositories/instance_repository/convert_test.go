@@ -55,7 +55,7 @@ func Test_convertNetworkSpeed(t *testing.T) {
 	sdkNetworkSpeed := publicCloud.NewNetworkSpeed(1, "unit")
 	got := convertNetworkSpeed(*sdkNetworkSpeed)
 
-	assert.Equal(t, int64(1), got.Value)
+	assert.Equal(t, 1, got.Value)
 	assert.Equal(t, "unit", got.Unit)
 }
 
@@ -71,7 +71,7 @@ func Test_convertCpu(t *testing.T) {
 	sdkCpu := publicCloud.NewCpu(1, "unit")
 	got := convertCpu(*sdkCpu)
 
-	assert.Equal(t, int64(1), got.Value)
+	assert.Equal(t, 1, got.Value)
 	assert.Equal(t, "unit", got.Unit)
 }
 
@@ -117,7 +117,7 @@ func Test_convertInstance(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.True(t, got.HasPublicIpv4)
 		assert.False(t, got.HasPrivateNetwork)
-		assert.Equal(t, int64(6), got.RootDiskSize.Value)
+		assert.Equal(t, 6, got.RootDiskSize.Value)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
 			t,
@@ -307,7 +307,7 @@ func Test_convertIp(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "1.2.3.4", got.Ip)
 		assert.Equal(t, "prefixLength", got.PrefixLength)
-		assert.Equal(t, int64(5), got.Version)
+		assert.Equal(t, 5, got.Version)
 		assert.True(t, got.NullRouted)
 		assert.False(t, got.MainIp)
 		assert.Equal(t, enum.NetworkTypeInternal, got.NetworkType)
@@ -454,22 +454,6 @@ func Test_convertPrivateNetwork(t *testing.T) {
 	assert.Equal(t, "subnet", got.Subnet)
 }
 
-func Test_convertStringToUuid(t *testing.T) {
-	t.Run("valid string is converted to uuid", func(t *testing.T) {
-		got, err := convertStringToUuid(instanceId)
-
-		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.String())
-	})
-
-	t.Run("invalid string returns error", func(t *testing.T) {
-		_, err := convertStringToUuid("invalid")
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "cannot convert string to uuid")
-	})
-}
-
 func Test_convertAutoScalingGroup(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		createdAt := time.Now()
@@ -487,7 +471,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		sdkAutoScalingGroup := publicCloud.NewAutoScalingGroupDetails(
 			instanceId,
 			"MANUAL",
-			"RUNNING",
+			"SCALING",
 			*publicCloud.NewNullableInt32(&desiredAmount),
 			"region",
 			"reference",
@@ -511,43 +495,50 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, instanceId, got.Id.String())
 		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
-		assert.Equal(t, enum.StateRunning, got.State)
-		assert.Equal(t, int64(6), *got.DesiredAmount)
+		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
+		assert.Equal(t, 6, *got.DesiredAmount)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", got.Reference.String())
 		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, updatedAt, got.UpdatedAt)
 		assert.Equal(t, startsAt, *got.StartsAt)
 		assert.Equal(t, endsAt, *got.EndsAt)
-		assert.Equal(t, int64(1), *got.MinimumAmount)
-		assert.Equal(t, int64(2), *got.MaximumAmount)
-		assert.Equal(t, int64(3), *got.CpuThreshold)
-		assert.Equal(t, int64(4), *got.WarmupTime)
-		assert.Equal(t, int64(5), *got.CooldownTime)
+		assert.Equal(t, 1, *got.MinimumAmount)
+		assert.Equal(t, 2, *got.MaximumAmount)
+		assert.Equal(t, 3, *got.CpuThreshold)
+		assert.Equal(t, 4, *got.WarmupTime)
+		assert.Equal(t, 5, *got.CooldownTime)
 		assert.Equal(t, loadBalancerId, got.LoadBalancer.Id)
 	})
 
 	t.Run(
 		"returns error when loadBalancer is set but loadBalancerDetails is not passed",
 		func(t *testing.T) {
+			loadBalancerId := value_object.NewGeneratedUuid()
+			autoScalingGroupId := value_object.NewGeneratedUuid()
+
 			_, err := convertAutoScalingGroup(
-				publicCloud.AutoScalingGroupDetails{LoadBalancer: *publicCloud.NewNullableLoadBalancer(&publicCloud.LoadBalancer{})},
+				publicCloud.AutoScalingGroupDetails{
+					Id:           autoScalingGroupId.String(),
+					LoadBalancer: *publicCloud.NewNullableLoadBalancer(&publicCloud.LoadBalancer{Id: loadBalancerId.String()}),
+				},
 				nil,
 			)
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, "details cannot be found")
+			assert.ErrorContains(t, err, loadBalancerId.String())
+			assert.ErrorContains(t, err, autoScalingGroupId.String())
 		},
 	)
 
 	t.Run("invalid id returns error", func(t *testing.T) {
 		_, err := convertAutoScalingGroup(
-			publicCloud.AutoScalingGroupDetails{},
+			publicCloud.AutoScalingGroupDetails{Id: "tralala"},
 			nil,
 		)
 
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "cannot convert string to uuid")
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid type returns error", func(t *testing.T) {
@@ -579,7 +570,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 			publicCloud.AutoScalingGroupDetails{
 				Id:        instanceId,
 				Type:      "MANUAL",
-				State:     "RUNNING",
+				State:     "SCALING",
 				Reference: "........................................................................................................................................................................................................................................................................",
 			},
 			nil,
@@ -628,7 +619,7 @@ func Test_convertNullableInt32ToValue(t *testing.T) {
 
 		got := convertNullableInt32ToValue(*publicCloud.NewNullableInt32(&val))
 
-		assert.Equal(t, int64(val), *got)
+		assert.Equal(t, int(val), *got)
 	})
 
 	t.Run("nil is returned if not set", func(t *testing.T) {
@@ -645,7 +636,7 @@ func Test_convertStickySession(t *testing.T) {
 	})
 
 	assert.False(t, got.Enabled)
-	assert.Equal(t, int64(20), got.MaxLifeTime)
+	assert.Equal(t, 20, got.MaxLifeTime)
 
 }
 
@@ -666,7 +657,7 @@ func Test_convertHealthCheck(t *testing.T) {
 		assert.Equal(t, enum.MethodGet, got.Method)
 		assert.Equal(t, "uri", got.Uri)
 		assert.Equal(t, "host", *got.Host)
-		assert.Equal(t, int64(22), got.Port)
+		assert.Equal(t, 22, got.Port)
 	})
 
 	t.Run("invalid method returns error", func(t *testing.T) {
@@ -682,14 +673,14 @@ func Test_convertLoadBalancerConfiguration(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		sdkLoadBalancerConfiguration := publicCloud.NewLoadBalancerConfiguration(
 			*publicCloud.NewNullableStickySession(&publicCloud.StickySession{MaxLifeTime: 44}),
-			"ROUNDROBIN",
+			"roundrobin",
 			*publicCloud.NewNullableHealthCheck(&publicCloud.HealthCheck{Method: "GET"}),
 			true, 1, 2)
 
 		got, err := convertLoadBalancerConfiguration(*sdkLoadBalancerConfiguration)
 
 		assert.NoError(t, err)
-		assert.Equal(t, int64(44), got.StickySession.MaxLifeTime)
+		assert.Equal(t, 44, got.StickySession.MaxLifeTime)
 		assert.Equal(t, enum.BalanceRoundRobin, got.Balance)
 		assert.Equal(t, enum.MethodGet, got.HealthCheck.Method)
 		assert.True(t, got.XForwardedFor)
@@ -704,7 +695,7 @@ func Test_convertLoadBalancerConfiguration(t *testing.T) {
 
 	t.Run("invalid HealthCheck returns error", func(t *testing.T) {
 		_, err := convertLoadBalancerConfiguration(publicCloud.LoadBalancerConfiguration{
-			Balance:     "ROUNDROBIN",
+			Balance:     publicCloud.BALANCE_ROUNDROBIN,
 			HealthCheck: *publicCloud.NewNullableHealthCheck(&publicCloud.HealthCheck{Method: "tralala"}),
 		})
 
@@ -720,45 +711,45 @@ func Test_convertLoadBalancer(t *testing.T) {
 
 		sdkLoadBalancer := publicCloud.NewLoadBalancerDetails(
 			instanceId,
-			"ROUNDROBIN",
+			"lsw.m3.large",
 			publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "unit"}},
-			"region",
 			*publicCloud.NewNullableString(&reference),
 			"CREATING",
+			*publicCloud.NewNullableTime(&startedAt),
+			[]publicCloud.IpDetails{{
+				Ip:          "1.2.3.4",
+				NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
+			}},
+			"region",
+			*publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{
+				TargetPort: 22,
+				Balance:    "roundrobin",
+			}),
+			*publicCloud.NewNullableAutoScalingGroup(nil),
+			*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
 			publicCloud.Contract{
 				BillingFrequency: 1,
 				Type:             publicCloud.CONTRACTTYPE_MONTHLY,
 				State:            publicCloud.CONTRACTSTATE_ACTIVE,
 				Term:             publicCloud.CONTRACTTERM__1,
 			},
-			*publicCloud.NewNullableTime(&startedAt),
-			[]publicCloud.IpDetails{{
-				Ip:          "1.2.3.4",
-				NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
-			}},
-			*publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{
-				TargetPort: 22,
-				Balance:    "ROUNDROBIN",
-			}),
-			*publicCloud.NewNullableAutoScalingGroup(nil),
-			*publicCloud.NewNullablePrivateNetwork(&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"}),
 		)
 
 		got, err := convertLoadBalancer(*sdkLoadBalancer)
 
 		assert.NoError(t, err)
 		assert.Equal(t, instanceId, got.Id.String())
-		assert.Equal(t, "ROUNDROBIN", got.Type)
+		assert.Equal(t, "lsw.m3.large", got.Type)
 		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, "CREATING", got.State.String())
+		assert.Equal(t, enum.StateCreating, got.State)
 		assert.Equal(
 			t,
 			enum.ContractBillingFrequencyOne,
 			got.Contract.BillingFrequency,
 		)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, int64(22), got.Configuration.TargetPort)
+		assert.Equal(t, 22, got.Configuration.TargetPort)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
 	})
 
@@ -830,7 +821,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			entity.Instance{Type: "tralala"},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseInstanceType, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
@@ -838,7 +829,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			entity.Instance{Type: "lsw.m3.large", RootDiskStorageType: "tralala"},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseRootDiskStorageType, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid imageId returns error", func(t *testing.T) {
@@ -850,7 +841,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseImageId, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid contractType returns error", func(t *testing.T) {
@@ -863,7 +854,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseContractType, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid contractTerm returns error", func(t *testing.T) {
@@ -879,7 +870,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseContractTerm, err)
+		assert.ErrorContains(t, err, "55")
 	})
 
 	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
@@ -896,7 +887,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseBillingFrequency, err)
+		assert.ErrorContains(t, err, "55")
 	})
 
 	t.Run("required values are set", func(t *testing.T) {
@@ -967,7 +958,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 			entity.Instance{Type: "tralala"},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseInstanceType, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid contractType returns error", func(t *testing.T) {
@@ -976,7 +967,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 			entity.Instance{Contract: entity.Contract{Type: "tralala"}},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseContractType, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid contractTerm returns error", func(t *testing.T) {
@@ -985,7 +976,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 			entity.Instance{Contract: entity.Contract{Term: 55}},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseContractTerm, err)
+		assert.ErrorContains(t, err, "55")
 	})
 
 	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
@@ -994,7 +985,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 			entity.Instance{Contract: entity.Contract{BillingFrequency: 55}},
 		)
 
-		assert.ErrorIs(t, ErrCannotParseBillingFrequency, err)
+		assert.ErrorContains(t, err, "55")
 	})
 
 	t.Run("values are set", func(t *testing.T) {
@@ -1026,4 +1017,18 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 		assert.Equal(t, publicCloud.BILLINGFREQUENCY__6, got.GetBillingFrequency())
 		assert.Equal(t, int32(23), got.GetRootDiskSize())
 	})
+}
+
+func Test_convertInstanceType(t *testing.T) {
+	got := convertInstanceType(publicCloud.InstanceType{Name: "name"})
+	want := entity.InstanceType{Name: "name"}
+
+	assert.Equal(t, want, got)
+}
+
+func Test_convertRegion(t *testing.T) {
+	got := convertRegion(publicCloud.Region{Name: "name", Location: "location"})
+	want := entity.Region{Name: "name", Location: "location"}
+
+	assert.Equal(t, want, got)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type Ddos struct {
@@ -22,9 +22,12 @@ func (d Ddos) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newDdos(ctx context.Context, sdkDDos publicCloud.Ddos) (*Ddos, diag.Diagnostics) {
+func newDdos(
+	ctx context.Context,
+	entityDdos entity.Ddos,
+) (*Ddos, diag.Diagnostics) {
 	return &Ddos{
-		DetectionProfile: basetypes.NewStringValue(sdkDDos.GetDetectionProfile()),
-		ProtectionType:   basetypes.NewStringValue(sdkDDos.GetProtectionType()),
+		DetectionProfile: basetypes.NewStringValue(entityDdos.DetectionProfile),
+		ProtectionType:   basetypes.NewStringValue(entityDdos.ProtectionType),
 	}, nil
 }

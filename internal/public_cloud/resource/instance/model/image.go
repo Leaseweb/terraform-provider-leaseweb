@@ -7,18 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type Image struct {
-	Id           types.String   `tfsdk:"id"`
-	Name         types.String   `tfsdk:"name"`
-	Version      types.String   `tfsdk:"version"`
-	Family       types.String   `tfsdk:"family"`
-	Flavour      types.String   `tfsdk:"flavour"`
-	Architecture types.String   `tfsdk:"architecture"`
-	MarketApps   []types.String `tfsdk:"market_apps"`
-	StorageTypes []types.String `tfsdk:"storage_types"`
+	Id           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Version      types.String `tfsdk:"version"`
+	Family       types.String `tfsdk:"family"`
+	Flavour      types.String `tfsdk:"flavour"`
+	Architecture types.String `tfsdk:"architecture"`
+	MarketApps   types.List   `tfsdk:"market_apps"`
+	StorageTypes types.List   `tfsdk:"storage_types"`
 }
 
 func (i Image) AttributeTypes() map[string]attr.Type {
@@ -36,26 +36,33 @@ func (i Image) AttributeTypes() map[string]attr.Type {
 
 func newImage(
 	ctx context.Context,
-	sdkImage publicCloud.ImageDetails,
+	image entity.Image,
 ) (*Image, diag.Diagnostics) {
-	var marketApps []types.String
-	var storageTypes []types.String
-
-	for _, marketApp := range sdkImage.MarketApps {
-		marketApps = append(marketApps, types.StringValue(marketApp))
+	marketApps, diags := basetypes.NewListValueFrom(
+		ctx,
+		types.StringType,
+		image.MarketApps,
+	)
+	if diags.HasError() {
+		return nil, diags
 	}
 
-	for _, storageType := range sdkImage.StorageTypes {
-		storageTypes = append(storageTypes, types.StringValue(storageType))
+	storageTypes, diags := basetypes.NewListValueFrom(
+		ctx,
+		types.StringType,
+		image.StorageTypes,
+	)
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return &Image{
-		Id:           basetypes.NewStringValue(string(sdkImage.GetId())),
-		Name:         basetypes.NewStringValue(sdkImage.GetName()),
-		Version:      basetypes.NewStringValue(sdkImage.GetVersion()),
-		Family:       basetypes.NewStringValue(sdkImage.GetFamily()),
-		Flavour:      basetypes.NewStringValue(sdkImage.GetFlavour()),
-		Architecture: basetypes.NewStringValue(sdkImage.GetArchitecture()),
+		Id:           basetypes.NewStringValue(string(image.Id)),
+		Name:         basetypes.NewStringValue(image.Name),
+		Version:      basetypes.NewStringValue(image.Version),
+		Family:       basetypes.NewStringValue(image.Family),
+		Flavour:      basetypes.NewStringValue(image.Flavour),
+		Architecture: basetypes.NewStringValue(image.Architecture),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}, nil

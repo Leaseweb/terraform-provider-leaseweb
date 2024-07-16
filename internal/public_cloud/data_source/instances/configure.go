@@ -17,12 +17,12 @@ func (d *instancesDataSource) Configure(
 		return
 	}
 
-	sdkClient, ok := req.ProviderData.(*client.Client)
+	coreClient, ok := req.ProviderData.(client.Client)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf(
-				"Expected *publicCloud.APIClient, got: %T. Please report this issue to the provider developers.",
+				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
 				req.ProviderData,
 			),
 		)
@@ -30,5 +30,5 @@ func (d *instancesDataSource) Configure(
 		return
 	}
 
-	d.client = sdkClient
+	d.client = coreClient
 }

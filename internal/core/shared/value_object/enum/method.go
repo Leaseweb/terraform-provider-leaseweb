@@ -6,8 +6,6 @@ func (m Method) String() string {
 	return string(m)
 }
 
-type Methods []Method
-
 const (
 	MethodGet     Method = "GET"
 	MethodHead    Method = "HEAD"
@@ -15,4 +13,8 @@ const (
 	MethodOptions Method = "OPTIONS"
 )
 
-var MethodValues = Methods{MethodGet, MethodHead, MethodPost, MethodOptions}
+var methods = []Method{MethodGet, MethodHead, MethodPost, MethodOptions}
+
+func NewMethod(value string) (Method, error) {
+	return findEnumForString(value, methods, MethodGet)
+}

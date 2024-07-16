@@ -16,17 +16,33 @@ var (
 )
 
 type repositorySpy struct {
-	instances                entity.Instances
-	instance                 *entity.Instance
-	autoScalingGroup         *entity.AutoScalingGroup
-	loadBalancer             *entity.LoadBalancer
-	getAutoScalingGroupError error
-	getLoadBalancerError     error
-	getAllInstancesError     error
-	getInstanceError         error
-	createInstanceError      error
-	updateInstanceError      error
-	deleteInstanceError      error
+	instances              entity.Instances
+	instance               *entity.Instance
+	autoScalingGroup       *entity.AutoScalingGroup
+	loadBalancer           *entity.LoadBalancer
+	availableInstanceTypes entity.InstanceTypes
+	regions                entity.Regions
+
+	getAutoScalingGroupError                error
+	getLoadBalancerError                    error
+	getAllInstancesError                    error
+	getInstanceError                        error
+	createInstanceError                     error
+	updateInstanceError                     error
+	deleteInstanceError                     error
+	getAvailableInstanceTypesForUpdateError error
+	getRegionsError                         error
+}
+
+func (r repositorySpy) GetRegions(ctx context.Context) (entity.Regions, error) {
+	return r.regions, r.getRegionsError
+}
+
+func (r repositorySpy) GetAvailableInstanceTypesForUpdate(
+	id value_object.Uuid,
+	ctx context.Context,
+) (entity.InstanceTypes, error) {
+	return r.availableInstanceTypes, r.getAvailableInstanceTypesForUpdateError
 }
 
 func (r repositorySpy) GetAutoScalingGroup(
@@ -212,6 +228,64 @@ func TestService_DeleteInstance(t *testing.T) {
 		)
 
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+}
+
+func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
+	t.Run(
+		"expected instance types returned from repository",
+		func(t *testing.T) {
+			want := entity.InstanceTypes{{Name: "tralala"}}
+			spy := repositorySpy{availableInstanceTypes: want}
+
+			service := New(spy)
+			got, err := service.GetAvailableInstanceTypesForUpdate(
+				value_object.NewGeneratedUuid(),
+				context.TODO(),
+			)
+
+			assert.NoError(t, err)
+			assert.Equal(t, want, got)
+		},
+	)
+
+	t.Run("service passes back error from repository", func(t *testing.T) {
+		spy := repositorySpy{
+			getAvailableInstanceTypesForUpdateError: errors.New("some error"),
+		}
+
+		service := New(spy)
+		_, err := service.GetAvailableInstanceTypesForUpdate(
+			value_object.NewGeneratedUuid(),
+			context.TODO(),
+		)
+
+		assert.ErrorContains(t, err, "some error")
+	})
+}
+
+func TestService_GetRegions(t *testing.T) {
+	t.Run(
+		"expected regions returned from repository",
+		func(t *testing.T) {
+			want := entity.Regions{{Name: "tralala"}}
+			spy := repositorySpy{regions: want}
+
+			service := New(spy)
+			got, err := service.GetRegions(context.TODO())
+
+			assert.NoError(t, err)
+			assert.Equal(t, want, got)
+		},
+	)
+
+	t.Run("service passes back error from repository", func(t *testing.T) {
+		spy := repositorySpy{getRegionsError: errors.New("some error")}
+
+		service := New(spy)
+		_, err := service.GetRegions(context.TODO())
+
 		assert.ErrorContains(t, err, "some error")
 	})
 }

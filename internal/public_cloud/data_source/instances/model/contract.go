@@ -3,7 +3,8 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/utils"
 )
 
 type contract struct {
@@ -16,16 +17,16 @@ type contract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func newContract(sdkContract publicCloud.Contract) contract {
+func newContract(entityContract entity.Contract) contract {
 	return contract{
 		BillingFrequency: basetypes.NewInt64Value(
-			int64(sdkContract.GetBillingFrequency()),
+			int64(entityContract.BillingFrequency),
 		),
-		Term:       basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
-		Type:       basetypes.NewStringValue(string(sdkContract.GetType())),
-		EndsAt:     basetypes.NewStringValue(sdkContract.GetEndsAt().String()),
-		RenewalsAt: basetypes.NewStringValue(sdkContract.GetRenewalsAt().String()),
-		CreatedAt:  basetypes.NewStringValue(sdkContract.GetCreatedAt().String()),
-		State:      basetypes.NewStringValue(string(sdkContract.GetState())),
+		Term:       basetypes.NewInt64Value(int64(entityContract.Term)),
+		Type:       basetypes.NewStringValue(string(entityContract.Type)),
+		EndsAt:     utils.ConvertNullableTimeToStringValue(entityContract.EndsAt),
+		RenewalsAt: basetypes.NewStringValue(entityContract.RenewalsAt.String()),
+		CreatedAt:  basetypes.NewStringValue(entityContract.CreatedAt.String()),
+		State:      basetypes.NewStringValue(string(entityContract.State)),
 	}
 }

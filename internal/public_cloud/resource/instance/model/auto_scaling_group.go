@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -53,13 +53,11 @@ func (a AutoScalingGroup) AttributeTypes() map[string]attr.Type {
 
 func newAutoScalingGroup(
 	ctx context.Context,
-	sdkAutoScalingGroupDetails publicCloud.AutoScalingGroupDetails,
-	sdkLoadBalancerDetails *publicCloud.LoadBalancerDetails,
+	entityAutoScalingGroup entity.AutoScalingGroup,
 ) (*AutoScalingGroup, diag.Diagnostics) {
 
-	autoScalingLoadBalancerObject, diags := utils.ConvertNullableSdkModelToResourceObject(
-		sdkLoadBalancerDetails,
-		true,
+	autoScalingLoadBalancerObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
+		entityAutoScalingGroup.LoadBalancer,
 		LoadBalancer{}.AttributeTypes(),
 		ctx,
 		newLoadBalancer,
@@ -69,21 +67,21 @@ func newAutoScalingGroup(
 	}
 
 	return &AutoScalingGroup{
-		Id:            basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetId()),
-		Type:          basetypes.NewStringValue(string(sdkAutoScalingGroupDetails.GetType())),
-		State:         basetypes.NewStringValue(string(sdkAutoScalingGroupDetails.GetState())),
-		DesiredAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetDesiredAmountOk()),
-		Region:        basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetRegion()),
-		Reference:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetReference()),
-		CreatedAt:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetCreatedAt().String()),
-		UpdatedAt:     basetypes.NewStringValue(sdkAutoScalingGroupDetails.GetUpdatedAt().String()),
-		StartsAt:      utils.ConvertNullableSdkTimeToStringValue(sdkAutoScalingGroupDetails.GetStartsAtOk()),
-		EndsAt:        utils.ConvertNullableSdkTimeToStringValue(sdkAutoScalingGroupDetails.GetEndsAtOk()),
-		MinimumAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetMinimumAmountOk()),
-		MaximumAmount: utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetMaximumAmountOk()),
-		CpuThreshold:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCpuThresholdOk()),
-		WarmupTime:    utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetWarmupTimeOk()),
-		CooldownTime:  utils.ConvertNullableSdkIntToInt64Value(sdkAutoScalingGroupDetails.GetCooldownTimeOk()),
+		Id:            basetypes.NewStringValue(entityAutoScalingGroup.Id.String()),
+		Type:          basetypes.NewStringValue(string(entityAutoScalingGroup.Type)),
+		State:         basetypes.NewStringValue(string(entityAutoScalingGroup.State)),
+		DesiredAmount: utils.ConvertNullableIntToInt64Value(entityAutoScalingGroup.DesiredAmount),
+		Region:        basetypes.NewStringValue(entityAutoScalingGroup.Region),
+		Reference:     basetypes.NewStringValue(entityAutoScalingGroup.Reference.String()),
+		CreatedAt:     basetypes.NewStringValue(entityAutoScalingGroup.CreatedAt.String()),
+		UpdatedAt:     basetypes.NewStringValue(entityAutoScalingGroup.UpdatedAt.String()),
+		StartsAt:      utils.ConvertNullableTimeToStringValue(entityAutoScalingGroup.StartsAt),
+		EndsAt:        utils.ConvertNullableTimeToStringValue(entityAutoScalingGroup.EndsAt),
+		MinimumAmount: utils.ConvertNullableIntToInt64Value(entityAutoScalingGroup.MinimumAmount),
+		MaximumAmount: utils.ConvertNullableIntToInt64Value(entityAutoScalingGroup.MaximumAmount),
+		CpuThreshold:  utils.ConvertNullableIntToInt64Value(entityAutoScalingGroup.CpuThreshold),
+		WarmupTime:    utils.ConvertNullableIntToInt64Value(entityAutoScalingGroup.WarmupTime),
+		CooldownTime:  utils.ConvertNullableIntToInt64Value(entityAutoScalingGroup.CooldownTime),
 		LoadBalancer:  autoScalingLoadBalancerObject,
 	}, nil
 }

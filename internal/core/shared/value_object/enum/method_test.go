@@ -12,3 +12,11 @@ func TestMethod_String(t *testing.T) {
 	assert.Equal(t, "GET", got)
 
 }
+
+func TestNewMethod(t *testing.T) {
+	want := MethodHead
+	got, err := NewMethod("HEAD")
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}

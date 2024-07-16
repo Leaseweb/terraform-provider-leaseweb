@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"terraform-provider-leaseweb/internal/core/domain/entity"
 )
 
 type stickySession struct {
@@ -11,9 +11,9 @@ type stickySession struct {
 	MaxLifeTime types.Int64 `tfsdk:"max_life_time"`
 }
 
-func newStickySession(sdkStickySession publicCloud.StickySession) *stickySession {
+func newStickySession(entityStickySession entity.StickySession) *stickySession {
 	return &stickySession{
-		Enabled:     basetypes.NewBoolValue(sdkStickySession.GetEnabled()),
-		MaxLifeTime: basetypes.NewInt64Value(int64(sdkStickySession.GetMaxLifeTime())),
+		Enabled:     basetypes.NewBoolValue(entityStickySession.Enabled),
+		MaxLifeTime: basetypes.NewInt64Value(int64(entityStickySession.MaxLifeTime)),
 	}
 }
