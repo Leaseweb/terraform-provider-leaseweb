@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 var ErrContractTermCannotBeZero = fmt.Errorf(

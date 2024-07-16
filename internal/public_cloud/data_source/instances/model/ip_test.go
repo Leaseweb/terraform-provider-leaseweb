@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 func Test_newIp(t *testing.T) {

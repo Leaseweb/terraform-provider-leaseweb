@@ -3,8 +3,8 @@ package domain
 import (
 	"time"
 
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 type AutoScalingGroup struct {

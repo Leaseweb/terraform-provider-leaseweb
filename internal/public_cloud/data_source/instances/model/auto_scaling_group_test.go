@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newAutoScalingGroup(t *testing.T) {

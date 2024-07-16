@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 func Test_newContract(t *testing.T) {

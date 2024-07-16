@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 func TestNewContract(t *testing.T) {
