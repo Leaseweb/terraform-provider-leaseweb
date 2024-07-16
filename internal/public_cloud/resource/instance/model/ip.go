@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -37,7 +37,7 @@ func (i Ip) AttributeTypes() map[string]attr.Type {
 
 func newIp(
 	ctx context.Context,
-	entityIp entity.Ip,
+	entityIp domain.Ip,
 ) (*Ip, diag.Diagnostics) {
 	ddosObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
 		entityIp.Ddos,

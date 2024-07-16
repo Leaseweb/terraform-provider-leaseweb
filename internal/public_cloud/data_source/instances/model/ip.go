@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -18,7 +18,7 @@ type ip struct {
 	Ddos          *ddos        `tfsdk:"ddos"`
 }
 
-func newIp(entityIp entity.Ip) ip {
+func newIp(entityIp domain.Ip) ip {
 	return ip{
 		Ip:            basetypes.NewStringValue(entityIp.Ip),
 		PrefixLength:  basetypes.NewStringValue(entityIp.PrefixLength),

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
@@ -21,11 +21,11 @@ func Test_newInstance(t *testing.T) {
 	autoScalingGroupId := value_object.NewGeneratedUuid()
 	loadBalancerId := value_object.NewGeneratedUuid()
 
-	instance := entity.NewInstance(
+	instance := domain.NewInstance(
 		id,
 		"region",
-		entity.Resources{Cpu: entity.Cpu{Unit: "cpu"}},
-		entity.Image{Id: enum.Ubuntu200464Bit},
+		domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
+		domain.Image{Id: enum.Ubuntu200464Bit},
 		"state",
 		"productType",
 		true,
@@ -33,18 +33,18 @@ func Test_newInstance(t *testing.T) {
 		value_object.RootDiskSize{Value: 55},
 		"lsw.m3.large",
 		enum.RootDiskStorageTypeCentral,
-		entity.Ips{{Ip: "1.2.3.4"}},
-		entity.Contract{Type: enum.ContractTypeMonthly},
-		entity.OptionalInstanceValues{
+		domain.Ips{{Ip: "1.2.3.4"}},
+		domain.Contract{Type: enum.ContractTypeMonthly},
+		domain.OptionalInstanceValues{
 			Reference:      &reference,
-			Iso:            &entity.Iso{Id: "isoId"},
+			Iso:            &domain.Iso{Id: "isoId"},
 			MarketAppId:    &marketAppId,
 			SshKey:         sshKeyValueObject,
 			StartedAt:      &startedAt,
-			PrivateNetwork: &entity.PrivateNetwork{Id: "privateNetworkId"},
-			AutoScalingGroup: &entity.AutoScalingGroup{
+			PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
+			AutoScalingGroup: &domain.AutoScalingGroup{
 				Id:           autoScalingGroupId,
-				LoadBalancer: &entity.LoadBalancer{Id: loadBalancerId},
+				LoadBalancer: &domain.LoadBalancer{Id: loadBalancerId},
 			},
 		},
 	)

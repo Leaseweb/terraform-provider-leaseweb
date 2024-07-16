@@ -7,25 +7,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newLoadBalancerConfiguration(t *testing.T) {
-	entityLoadBalancerConfiguration := entity.NewLoadBalancerConfiguration(
+	loadBalancerConfiguration := domain.NewLoadBalancerConfiguration(
 		enum.BalanceSource,
 		false,
 		5,
 		6,
-		entity.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &entity.StickySession{MaxLifeTime: 5},
-			HealthCheck:   &entity.HealthCheck{Method: enum.MethodHead},
+		domain.OptionalLoadBalancerConfigurationOptions{
+			StickySession: &domain.StickySession{MaxLifeTime: 5},
+			HealthCheck:   &domain.HealthCheck{Method: enum.MethodHead},
 		},
 	)
 
 	got, err := newLoadBalancerConfiguration(
 		context.TODO(),
-		entityLoadBalancerConfiguration,
+		loadBalancerConfiguration,
 	)
 
 	assert.Nil(t, err)
@@ -54,7 +54,7 @@ func Test_newLoadBalancerConfiguration(t *testing.T) {
 func TestLoadBalancerConfiguration_attributeTypes(t *testing.T) {
 	loadBalancerConfiguration, _ := newLoadBalancerConfiguration(
 		context.TODO(),
-		entity.LoadBalancerConfiguration{},
+		domain.LoadBalancerConfiguration{},
 	)
 
 	_, diags := types.ObjectValueFrom(

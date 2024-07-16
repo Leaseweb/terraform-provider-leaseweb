@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -16,7 +16,7 @@ type loadBalancerConfiguration struct {
 	TargetPort    types.Int64    `tfsdk:"target_port"`
 }
 
-func newLoadBalancerConfiguration(entityConfiguration entity.LoadBalancerConfiguration) *loadBalancerConfiguration {
+func newLoadBalancerConfiguration(entityConfiguration domain.LoadBalancerConfiguration) *loadBalancerConfiguration {
 
 	return &loadBalancerConfiguration{
 		Balance: basetypes.NewStringValue(entityConfiguration.Balance.String()),

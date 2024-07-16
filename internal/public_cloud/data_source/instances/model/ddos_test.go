@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newDDos(t *testing.T) {
-	ddos := entity.NewDdos("detectionProfile", "protectionType")
+	ddos := domain.NewDdos("detectionProfile", "protectionType")
 	got := newDdos(ddos)
 
 	assert.Equal(

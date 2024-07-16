@@ -1,7 +1,7 @@
 package model
 
 import (
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type resources struct {
@@ -11,7 +11,7 @@ type resources struct {
 	PrivateNetworkSpeed NetworkSpeed `tfsdk:"private_network_speed"`
 }
 
-func newResources(entityResources entity.Resources) resources {
+func newResources(entityResources domain.Resources) resources {
 	return resources{
 		Cpu:                 newCpu(entityResources.Cpu),
 		Memory:              newMemory(entityResources.Memory),

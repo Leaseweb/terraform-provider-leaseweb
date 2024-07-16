@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type iso struct {
@@ -11,7 +11,7 @@ type iso struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func newIso(entityIso entity.Iso) *iso {
+func newIso(entityIso domain.Iso) *iso {
 	return &iso{
 		Id:   basetypes.NewStringValue(entityIso.Id),
 		Name: basetypes.NewStringValue(entityIso.Name),

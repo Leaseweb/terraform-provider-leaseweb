@@ -6,16 +6,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newHealthCheck(t *testing.T) {
 	host := "host"
-	entityHealthCheck := entity.NewHealthCheck(
+	entityHealthCheck := domain.NewHealthCheck(
 		"method",
 		"uri",
 		22,
-		entity.OptionalHealthCheckValues{Host: &host},
+		domain.OptionalHealthCheckValues{Host: &host},
 	)
 
 	got, err := newHealthCheck(context.TODO(), entityHealthCheck)
@@ -28,7 +28,7 @@ func Test_newHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheck_attributeTypes(t *testing.T) {
-	healthCheck, _ := newHealthCheck(context.TODO(), entity.HealthCheck{})
+	healthCheck, _ := newHealthCheck(context.TODO(), domain.HealthCheck{})
 
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),

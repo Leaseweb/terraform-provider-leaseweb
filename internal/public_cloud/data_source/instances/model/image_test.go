@@ -6,11 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newImage(t *testing.T) {
-	image := entity.NewImage(
+	image := domain.NewImage(
 		"id",
 		"name",
 		"version",

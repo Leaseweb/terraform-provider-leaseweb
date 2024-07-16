@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newImage(t *testing.T) {
-	entityImage := entity.NewImage(
+	entityImage := domain.NewImage(
 		enum.Ubuntu200464Bit,
 		"name",
 		"version",

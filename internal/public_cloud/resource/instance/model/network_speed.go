@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type NetworkSpeed struct {
@@ -19,7 +19,7 @@ func (p NetworkSpeed) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newNetworkSpeed(entityNetworkSpeed entity.NetworkSpeed) NetworkSpeed {
+func newNetworkSpeed(entityNetworkSpeed domain.NetworkSpeed) NetworkSpeed {
 	return NetworkSpeed{
 		Value: basetypes.NewInt64Value(int64(entityNetworkSpeed.Value)),
 		Unit:  basetypes.NewStringValue(entityNetworkSpeed.Unit),

@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type Memory struct {
@@ -19,7 +19,7 @@ func (m Memory) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newMemory(entityMemory entity.Memory) Memory {
+func newMemory(entityMemory domain.Memory) Memory {
 	return Memory{
 		Value: basetypes.NewFloat64Value(entityMemory.Value),
 		Unit:  basetypes.NewStringValue(entityMemory.Unit),

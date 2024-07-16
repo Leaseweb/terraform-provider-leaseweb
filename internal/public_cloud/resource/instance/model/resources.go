@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type Resources struct {
@@ -27,7 +27,7 @@ func (r Resources) AttributeTypes() map[string]attr.Type {
 
 func newResources(
 	ctx context.Context,
-	entityResources entity.Resources,
+	entityResources domain.Resources,
 ) (*Resources, diag.Diagnostics) {
 	cpu := newCpu(entityResources.Cpu)
 	cpuObject, diags := types.ObjectValueFrom(ctx, cpu.AttributeTypes(), cpu)

@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type image struct {
@@ -17,7 +17,7 @@ type image struct {
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }
 
-func newImage(entityImage entity.Image) image {
+func newImage(entityImage domain.Image) image {
 	image := image{
 		Id:           basetypes.NewStringValue(string(entityImage.Id)),
 		Name:         basetypes.NewStringValue(entityImage.Name),

@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
@@ -97,7 +97,7 @@ func Test_convertInstance(t *testing.T) {
 		autoScalingGroupId := value_object.NewGeneratedUuid()
 
 		sdkInstance := generateInstanceDetails(t, &startedAt, nil)
-		autoScalingGroup := entity.AutoScalingGroup{Id: autoScalingGroupId}
+		autoScalingGroup := domain.AutoScalingGroup{Id: autoScalingGroupId}
 
 		got, err := convertInstance(sdkInstance, &autoScalingGroup)
 
@@ -489,7 +489,7 @@ func Test_convertAutoScalingGroup(t *testing.T) {
 
 		got, err := convertAutoScalingGroup(
 			*sdkAutoScalingGroup,
-			&entity.LoadBalancer{Id: loadBalancerId},
+			&domain.LoadBalancer{Id: loadBalancerId},
 		)
 
 		assert.NoError(t, err)
@@ -818,7 +818,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 
 		_, err := convertEntityToLaunchInstanceOpts(
-			entity.Instance{Type: "tralala"},
+			domain.Instance{Type: "tralala"},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -826,7 +826,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
 		_, err := convertEntityToLaunchInstanceOpts(
-			entity.Instance{Type: "lsw.m3.large", RootDiskStorageType: "tralala"},
+			domain.Instance{Type: "lsw.m3.large", RootDiskStorageType: "tralala"},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -834,10 +834,10 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid imageId returns error", func(t *testing.T) {
 		_, err := convertEntityToLaunchInstanceOpts(
-			entity.Instance{
+			domain.Instance{
 				Type:                "lsw.m3.large",
 				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: "tralala"},
+				Image:               domain.Image{Id: "tralala"},
 			},
 		)
 
@@ -846,11 +846,11 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid contractType returns error", func(t *testing.T) {
 		_, err := convertEntityToLaunchInstanceOpts(
-			entity.Instance{
+			domain.Instance{
 				Type:                "lsw.m3.large",
 				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-				Contract:            entity.Contract{Type: "tralala"},
+				Image:               domain.Image{Id: enum.Ubuntu200464Bit},
+				Contract:            domain.Contract{Type: "tralala"},
 			},
 		)
 
@@ -859,11 +859,11 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid contractTerm returns error", func(t *testing.T) {
 		_, err := convertEntityToLaunchInstanceOpts(
-			entity.Instance{
+			domain.Instance{
 				Type:                "lsw.m3.large",
 				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-				Contract: entity.Contract{
+				Image:               domain.Image{Id: enum.Ubuntu200464Bit},
+				Contract: domain.Contract{
 					Type: enum.ContractTypeMonthly,
 					Term: 55,
 				},
@@ -875,11 +875,11 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
 		_, err := convertEntityToLaunchInstanceOpts(
-			entity.Instance{
+			domain.Instance{
 				Type:                "lsw.m3.large",
 				RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-				Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-				Contract: entity.Contract{
+				Image:               domain.Image{Id: enum.Ubuntu200464Bit},
+				Contract: domain.Contract{
 					Type:             enum.ContractTypeMonthly,
 					Term:             enum.ContractTermThree,
 					BillingFrequency: 55,
@@ -891,7 +891,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("required values are set", func(t *testing.T) {
-		instance := entity.NewCreateInstance(
+		instance := domain.NewCreateInstance(
 			"region",
 			"lsw.c3.4xlarge",
 			enum.RootDiskStorageTypeCentral,
@@ -899,7 +899,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
-			entity.OptionalCreateInstanceValues{},
+			domain.OptionalCreateInstanceValues{},
 		)
 
 		got, err := convertEntityToLaunchInstanceOpts(instance)
@@ -927,7 +927,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 		reference := "reference"
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 
-		instance := entity.NewCreateInstance(
+		instance := domain.NewCreateInstance(
 			"",
 			"lsw.c3.4xlarge",
 			enum.RootDiskStorageTypeCentral,
@@ -935,7 +935,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
-			entity.OptionalCreateInstanceValues{
+			domain.OptionalCreateInstanceValues{
 				MarketAppId: &marketAppId,
 				Reference:   &reference,
 				SshKey:      sshKeyValueObject,
@@ -955,7 +955,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 
 		_, err := convertEntityToUpdateInstanceOpts(
-			entity.Instance{Type: "tralala"},
+			domain.Instance{Type: "tralala"},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -964,7 +964,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid contractType returns error", func(t *testing.T) {
 
 		_, err := convertEntityToUpdateInstanceOpts(
-			entity.Instance{Contract: entity.Contract{Type: "tralala"}},
+			domain.Instance{Contract: domain.Contract{Type: "tralala"}},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -973,7 +973,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid contractTerm returns error", func(t *testing.T) {
 
 		_, err := convertEntityToUpdateInstanceOpts(
-			entity.Instance{Contract: entity.Contract{Term: 55}},
+			domain.Instance{Contract: domain.Contract{Term: 55}},
 		)
 
 		assert.ErrorContains(t, err, "55")
@@ -982,7 +982,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
 
 		_, err := convertEntityToUpdateInstanceOpts(
-			entity.Instance{Contract: entity.Contract{BillingFrequency: 55}},
+			domain.Instance{Contract: domain.Contract{BillingFrequency: 55}},
 		)
 
 		assert.ErrorContains(t, err, "55")
@@ -996,9 +996,9 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 		billingFrequency := enum.ContractBillingFrequencySix
 		rootDiskSize, _ := value_object.NewRootDiskSize(23)
 
-		instance := entity.NewUpdateInstance(
+		instance := domain.NewUpdateInstance(
 			value_object.NewGeneratedUuid(),
-			entity.OptionalUpdateInstanceValues{
+			domain.OptionalUpdateInstanceValues{
 				Type:             &instanceType,
 				Reference:        &reference,
 				ContractType:     &contractType,
@@ -1021,14 +1021,14 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 
 func Test_convertInstanceType(t *testing.T) {
 	got := convertInstanceType(publicCloud.InstanceType{Name: "name"})
-	want := entity.InstanceType{Name: "name"}
+	want := domain.InstanceType{Name: "name"}
 
 	assert.Equal(t, want, got)
 }
 
 func Test_convertRegion(t *testing.T) {
 	got := convertRegion(publicCloud.Region{Name: "name", Location: "location"})
-	want := entity.Region{Name: "name", Location: "location"}
+	want := domain.Region{Name: "name", Location: "location"}
 
 	assert.Equal(t, want, got)
 }

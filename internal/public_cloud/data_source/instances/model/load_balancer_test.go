@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
@@ -15,19 +15,19 @@ func Test_newLoadBalancer(t *testing.T) {
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	id := value_object.NewGeneratedUuid()
 
-	entityLoadBalancer := entity.NewLoadBalancer(
+	entityLoadBalancer := domain.NewLoadBalancer(
 		id,
 		"type",
-		entity.Resources{Cpu: entity.Cpu{Unit: "resources"}},
+		domain.Resources{Cpu: domain.Cpu{Unit: "resources"}},
 		"region",
 		enum.StateCreating,
-		entity.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
-		entity.Ips{{Ip: "1.2.3.4"}},
-		entity.OptionalLoadBalancerValues{
+		domain.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
+		domain.Ips{{Ip: "1.2.3.4"}},
+		domain.OptionalLoadBalancerValues{
 			Reference:      &reference,
 			StartedAt:      &startedAt,
-			PrivateNetwork: &entity.PrivateNetwork{Id: "privateNetworkId"},
-			Configuration:  &entity.LoadBalancerConfiguration{Balance: enum.BalanceSource},
+			PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
+			Configuration:  &domain.LoadBalancerConfiguration{Balance: enum.BalanceSource},
 		},
 	)
 

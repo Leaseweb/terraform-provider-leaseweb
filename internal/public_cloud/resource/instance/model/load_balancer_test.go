@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
@@ -18,23 +18,23 @@ func Test_newLoadBalancer(t *testing.T) {
 		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 		id := value_object.NewGeneratedUuid()
 
-		entityLoadBalancer := entity.NewLoadBalancer(
+		loadBalancer := domain.NewLoadBalancer(
 			id,
 			"type",
-			entity.Resources{Cpu: entity.Cpu{Unit: "cpu"}},
+			domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
 			"region",
 			enum.StateCreating,
-			entity.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
-			entity.Ips{{Ip: "1.2.3.4"}},
-			entity.OptionalLoadBalancerValues{
+			domain.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
+			domain.Ips{{Ip: "1.2.3.4"}},
+			domain.OptionalLoadBalancerValues{
 				Reference:      &reference,
 				StartedAt:      &startedAt,
-				PrivateNetwork: &entity.PrivateNetwork{Id: "privateNetworkId"},
-				Configuration:  &entity.LoadBalancerConfiguration{Balance: enum.BalanceSource},
+				PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
+				Configuration:  &domain.LoadBalancerConfiguration{Balance: enum.BalanceSource},
 			},
 		)
 
-		got, gotDiags := newLoadBalancer(context.TODO(), entityLoadBalancer)
+		got, gotDiags := newLoadBalancer(context.TODO(), loadBalancer)
 
 		assert.Nil(t, gotDiags)
 

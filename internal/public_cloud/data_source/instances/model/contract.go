@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -17,7 +17,7 @@ type contract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func newContract(entityContract entity.Contract) contract {
+func newContract(entityContract domain.Contract) contract {
 	return contract{
 		BillingFrequency: basetypes.NewInt64Value(
 			int64(entityContract.BillingFrequency),

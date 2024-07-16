@@ -2,7 +2,7 @@ package modify_plan
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type TypeValidator struct {
@@ -42,7 +42,7 @@ func (v TypeValidator) HashTypeChanged() bool {
 }
 
 func (v TypeValidator) IsTypeValid(
-	allowedInstanceTypes entity.InstanceTypes,
+	allowedInstanceTypes domain.InstanceTypes,
 ) bool {
 	for _, allowedInstanceType := range allowedInstanceTypes {
 		if allowedInstanceType.Name == v.planInstanceType.ValueString() {

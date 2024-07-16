@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type Iso struct {
@@ -22,10 +22,7 @@ func (i Iso) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newIso(
-	ctx context.Context,
-	iso entity.Iso,
-) (*Iso, diag.Diagnostics) {
+func newIso(ctx context.Context, iso domain.Iso) (*Iso, diag.Diagnostics) {
 	return &Iso{
 		Id:   basetypes.NewStringValue(iso.Id),
 		Name: basetypes.NewStringValue(iso.Name),

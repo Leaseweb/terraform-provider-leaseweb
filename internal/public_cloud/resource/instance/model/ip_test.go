@@ -7,25 +7,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newIp(t *testing.T) {
 	reverseLookup := "reverse-lookup"
 
-	entityIp := entity.NewIp(
+	ip := domain.NewIp(
 		"1.2.3.4",
 		"prefix-length",
 		46,
 		true,
 		false,
 		"tralala",
-		entity.OptionalIpValues{
-			Ddos:          &entity.Ddos{ProtectionType: "protection-type"},
+		domain.OptionalIpValues{
+			Ddos:          &domain.Ddos{ProtectionType: "protection-type"},
 			ReverseLookup: &reverseLookup,
 		},
 	)
-	got, diags := newIp(context.TODO(), entityIp)
+	got, diags := newIp(context.TODO(), ip)
 
 	assert.Nil(t, diags)
 	assert.Equal(
@@ -82,7 +82,7 @@ func Test_newIp(t *testing.T) {
 }
 
 func TestIp_attributeTypes(t *testing.T) {
-	ip, _ := newIp(context.TODO(), entity.Ip{})
+	ip, _ := newIp(context.TODO(), domain.Ip{})
 
 	_, diags := types.ObjectValueFrom(context.TODO(), ip.AttributeTypes(), ip)
 

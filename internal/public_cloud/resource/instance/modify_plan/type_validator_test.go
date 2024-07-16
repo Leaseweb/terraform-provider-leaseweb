@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func TestTypeValidator_HashTypeChanged(t *testing.T) {
@@ -71,7 +71,7 @@ func TestTypeValidator_IsTypeValid(t *testing.T) {
 		planInstanceType  types.String
 	}
 	type args struct {
-		allowedInstanceTypes entity.InstanceTypes
+		allowedInstanceTypes domain.InstanceTypes
 	}
 	tests := []struct {
 		name   string
@@ -87,7 +87,7 @@ func TestTypeValidator_IsTypeValid(t *testing.T) {
 				planInstanceType:  basetypes.NewStringValue("newValue"),
 			},
 			args: args{
-				allowedInstanceTypes: entity.InstanceTypes{{Name: "newValue"}},
+				allowedInstanceTypes: domain.InstanceTypes{{Name: "newValue"}},
 			},
 			want: true,
 		},
@@ -99,7 +99,7 @@ func TestTypeValidator_IsTypeValid(t *testing.T) {
 				planInstanceType:  basetypes.NewStringValue("newValue"),
 			},
 			args: args{
-				allowedInstanceTypes: entity.InstanceTypes{},
+				allowedInstanceTypes: domain.InstanceTypes{},
 			},
 			want: false,
 		},

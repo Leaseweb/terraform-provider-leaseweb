@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -53,9 +53,8 @@ func (a AutoScalingGroup) AttributeTypes() map[string]attr.Type {
 
 func newAutoScalingGroup(
 	ctx context.Context,
-	entityAutoScalingGroup entity.AutoScalingGroup,
+	entityAutoScalingGroup domain.AutoScalingGroup,
 ) (*AutoScalingGroup, diag.Diagnostics) {
-
 	autoScalingLoadBalancerObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
 		entityAutoScalingGroup.LoadBalancer,
 		LoadBalancer{}.AttributeTypes(),

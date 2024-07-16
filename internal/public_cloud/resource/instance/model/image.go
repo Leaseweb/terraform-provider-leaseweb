@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type Image struct {
@@ -36,7 +36,7 @@ func (i Image) AttributeTypes() map[string]attr.Type {
 
 func newImage(
 	ctx context.Context,
-	image entity.Image,
+	image domain.Image,
 ) (*Image, diag.Diagnostics) {
 	marketApps, diags := basetypes.NewListValueFrom(
 		ctx,

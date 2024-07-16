@@ -6,11 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newDdos(t *testing.T) {
-	entityDdos := entity.NewDdos("detectionProfile", "protectionType")
+	entityDdos := domain.NewDdos("detectionProfile", "protectionType")
 
 	got, diags := newDdos(context.TODO(), entityDdos)
 

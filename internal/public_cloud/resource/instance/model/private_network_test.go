@@ -6,11 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newPrivateNetwork(t *testing.T) {
-	privateNetwork := entity.NewPrivateNetwork(
+	privateNetwork := domain.NewPrivateNetwork(
 		"id",
 		"status",
 		"subnet",

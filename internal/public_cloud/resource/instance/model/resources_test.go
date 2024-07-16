@@ -7,15 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newResources(t *testing.T) {
-	resources := entity.NewResources(
-		entity.Cpu{Unit: "cpu"},
-		entity.Memory{Unit: "memory"},
-		entity.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		entity.NetworkSpeed{Unit: "privateNetworkSpeed"},
+	resources := domain.NewResources(
+		domain.Cpu{Unit: "cpu"},
+		domain.Memory{Unit: "memory"},
+		domain.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		domain.NetworkSpeed{Unit: "privateNetworkSpeed"},
 	)
 
 	got, _ := newResources(context.TODO(), resources)
@@ -66,7 +66,7 @@ func Test_newResources(t *testing.T) {
 }
 
 func TestResources_attributeTypes(t *testing.T) {
-	resources, _ := newResources(context.TODO(), entity.Resources{})
+	resources, _ := newResources(context.TODO(), domain.Resources{})
 
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),

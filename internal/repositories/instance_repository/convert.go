@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
@@ -20,8 +20,8 @@ func (e errLoadBalancerNotFound) Error() string {
 
 func convertInstance(
 	sdkInstance publicCloud.InstanceDetails,
-	autoScalingGroup *entity.AutoScalingGroup,
-) (*entity.Instance, error) {
+	autoScalingGroup *domain.AutoScalingGroup,
+) (*domain.Instance, error) {
 	instanceId, err := value_object.NewUuid(sdkInstance.GetId())
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -80,7 +80,7 @@ func convertInstance(
 		)
 	}
 
-	optionalValues := entity.OptionalInstanceValues{
+	optionalValues := domain.OptionalInstanceValues{
 		Reference:        convertNullableStringToValue(sdkInstance.Reference),
 		MarketAppId:      convertNullableStringToValue(sdkInstance.MarketAppId),
 		StartedAt:        convertNullableTimeToValue(sdkInstance.StartedAt),
@@ -95,7 +95,7 @@ func convertInstance(
 		optionalValues.PrivateNetwork = &privateNetwork
 	}
 
-	instance := entity.NewInstance(
+	instance := domain.NewInstance(
 		*instanceId,
 		sdkInstance.GetRegion(),
 		convertResources(sdkInstance.GetResources()),
@@ -115,8 +115,8 @@ func convertInstance(
 	return &instance, nil
 }
 
-func convertResources(sdkResources publicCloud.Resources) entity.Resources {
-	resources := entity.NewResources(
+func convertResources(sdkResources publicCloud.Resources) domain.Resources {
+	resources := domain.NewResources(
 		convertCpu(sdkResources.GetCpu()),
 		convertMemory(sdkResources.GetMemory()),
 		convertNetworkSpeed(sdkResources.GetPublicNetworkSpeed()),
@@ -126,22 +126,22 @@ func convertResources(sdkResources publicCloud.Resources) entity.Resources {
 	return resources
 }
 
-func convertCpu(sdkCpu publicCloud.Cpu) entity.Cpu {
-	return entity.NewCpu(int(sdkCpu.GetValue()), sdkCpu.GetUnit())
+func convertCpu(sdkCpu publicCloud.Cpu) domain.Cpu {
+	return domain.NewCpu(int(sdkCpu.GetValue()), sdkCpu.GetUnit())
 }
 
-func convertMemory(sdkMemory publicCloud.Memory) entity.Memory {
-	return entity.NewMemory(float64(sdkMemory.GetValue()), sdkMemory.GetUnit())
+func convertMemory(sdkMemory publicCloud.Memory) domain.Memory {
+	return domain.NewMemory(float64(sdkMemory.GetValue()), sdkMemory.GetUnit())
 }
 
-func convertNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) entity.NetworkSpeed {
-	return entity.NewNetworkSpeed(
+func convertNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) domain.NetworkSpeed {
+	return domain.NewNetworkSpeed(
 		int(sdkNetworkSpeed.GetValue()),
 		sdkNetworkSpeed.GetUnit(),
 	)
 }
 
-func convertImage(sdkImage publicCloud.ImageDetails) (*entity.Image, error) {
+func convertImage(sdkImage publicCloud.ImageDetails) (*domain.Image, error) {
 	imageId, err := enum.NewImageId(string(sdkImage.GetId()))
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -150,7 +150,7 @@ func convertImage(sdkImage publicCloud.ImageDetails) (*entity.Image, error) {
 		)
 	}
 
-	image := entity.NewImage(
+	image := domain.NewImage(
 		imageId,
 		sdkImage.GetName(),
 		sdkImage.GetVersion(),
@@ -164,8 +164,8 @@ func convertImage(sdkImage publicCloud.ImageDetails) (*entity.Image, error) {
 	return &image, nil
 }
 
-func convertIps(sdkIps []publicCloud.IpDetails) (entity.Ips, error) {
-	var ips entity.Ips
+func convertIps(sdkIps []publicCloud.IpDetails) (domain.Ips, error) {
+	var ips domain.Ips
 	for _, sdkIp := range sdkIps {
 		ip, err := convertIp(sdkIp)
 		if err != nil {
@@ -177,7 +177,7 @@ func convertIps(sdkIps []publicCloud.IpDetails) (entity.Ips, error) {
 	return ips, nil
 }
 
-func convertIp(sdkIp publicCloud.IpDetails) (*entity.Ip, error) {
+func convertIp(sdkIp publicCloud.IpDetails) (*domain.Ip, error) {
 	networkType, err := enum.NewNetworkType(string(sdkIp.GetNetworkType()))
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -186,7 +186,7 @@ func convertIp(sdkIp publicCloud.IpDetails) (*entity.Ip, error) {
 		)
 	}
 
-	optionalIpValues := entity.OptionalIpValues{
+	optionalIpValues := domain.OptionalIpValues{
 		ReverseLookup: convertNullableStringToValue(sdkIp.ReverseLookup),
 	}
 
@@ -196,7 +196,7 @@ func convertIp(sdkIp publicCloud.IpDetails) (*entity.Ip, error) {
 		optionalIpValues.Ddos = &ddos
 	}
 
-	ip := entity.NewIp(
+	ip := domain.NewIp(
 		sdkIp.GetIp(),
 		sdkIp.GetPrefixLength(),
 		int(sdkIp.GetVersion()),
@@ -209,14 +209,14 @@ func convertIp(sdkIp publicCloud.IpDetails) (*entity.Ip, error) {
 	return &ip, nil
 }
 
-func convertDdos(sdkDdos publicCloud.Ddos) entity.Ddos {
-	return entity.NewDdos(
+func convertDdos(sdkDdos publicCloud.Ddos) domain.Ddos {
+	return domain.NewDdos(
 		sdkDdos.GetDetectionProfile(),
 		sdkDdos.GetProtectionType(),
 	)
 }
 
-func convertContract(sdkContract publicCloud.Contract) (*entity.Contract, error) {
+func convertContract(sdkContract publicCloud.Contract) (*domain.Contract, error) {
 	billingFrequency, err := enum.NewContractBillingFrequency(
 		int(sdkContract.GetBillingFrequency()),
 	)
@@ -251,7 +251,7 @@ func convertContract(sdkContract publicCloud.Contract) (*entity.Contract, error)
 		)
 	}
 
-	contract, err := entity.NewContract(
+	contract, err := domain.NewContract(
 		billingFrequency,
 		contractTerm,
 		contractType,
@@ -271,12 +271,12 @@ func convertContract(sdkContract publicCloud.Contract) (*entity.Contract, error)
 	return contract, nil
 }
 
-func convertIso(sdkIso publicCloud.Iso) entity.Iso {
-	return entity.NewIso(sdkIso.GetId(), sdkIso.GetName())
+func convertIso(sdkIso publicCloud.Iso) domain.Iso {
+	return domain.NewIso(sdkIso.GetId(), sdkIso.GetName())
 }
 
-func convertPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) entity.PrivateNetwork {
-	return entity.PrivateNetwork{
+func convertPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) domain.PrivateNetwork {
+	return domain.PrivateNetwork{
 		Id:     sdkPrivateNetwork.GetPrivateNetworkId(),
 		Status: sdkPrivateNetwork.GetStatus(),
 		Subnet: sdkPrivateNetwork.GetSubnet(),
@@ -285,9 +285,9 @@ func convertPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) entity.
 
 func convertAutoScalingGroup(
 	sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-	loadBalancer *entity.LoadBalancer,
+	loadBalancer *domain.LoadBalancer,
 ) (
-	*entity.AutoScalingGroup,
+	*domain.AutoScalingGroup,
 	error,
 ) {
 	if sdkAutoScalingGroup.LoadBalancer.Get() != nil && loadBalancer == nil {
@@ -333,7 +333,7 @@ func convertAutoScalingGroup(
 		)
 	}
 
-	options := entity.AutoScalingGroupOptions{
+	options := domain.AutoScalingGroupOptions{
 		DesiredAmount: convertNullableInt32ToValue(sdkAutoScalingGroup.DesiredAmount),
 		MinimumAmount: convertNullableInt32ToValue(sdkAutoScalingGroup.MinimumAmount),
 		MaximumAmount: convertNullableInt32ToValue(sdkAutoScalingGroup.MaximumAmount),
@@ -345,7 +345,7 @@ func convertAutoScalingGroup(
 		LoadBalancer:  loadBalancer,
 	}
 
-	autoScalingGroup := entity.NewAutoScalingGroup(
+	autoScalingGroup := domain.NewAutoScalingGroup(
 		*autoScalingGroupId,
 		autoScalingGroupType,
 		state,
@@ -377,7 +377,7 @@ func convertNullableInt32ToValue(nullableInt publicCloud.NullableInt32) *int {
 }
 
 func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
-	*entity.LoadBalancer,
+	*domain.LoadBalancer,
 	error,
 ) {
 	loadBalancerId, err := value_object.NewUuid(sdkLoadBalancer.Id)
@@ -412,7 +412,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 		)
 	}
 
-	options := entity.OptionalLoadBalancerValues{
+	options := domain.OptionalLoadBalancerValues{
 		Reference: convertNullableStringToValue(sdkLoadBalancer.Reference),
 		StartedAt: convertNullableTimeToValue(sdkLoadBalancer.StartedAt),
 	}
@@ -433,7 +433,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 		options.PrivateNetwork = &privateNetwork
 	}
 
-	loadBalancer := entity.NewLoadBalancer(
+	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
 		sdkLoadBalancer.GetType(),
 		convertResources(sdkLoadBalancer.GetResources()),
@@ -448,7 +448,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 }
 
 func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.LoadBalancerConfiguration) (
-	*entity.LoadBalancerConfiguration,
+	*domain.LoadBalancerConfiguration,
 	error,
 ) {
 	balance, err := enum.NewBalance(string(sdkLoadBalancerConfiguration.GetBalance()))
@@ -459,7 +459,7 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 		)
 	}
 
-	options := entity.OptionalLoadBalancerConfigurationOptions{
+	options := domain.OptionalLoadBalancerConfigurationOptions{
 		HealthCheck: nil,
 	}
 	if sdkLoadBalancerConfiguration.StickySession.Get() != nil {
@@ -478,7 +478,7 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 		options.HealthCheck = healthCheck
 	}
 
-	configuration := entity.NewLoadBalancerConfiguration(
+	configuration := domain.NewLoadBalancerConfiguration(
 		balance,
 		sdkLoadBalancerConfiguration.GetXForwardedFor(),
 		int(sdkLoadBalancerConfiguration.GetIdleTimeOut()),
@@ -489,15 +489,15 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 	return &configuration, nil
 }
 
-func convertStickySession(sdkStickySession publicCloud.StickySession) entity.StickySession {
-	return entity.NewStickySession(
+func convertStickySession(sdkStickySession publicCloud.StickySession) domain.StickySession {
+	return domain.NewStickySession(
 		sdkStickySession.GetEnabled(),
 		int(sdkStickySession.GetMaxLifeTime()),
 	)
 }
 
 func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
-	*entity.HealthCheck,
+	*domain.HealthCheck,
 	error,
 ) {
 	method, err := enum.NewMethod(sdkHealthCheck.GetMethod())
@@ -508,11 +508,11 @@ func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 		)
 	}
 
-	healthCheck := entity.NewHealthCheck(
+	healthCheck := domain.NewHealthCheck(
 		method,
 		sdkHealthCheck.GetUri(),
 		int(sdkHealthCheck.GetPort()),
-		entity.OptionalHealthCheckValues{
+		domain.OptionalHealthCheckValues{
 			Host: convertNullableStringToValue(sdkHealthCheck.Host),
 		},
 	)
@@ -520,7 +520,7 @@ func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 	return &healthCheck, nil
 }
 
-func convertEntityToLaunchInstanceOpts(instance entity.Instance) (
+func convertEntityToLaunchInstanceOpts(instance domain.Instance) (
 	*publicCloud.LaunchInstanceOpts,
 	error,
 ) {
@@ -584,7 +584,7 @@ func convertEntityToLaunchInstanceOpts(instance entity.Instance) (
 	return launchInstanceOpts, nil
 }
 
-func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
+func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 	*publicCloud.UpdateInstanceOpts,
 	error,
 ) {
@@ -631,10 +631,10 @@ func convertEntityToUpdateInstanceOpts(instance entity.Instance) (
 	return updateInstanceOpts, nil
 }
 
-func convertInstanceType(sdkInstanceType publicCloud.InstanceType) entity.InstanceType {
-	return entity.NewInstanceType(sdkInstanceType.GetName())
+func convertInstanceType(sdkInstanceType publicCloud.InstanceType) domain.InstanceType {
+	return domain.NewInstanceType(sdkInstanceType.GetName())
 }
 
-func convertRegion(sdkRegion publicCloud.Region) entity.Region {
-	return entity.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
+func convertRegion(sdkRegion publicCloud.Region) domain.Region {
+	return domain.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
 }

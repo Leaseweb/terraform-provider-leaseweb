@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -14,7 +14,7 @@ type healthCheck struct {
 	Port   types.Int64  `tfsdk:"port"`
 }
 
-func newHealthCheck(entityHealthCheck entity.HealthCheck) *healthCheck {
+func newHealthCheck(entityHealthCheck domain.HealthCheck) *healthCheck {
 
 	return &healthCheck{
 		Method: basetypes.NewStringValue(entityHealthCheck.Method.String()),

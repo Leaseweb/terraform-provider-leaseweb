@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newMemory(t *testing.T) {
-	entityMemory := entity.NewMemory(1, "unit")
+	entityMemory := domain.NewMemory(1, "unit")
 
 	got := newMemory(entityMemory)
 

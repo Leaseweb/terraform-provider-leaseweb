@@ -4,18 +4,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newResources(t *testing.T) {
-	entityResources := entity.NewResources(
-		entity.Cpu{Unit: "cpu"},
-		entity.Memory{Unit: "memory"},
-		entity.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		entity.NetworkSpeed{Unit: "NetworkSpeed"},
+	resources := domain.NewResources(
+		domain.Cpu{Unit: "cpu"},
+		domain.Memory{Unit: "memory"},
+		domain.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		domain.NetworkSpeed{Unit: "NetworkSpeed"},
 	)
 
-	got := newResources(entityResources)
+	got := newResources(resources)
 
 	assert.Equal(
 		t,

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -33,7 +33,7 @@ func (l LoadBalancerConfiguration) AttributeTypes() map[string]attr.Type {
 
 func newLoadBalancerConfiguration(
 	ctx context.Context,
-	entityConfiguration entity.LoadBalancerConfiguration,
+	entityConfiguration domain.LoadBalancerConfiguration,
 ) (*LoadBalancerConfiguration, diag.Diagnostics) {
 	healthCheckObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
 		entityConfiguration.HealthCheck,

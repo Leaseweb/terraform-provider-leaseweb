@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"terraform-provider-leaseweb/internal/client"
+	"terraform-provider-leaseweb/internal/provider/client"
 )
 
 func (d *instancesDataSource) Configure(

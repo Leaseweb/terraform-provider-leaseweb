@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -29,9 +29,7 @@ type instance struct {
 	PrivateNetwork      *privateNetwork   `tfsdk:"private_network"`
 }
 
-func newInstance(
-	entityInstance entity.Instance,
-) instance {
+func newInstance(entityInstance domain.Instance) instance {
 
 	instance := instance{
 		Id:                  basetypes.NewStringValue(entityInstance.Id.String()),

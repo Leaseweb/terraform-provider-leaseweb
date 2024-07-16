@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 	"terraform-provider-leaseweb/internal/utils"
@@ -36,7 +36,7 @@ type Instance struct {
 	SshKey              types.String `tfsdk:"ssh_key"`
 }
 
-func (i *Instance) Populate(instance entity.Instance,
+func (i *Instance) Populate(instance domain.Instance,
 	ctx context.Context,
 ) diag.Diagnostics {
 	i.Id = basetypes.NewStringValue(instance.Id.String())
@@ -137,7 +137,7 @@ func (i *Instance) Populate(instance entity.Instance,
 }
 
 func (i *Instance) GenerateCreateInstanceEntity(ctx context.Context) (
-	*entity.Instance,
+	*domain.Instance,
 	diag.Diagnostics,
 ) {
 	var sshKey *value_object.SshKey
@@ -244,7 +244,7 @@ func (i *Instance) GenerateCreateInstanceEntity(ctx context.Context) (
 		}
 	}
 
-	instance := entity.NewCreateInstance(
+	instance := domain.NewCreateInstance(
 		i.Region.ValueString(),
 		i.Type.ValueString(),
 		rootDiskStorageType,
@@ -252,7 +252,7 @@ func (i *Instance) GenerateCreateInstanceEntity(ctx context.Context) (
 		contractType,
 		contractTerm,
 		billingFrequency,
-		entity.OptionalCreateInstanceValues{
+		domain.OptionalCreateInstanceValues{
 			MarketAppId:  i.MarketAppId.ValueStringPointer(),
 			Reference:    i.Reference.ValueStringPointer(),
 			SshKey:       sshKey,
@@ -264,7 +264,7 @@ func (i *Instance) GenerateCreateInstanceEntity(ctx context.Context) (
 }
 
 func (i *Instance) GenerateUpdateInstanceEntity(ctx context.Context) (
-	*entity.Instance,
+	*domain.Instance,
 	diag.Diagnostics,
 ) {
 	diags := diag.Diagnostics{}
@@ -281,7 +281,7 @@ func (i *Instance) GenerateUpdateInstanceEntity(ctx context.Context) (
 		return nil, diags
 	}
 
-	optionalValues := entity.OptionalUpdateInstanceValues{
+	optionalValues := domain.OptionalUpdateInstanceValues{
 		Type:      i.Type.ValueStringPointer(),
 		Reference: i.Reference.ValueStringPointer(),
 	}
@@ -352,7 +352,7 @@ func (i *Instance) GenerateUpdateInstanceEntity(ctx context.Context) (
 		optionalValues.BillingFrequency = &billingFrequency
 	}
 
-	instance := entity.NewUpdateInstance(*id, optionalValues)
+	instance := domain.NewUpdateInstance(*id, optionalValues)
 
 	return &instance, nil
 }

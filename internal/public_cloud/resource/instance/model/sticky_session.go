@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type StickySession struct {
@@ -24,7 +24,7 @@ func (s StickySession) AttributeTypes() map[string]attr.Type {
 
 func newStickySession(
 	ctx context.Context,
-	entityStickySession entity.StickySession,
+	entityStickySession domain.StickySession,
 ) (*StickySession, diag.Diagnostics) {
 	return &StickySession{
 		Enabled:     basetypes.NewBoolValue(entityStickySession.Enabled),

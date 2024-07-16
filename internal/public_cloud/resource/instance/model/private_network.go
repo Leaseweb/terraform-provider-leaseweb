@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type PrivateNetwork struct {
@@ -26,7 +26,7 @@ func (p PrivateNetwork) AttributeTypes() map[string]attr.Type {
 
 func newPrivateNetwork(
 	ctx context.Context,
-	privateNetwork entity.PrivateNetwork,
+	privateNetwork domain.PrivateNetwork,
 ) (*PrivateNetwork, diag.Diagnostics) {
 	return &PrivateNetwork{
 		Id:     basetypes.NewStringValue(privateNetwork.Id),

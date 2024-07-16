@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
@@ -24,11 +24,11 @@ func TestInstance_Populate(t *testing.T) {
 		autoScalingGroupId := value_object.NewGeneratedUuid()
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 
-		instanceEntity := entity.NewInstance(
+		instance := domain.NewInstance(
 			id,
 			"region",
-			entity.Resources{Cpu: entity.Cpu{Unit: "cpu"}},
-			entity.Image{Id: enum.Ubuntu200464Bit},
+			domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
+			domain.Image{Id: enum.Ubuntu200464Bit},
 			enum.StateCreating,
 			"productType",
 			false,
@@ -36,21 +36,21 @@ func TestInstance_Populate(t *testing.T) {
 			*rootDiskSize,
 			"lsw.m5a.4xlarge",
 			enum.RootDiskStorageTypeCentral,
-			entity.Ips{{Ip: "1.2.3.4"}},
-			entity.Contract{Type: enum.ContractTypeMonthly},
-			entity.OptionalInstanceValues{
+			domain.Ips{{Ip: "1.2.3.4"}},
+			domain.Contract{Type: enum.ContractTypeMonthly},
+			domain.OptionalInstanceValues{
 				Reference:        &reference,
-				Iso:              &entity.Iso{Id: "isoId"},
+				Iso:              &domain.Iso{Id: "isoId"},
 				MarketAppId:      &marketAppId,
 				SshKey:           sshKeyValueObject,
 				StartedAt:        &startedAt,
-				PrivateNetwork:   &entity.PrivateNetwork{Id: "privateNetworkId"},
-				AutoScalingGroup: &entity.AutoScalingGroup{Id: autoScalingGroupId},
+				PrivateNetwork:   &domain.PrivateNetwork{Id: "privateNetworkId"},
+				AutoScalingGroup: &domain.AutoScalingGroup{Id: autoScalingGroupId},
 			},
 		)
 
 		got := Instance{}
-		got.Populate(instanceEntity, context.TODO())
+		got.Populate(instance, context.TODO())
 
 		assert.Equal(
 			t,
@@ -207,12 +207,12 @@ func TestInstance_Populate(t *testing.T) {
 
 func TestInstance_GenerateCreateInstanceEntity(t *testing.T) {
 	t.Run("required values are passed", func(t *testing.T) {
-		instanceEntity := entity.Instance{
+		instanceEntity := domain.Instance{
 			Region:              "region",
 			Type:                "lsw.m5a.4xlarge",
 			RootDiskStorageType: enum.RootDiskStorageTypeCentral,
-			Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-			Contract: entity.Contract{
+			Image:               domain.Image{Id: enum.Ubuntu200464Bit},
+			Contract: domain.Contract{
 				Type:             enum.ContractTypeMonthly,
 				Term:             enum.ContractTermThree,
 				BillingFrequency: enum.ContractBillingFrequencyThree,
@@ -246,13 +246,13 @@ func TestInstance_GenerateCreateInstanceEntity(t *testing.T) {
 		reference := "reference"
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 
-		instanceEntity := entity.Instance{
+		instanceEntity := domain.Instance{
 			Region:              "region",
 			Type:                "lsw.m5a.4xlarge",
 			RootDiskStorageType: enum.RootDiskStorageTypeCentral,
 			RootDiskSize:        value_object.RootDiskSize{Value: 55},
-			Image:               entity.Image{Id: enum.Ubuntu200464Bit},
-			Contract: entity.Contract{
+			Image:               domain.Image{Id: enum.Ubuntu200464Bit},
+			Contract: domain.Contract{
 				Type:             enum.ContractTypeMonthly,
 				Term:             enum.ContractTermThree,
 				BillingFrequency: enum.ContractBillingFrequencyThree,
@@ -279,9 +279,7 @@ func TestInstance_GenerateUpdateInstanceEntity(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		id := value_object.NewGeneratedUuid()
 
-		instanceEntity := entity.Instance{
-			Id: id,
-		}
+		instanceEntity := domain.Instance{Id: id}
 
 		instance := Instance{}
 		instance.Populate(instanceEntity, context.TODO())
@@ -296,9 +294,9 @@ func TestInstance_GenerateUpdateInstanceEntity(t *testing.T) {
 		reference := "reference"
 		rootDiskSize, _ := value_object.NewRootDiskSize(65)
 
-		instanceEntity := entity.Instance{
+		instanceEntity := domain.Instance{
 			Type: "lsw.m5a.4xlarge",
-			Contract: entity.Contract{
+			Contract: domain.Contract{
 				Type:             enum.ContractTypeMonthly,
 				Term:             enum.ContractTermThree,
 				BillingFrequency: enum.ContractBillingFrequencyThree,

@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type Cpu struct {
@@ -19,7 +19,7 @@ func (c Cpu) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newCpu(entityCpu entity.Cpu) Cpu {
+func newCpu(entityCpu domain.Cpu) Cpu {
 	return Cpu{
 		Value: basetypes.NewInt64Value(int64(entityCpu.Value)),
 		Unit:  basetypes.NewStringValue(entityCpu.Unit),

@@ -6,24 +6,24 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newNetworkSpeed(t *testing.T) {
-	entityNetworkSpeed := entity.NewNetworkSpeed(23, "unit")
+	networkSpeed := domain.NewNetworkSpeed(23, "unit")
 
-	networkSpeed := newNetworkSpeed(entityNetworkSpeed)
+	got := newNetworkSpeed(networkSpeed)
 
 	assert.Equal(
 		t,
 		"unit",
-		networkSpeed.Unit.ValueString(),
+		got.Unit.ValueString(),
 		"unit should be set",
 	)
 	assert.Equal(
 		t,
 		int64(23),
-		networkSpeed.Value.ValueInt64(),
+		got.Value.ValueInt64(),
 		"value should be set",
 	)
 }

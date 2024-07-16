@@ -6,11 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newCpu(t *testing.T) {
-	entityCpu := entity.NewCpu(1, "unit")
+	entityCpu := domain.NewCpu(1, "unit")
 	got := newCpu(entityCpu)
 
 	assert.Equal(t, int64(1), got.Value.ValueInt64(), "value should be set")

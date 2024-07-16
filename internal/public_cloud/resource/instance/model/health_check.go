@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -29,7 +29,7 @@ func (h HealthCheck) AttributeTypes() map[string]attr.Type {
 
 func newHealthCheck(
 	ctx context.Context,
-	entityHealthCheck entity.HealthCheck,
+	entityHealthCheck domain.HealthCheck,
 ) (*HealthCheck, diag.Diagnostics) {
 	return &HealthCheck{
 		Method: basetypes.NewStringValue(string(entityHealthCheck.Method)),

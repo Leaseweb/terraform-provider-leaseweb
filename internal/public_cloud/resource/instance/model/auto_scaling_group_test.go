@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
@@ -26,7 +26,7 @@ func Test_newAutoScalingGroup(t *testing.T) {
 	reference, _ := value_object.NewAutoScalingGroupReference("reference")
 	loadBalancerId := value_object.NewGeneratedUuid()
 
-	autoScalingGroup := entity.NewAutoScalingGroup(
+	autoScalingGroup := domain.NewAutoScalingGroup(
 		id,
 		"type",
 		"state",
@@ -34,7 +34,7 @@ func Test_newAutoScalingGroup(t *testing.T) {
 		*reference,
 		createdAt,
 		updatedAt,
-		entity.AutoScalingGroupOptions{
+		domain.AutoScalingGroupOptions{
 			DesiredAmount: &desiredAmount,
 			StartsAt:      &startsAt,
 			EndsAt:        &endsAt,
@@ -43,7 +43,7 @@ func Test_newAutoScalingGroup(t *testing.T) {
 			CpuThreshold:  &cpuThreshold,
 			WarmupTime:    &warmupTime,
 			CoolDownTime:  &cooldownTime,
-			LoadBalancer:  &entity.LoadBalancer{Id: loadBalancerId, StartedAt: &time.Time{}},
+			LoadBalancer:  &domain.LoadBalancer{Id: loadBalancerId, StartedAt: &time.Time{}},
 		},
 	)
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
@@ -19,21 +19,21 @@ type PublicCloudRepository struct {
 	token           string
 	convertInstance func(
 		sdkInstance publicCloud.InstanceDetails,
-		sdkAutoScalingGroup *entity.AutoScalingGroup,
-	) (*entity.Instance, error)
+		sdkAutoScalingGroup *domain.AutoScalingGroup,
+	) (*domain.Instance, error)
 	convertAutoScalingGroup func(
 		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-		loadBalancer *entity.LoadBalancer,
-	) (*entity.AutoScalingGroup, error)
+		loadBalancer *domain.LoadBalancer,
+	) (*domain.AutoScalingGroup, error)
 	convertLoadBalancer func(
 		sdkLoadBalancer publicCloud.LoadBalancerDetails,
-	) (*entity.LoadBalancer, error)
-	convertEntityToLaunchInstanceOpts func(instance entity.Instance) (
+	) (*domain.LoadBalancer, error)
+	convertEntityToLaunchInstanceOpts func(instance domain.Instance) (
 		*publicCloud.LaunchInstanceOpts, error)
-	convertEntityToUpdateInstanceOpts func(instance entity.Instance) (
+	convertEntityToUpdateInstanceOpts func(instance domain.Instance) (
 		*publicCloud.UpdateInstanceOpts, error)
-	convertRegion       func(sdkRegion publicCloud.Region) entity.Region
-	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) entity.InstanceType
+	convertRegion       func(sdkRegion publicCloud.Region) domain.Region
+	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) domain.InstanceType
 }
 
 func (p PublicCloudRepository) authContext(ctx context.Context) context.Context {
@@ -47,7 +47,7 @@ func (p PublicCloudRepository) authContext(ctx context.Context) context.Context 
 }
 
 func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
-	entity.Instances,
+	domain.Instances,
 	error,
 ) {
 	result, _, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
@@ -56,7 +56,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 		return nil, fmt.Errorf("GetAllInstances: %w", err)
 	}
 
-	var instances entity.Instances
+	var instances domain.Instances
 
 	for _, instance := range result.Instances {
 		instanceId, err := value_object.NewUuid(instance.GetId())
@@ -78,8 +78,8 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 func (p PublicCloudRepository) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*entity.Instance, error) {
-	var autoScalingGroup *entity.AutoScalingGroup
+) (*domain.Instance, error) {
+	var autoScalingGroup *domain.AutoScalingGroup
 
 	instance, _, err := p.publicCLoudAPI.GetInstance(p.authContext(ctx), id.String()).Execute()
 
@@ -109,8 +109,8 @@ func (p PublicCloudRepository) GetInstance(
 func (p PublicCloudRepository) GetAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*entity.AutoScalingGroup, error) {
-	var loadBalancer *entity.LoadBalancer
+) (*domain.AutoScalingGroup, error) {
+	var loadBalancer *domain.LoadBalancer
 
 	sdkAutoScalingGroup, _, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
@@ -150,8 +150,8 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 func (p PublicCloudRepository) GetLoadBalancer(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*entity.LoadBalancer, error) {
-	var loadBalancer *entity.LoadBalancer
+) (*domain.LoadBalancer, error) {
+	var loadBalancer *domain.LoadBalancer
 
 	sdkLoadBalancer, _, err := p.publicCLoudAPI.GetLoadBalancer(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
@@ -171,9 +171,9 @@ func (p PublicCloudRepository) GetLoadBalancer(
 }
 
 func (p PublicCloudRepository) CreateInstance(
-	instance entity.Instance,
+	instance domain.Instance,
 	ctx context.Context,
-) (*entity.Instance, error) {
+) (*domain.Instance, error) {
 
 	launchInstanceOpts, err := p.convertEntityToLaunchInstanceOpts(instance)
 	if err != nil {
@@ -203,9 +203,9 @@ func (p PublicCloudRepository) CreateInstance(
 }
 
 func (p PublicCloudRepository) UpdateInstance(
-	instance entity.Instance,
+	instance domain.Instance,
 	ctx context.Context,
-) (*entity.Instance, error) {
+) (*domain.Instance, error) {
 
 	updateInstanceOpts, err := p.convertEntityToUpdateInstanceOpts(instance)
 	if err != nil {
@@ -248,8 +248,8 @@ func (p PublicCloudRepository) DeleteInstance(
 func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (entity.InstanceTypes, error) {
-	var instanceTypes entity.InstanceTypes
+) (domain.InstanceTypes, error) {
+	var instanceTypes domain.InstanceTypes
 
 	sdkInstanceTypes, _, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
@@ -271,10 +271,10 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 }
 
 func (p PublicCloudRepository) GetRegions(ctx context.Context) (
-	entity.Regions,
+	domain.Regions,
 	error,
 ) {
-	var regions entity.Regions
+	var regions domain.Regions
 
 	sdkRegions, _, err := p.publicCLoudAPI.GetRegionList(p.authContext(ctx)).Execute()
 	if err != nil {

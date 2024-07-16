@@ -4,19 +4,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
 func Test_newLoadBalancerConfiguration(t *testing.T) {
-	configuration := entity.NewLoadBalancerConfiguration(
+	configuration := domain.NewLoadBalancerConfiguration(
 		enum.BalanceSource,
 		false,
 		1,
 		2,
-		entity.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &entity.StickySession{MaxLifeTime: 32},
-			HealthCheck:   &entity.HealthCheck{Method: enum.MethodGet},
+		domain.OptionalLoadBalancerConfigurationOptions{
+			StickySession: &domain.StickySession{MaxLifeTime: 32},
+			HealthCheck:   &domain.HealthCheck{Method: enum.MethodGet},
 		},
 	)
 

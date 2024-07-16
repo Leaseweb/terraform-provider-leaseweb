@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newStickySession(t *testing.T) {
-	entityStickySession := entity.NewStickySession(false, 1)
+	stickySession := domain.NewStickySession(false, 1)
 
-	got := newStickySession(entityStickySession)
+	got := newStickySession(stickySession)
 
 	assert.False(t, got.Enabled.ValueBool())
 	assert.Equal(t, int64(1), got.MaxLifeTime.ValueInt64())

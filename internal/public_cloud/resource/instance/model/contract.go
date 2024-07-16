@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -35,7 +35,7 @@ func (c Contract) AttributeTypes() map[string]attr.Type {
 
 func newContract(
 	ctx context.Context,
-	entityContract entity.Contract,
+	entityContract domain.Contract,
 ) (*Contract, diag.Diagnostics) {
 	return &Contract{
 		BillingFrequency: basetypes.NewInt64Value(int64(entityContract.BillingFrequency)),

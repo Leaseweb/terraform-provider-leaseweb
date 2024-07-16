@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 type Ddos struct {
@@ -24,7 +24,7 @@ func (d Ddos) AttributeTypes() map[string]attr.Type {
 
 func newDdos(
 	ctx context.Context,
-	entityDdos entity.Ddos,
+	entityDdos domain.Ddos,
 ) (*Ddos, diag.Diagnostics) {
 	return &Ddos{
 		DetectionProfile: basetypes.NewStringValue(entityDdos.DetectionProfile),

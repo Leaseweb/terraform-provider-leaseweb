@@ -4,16 +4,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newHealthCheck(t *testing.T) {
 	host := "host"
-	healthCheck := entity.NewHealthCheck(
+	healthCheck := domain.NewHealthCheck(
 		"method",
 		"uri",
 		22,
-		entity.OptionalHealthCheckValues{Host: &host},
+		domain.OptionalHealthCheckValues{Host: &host},
 	)
 
 	got := newHealthCheck(healthCheck)

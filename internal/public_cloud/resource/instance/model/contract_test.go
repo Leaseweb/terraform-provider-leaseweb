@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
@@ -25,7 +25,7 @@ func Test_newContract(t *testing.T) {
 		"2021-12-14 17:09:47",
 	)
 
-	contract, _ := entity.NewContract(
+	contract, _ := domain.NewContract(
 		enum.ContractBillingFrequencySix,
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,

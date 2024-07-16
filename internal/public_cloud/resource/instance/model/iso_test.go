@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 )
 
 func Test_newIso(t *testing.T) {
-	entityIso := entity.NewIso("id", "name")
-	got, diags := newIso(context.TODO(), entityIso)
+	iso := domain.NewIso("id", "name")
+	got, diags := newIso(context.TODO(), iso)
 
 	assert.Nil(t, diags)
 

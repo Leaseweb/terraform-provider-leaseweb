@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain/entity"
+	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/utils"
 )
 
@@ -21,7 +21,7 @@ type loadBalancer struct {
 	PrivateNetwork            *privateNetwork            `tfsdk:"private_network"`
 }
 
-func newLoadBalancer(entityLoadBalancer entity.LoadBalancer) *loadBalancer {
+func newLoadBalancer(entityLoadBalancer domain.LoadBalancer) *loadBalancer {
 
 	var ips []ip
 	for _, ip := range entityLoadBalancer.Ips {
