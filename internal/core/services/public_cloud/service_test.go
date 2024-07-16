@@ -98,9 +98,16 @@ func TestService_GetAllInstances(t *testing.T) {
 	t.Run(
 		"service passes back instances from repository",
 		func(t *testing.T) {
-			want := domain.Instances{{Id: value_object.NewGeneratedUuid()}}
+			id := value_object.NewGeneratedUuid()
+			detailedInstance := domain.Instance{Id: id, Region: "region"}
+			returnedInstances := domain.Instances{domain.Instance{Id: id}}
 
-			service := New(repositorySpy{instances: want})
+			want := domain.Instances{domain.Instance{Id: id, Region: "region"}}
+
+			service := New(repositorySpy{
+				instances: returnedInstances,
+				instance:  &detailedInstance,
+			})
 
 			got, err := service.GetAllInstances(context.TODO())
 
@@ -109,21 +116,40 @@ func TestService_GetAllInstances(t *testing.T) {
 		},
 	)
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
-		service := New(
-			repositorySpy{getAllInstancesError: errors.New("some error")},
-		)
+	t.Run(
+		"error from repository getAllInstances bubbles up",
+		func(t *testing.T) {
+			service := New(
+				repositorySpy{getAllInstancesError: errors.New("some error")},
+			)
 
-		_, err := service.GetAllInstances(context.TODO())
+			_, err := service.GetAllInstances(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error from repository getInstance bubbles up", func(t *testing.T) {
+			service := New(
+				repositorySpy{
+					instances:        domain.Instances{{Id: value_object.NewGeneratedUuid()}},
+					getInstanceError: errors.New("some error"),
+				},
+			)
+
+			_, err := service.GetAllInstances(context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }
 
 func TestService_GetInstance(t *testing.T) {
 	t.Run(
-		"service passes back instance from repository",
+		"passes back instance from repository",
 		func(t *testing.T) {
 			want := domain.Instance{}
 
@@ -135,23 +161,50 @@ func TestService_GetInstance(t *testing.T) {
 			)
 
 			assert.NoError(t, err)
-			assert.Same(t, &want, got)
+			assert.Equal(t, want, *got)
 		},
 	)
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
-		service := New(
-			repositorySpy{getInstanceError: errors.New("some error")},
-		)
+	t.Run(
+		"bubbles up getInstance error from repository",
+		func(t *testing.T) {
+			service := New(
+				repositorySpy{getInstanceError: errors.New("some error")},
+			)
 
-		_, err := service.GetInstance(
-			value_object.NewGeneratedUuid(),
-			context.TODO(),
-		)
+			_, err := service.GetInstance(
+				value_object.NewGeneratedUuid(),
+				context.TODO(),
+			)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"bubbles up populateMissingInstanceAttributes error",
+		func(t *testing.T) {
+			service := New(
+				repositorySpy{
+					getAutoScalingGroupError: errors.New("some error"),
+					instance: &domain.Instance{
+						AutoScalingGroup: &domain.AutoScalingGroup{
+							Id: value_object.NewGeneratedUuid(),
+						},
+					},
+				},
+			)
+
+			_, err := service.GetInstance(
+				value_object.NewGeneratedUuid(),
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }
 
 func TestService_CreateInstance(t *testing.T) {
@@ -163,7 +216,7 @@ func TestService_CreateInstance(t *testing.T) {
 		got, err := service.CreateInstance(domain.Instance{}, context.TODO())
 
 		assert.NoError(t, err)
-		assert.Same(t, &want, got)
+		assert.Equal(t, want, *got)
 	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
@@ -288,4 +341,129 @@ func TestService_GetRegions(t *testing.T) {
 
 		assert.ErrorContains(t, err, "some error")
 	})
+}
+
+func TestService_populateMissingInstanceAttributes(t *testing.T) {
+	t.Run(
+		"populates autoScalingGroup from repository",
+		func(t *testing.T) {
+			autoScalingGroupId := value_object.NewGeneratedUuid()
+
+			returnedAutoScalingGroup := domain.AutoScalingGroup{Id: autoScalingGroupId}
+			instance := domain.Instance{
+				AutoScalingGroup: &domain.AutoScalingGroup{
+					Id: value_object.NewGeneratedUuid(),
+				},
+			}
+
+			service := New(repositorySpy{
+				autoScalingGroup: &returnedAutoScalingGroup,
+			})
+
+			want := domain.Instance{
+				AutoScalingGroup: &domain.AutoScalingGroup{Id: autoScalingGroupId},
+			}
+
+			got, err := service.populateMissingInstanceAttributes(
+				instance,
+				context.TODO(),
+			)
+
+			assert.NoError(t, err)
+			assert.Equal(t, want, *got)
+		},
+	)
+
+	t.Run(
+		"populates loadBalancer from repository",
+		func(t *testing.T) {
+			loadBalancerId := value_object.NewGeneratedUuid()
+			autoScalingGroupId := value_object.NewGeneratedUuid()
+
+			returnedLoadBalancer := domain.LoadBalancer{Id: loadBalancerId}
+			returnedAutoScalingGroup := domain.AutoScalingGroup{
+				Id:           autoScalingGroupId,
+				LoadBalancer: &domain.LoadBalancer{Id: value_object.NewGeneratedUuid()},
+			}
+			instance := domain.Instance{
+				AutoScalingGroup: &domain.AutoScalingGroup{
+					Id: value_object.NewGeneratedUuid(),
+				},
+			}
+
+			service := New(repositorySpy{
+				autoScalingGroup: &returnedAutoScalingGroup,
+				loadBalancer:     &returnedLoadBalancer,
+			})
+
+			want := domain.Instance{
+				AutoScalingGroup: &domain.AutoScalingGroup{
+					Id: autoScalingGroupId, LoadBalancer: &domain.LoadBalancer{
+						Id: loadBalancerId,
+					},
+				},
+			}
+
+			got, err := service.populateMissingInstanceAttributes(
+				instance,
+				context.TODO(),
+			)
+
+			assert.NoError(t, err)
+			assert.Equal(t, want, *got)
+		},
+	)
+
+	t.Run(
+		"bubbles up getAutoScalingGroup error from repository",
+		func(t *testing.T) {
+			service := New(
+				repositorySpy{
+					getAutoScalingGroupError: errors.New("some error"),
+				},
+			)
+
+			_, err := service.populateMissingInstanceAttributes(
+				domain.Instance{
+					AutoScalingGroup: &domain.AutoScalingGroup{Id: value_object.NewGeneratedUuid()},
+				},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"bubbles up getLoadBalancer error from repository",
+		func(t *testing.T) {
+			service := New(
+				repositorySpy{
+					getLoadBalancerError: errors.New("some error"),
+					autoScalingGroup: &domain.AutoScalingGroup{
+						Id: value_object.NewGeneratedUuid(),
+						LoadBalancer: &domain.LoadBalancer{
+							Id: value_object.NewGeneratedUuid(),
+						},
+					},
+				},
+			)
+
+			_, err := service.populateMissingInstanceAttributes(
+				domain.Instance{
+					AutoScalingGroup: &domain.AutoScalingGroup{
+						Id: value_object.NewGeneratedUuid(),
+						LoadBalancer: &domain.LoadBalancer{
+							Id: value_object.NewGeneratedUuid(),
+						},
+					},
+				},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }

@@ -15,18 +15,20 @@ type Optional struct {
 }
 
 type PublicCloudRepository struct {
-	publicCLoudAPI  publicCloudApi
-	token           string
-	convertInstance func(
+	publicCLoudAPI         publicCloudApi
+	token                  string
+	convertInstanceDetails func(
 		sdkInstance publicCloud.InstanceDetails,
-		sdkAutoScalingGroup *domain.AutoScalingGroup,
 	) (*domain.Instance, error)
-	convertAutoScalingGroup func(
+	convertInstance func(sdkInstance publicCloud.Instance) (
+		*domain.Instance,
+		error,
+	)
+	convertAutoScalingGroupDetails func(
 		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-		loadBalancer *domain.LoadBalancer,
 	) (*domain.AutoScalingGroup, error)
-	convertLoadBalancer func(
-		sdkLoadBalancer publicCloud.LoadBalancerDetails,
+	convertLoadBalancerDetails func(
+		sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
 	) (*domain.LoadBalancer, error)
 	convertEntityToLaunchInstanceOpts func(instance domain.Instance) (
 		*publicCloud.LaunchInstanceOpts, error)
@@ -50,26 +52,21 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	domain.Instances,
 	error,
 ) {
+	var instances domain.Instances
+
 	result, _, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("GetAllInstances: %w", err)
 	}
 
-	var instances domain.Instances
-
-	for _, instance := range result.Instances {
-		instanceId, err := value_object.NewUuid(instance.GetId())
-		if err != nil {
-			return nil, fmt.Errorf("GetAllInstances: %w", err)
-
-		}
-		instanceDetail, err := p.GetInstance(*instanceId, ctx)
+	for _, sdkInstance := range result.Instances {
+		instance, err := p.convertInstance(sdkInstance)
 		if err != nil {
 			return nil, fmt.Errorf("GetAllInstances: %w", err)
 		}
 
-		instances = append(instances, *instanceDetail)
+		instances = append(instances, *instance)
 	}
 
 	return instances, nil
@@ -79,40 +76,23 @@ func (p PublicCloudRepository) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.Instance, error) {
-	var autoScalingGroup *domain.AutoScalingGroup
-
-	instance, _, err := p.publicCLoudAPI.GetInstance(p.authContext(ctx), id.String()).Execute()
+	instanceDetails, _, err := p.publicCLoudAPI.GetInstance(
+		p.authContext(ctx),
+		id.String(),
+	).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("GetInstance %q: %w", id, err)
 	}
 
-	sdkAutoScalingGroup, _ := instance.GetAutoScalingGroupOk()
-
-	if sdkAutoScalingGroup != nil {
-		autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
-		if err != nil {
-			return nil, fmt.Errorf("GetInstance: %w", err)
-		}
-		autoScalingGroup, err = p.GetAutoScalingGroup(*autoScalingGroupId, ctx)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"GetInstance: %w",
-				err,
-			)
-		}
-	}
-
-	return p.convertInstance(*instance, autoScalingGroup)
+	return p.convertInstanceDetails(*instanceDetails)
 }
 
 func (p PublicCloudRepository) GetAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.AutoScalingGroup, error) {
-	var loadBalancer *domain.LoadBalancer
-
-	sdkAutoScalingGroup, _, err := p.publicCLoudAPI.GetAutoScalingGroup(
+	sdkAutoScalingGroupDetails, _, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
 		id.String(),
 	).Execute()
@@ -120,31 +100,16 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 		return nil, fmt.Errorf("GetAutoScalingGroup %q: %w", id, err)
 	}
 
-	if sdkAutoScalingGroup.LoadBalancer.Get() != nil {
-		loadBalancerId, err := value_object.NewUuid(sdkAutoScalingGroup.LoadBalancer.Get().GetId())
-		if err != nil {
-			return nil, fmt.Errorf("GetAutoScalingGroup: %w", err)
-		}
-
-		loadBalancer, err = p.GetLoadBalancer(*loadBalancerId, ctx)
-		if err != nil {
-			return nil, fmt.Errorf("GetAutoScalingGroup: %w", err)
-		}
-	}
-
-	autoScalingGroupEntity, err := p.convertAutoScalingGroup(
-		*sdkAutoScalingGroup,
-		loadBalancer,
-	)
+	autoScalingGroup, err := p.convertAutoScalingGroupDetails(*sdkAutoScalingGroupDetails)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"GetAutoScalingGroup %q: %w",
-			sdkAutoScalingGroup.GetId(),
+			sdkAutoScalingGroupDetails.GetId(),
 			err,
 		)
 	}
 
-	return autoScalingGroupEntity, nil
+	return autoScalingGroup, nil
 }
 
 func (p PublicCloudRepository) GetLoadBalancer(
@@ -153,16 +118,19 @@ func (p PublicCloudRepository) GetLoadBalancer(
 ) (*domain.LoadBalancer, error) {
 	var loadBalancer *domain.LoadBalancer
 
-	sdkLoadBalancer, _, err := p.publicCLoudAPI.GetLoadBalancer(p.authContext(ctx), id.String()).Execute()
+	sdkLoadBalancerDetails, _, err := p.publicCLoudAPI.GetLoadBalancer(
+		p.authContext(ctx),
+		id.String(),
+	).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("GetLoadBalancer %q: %w", id, err)
 	}
 
-	loadBalancer, err = p.convertLoadBalancer(*sdkLoadBalancer)
+	loadBalancer, err = p.convertLoadBalancerDetails(*sdkLoadBalancerDetails)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"GetLoadBalancer %q: %w",
-			sdkLoadBalancer.GetId(),
+			sdkLoadBalancerDetails.GetId(),
 			err,
 		)
 	}
@@ -186,20 +154,7 @@ func (p PublicCloudRepository) CreateInstance(
 		return nil, fmt.Errorf("CreateInstance: %w", err)
 	}
 
-	instanceId, err := value_object.NewUuid(launchedInstance.GetId())
-	if err != nil {
-		return nil, fmt.Errorf(
-			"CreateInstance: %w",
-			err,
-		)
-	}
-
-	instanceDetails, err := p.GetInstance(*instanceId, ctx)
-	if err != nil {
-		return nil, fmt.Errorf("CreateInstance: %w", err)
-	}
-
-	return instanceDetails, nil
+	return p.convertInstance(*launchedInstance)
 }
 
 func (p PublicCloudRepository) UpdateInstance(
@@ -220,17 +175,7 @@ func (p PublicCloudRepository) UpdateInstance(
 		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
 	}
 
-	instanceId, err := value_object.NewUuid(updatedInstance.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
-	}
-
-	instanceDetails, err := p.GetInstance(*instanceId, ctx)
-	if err != nil {
-		return nil, fmt.Errorf("UpdateInstance: %w", err)
-	}
-
-	return instanceDetails, nil
+	return p.convertInstanceDetails(*updatedInstance)
 }
 
 func (p PublicCloudRepository) DeleteInstance(
@@ -306,9 +251,10 @@ func NewPublicCloudRepository(
 	return PublicCloudRepository{
 		publicCLoudAPI:                    client.PublicCloudAPI,
 		token:                             token,
+		convertInstanceDetails:            convertInstanceDetails,
 		convertInstance:                   convertInstance,
-		convertAutoScalingGroup:           convertAutoScalingGroup,
-		convertLoadBalancer:               convertLoadBalancer,
+		convertAutoScalingGroupDetails:    convertAutoScalingGroupDetails,
+		convertLoadBalancerDetails:        convertLoadBalancerDetails,
 		convertInstanceType:               convertInstanceType,
 		convertRegion:                     convertRegion,
 		convertEntityToLaunchInstanceOpts: convertEntityToLaunchInstanceOpts,

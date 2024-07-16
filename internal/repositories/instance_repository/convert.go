@@ -10,74 +10,55 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object/enum"
 )
 
-type errLoadBalancerNotFound struct {
-	msg string
-}
+func convertInstance(sdkInstance publicCloud.Instance) (
+	*domain.Instance,
+	error,
+) {
+	var autoScalingGroup *domain.AutoScalingGroup
 
-func (e errLoadBalancerNotFound) Error() string {
-	return e.msg
-}
-
-func convertInstance(
-	sdkInstance publicCloud.InstanceDetails,
-	autoScalingGroup *domain.AutoScalingGroup,
-) (*domain.Instance, error) {
 	instanceId, err := value_object.NewUuid(sdkInstance.GetId())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
 
 	image, err := convertImage(sdkInstance.GetImage())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
 
 	state, err := enum.NewState(string(sdkInstance.GetState()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
 
 	rootDiskSize, err := value_object.NewRootDiskSize(int(sdkInstance.GetRootDiskSize()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
 
 	rootDiskStorageType, err := enum.NewRootDiskStorageType(
 		string(sdkInstance.GetRootDiskStorageType()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
 
 	ips, err := convertIps(sdkInstance.GetIps())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance:  %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance:  %w", err)
 	}
 
 	contract, err := convertContract(sdkInstance.GetContract())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertInstance:  %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertInstance:  %w", err)
+	}
+
+	sdkAutoScalingGroup, _ := sdkInstance.GetAutoScalingGroupOk()
+	if sdkAutoScalingGroup != nil {
+		autoScalingGroup, err = convertAutoScalingGroup(*sdkAutoScalingGroup)
+		if err != nil {
+			return nil, fmt.Errorf("convertInstance:  %w", err)
+		}
 	}
 
 	optionalValues := domain.OptionalInstanceValues{
@@ -85,14 +66,6 @@ func convertInstance(
 		MarketAppId:      convertNullableStringToValue(sdkInstance.MarketAppId),
 		StartedAt:        convertNullableTimeToValue(sdkInstance.StartedAt),
 		AutoScalingGroup: autoScalingGroup,
-	}
-	if sdkInstance.Iso.Get() != nil {
-		iso := convertIso(*sdkInstance.Iso.Get())
-		optionalValues.Iso = &iso
-	}
-	if sdkInstance.PrivateNetwork.Get() != nil {
-		privateNetwork := convertPrivateNetwork(*sdkInstance.PrivateNetwork.Get())
-		optionalValues.PrivateNetwork = &privateNetwork
 	}
 
 	instance := domain.NewInstance(
@@ -106,6 +79,91 @@ func convertInstance(
 		sdkInstance.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
 		string(sdkInstance.GetType()),
+		rootDiskStorageType,
+		ips,
+		*contract,
+		optionalValues,
+	)
+
+	return &instance, nil
+}
+
+func convertInstanceDetails(
+	sdkInstanceDetails publicCloud.InstanceDetails,
+) (*domain.Instance, error) {
+	var autoScalingGroup *domain.AutoScalingGroup
+
+	instanceId, err := value_object.NewUuid(sdkInstanceDetails.GetId())
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
+	}
+
+	image, err := convertImageDetails(sdkInstanceDetails.GetImage())
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
+	}
+
+	state, err := enum.NewState(string(sdkInstanceDetails.GetState()))
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
+	}
+
+	rootDiskSize, err := value_object.NewRootDiskSize(int(sdkInstanceDetails.GetRootDiskSize()))
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
+	}
+
+	rootDiskStorageType, err := enum.NewRootDiskStorageType(
+		string(sdkInstanceDetails.GetRootDiskStorageType()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
+	}
+
+	ips, err := convertIpsDetails(sdkInstanceDetails.GetIps())
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails:  %w", err)
+	}
+
+	contract, err := convertContract(sdkInstanceDetails.GetContract())
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails:  %w", err)
+	}
+
+	sdkAutoScalingGroup, _ := sdkInstanceDetails.GetAutoScalingGroupOk()
+	if sdkAutoScalingGroup != nil {
+		autoScalingGroup, err = convertAutoScalingGroup(*sdkAutoScalingGroup)
+		if err != nil {
+			return nil, fmt.Errorf("convertInstanceDetails:  %w", err)
+		}
+	}
+
+	optionalValues := domain.OptionalInstanceValues{
+		Reference:        convertNullableStringToValue(sdkInstanceDetails.Reference),
+		MarketAppId:      convertNullableStringToValue(sdkInstanceDetails.MarketAppId),
+		StartedAt:        convertNullableTimeToValue(sdkInstanceDetails.StartedAt),
+		AutoScalingGroup: autoScalingGroup,
+	}
+	if sdkInstanceDetails.Iso.Get() != nil {
+		iso := convertIso(*sdkInstanceDetails.Iso.Get())
+		optionalValues.Iso = &iso
+	}
+	if sdkInstanceDetails.PrivateNetwork.Get() != nil {
+		privateNetwork := convertPrivateNetwork(*sdkInstanceDetails.PrivateNetwork.Get())
+		optionalValues.PrivateNetwork = &privateNetwork
+	}
+
+	instance := domain.NewInstance(
+		*instanceId,
+		sdkInstanceDetails.GetRegion(),
+		convertResources(sdkInstanceDetails.GetResources()),
+		*image,
+		state,
+		sdkInstanceDetails.GetProductType(),
+		sdkInstanceDetails.GetHasPublicIpV4(),
+		sdkInstanceDetails.GetIncludesPrivateNetwork(),
+		*rootDiskSize,
+		string(sdkInstanceDetails.GetType()),
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -141,13 +199,13 @@ func convertNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) domain.Networ
 	)
 }
 
-func convertImage(sdkImage publicCloud.ImageDetails) (*domain.Image, error) {
+func convertImageDetails(sdkImage publicCloud.ImageDetails) (
+	*domain.Image,
+	error,
+) {
 	imageId, err := enum.NewImageId(string(sdkImage.GetId()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertImage: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertImageDetails: %w", err)
 	}
 
 	image := domain.NewImage(
@@ -164,7 +222,40 @@ func convertImage(sdkImage publicCloud.ImageDetails) (*domain.Image, error) {
 	return &image, nil
 }
 
-func convertIps(sdkIps []publicCloud.IpDetails) (domain.Ips, error) {
+func convertImage(sdkImage publicCloud.Image) (*domain.Image, error) {
+	imageId, err := enum.NewImageId(string(sdkImage.GetId()))
+	if err != nil {
+		return nil, fmt.Errorf("convertImage: %w", err)
+	}
+
+	image := domain.NewImage(
+		imageId,
+		sdkImage.GetName(),
+		sdkImage.GetVersion(),
+		sdkImage.GetFamily(),
+		sdkImage.GetFlavour(),
+		sdkImage.GetArchitecture(),
+		[]string{},
+		[]string{},
+	)
+
+	return &image, nil
+}
+
+func convertIpsDetails(sdkIps []publicCloud.IpDetails) (domain.Ips, error) {
+	var ips domain.Ips
+	for _, sdkIp := range sdkIps {
+		ip, err := convertIpDetails(sdkIp)
+		if err != nil {
+			return nil, fmt.Errorf("convertIpsDetails: %w", err)
+		}
+		ips = append(ips, *ip)
+	}
+
+	return ips, nil
+}
+
+func convertIps(sdkIps []publicCloud.Ip) (domain.Ips, error) {
 	var ips domain.Ips
 	for _, sdkIp := range sdkIps {
 		ip, err := convertIp(sdkIp)
@@ -177,13 +268,10 @@ func convertIps(sdkIps []publicCloud.IpDetails) (domain.Ips, error) {
 	return ips, nil
 }
 
-func convertIp(sdkIp publicCloud.IpDetails) (*domain.Ip, error) {
+func convertIpDetails(sdkIp publicCloud.IpDetails) (*domain.Ip, error) {
 	networkType, err := enum.NewNetworkType(string(sdkIp.GetNetworkType()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertIp: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertIpDetails: %w", err)
 	}
 
 	optionalIpValues := domain.OptionalIpValues{
@@ -194,6 +282,32 @@ func convertIp(sdkIp publicCloud.IpDetails) (*domain.Ip, error) {
 	if sdkDdos != nil {
 		ddos := convertDdos(*sdkDdos)
 		optionalIpValues.Ddos = &ddos
+	}
+
+	ip := domain.NewIp(
+		sdkIp.GetIp(),
+		sdkIp.GetPrefixLength(),
+		int(sdkIp.GetVersion()),
+		sdkIp.GetNullRouted(),
+		sdkIp.GetMainIp(),
+		networkType,
+		optionalIpValues,
+	)
+
+	return &ip, nil
+}
+
+func convertIp(sdkIp publicCloud.Ip) (*domain.Ip, error) {
+	networkType, err := enum.NewNetworkType(string(sdkIp.GetNetworkType()))
+	if err != nil {
+		return nil, fmt.Errorf(
+			"convertIpDetails: %w",
+			err,
+		)
+	}
+
+	optionalIpValues := domain.OptionalIpValues{
+		ReverseLookup: convertNullableStringToValue(sdkIp.ReverseLookup),
 	}
 
 	ip := domain.NewIp(
@@ -221,34 +335,22 @@ func convertContract(sdkContract publicCloud.Contract) (*domain.Contract, error)
 		int(sdkContract.GetBillingFrequency()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertContract: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertContract: %w", err)
 	}
 
 	contractTerm, err := enum.NewContractTerm(int(sdkContract.GetTerm()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertContract: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertContract: %w", err)
 	}
 
 	contractType, err := enum.NewContractType(string(sdkContract.GetType()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertContract: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertContract: %w", err)
 	}
 
 	contractState, err := enum.NewContractState(string(sdkContract.GetState()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertContract: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertContract: %w", err)
 	}
 
 	contract, err := domain.NewContract(
@@ -262,10 +364,7 @@ func convertContract(sdkContract publicCloud.Contract) (*domain.Contract, error)
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertContract: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertContract: %w", err)
 	}
 
 	return contract, nil
@@ -283,54 +382,42 @@ func convertPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) domain.
 	}
 }
 
-func convertAutoScalingGroup(
+func convertAutoScalingGroupDetails(
 	sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-	loadBalancer *domain.LoadBalancer,
 ) (
 	*domain.AutoScalingGroup,
 	error,
 ) {
-	if sdkAutoScalingGroup.LoadBalancer.Get() != nil && loadBalancer == nil {
-		return nil, errLoadBalancerNotFound{msg: fmt.Sprintf(
-			"required loadBalacner %q linked to autoScalingGroup %q has not been passed",
-			sdkAutoScalingGroup.LoadBalancer.Get().GetId(),
-			sdkAutoScalingGroup.GetId(),
-		)}
-	}
+	var loadBalancer *domain.LoadBalancer
 
 	autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertAutoScalingGroup: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
 	}
 
 	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
 		string(sdkAutoScalingGroup.GetType()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertAutoScalingGroup: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
 	}
 
 	state, err := enum.NewAutoScalingGroupState(string(sdkAutoScalingGroup.GetState()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertAutoScalingGroup: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
 	}
 
 	reference, err := value_object.NewAutoScalingGroupReference(sdkAutoScalingGroup.GetReference())
-
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertAutoScalingGroup: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
+	}
+
+	sdkLoadBalancer, _ := sdkAutoScalingGroup.GetLoadBalancerOk()
+	if sdkLoadBalancer != nil {
+		loadBalancer, err = convertLoadBalancer(*sdkLoadBalancer)
+		if err != nil {
+			return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
+		}
 	}
 
 	options := domain.AutoScalingGroupOptions{
@@ -376,40 +463,28 @@ func convertNullableInt32ToValue(nullableInt publicCloud.NullableInt32) *int {
 	return &value
 }
 
-func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
+func convertLoadBalancerDetails(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 	*domain.LoadBalancer,
 	error,
 ) {
 	loadBalancerId, err := value_object.NewUuid(sdkLoadBalancer.Id)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertLoadBalancer: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
 	}
 
 	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertLoadBalancer: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
 	}
 
 	contract, err := convertContract(sdkLoadBalancer.GetContract())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertLoadBalancer: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
 	}
 
-	ips, err := convertIps(sdkLoadBalancer.GetIps())
+	ips, err := convertIpsDetails(sdkLoadBalancer.GetIps())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertLoadBalancer:  %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertLoadBalancerDetails:  %w", err)
 	}
 
 	options := domain.OptionalLoadBalancerValues{
@@ -420,10 +495,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 	if sdkLoadBalancer.Configuration.Get() != nil {
 		configuration, err := convertLoadBalancerConfiguration(sdkLoadBalancer.GetConfiguration())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"convertLoadBalancer:  %w",
-				err,
-			)
+			return nil, fmt.Errorf("convertLoadBalancerDetails:  %w", err)
 		}
 		options.Configuration = configuration
 	}
@@ -447,16 +519,46 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
 	return &loadBalancer, nil
 }
 
+func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
+	*domain.LoadBalancer,
+	error,
+) {
+	loadBalancerId, err := value_object.NewUuid(sdkLoadBalancer.Id)
+	if err != nil {
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
+	}
+
+	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
+	if err != nil {
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
+	}
+
+	options := domain.OptionalLoadBalancerValues{
+		Reference: convertNullableStringToValue(sdkLoadBalancer.Reference),
+		StartedAt: convertNullableTimeToValue(sdkLoadBalancer.StartedAt),
+	}
+
+	loadBalancer := domain.NewLoadBalancer(
+		*loadBalancerId,
+		sdkLoadBalancer.GetType(),
+		convertResources(sdkLoadBalancer.GetResources()),
+		"",
+		state,
+		domain.Contract{},
+		domain.Ips{},
+		options,
+	)
+
+	return &loadBalancer, nil
+}
+
 func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.LoadBalancerConfiguration) (
 	*domain.LoadBalancerConfiguration,
 	error,
 ) {
 	balance, err := enum.NewBalance(string(sdkLoadBalancerConfiguration.GetBalance()))
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertLoadBalancerConfiguration: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertLoadBalancerConfiguration: %w", err)
 	}
 
 	options := domain.OptionalLoadBalancerConfigurationOptions{
@@ -469,10 +571,7 @@ func convertLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.L
 	if sdkLoadBalancerConfiguration.HealthCheck.Get() != nil {
 		healthCheck, err := convertHealthCheck(*sdkLoadBalancerConfiguration.HealthCheck.Get())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"convertLoadBalancerConfiguration: %w",
-				err,
-			)
+			return nil, fmt.Errorf("convertLoadBalancerConfiguration: %w", err)
 		}
 
 		options.HealthCheck = healthCheck
@@ -502,10 +601,7 @@ func convertHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 ) {
 	method, err := enum.NewMethod(sdkHealthCheck.GetMethod())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"convertHealthCheck: %w",
-			err,
-		)
+		return nil, fmt.Errorf("convertHealthCheck: %w", err)
 	}
 
 	healthCheck := domain.NewHealthCheck(
@@ -637,4 +733,58 @@ func convertInstanceType(sdkInstanceType publicCloud.InstanceType) domain.Instan
 
 func convertRegion(sdkRegion publicCloud.Region) domain.Region {
 	return domain.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
+}
+
+func convertAutoScalingGroup(
+	sdkAutoScalingGroup publicCloud.AutoScalingGroup,
+) (
+	*domain.AutoScalingGroup,
+	error,
+) {
+	autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
+	if err != nil {
+		return nil, fmt.Errorf("convertAutoScalingGroup: %w", err)
+	}
+
+	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
+		string(sdkAutoScalingGroup.GetType()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("convertAutoScalingGroup: %w", err)
+	}
+
+	state, err := enum.NewAutoScalingGroupState(string(sdkAutoScalingGroup.GetState()))
+	if err != nil {
+		return nil, fmt.Errorf("convertAutoScalingGroup: %w", err)
+	}
+
+	reference, err := value_object.NewAutoScalingGroupReference(sdkAutoScalingGroup.GetReference())
+
+	if err != nil {
+		return nil, fmt.Errorf("convertAutoScalingGroup: %w", err)
+	}
+
+	options := domain.AutoScalingGroupOptions{
+		DesiredAmount: convertNullableInt32ToValue(sdkAutoScalingGroup.DesiredAmount),
+		MinimumAmount: convertNullableInt32ToValue(sdkAutoScalingGroup.MinimumAmount),
+		MaximumAmount: convertNullableInt32ToValue(sdkAutoScalingGroup.MaximumAmount),
+		CpuThreshold:  convertNullableInt32ToValue(sdkAutoScalingGroup.CpuThreshold),
+		CoolDownTime:  convertNullableInt32ToValue(sdkAutoScalingGroup.CooldownTime),
+		StartsAt:      convertNullableTimeToValue(sdkAutoScalingGroup.StartsAt),
+		EndsAt:        convertNullableTimeToValue(sdkAutoScalingGroup.EndsAt),
+		WarmupTime:    convertNullableInt32ToValue(sdkAutoScalingGroup.WarmupTime),
+	}
+
+	autoScalingGroup := domain.NewAutoScalingGroup(
+		*autoScalingGroupId,
+		autoScalingGroupType,
+		state,
+		sdkAutoScalingGroup.GetRegion(),
+		*reference,
+		sdkAutoScalingGroup.GetCreatedAt(),
+		sdkAutoScalingGroup.GetUpdatedAt(),
+		options,
+	)
+
+	return &autoScalingGroup, nil
 }

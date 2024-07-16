@@ -17,12 +17,24 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 	domain.Instances,
 	error,
 ) {
+	var detailedInstances domain.Instances
+
 	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
 		return domain.Instances{}, fmt.Errorf("GetALlInstances: %w", err)
 	}
 
-	return instances, nil
+	// Get instance details.
+	for _, instance := range instances {
+		detailedInstance, err := srv.GetInstance(instance.Id, ctx)
+		if err != nil {
+			return domain.Instances{}, fmt.Errorf("GetallAllInstances: %w", err)
+		}
+
+		detailedInstances = append(detailedInstances, *detailedInstance)
+	}
+
+	return detailedInstances, nil
 }
 
 func (srv Service) GetInstance(
@@ -34,7 +46,7 @@ func (srv Service) GetInstance(
 		return nil, fmt.Errorf("GetInstance: %w", err)
 	}
 
-	return instance, nil
+	return srv.populateMissingInstanceAttributes(*instance, ctx)
 }
 
 func (srv Service) CreateInstance(
@@ -46,7 +58,8 @@ func (srv Service) CreateInstance(
 		return nil, fmt.Errorf("CreateInstance: %w", err)
 	}
 
-	return createdInstance, nil
+	// call GetInstance as createdInstance is created from instance and not instanceDetails
+	return srv.GetInstance(createdInstance.Id, ctx)
 }
 
 func (srv Service) UpdateInstance(
@@ -58,7 +71,7 @@ func (srv Service) UpdateInstance(
 		return nil, fmt.Errorf("UpdateInstance: %w", err)
 	}
 
-	return updatedInstance, nil
+	return srv.populateMissingInstanceAttributes(*updatedInstance, ctx)
 }
 
 func (srv Service) DeleteInstance(
@@ -92,6 +105,39 @@ func (srv Service) GetRegions(ctx context.Context) (domain.Regions, error) {
 	}
 
 	return regions, nil
+}
+
+// Populate instance with autoScalingGroupDetails & loadBalancerDetails
+func (srv Service) populateMissingInstanceAttributes(
+	instance domain.Instance,
+	ctx context.Context,
+) (*domain.Instance, error) {
+	// Get autoScalingGroupDetails.
+	if instance.AutoScalingGroup != nil {
+		autoScalingGroup, err := srv.publicCloudRepository.GetAutoScalingGroup(
+			instance.AutoScalingGroup.Id,
+			ctx,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("populateMissingInstanceAttributes: %w", err)
+		}
+
+		// Get loadBalancerDetails.
+		if autoScalingGroup.LoadBalancer != nil {
+			loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(
+				instance.AutoScalingGroup.Id,
+				ctx,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("populateMissingInstanceAttributes: %w", err)
+			}
+			autoScalingGroup.LoadBalancer = loadBalancer
+		}
+
+		instance.AutoScalingGroup = autoScalingGroup
+	}
+
+	return &instance, nil
 }
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {
