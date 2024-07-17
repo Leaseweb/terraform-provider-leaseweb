@@ -26,6 +26,16 @@ const (
 	WindowsServer2022Standard64Bit ImageId = "WINDOWS_SERVER_2022_STANDARD_64BIT"
 )
 
+func (i ImageId) Values() []string {
+	var stringValues []string
+
+	for _, imageId := range imageIds {
+		stringValues = append(stringValues, string(imageId))
+	}
+
+	return stringValues
+}
+
 var imageIds = []ImageId{
 	Almalinux864Bit,
 	Almalinux964Bit,
