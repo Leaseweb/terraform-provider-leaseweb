@@ -2,11 +2,11 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
@@ -113,7 +113,7 @@ func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
 			func(
 				ctx context.Context,
 				entity mockDomainEntity,
-			) (model *mockModel, diagnostics diag.Diagnostics) {
+			) (model *mockModel, err error) {
 
 				return &mockModel{Value: "tralala"}, nil
 			},
@@ -130,7 +130,7 @@ func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
 			func(
 				ctx context.Context,
 				entity mockDomainEntity,
-			) (model *mockModel, diagnostics diag.Diagnostics) {
+			) (model *mockModel, err error) {
 
 				return &mockModel{Value: "tralala"}, nil
 			},
@@ -141,23 +141,21 @@ func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, diags := ConvertNullableDomainEntityToResourceObject(
+		got, err := ConvertNullableDomainEntityToResourceObject(
 			&entity,
 			map[string]attr.Type{},
 			context.TODO(),
 			func(
 				ctx context.Context,
 				entity mockDomainEntity,
-			) (model *mockModel, diagnostics diag.Diagnostics) {
-				diagnostics.AddError("tralala", "")
-
-				return nil, diagnostics
+			) (model *mockModel, err error) {
+				return nil, errors.New("tralala")
 			},
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Equal(t, 1, diags.ErrorsCount())
-		assert.Equal(t, "tralala", diags[0].Summary())
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -165,42 +163,40 @@ func TestConvertDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, diags := ConvertDomainEntityToResourceObject(
+		got, err := ConvertDomainEntityToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
 			func(
 				ctx context.Context,
 				entity mockDomainEntity,
-			) (model *mockModel, diagnostics diag.Diagnostics) {
-				diagnostics.AddError("tralala", "")
-
-				return nil, diagnostics
+			) (model *mockModel, err error) {
+				return nil, errors.New("tralala")
 			},
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Equal(t, 1, diags.ErrorsCount())
-		assert.Equal(t, "tralala", diags[0].Summary())
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
-		got, diags := ConvertDomainEntityToResourceObject(
+		got, err := ConvertDomainEntityToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
 			func(
 				ctx context.Context,
 				entity mockDomainEntity,
-			) (model *mockModel, diagnostics diag.Diagnostics) {
+			) (model *mockModel, err error) {
 
 				return &mockModel{}, nil
 			},
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Equal(t, 1, diags.ErrorsCount())
-		assert.Equal(t, "Value Conversion Error", diags[0].Summary())
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "Value Conversion Error")
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
@@ -211,7 +207,7 @@ func TestConvertDomainEntityToResourceObject(t *testing.T) {
 			func(
 				ctx context.Context,
 				entity mockDomainEntity,
-			) (model *mockModel, diagnostics diag.Diagnostics) {
+			) (*mockModel, error) {
 
 				return &mockModel{Value: "tralala"}, nil
 			},
@@ -270,7 +266,7 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 				func(
 					ctx context.Context,
 					entity mockDomainEntity,
-				) (model *mockModel, diagnostics diag.Diagnostics) {
+				) (*mockModel, error) {
 
 					return &mockModel{Value: "tralala"}, nil
 				},
@@ -289,42 +285,41 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"error is returned if list element cannot be converted",
 		func(t *testing.T) {
-			_, diags := ConvertEntitiesToListValue(
+			_, err := ConvertEntitiesToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
 				func(
 					ctx context.Context,
 					entity mockDomainEntity,
-				) (model *mockModel, diagnostics diag.Diagnostics) {
-					diagnostics.AddError("tralala", "")
-					return nil, diagnostics
+				) (*mockModel, error) {
+					return nil, errors.New("tralala")
 				},
 			)
 
-			assert.NotNil(t, diags)
-			assert.Equal(t, diags.Errors()[0].Summary(), "tralala")
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "tralala")
 		},
 	)
 
 	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
-			_, diags := ConvertEntitiesToListValue(
+			_, err := ConvertEntitiesToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
 				func(
 					ctx context.Context,
 					entity mockDomainEntity,
-				) (model *mockModel, diagnostics diag.Diagnostics) {
+				) (*mockModel, error) {
 
 					return &mockModel{Value: "tralala"}, nil
 				},
 			)
 
-			assert.NotNil(t, diags)
-			assert.Equal(t, diags.Errors()[0].Summary(), "Value Conversion Error")
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "Value Conversion Error")
 		},
 	)
 }

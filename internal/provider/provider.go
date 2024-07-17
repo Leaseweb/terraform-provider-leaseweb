@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"terraform-provider-leaseweb/internal/provider/client"
-	"terraform-provider-leaseweb/internal/public_cloud/data_source/instances"
-	"terraform-provider-leaseweb/internal/public_cloud/resource/instance"
+	"terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/instances"
+	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance"
 )
 
 var (

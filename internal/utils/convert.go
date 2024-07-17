@@ -2,10 +2,10 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -39,14 +39,14 @@ func ConvertNullableStringToStringValue(value *string) basetypes.StringValue {
 
 // ConvertNullableDomainEntityToDatasourceModel Convert nullable domain entity to datasource model.
 func ConvertNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
-	value *T,
+	entity *T,
 	generateModel func(sdkEntity T) *U,
 ) *U {
-	if value == nil {
+	if entity == nil {
 		return nil
 	}
 
-	return generateModel(*value)
+	return generateModel(*entity)
 }
 
 // ConvertNullableDomainEntityToResourceObject Convert nullable domain entity to resource object.
@@ -57,23 +57,23 @@ func ConvertNullableDomainEntityToResourceObject[T any, U any](
 	generateResourceObject func(
 		ctx context.Context,
 		entity T,
-	) (
-		model *U,
-		diagnostics diag.Diagnostics,
-	)) (basetypes.ObjectValue, diag.Diagnostics) {
+	) (*U, error)) (basetypes.ObjectValue, error) {
 	if entity == nil {
 		return types.ObjectNull(attributeTypes), nil
 	}
 
-	resourceObject, diags := ConvertDomainEntityToResourceObject(
+	resourceObject, err := ConvertDomainEntityToResourceObject(
 		*entity,
 		attributeTypes,
 		ctx,
 		generateResourceObject,
 	)
 
-	if diags.HasError() {
-		return types.ObjectUnknown(attributeTypes), diags
+	if err != nil {
+		return types.ObjectUnknown(attributeTypes), fmt.Errorf(
+			"unable to convert domain entity to resource: %w",
+			err,
+		)
 	}
 
 	return resourceObject, nil
@@ -87,11 +87,14 @@ func ConvertDomainEntityToResourceObject[T any, U any](
 	generateResourceObject func(
 		ctx context.Context,
 		entity T,
-	) (model *U, diagnostics diag.Diagnostics),
-) (basetypes.ObjectValue, diag.Diagnostics) {
-	resourceObject, diags := generateResourceObject(ctx, entity)
-	if diags.HasError() {
-		return types.ObjectUnknown(attributeTypes), diags
+	) (*U, error),
+) (basetypes.ObjectValue, error) {
+	resourceObject, err := generateResourceObject(ctx, entity)
+	if err != nil {
+		return types.ObjectUnknown(attributeTypes), fmt.Errorf(
+			"unable to convert domain entity to resource: %w",
+			err,
+		)
 	}
 
 	objectValue, diags := types.ObjectValueFrom(
@@ -100,7 +103,14 @@ func ConvertDomainEntityToResourceObject[T any, U any](
 		resourceObject,
 	)
 	if diags.HasError() {
-		return types.ObjectUnknown(attributeTypes), diags
+		for _, diag := range diags {
+			return types.ObjectUnknown(attributeTypes), fmt.Errorf(
+				"unable to convert domain entity to resource: %q %q",
+				diag.Summary(),
+				diag.Detail(),
+			)
+		}
+
 	}
 
 	return objectValue, nil
@@ -114,14 +124,17 @@ func ConvertEntitiesToListValue[T any, U any](
 	generateTerraformModel func(
 		ctx context.Context,
 		entity T,
-	) (model *U, diagnostics diag.Diagnostics),
-) (basetypes.ListValue, diag.Diagnostics) {
+	) (*U, error),
+) (basetypes.ListValue, error) {
 	var listValues []U
 
 	for _, value := range entities {
-		resourceObject, diags := generateTerraformModel(ctx, value)
-		if diags.HasError() {
-			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), diags
+		resourceObject, err := generateTerraformModel(ctx, value)
+		if err != nil {
+			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
+				"unable to convert domain entity to resource: %w",
+				err,
+			)
 		}
 		listValues = append(listValues, *resourceObject)
 	}
@@ -133,7 +146,13 @@ func ConvertEntitiesToListValue[T any, U any](
 	)
 
 	if diags.HasError() {
-		return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), diags
+		for _, diag := range diags {
+			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
+				"unable to convert domain entity to resource: %q %q",
+				diag.Summary(),
+				diag.Detail(),
+			)
+		}
 	}
 
 	return listObject, nil

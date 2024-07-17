@@ -1,13 +1,13 @@
 package client
 
 import (
-	"terraform-provider-leaseweb/internal/core/ports"
-	"terraform-provider-leaseweb/internal/core/services/public_cloud"
+	public_cloud_service "terraform-provider-leaseweb/internal/core/services/public_cloud"
+	"terraform-provider-leaseweb/internal/handlers/public_cloud"
 	"terraform-provider-leaseweb/internal/repositories/instance_repository"
 )
 
 type Client struct {
-	PublicCloud ports.PublicCloudService
+	PublicCloudHandler public_cloud.PublicCloudHandler
 }
 
 type Optional struct {
@@ -20,6 +20,7 @@ func NewClient(token string, optional Optional) Client {
 		token,
 		instance_repository.Optional{Host: optional.Host, Scheme: optional.Scheme},
 	)
+	publicCloudService := public_cloud_service.New(publicCloudRepository)
 
-	return Client{PublicCloud: public_cloud.New(publicCloudRepository)}
+	return Client{PublicCloudHandler: public_cloud.NewPublicCloudHandler(publicCloudService)}
 }
