@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
+	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	customerValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
 
@@ -219,8 +220,7 @@ func (i *instanceResource) Schema(
 				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(
-							`^(ssh-dss|ecdsa-sha2-nistp256|ssh-ed25519|ssh-rsa)\s+(?:[a-zA-Z0-9+/]{4})*(?:|[a-zA-Z0-9+/]{3}=|[a-zA-Z0-9+/]{2}==|[a-zA-Z0-9+/]===)[\s+\x21-\x7F]+$`),
+						regexp.MustCompile(value_object.SshRegexp),
 						"Invalid ssh key",
 					),
 				},
