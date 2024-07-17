@@ -241,7 +241,7 @@ func (i *instanceResource) Schema(
 				Description: "The root disk's storage type",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						[]string{"LOCAL", "CENTRAL"}...,
+						enum.RootDiskStorageTypeCentral.Values()...,
 					),
 				},
 			},

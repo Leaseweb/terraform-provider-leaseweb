@@ -20,3 +20,10 @@ func TestNewRootDiskStorageType(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 }
+
+func TestRootDiskStorageType_Values(t *testing.T) {
+	want := []string{"CENTRAL", "LOCAL"}
+	got := RootDiskStorageTypeCentral.Values()
+
+	assert.EqualValues(t, want, got)
+}

@@ -43,5 +43,5 @@ func TestImageId_Values(t *testing.T) {
 	}
 	got := Debian1264Bit.Values()
 
-	assert.Equal(t, want, got)
+	assert.EqualValues(t, want, got)
 }
