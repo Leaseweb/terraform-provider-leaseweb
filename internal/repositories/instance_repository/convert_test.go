@@ -213,7 +213,7 @@ func Test_convertInstanceDetails(t *testing.T) {
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
 				State:               publicCloud.STATE_RUNNING,
-				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				Type:                publicCloud.TYPENAME_M3_LARGE,
 				RootDiskSize:        50,
 				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract:            publicCloud.Contract{BillingFrequency: 55},
@@ -230,7 +230,7 @@ func Test_convertInstanceDetails(t *testing.T) {
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.Image{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
 				State:               publicCloud.STATE_RUNNING,
-				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				Type:                publicCloud.TYPENAME_M3_LARGE,
 				RootDiskSize:        50,
 				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract: publicCloud.Contract{
@@ -259,7 +259,7 @@ func generateInstanceDetails(
 
 	return *publicCloud.NewInstanceDetails(
 		instanceId,
-		publicCloud.INSTANCETYPENAME_M3_LARGE,
+		publicCloud.TYPENAME_M3_LARGE,
 		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
 		"region",
 		*publicCloud.NewNullableString(&reference),
@@ -299,7 +299,7 @@ func generateInstance(
 
 	return *publicCloud.NewInstance(
 		instanceId,
-		publicCloud.INSTANCETYPENAME_M3_LARGE,
+		publicCloud.TYPENAME_M3_LARGE,
 		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
 		"region",
 		*publicCloud.NewNullableString(&reference),
@@ -966,7 +966,7 @@ func Test_convertEntityToLaunchInstanceOpts(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, publicCloud.INSTANCETYPENAME_C3_4XLARGE, got.Type)
+		assert.Equal(t, publicCloud.TYPENAME_C3_4XLARGE, got.Type)
 		assert.Equal(
 			t,
 			publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
@@ -1070,7 +1070,7 @@ func Test_convertEntityToUpdateInstanceOpts(t *testing.T) {
 		got, err := convertEntityToUpdateInstanceOpts(instance)
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicCloud.INSTANCETYPENAME_C3_LARGE, got.GetType())
+		assert.Equal(t, publicCloud.TYPENAME_C3_LARGE, got.GetType())
 		assert.Equal(t, "reference", got.GetReference())
 		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.GetContractType())
 		assert.Equal(t, publicCloud.CONTRACTTERM__3, got.GetContractTerm())
@@ -1211,7 +1211,7 @@ func Test_convertInstance(t *testing.T) {
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.Image{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
 				State:               publicCloud.STATE_RUNNING,
-				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				Type:                publicCloud.TYPENAME_M3_LARGE,
 				RootDiskSize:        50,
 				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract:            publicCloud.Contract{BillingFrequency: 55},
@@ -1228,7 +1228,7 @@ func Test_convertInstance(t *testing.T) {
 				Id:                  "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 				Image:               publicCloud.Image{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
 				State:               publicCloud.STATE_RUNNING,
-				Type:                publicCloud.INSTANCETYPENAME_M3_LARGE,
+				Type:                publicCloud.TYPENAME_M3_LARGE,
 				RootDiskSize:        50,
 				RootDiskStorageType: publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 				Contract: publicCloud.Contract{

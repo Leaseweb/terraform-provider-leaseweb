@@ -507,7 +507,7 @@ func convertLoadBalancerDetails(sdkLoadBalancer publicCloud.LoadBalancerDetails)
 
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		sdkLoadBalancer.GetType(),
+		string(sdkLoadBalancer.GetType()),
 		convertResources(sdkLoadBalancer.GetResources()),
 		sdkLoadBalancer.GetRegion(),
 		state,
@@ -540,7 +540,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		sdkLoadBalancer.GetType(),
+		string(sdkLoadBalancer.GetType()),
 		convertResources(sdkLoadBalancer.GetResources()),
 		"",
 		state,
@@ -620,7 +620,7 @@ func convertEntityToLaunchInstanceOpts(instance domain.Instance) (
 	*publicCloud.LaunchInstanceOpts,
 	error,
 ) {
-	instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(
+	instanceTypeName, err := publicCloud.NewTypeNameFromValue(
 		instance.Type,
 	)
 	if err != nil {
@@ -693,7 +693,7 @@ func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 	}
 
 	if instance.Type != "" {
-		instanceTypeName, err := publicCloud.NewInstanceTypeNameFromValue(instance.Type)
+		instanceTypeName, err := publicCloud.NewTypeNameFromValue(instance.Type)
 		if err != nil {
 			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
