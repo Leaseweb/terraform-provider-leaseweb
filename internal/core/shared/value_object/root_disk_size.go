@@ -13,8 +13,8 @@ func (e InvalidRootDiskSize) Error() string {
 	return e.msg
 }
 
-const minRootDiskSize int = 5
-const maxRootDiskSize int = 1000
+const MinRootDiskSize int = 5
+const MaxRootDiskSize int = 1000
 
 type RootDiskSize struct {
 	Value           int
@@ -23,22 +23,22 @@ type RootDiskSize struct {
 }
 
 func NewRootDiskSize(value int) (*RootDiskSize, error) {
-	if value < minRootDiskSize {
+	if value < MinRootDiskSize {
 		return nil, InvalidRootDiskSize{
 			msg: fmt.Sprintf(
 				"value %d is too small, minimum rootDiskSize is %d",
 				value,
-				minRootDiskSize,
+				MinRootDiskSize,
 			),
 			value: value,
 		}
 	}
-	if value > maxRootDiskSize {
+	if value > MaxRootDiskSize {
 		return nil, InvalidRootDiskSize{
 			msg: fmt.Sprintf(
 				"value %d is too large, maximum rootDiskSize is %d",
 				value,
-				maxRootDiskSize,
+				MaxRootDiskSize,
 			),
 			value: value,
 		}
