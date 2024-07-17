@@ -10,9 +10,9 @@ import (
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/handlers/shared"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourcesModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
-	"terraform-provider-leaseweb/internal/utils"
 )
 
 func returnError(functionName string, diags diag.Diagnostics) error {
@@ -36,7 +36,7 @@ func convertInstanceToResourceModel(
 
 	plan.Id = basetypes.NewStringValue(instance.Id.String())
 	plan.Region = basetypes.NewStringValue(instance.Region)
-	plan.Reference = utils.ConvertNullableStringToStringValue(instance.Reference)
+	plan.Reference = shared.ConvertNullableStringToStringValue(instance.Reference)
 	plan.State = basetypes.NewStringValue(string(instance.State))
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
 	plan.HasPublicIpv4 = basetypes.NewBoolValue(instance.HasPublicIpv4)
@@ -44,14 +44,14 @@ func convertInstanceToResourceModel(
 	plan.Type = basetypes.NewStringValue(instance.Type)
 	plan.RootDiskSize = basetypes.NewInt64Value(int64(instance.RootDiskSize.Value))
 	plan.RootDiskStorageType = basetypes.NewStringValue(string(instance.RootDiskStorageType))
-	plan.StartedAt = utils.ConvertNullableTimeToStringValue(instance.StartedAt)
-	plan.MarketAppId = utils.ConvertNullableStringToStringValue(instance.MarketAppId)
+	plan.StartedAt = shared.ConvertNullableTimeToStringValue(instance.StartedAt)
+	plan.MarketAppId = shared.ConvertNullableStringToStringValue(instance.MarketAppId)
 
 	if instance.SshKey != nil {
 		plan.SshKey = basetypes.NewStringValue(instance.SshKey.String())
 	}
 
-	image, err := utils.ConvertDomainEntityToResourceObject(
+	image, err := shared.ConvertDomainEntityToResourceObject(
 		instance.Image,
 		resourcesModel.Image{}.AttributeTypes(),
 		ctx,
@@ -62,7 +62,7 @@ func convertInstanceToResourceModel(
 	}
 	plan.Image = image
 
-	contract, err := utils.ConvertDomainEntityToResourceObject(
+	contract, err := shared.ConvertDomainEntityToResourceObject(
 		instance.Contract,
 		resourcesModel.Contract{}.AttributeTypes(),
 		ctx,
@@ -73,7 +73,7 @@ func convertInstanceToResourceModel(
 	}
 	plan.Contract = contract
 
-	iso, err := utils.ConvertNullableDomainEntityToResourceObject(
+	iso, err := shared.ConvertNullableDomainEntityToResourceObject(
 		instance.Iso,
 		resourcesModel.Iso{}.AttributeTypes(),
 		ctx,
@@ -84,7 +84,7 @@ func convertInstanceToResourceModel(
 	}
 	plan.Iso = iso
 
-	privateNetwork, err := utils.ConvertNullableDomainEntityToResourceObject(
+	privateNetwork, err := shared.ConvertNullableDomainEntityToResourceObject(
 		instance.PrivateNetwork,
 		resourcesModel.PrivateNetwork{}.AttributeTypes(),
 		ctx,
@@ -95,7 +95,7 @@ func convertInstanceToResourceModel(
 	}
 	plan.PrivateNetwork = privateNetwork
 
-	resources, err := utils.ConvertDomainEntityToResourceObject(
+	resources, err := shared.ConvertDomainEntityToResourceObject(
 		instance.Resources,
 		resourcesModel.Resources{}.AttributeTypes(),
 		ctx,
@@ -106,7 +106,7 @@ func convertInstanceToResourceModel(
 	}
 	plan.Resources = resources
 
-	autoScalingGroup, err := utils.ConvertNullableDomainEntityToResourceObject(
+	autoScalingGroup, err := shared.ConvertNullableDomainEntityToResourceObject(
 		instance.AutoScalingGroup,
 		resourcesModel.AutoScalingGroup{}.AttributeTypes(),
 		ctx,
@@ -117,7 +117,7 @@ func convertInstanceToResourceModel(
 	}
 	plan.AutoScalingGroup = autoScalingGroup
 
-	ips, err := utils.ConvertEntitiesToListValue(
+	ips, err := shared.ConvertEntitiesToListValue(
 		instance.Ips,
 		resourcesModel.Ip{}.AttributeTypes(),
 		ctx,
@@ -176,7 +176,7 @@ func convertContractToResourceModel(
 		BillingFrequency: basetypes.NewInt64Value(int64(contract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(contract.Term)),
 		Type:             basetypes.NewStringValue(string(contract.Type)),
-		EndsAt:           utils.ConvertNullableTimeToStringValue(contract.EndsAt),
+		EndsAt:           shared.ConvertNullableTimeToStringValue(contract.EndsAt),
 		RenewalsAt:       basetypes.NewStringValue(contract.RenewalsAt.String()),
 		CreatedAt:        basetypes.NewStringValue(contract.CreatedAt.String()),
 		State:            basetypes.NewStringValue(string(contract.State)),
@@ -210,7 +210,7 @@ func convertResourcesToResourceModel(
 ) (*resourcesModel.Resources, error) {
 	var resources resourcesModel.Resources
 
-	cpu, cpuDiags := utils.ConvertDomainEntityToResourceObject(
+	cpu, cpuDiags := shared.ConvertDomainEntityToResourceObject(
 		domainResources.Cpu,
 		resourcesModel.Cpu{}.AttributeTypes(),
 		ctx,
@@ -221,7 +221,7 @@ func convertResourcesToResourceModel(
 	}
 	resources.Cpu = cpu
 
-	memory, memoryDiags := utils.ConvertDomainEntityToResourceObject(
+	memory, memoryDiags := shared.ConvertDomainEntityToResourceObject(
 		domainResources.Memory,
 		resourcesModel.Memory{}.AttributeTypes(),
 		ctx,
@@ -232,7 +232,7 @@ func convertResourcesToResourceModel(
 	}
 	resources.Memory = memory
 
-	publicNetworkSpeed, publicNetworkSpeedDiags := utils.ConvertDomainEntityToResourceObject(
+	publicNetworkSpeed, publicNetworkSpeedDiags := shared.ConvertDomainEntityToResourceObject(
 		domainResources.PublicNetworkSpeed,
 		resourcesModel.NetworkSpeed{}.AttributeTypes(),
 		ctx,
@@ -243,7 +243,7 @@ func convertResourcesToResourceModel(
 	}
 	resources.PublicNetworkSpeed = publicNetworkSpeed
 
-	privateNetworkSpeed, privateNetworkSpeedDiags := utils.ConvertDomainEntityToResourceObject(
+	privateNetworkSpeed, privateNetworkSpeedDiags := shared.ConvertDomainEntityToResourceObject(
 		domainResources.PrivateNetworkSpeed,
 		resourcesModel.NetworkSpeed{}.AttributeTypes(),
 		ctx,
@@ -293,7 +293,7 @@ func convertAutoScalingGroupToResourceModel(
 	autoScalingGroup domain.AutoScalingGroup,
 ) (*resourcesModel.AutoScalingGroup, error) {
 
-	loadBalancer, loadBalancerDiags := utils.ConvertNullableDomainEntityToResourceObject(
+	loadBalancer, loadBalancerDiags := shared.ConvertNullableDomainEntityToResourceObject(
 		autoScalingGroup.LoadBalancer,
 		resourcesModel.LoadBalancer{}.AttributeTypes(),
 		ctx,
@@ -306,18 +306,18 @@ func convertAutoScalingGroupToResourceModel(
 		Id:            basetypes.NewStringValue(autoScalingGroup.Id.String()),
 		Type:          basetypes.NewStringValue(string(autoScalingGroup.Type)),
 		State:         basetypes.NewStringValue(string(autoScalingGroup.State)),
-		DesiredAmount: utils.ConvertNullableIntToInt64Value(autoScalingGroup.DesiredAmount),
+		DesiredAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.DesiredAmount),
 		Region:        basetypes.NewStringValue(autoScalingGroup.Region),
 		Reference:     basetypes.NewStringValue(autoScalingGroup.Reference.String()),
 		CreatedAt:     basetypes.NewStringValue(autoScalingGroup.CreatedAt.String()),
 		UpdatedAt:     basetypes.NewStringValue(autoScalingGroup.UpdatedAt.String()),
-		StartsAt:      utils.ConvertNullableTimeToStringValue(autoScalingGroup.StartsAt),
-		EndsAt:        utils.ConvertNullableTimeToStringValue(autoScalingGroup.EndsAt),
-		MinimumAmount: utils.ConvertNullableIntToInt64Value(autoScalingGroup.MinimumAmount),
-		MaximumAmount: utils.ConvertNullableIntToInt64Value(autoScalingGroup.MaximumAmount),
-		CpuThreshold:  utils.ConvertNullableIntToInt64Value(autoScalingGroup.CpuThreshold),
-		WarmupTime:    utils.ConvertNullableIntToInt64Value(autoScalingGroup.WarmupTime),
-		CooldownTime:  utils.ConvertNullableIntToInt64Value(autoScalingGroup.CooldownTime),
+		StartsAt:      shared.ConvertNullableTimeToStringValue(autoScalingGroup.StartsAt),
+		EndsAt:        shared.ConvertNullableTimeToStringValue(autoScalingGroup.EndsAt),
+		MinimumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MinimumAmount),
+		MaximumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MaximumAmount),
+		CpuThreshold:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CpuThreshold),
+		WarmupTime:    shared.ConvertNullableIntToInt64Value(autoScalingGroup.WarmupTime),
+		CooldownTime:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CooldownTime),
 		LoadBalancer:  loadBalancer,
 	}, nil
 }
@@ -327,7 +327,7 @@ func convertLoadBalancerToResourceModel(
 	loadBalancer domain.LoadBalancer,
 ) (*resourcesModel.LoadBalancer, error) {
 
-	resources, diags := utils.ConvertDomainEntityToResourceObject(
+	resources, diags := shared.ConvertDomainEntityToResourceObject(
 		loadBalancer.Resources,
 		resourcesModel.Resources{}.AttributeTypes(),
 		ctx,
@@ -337,7 +337,7 @@ func convertLoadBalancerToResourceModel(
 		return nil, diags
 	}
 
-	contract, diags := utils.ConvertDomainEntityToResourceObject(
+	contract, diags := shared.ConvertDomainEntityToResourceObject(
 		loadBalancer.Contract,
 		resourcesModel.Contract{}.AttributeTypes(),
 		ctx,
@@ -347,7 +347,7 @@ func convertLoadBalancerToResourceModel(
 		return nil, diags
 	}
 
-	configuration, diags := utils.ConvertNullableDomainEntityToResourceObject(
+	configuration, diags := shared.ConvertNullableDomainEntityToResourceObject(
 		loadBalancer.Configuration,
 		resourcesModel.LoadBalancerConfiguration{}.AttributeTypes(),
 		ctx,
@@ -357,7 +357,7 @@ func convertLoadBalancerToResourceModel(
 		return nil, diags
 	}
 
-	privateNetwork, diags := utils.ConvertNullableDomainEntityToResourceObject(
+	privateNetwork, diags := shared.ConvertNullableDomainEntityToResourceObject(
 		loadBalancer.PrivateNetwork,
 		resourcesModel.PrivateNetwork{}.AttributeTypes(),
 		ctx,
@@ -367,7 +367,7 @@ func convertLoadBalancerToResourceModel(
 		return nil, diags
 	}
 
-	ips, diags := utils.ConvertEntitiesToListValue(
+	ips, diags := shared.ConvertEntitiesToListValue(
 		loadBalancer.Ips,
 		resourcesModel.Ip{}.AttributeTypes(),
 		ctx,
@@ -382,7 +382,7 @@ func convertLoadBalancerToResourceModel(
 		Type:                      basetypes.NewStringValue(loadBalancer.Type),
 		Resources:                 resources,
 		Region:                    basetypes.NewStringValue(loadBalancer.Region),
-		Reference:                 utils.ConvertNullableStringToStringValue(loadBalancer.Reference),
+		Reference:                 shared.ConvertNullableStringToStringValue(loadBalancer.Reference),
 		State:                     basetypes.NewStringValue(string(loadBalancer.State)),
 		Contract:                  contract,
 		StartedAt:                 basetypes.NewStringValue(loadBalancer.StartedAt.String()),
@@ -397,7 +397,7 @@ func convertLoadBalancerConfigurationToResourceModel(
 	configuration domain.LoadBalancerConfiguration,
 ) (*resourcesModel.LoadBalancerConfiguration, error) {
 
-	healthCheckObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
+	healthCheckObject, diags := shared.ConvertNullableDomainEntityToResourceObject(
 		configuration.HealthCheck,
 		resourcesModel.HealthCheck{}.AttributeTypes(),
 		ctx,
@@ -407,7 +407,7 @@ func convertLoadBalancerConfigurationToResourceModel(
 		return nil, diags
 	}
 
-	stickySessionObject, diags := utils.ConvertNullableDomainEntityToResourceObject(
+	stickySessionObject, diags := shared.ConvertNullableDomainEntityToResourceObject(
 		configuration.StickySession,
 		resourcesModel.StickySession{}.AttributeTypes(),
 		ctx,
@@ -435,7 +435,7 @@ func convertHealthCheckToResourceModel(
 	return &resourcesModel.HealthCheck{
 		Method: basetypes.NewStringValue(string(healthCheck.Method)),
 		Uri:    basetypes.NewStringValue(healthCheck.Uri),
-		Host:   utils.ConvertNullableStringToStringValue(healthCheck.Host),
+		Host:   shared.ConvertNullableStringToStringValue(healthCheck.Host),
 		Port:   basetypes.NewInt64Value(int64(healthCheck.Port)),
 	}, nil
 }
@@ -456,7 +456,7 @@ func convertIpToResourceModel(
 	ip domain.Ip,
 ) (*resourcesModel.Ip, error) {
 
-	ddos, diags := utils.ConvertNullableDomainEntityToResourceObject(
+	ddos, diags := shared.ConvertNullableDomainEntityToResourceObject(
 		ip.Ddos,
 		resourcesModel.Ddos{}.AttributeTypes(),
 		ctx,
@@ -474,7 +474,7 @@ func convertIpToResourceModel(
 		NullRouted:    basetypes.NewBoolValue(ip.NullRouted),
 		MainIp:        basetypes.NewBoolValue(ip.MainIp),
 		NetworkType:   basetypes.NewStringValue(string(ip.NetworkType)),
-		ReverseLookup: utils.ConvertNullableStringToStringValue(ip.ReverseLookup),
+		ReverseLookup: shared.ConvertNullableStringToStringValue(ip.ReverseLookup),
 		Ddos:          ddos,
 	}, nil
 }
@@ -609,7 +609,7 @@ func convertInstanceToDataSourceModel(domainInstance domain.Instance) dataSource
 	instance := dataSourceModel.Instance{
 		Id:                  basetypes.NewStringValue(domainInstance.Id.String()),
 		Region:              basetypes.NewStringValue(domainInstance.Region),
-		Reference:           utils.ConvertNullableStringToStringValue(domainInstance.Reference),
+		Reference:           shared.ConvertNullableStringToStringValue(domainInstance.Reference),
 		Resources:           convertResourcesToDataSourceModel(domainInstance.Resources),
 		Image:               convertImageToDataSourceModel(domainInstance.Image),
 		State:               basetypes.NewStringValue(string(domainInstance.State)),
@@ -619,18 +619,18 @@ func convertInstanceToDataSourceModel(domainInstance domain.Instance) dataSource
 		Type:                basetypes.NewStringValue(domainInstance.Type),
 		RootDiskSize:        basetypes.NewInt64Value(int64(domainInstance.RootDiskSize.Value)),
 		RootDiskStorageType: basetypes.NewStringValue(string(domainInstance.RootDiskStorageType)),
-		StartedAt:           utils.ConvertNullableTimeToStringValue(domainInstance.StartedAt),
+		StartedAt:           shared.ConvertNullableTimeToStringValue(domainInstance.StartedAt),
 		Contract:            convertContractToDataSourceModel(domainInstance.Contract),
-		MarketAppId:         utils.ConvertNullableStringToStringValue(domainInstance.MarketAppId),
-		AutoScalingGroup: utils.ConvertNullableDomainEntityToDatasourceModel(
+		MarketAppId:         shared.ConvertNullableStringToStringValue(domainInstance.MarketAppId),
+		AutoScalingGroup: shared.ConvertNullableDomainEntityToDatasourceModel(
 			domainInstance.AutoScalingGroup,
 			convertAutoScalingGroupToDataSourceModel,
 		),
-		Iso: utils.ConvertNullableDomainEntityToDatasourceModel(
+		Iso: shared.ConvertNullableDomainEntityToDatasourceModel(
 			domainInstance.Iso,
 			convertIsoToDataSourceModel,
 		),
-		PrivateNetwork: utils.ConvertNullableDomainEntityToDatasourceModel(
+		PrivateNetwork: shared.ConvertNullableDomainEntityToDatasourceModel(
 			domainInstance.PrivateNetwork,
 			convertPrivateNetworkToDataSourceModel,
 		),
@@ -706,7 +706,7 @@ func convertContractToDataSourceModel(contract domain.Contract) dataSourceModel.
 		),
 		Term:       basetypes.NewInt64Value(int64(contract.Term)),
 		Type:       basetypes.NewStringValue(string(contract.Type)),
-		EndsAt:     utils.ConvertNullableTimeToStringValue(contract.EndsAt),
+		EndsAt:     shared.ConvertNullableTimeToStringValue(contract.EndsAt),
 		RenewalsAt: basetypes.NewStringValue(contract.RenewalsAt.String()),
 		CreatedAt:  basetypes.NewStringValue(contract.CreatedAt.String()),
 		State:      basetypes.NewStringValue(string(contract.State)),
@@ -718,19 +718,19 @@ func convertAutoScalingGroupToDataSourceModel(autoScalingGroup domain.AutoScalin
 		Id:            basetypes.NewStringValue(autoScalingGroup.Id.String()),
 		Type:          basetypes.NewStringValue(string(autoScalingGroup.Type)),
 		State:         basetypes.NewStringValue(string(autoScalingGroup.State)),
-		DesiredAmount: utils.ConvertNullableIntToInt64Value(autoScalingGroup.DesiredAmount),
+		DesiredAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.DesiredAmount),
 		Region:        basetypes.NewStringValue(autoScalingGroup.Region),
 		Reference:     basetypes.NewStringValue(autoScalingGroup.Reference.String()),
 		CreatedAt:     basetypes.NewStringValue(autoScalingGroup.CreatedAt.String()),
 		UpdatedAt:     basetypes.NewStringValue(autoScalingGroup.UpdatedAt.String()),
-		StartsAt:      utils.ConvertNullableTimeToStringValue(autoScalingGroup.StartsAt),
-		EndsAt:        utils.ConvertNullableTimeToStringValue(autoScalingGroup.EndsAt),
-		MinimumAmount: utils.ConvertNullableIntToInt64Value(autoScalingGroup.MinimumAmount),
-		MaximumAmount: utils.ConvertNullableIntToInt64Value(autoScalingGroup.MaximumAmount),
-		CpuThreshold:  utils.ConvertNullableIntToInt64Value(autoScalingGroup.CpuThreshold),
-		WarmupTime:    utils.ConvertNullableIntToInt64Value(autoScalingGroup.WarmupTime),
-		CooldownTime:  utils.ConvertNullableIntToInt64Value(autoScalingGroup.CooldownTime),
-		LoadBalancer: utils.ConvertNullableDomainEntityToDatasourceModel(
+		StartsAt:      shared.ConvertNullableTimeToStringValue(autoScalingGroup.StartsAt),
+		EndsAt:        shared.ConvertNullableTimeToStringValue(autoScalingGroup.EndsAt),
+		MinimumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MinimumAmount),
+		MaximumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MaximumAmount),
+		CpuThreshold:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CpuThreshold),
+		WarmupTime:    shared.ConvertNullableIntToInt64Value(autoScalingGroup.WarmupTime),
+		CooldownTime:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CooldownTime),
+		LoadBalancer: shared.ConvertNullableDomainEntityToDatasourceModel(
 			autoScalingGroup.LoadBalancer,
 			convertLoadBalancerToDataSourceModel,
 		),
@@ -748,16 +748,16 @@ func convertLoadBalancerToDataSourceModel(loadBalancer domain.LoadBalancer) *dat
 		Type:      basetypes.NewStringValue(loadBalancer.Type),
 		Resources: convertResourcesToDataSourceModel(loadBalancer.Resources),
 		Region:    basetypes.NewStringValue(loadBalancer.Region),
-		Reference: utils.ConvertNullableStringToStringValue(loadBalancer.Reference),
+		Reference: shared.ConvertNullableStringToStringValue(loadBalancer.Reference),
 		State:     basetypes.NewStringValue(string(loadBalancer.State)),
 		Contract:  convertContractToDataSourceModel(loadBalancer.Contract),
-		StartedAt: utils.ConvertNullableTimeToStringValue(loadBalancer.StartedAt),
+		StartedAt: shared.ConvertNullableTimeToStringValue(loadBalancer.StartedAt),
 		Ips:       ips,
-		LoadBalancerConfiguration: utils.ConvertNullableDomainEntityToDatasourceModel(
+		LoadBalancerConfiguration: shared.ConvertNullableDomainEntityToDatasourceModel(
 			loadBalancer.Configuration,
 			convertLoadBalancerConfigurationToDataSourceModel,
 		),
-		PrivateNetwork: utils.ConvertNullableDomainEntityToDatasourceModel(
+		PrivateNetwork: shared.ConvertNullableDomainEntityToDatasourceModel(
 			loadBalancer.PrivateNetwork,
 			convertPrivateNetworkToDataSourceModel,
 		),
@@ -767,11 +767,11 @@ func convertLoadBalancerToDataSourceModel(loadBalancer domain.LoadBalancer) *dat
 func convertLoadBalancerConfigurationToDataSourceModel(configuration domain.LoadBalancerConfiguration) *dataSourceModel.LoadBalancerConfiguration {
 	return &dataSourceModel.LoadBalancerConfiguration{
 		Balance: basetypes.NewStringValue(configuration.Balance.String()),
-		HealthCheck: utils.ConvertNullableDomainEntityToDatasourceModel(
+		HealthCheck: shared.ConvertNullableDomainEntityToDatasourceModel(
 			configuration.HealthCheck,
 			convertHealthCheckToDataSourceModel,
 		),
-		StickySession: utils.ConvertNullableDomainEntityToDatasourceModel(
+		StickySession: shared.ConvertNullableDomainEntityToDatasourceModel(
 			configuration.StickySession,
 			convertStickySessionToDataSourceModel,
 		),
@@ -785,7 +785,7 @@ func convertHealthCheckToDataSourceModel(healthCheck domain.HealthCheck) *dataSo
 	return &dataSourceModel.HealthCheck{
 		Method: basetypes.NewStringValue(healthCheck.Method.String()),
 		Uri:    basetypes.NewStringValue(healthCheck.Uri),
-		Host:   utils.ConvertNullableStringToStringValue(healthCheck.Host),
+		Host:   shared.ConvertNullableStringToStringValue(healthCheck.Host),
 		Port:   basetypes.NewInt64Value(int64(healthCheck.Port)),
 	}
 }
@@ -820,8 +820,8 @@ func convertIpToDataSourceModel(ip domain.Ip) dataSourceModel.Ip {
 		NullRouted:    basetypes.NewBoolValue(ip.NullRouted),
 		MainIp:        basetypes.NewBoolValue(ip.MainIp),
 		NetworkType:   basetypes.NewStringValue(string(ip.NetworkType)),
-		ReverseLookup: utils.ConvertNullableStringToStringValue(ip.ReverseLookup),
-		Ddos: utils.ConvertNullableDomainEntityToDatasourceModel(
+		ReverseLookup: shared.ConvertNullableStringToStringValue(ip.ReverseLookup),
+		Ddos: shared.ConvertNullableDomainEntityToDatasourceModel(
 			ip.Ddos,
 			convertDdosToDataSourceModel,
 		),
