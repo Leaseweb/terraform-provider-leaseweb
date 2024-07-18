@@ -10,6 +10,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/ports"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/handlers/shared"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
@@ -51,11 +52,11 @@ func convertIntArrayToInt64(items []int) []int64 {
 
 func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 	*dataSourceModel.Instances,
-	error,
+	*shared.HandlerError,
 ) {
 	instances, err := h.publicCloudService.GetAllInstances(ctx)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewServiceError("GetAllInstances", err)
 	}
 
 	dataSourceInstances := convertInstancesToDataSourceModel(instances)
@@ -66,36 +67,44 @@ func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 func (h PublicCloudHandler) CreateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
-) (*resourceModel.Instance, error) {
+) (*resourceModel.Instance, *shared.HandlerError) {
 
 	createInstanceOpts, err := h.convertInstanceResourceModelToCreateInstanceOpts(
 		plan,
 		ctx,
 	)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewGeneralError("CreateInstance", err)
 	}
 
-	createdInstance, err := h.publicCloudService.CreateInstance(
+	createdInstance, serviceErr := h.publicCloudService.CreateInstance(
 		*createInstanceOpts,
 		ctx,
 	)
-	if err != nil {
-		return nil, err
+	if serviceErr != nil {
+		return nil, shared.NewServiceError("CreateInstance", serviceErr)
 	}
 
-	return h.convertInstanceToResourceModel(*createdInstance, ctx)
+	instance, err := h.convertInstanceToResourceModel(*createdInstance, ctx)
+	if err != nil {
+		return nil, shared.NewGeneralError("CreateInstance", err)
+	}
+
+	return instance, nil
 }
 
-func (h PublicCloudHandler) DeleteInstance(id string, ctx context.Context) error {
+func (h PublicCloudHandler) DeleteInstance(
+	id string,
+	ctx context.Context,
+) *shared.HandlerError {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
-		return err
+		return shared.NewGeneralError("DeleteInstance", err)
 	}
 
-	err = h.publicCloudService.DeleteInstance(*instanceId, ctx)
-	if err != nil {
-		return err
+	serviceErr := h.publicCloudService.DeleteInstance(*instanceId, ctx)
+	if serviceErr != nil {
+		return shared.NewServiceError("DeleteInstance", serviceErr)
 	}
 
 	return nil
@@ -104,19 +113,24 @@ func (h PublicCloudHandler) DeleteInstance(id string, ctx context.Context) error
 func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
-) (
-	*domain.InstanceTypes, error) {
+) (*domain.InstanceTypes, *shared.HandlerError) {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewGeneralError(
+			"GetAvailableInstanceTypesForUpdate",
+			err,
+		)
 	}
 
-	instanceTypes, err := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
+	instanceTypes, serviceErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
 		*instanceId,
 		ctx,
 	)
-	if err != nil {
-		return nil, err
+	if serviceErr != nil {
+		return nil, shared.NewServiceError(
+			"GetAvailableInstanceTypesForUpdate",
+			serviceErr,
+		)
 	}
 
 	return &instanceTypes, nil
@@ -124,11 +138,11 @@ func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 
 func (h PublicCloudHandler) GetRegions(ctx context.Context) (
 	*domain.Regions,
-	error,
+	*shared.HandlerError,
 ) {
 	regions, err := h.publicCloudService.GetRegions(ctx)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewServiceError("GetRegions", err)
 	}
 
 	return &regions, nil
@@ -137,42 +151,58 @@ func (h PublicCloudHandler) GetRegions(ctx context.Context) (
 func (h PublicCloudHandler) GetInstance(
 	id string,
 	ctx context.Context,
-) (*resourceModel.Instance, error) {
+) (*resourceModel.Instance, *shared.HandlerError) {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewGeneralError("GetInstance", err)
 	}
 
-	instance, err := h.publicCloudService.GetInstance(*instanceId, ctx)
+	instance, serviceErr := h.publicCloudService.GetInstance(*instanceId, ctx)
+	if serviceErr != nil {
+		return nil, shared.NewServiceError("GetInstance", serviceErr)
+	}
+
+	convertedInstance, err := h.convertInstanceToResourceModel(*instance, ctx)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewGeneralError("GetInstance", err)
 	}
 
-	return h.convertInstanceToResourceModel(*instance, ctx)
+	return convertedInstance, nil
 }
 
 func (h PublicCloudHandler) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
-) (*resourceModel.Instance, error) {
+) (*resourceModel.Instance, *shared.HandlerError) {
 
 	updateInstanceOpts, err := h.convertInstanceResourceModelToUpdateInstanceOpts(
 		plan,
 		ctx,
 	)
 	if err != nil {
-		return nil, err
+		return nil, shared.NewGeneralError("UpdateInstance", err)
 	}
 
-	updatedInstance, err := h.publicCloudService.UpdateInstance(
+	updatedInstance, updateInstanceErr := h.publicCloudService.UpdateInstance(
 		*updateInstanceOpts,
 		ctx,
 	)
-	if err != nil {
-		return nil, err
+	if updateInstanceErr != nil {
+		return nil, shared.NewServiceError(
+			"UpdateInstance",
+			updateInstanceErr,
+		)
 	}
 
-	return h.convertInstanceToResourceModel(*updatedInstance, ctx)
+	convertedInstance, err := h.convertInstanceToResourceModel(
+		*updatedInstance,
+		ctx,
+	)
+	if err != nil {
+		return nil, shared.NewGeneralError("UpdateInstance", err)
+	}
+
+	return convertedInstance, nil
 }
 
 func (h PublicCloudHandler) GetImageIds() []string {
@@ -215,11 +245,11 @@ func (h PublicCloudHandler) ValidateContractTerm(
 
 	contractTermEnum, err := enum.NewContractTerm(int(contractTerm))
 	if err != nil {
-		return err
+		return shared.NewGeneralError("ValidateContractTerm", err)
 	}
 	contractTypeEnum, err := enum.NewContractType(contractType)
 	if err != nil {
-		return err
+		return shared.NewGeneralError("ValidateContractType", err)
 	}
 
 	_, err = domain.NewContract(

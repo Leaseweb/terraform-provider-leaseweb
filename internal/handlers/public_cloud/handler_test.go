@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
+	"terraform-provider-leaseweb/internal/core/services/shared"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
@@ -23,24 +24,24 @@ var (
 type serviceSpy struct {
 	createInstanceOpts          *domain.Instance
 	createdInstance             *domain.Instance
-	createInstanceError         error
+	createInstanceError         *shared.ServiceError
 	getInstance                 *domain.Instance
-	getInstanceError            error
-	deleteInstanceError         error
+	getInstanceError            *shared.ServiceError
+	deleteInstanceError         *shared.ServiceError
 	instanceTypesForUpdate      domain.InstanceTypes
-	instanceTypesForUpdateError error
+	instanceTypesForUpdateError *shared.ServiceError
 	getRegions                  domain.Regions
-	getRegionsError             error
+	getRegionsError             *shared.ServiceError
 	getInstances                domain.Instances
-	getInstancesError           error
+	getInstancesError           *shared.ServiceError
 	updateInstanceOpts          *domain.Instance
 	updatedInstance             *domain.Instance
-	updateInstanceError         error
+	updateInstanceError         *shared.ServiceError
 }
 
 func (s *serviceSpy) GetAllInstances(ctx context.Context) (
 	domain.Instances,
-	error,
+	*shared.ServiceError,
 ) {
 	return s.getInstances, s.getInstancesError
 }
@@ -48,14 +49,14 @@ func (s *serviceSpy) GetAllInstances(ctx context.Context) (
 func (s *serviceSpy) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*domain.Instance, *shared.ServiceError) {
 	return s.getInstance, s.getInstanceError
 }
 
 func (s *serviceSpy) CreateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*domain.Instance, *shared.ServiceError) {
 	s.createInstanceOpts = &instance
 
 	return s.createdInstance, s.createInstanceError
@@ -64,7 +65,7 @@ func (s *serviceSpy) CreateInstance(
 func (s *serviceSpy) UpdateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*domain.Instance, *shared.ServiceError) {
 	s.updateInstanceOpts = &instance
 
 	return s.updatedInstance, s.updateInstanceError
@@ -73,18 +74,21 @@ func (s *serviceSpy) UpdateInstance(
 func (s *serviceSpy) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) error {
+) *shared.ServiceError {
 	return s.deleteInstanceError
 }
 
 func (s *serviceSpy) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (domain.InstanceTypes, error) {
+) (domain.InstanceTypes, *shared.ServiceError) {
 	return s.instanceTypesForUpdate, s.instanceTypesForUpdateError
 }
 
-func (s *serviceSpy) GetRegions(ctx context.Context) (domain.Regions, error) {
+func (s *serviceSpy) GetRegions(ctx context.Context) (
+	domain.Regions,
+	*shared.ServiceError,
+) {
 	return s.getRegions, s.getRegionsError
 }
 
@@ -134,7 +138,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 
 		got, err := handler.CreateInstance(instance, context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, createdInstanceId.String(), got.Id.ValueString())
 	})
 
@@ -162,10 +166,40 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, nil
 			},
-			publicCloudService: &serviceSpy{createInstanceError: errors.New("some error")},
+			publicCloudService: &serviceSpy{
+				createInstanceError: shared.NewGeneralError(
+					"",
+					errors.New("some error"),
+				),
+			},
 		}
 
 		_, err := handler.CreateInstance(model.Instance{}, context.TODO())
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("error is returned if convertInstanceToResourceModel fails", func(t *testing.T) {
+		createdInstance := domain.Instance{Id: value_object.NewGeneratedUuid()}
+		service := &serviceSpy{createdInstance: &createdInstance}
+		instance := model.Instance{}
+
+		handler := NewPublicCloudHandler(service)
+		handler.convertInstanceResourceModelToCreateInstanceOpts = func(
+			instance model.Instance,
+			ctx context.Context,
+		) (*domain.Instance, error) {
+			return &domain.Instance{}, nil
+		}
+		handler.convertInstanceToResourceModel = func(
+			instance domain.Instance,
+			ctx context.Context,
+		) (*model.Instance, error) {
+			return nil, errors.New("some error")
+		}
+
+		_, err := handler.CreateInstance(instance, context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
@@ -182,7 +216,7 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("invalid id returns error", func(t *testing.T) {
@@ -195,7 +229,12 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 	})
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
-		spy := &serviceSpy{deleteInstanceError: errors.New("some errors")}
+		spy := &serviceSpy{
+			deleteInstanceError: shared.NewGeneralError(
+				"",
+				errors.New("some errors"),
+			),
+		}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
 		err := handler.DeleteInstance(
@@ -220,7 +259,7 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -238,7 +277,10 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			instanceTypesForUpdateError: errors.New("some errors"),
+			instanceTypesForUpdateError: shared.NewGeneralError(
+				"",
+				errors.New("some errors"),
+			),
 		}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
@@ -261,13 +303,16 @@ func TestPublicCloudHandler_GetRegions(t *testing.T) {
 
 		got, err := handler.GetRegions(context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			getRegionsError: errors.New("some errors"),
+			getRegionsError: shared.NewGeneralError(
+				"",
+				errors.New("some errors"),
+			),
 		}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
@@ -299,9 +344,8 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 
 		got, err := handler.GetInstance(instanceId.String(), context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
-
 	})
 
 	t.Run("error is returned if id is invalid", func(t *testing.T) {
@@ -317,11 +361,42 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 		"error is returned if service GetInstance fails",
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
-				publicCloudService: &serviceSpy{getInstanceError: errors.New("some error")},
+				publicCloudService: &serviceSpy{
+					getInstanceError: shared.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
 			}
 
 			_, err := handler.GetInstance(
 				"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned if convertInstanceToResourceModel fails",
+		func(t *testing.T) {
+			sdkInstance := domain.Instance{}
+
+			spy := serviceSpy{getInstance: &sdkInstance}
+			handler := PublicCloudHandler{
+				publicCloudService: &spy,
+				convertInstanceToResourceModel: func(
+					instance domain.Instance,
+					ctx context.Context,
+				) (*model.Instance, error) {
+					return nil, errors.New("some error")
+				},
+			}
+
+			_, err := handler.GetInstance(
+				value_object.NewGeneratedUuid().String(),
 				context.TODO(),
 			)
 
@@ -354,7 +429,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 
 		got, err := handler.GetAllInstances(context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, instanceId.String(), got.Instances[0].Id.ValueString())
 	})
 
@@ -362,7 +437,12 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 		"error is returned if service GetAllInstances fails",
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
-				publicCloudService: &serviceSpy{getInstancesError: errors.New("some error")},
+				publicCloudService: &serviceSpy{
+					getInstancesError: shared.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
 			}
 
 			_, err := handler.GetAllInstances(context.TODO())
@@ -414,7 +494,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 
 		got, err := handler.UpdateInstance(plan, context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -442,7 +522,37 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, nil
 			},
-			publicCloudService: &serviceSpy{updateInstanceError: errors.New("some error")},
+			publicCloudService: &serviceSpy{
+				updateInstanceError: shared.NewGeneralError(
+					"",
+					errors.New("some error"),
+				),
+			},
+		}
+
+		_, err := handler.UpdateInstance(model.Instance{}, context.TODO())
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("error is returned if convertInstanceToResourceModel fails", func(t *testing.T) {
+		spy := serviceSpy{updatedInstance: &domain.Instance{}}
+		handler := PublicCloudHandler{
+			publicCloudService: &spy,
+			convertInstanceResourceModelToUpdateInstanceOpts: func(
+				instance model.Instance,
+				ctx context.Context,
+			) (*domain.Instance, error) {
+
+				return &domain.Instance{}, nil
+			},
+			convertInstanceToResourceModel: func(
+				instance domain.Instance,
+				ctx context.Context,
+			) (*model.Instance, error) {
+				return nil, errors.New("some error")
+			},
 		}
 
 		_, err := handler.UpdateInstance(model.Instance{}, context.TODO())
@@ -550,7 +660,7 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 			handler := PublicCloudHandler{}
 			got := handler.ValidateContractTerm(0, "HOURLY")
 
-			assert.NoError(t, got)
+			assert.Nil(t, got)
 		},
 	)
 

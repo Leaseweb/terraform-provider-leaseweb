@@ -5,41 +5,42 @@ import (
 
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 type PublicCloudRepository interface {
-	GetAllInstances(ctx context.Context) (domain.Instances, error)
+	GetAllInstances(ctx context.Context) (domain.Instances, *shared.RepositoryError)
 
-	GetInstance(id value_object.Uuid, ctx context.Context) (*domain.Instance, error)
+	GetInstance(id value_object.Uuid, ctx context.Context) (*domain.Instance, *shared.RepositoryError)
 
 	CreateInstance(
 		instance domain.Instance,
 		ctx context.Context,
-	) (*domain.Instance, error)
+	) (*domain.Instance, *shared.RepositoryError)
 
 	UpdateInstance(
 		instance domain.Instance,
 		ctx context.Context,
-	) (*domain.Instance, error)
+	) (*domain.Instance, *shared.RepositoryError)
 
-	DeleteInstance(id value_object.Uuid, ctx context.Context) error
+	DeleteInstance(id value_object.Uuid, ctx context.Context) *shared.RepositoryError
 
 	GetAutoScalingGroup(
 		id value_object.Uuid,
 		ctx context.Context,
-	) (*domain.AutoScalingGroup, error)
+	) (*domain.AutoScalingGroup, *shared.RepositoryError)
 
 	GetLoadBalancer(
 		id value_object.Uuid,
 		ctx context.Context,
-	) (*domain.LoadBalancer, error)
+	) (*domain.LoadBalancer, *shared.RepositoryError)
 
 	GetAvailableInstanceTypesForUpdate(
 		id value_object.Uuid,
 		ctx context.Context,
-	) (domain.InstanceTypes, error)
+	) (domain.InstanceTypes, *shared.RepositoryError)
 
 	GetRegions(
 		ctx context.Context,
-	) (domain.Regions, error)
+	) (domain.Regions, *shared.RepositoryError)
 }

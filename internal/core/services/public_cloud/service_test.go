@@ -9,6 +9,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 var (
@@ -29,25 +30,28 @@ type repositorySpy struct {
 	passedGetInstanceId                        value_object.Uuid
 	passedDeleteInstanceId                     value_object.Uuid
 
-	getAutoScalingGroupError                error
-	getLoadBalancerError                    error
-	getAllInstancesError                    error
-	getInstanceError                        error
-	createInstanceError                     error
-	updateInstanceError                     error
-	deleteInstanceError                     error
-	getAvailableInstanceTypesForUpdateError error
-	getRegionsError                         error
+	getAutoScalingGroupError                *sharedRepository.RepositoryError
+	getLoadBalancerError                    *sharedRepository.RepositoryError
+	getAllInstancesError                    *sharedRepository.RepositoryError
+	getInstanceError                        *sharedRepository.RepositoryError
+	createInstanceError                     *sharedRepository.RepositoryError
+	updateInstanceError                     *sharedRepository.RepositoryError
+	deleteInstanceError                     *sharedRepository.RepositoryError
+	getAvailableInstanceTypesForUpdateError *sharedRepository.RepositoryError
+	getRegionsError                         *sharedRepository.RepositoryError
 }
 
-func (r *repositorySpy) GetRegions(ctx context.Context) (domain.Regions, error) {
+func (r *repositorySpy) GetRegions(ctx context.Context) (
+	domain.Regions,
+	*sharedRepository.RepositoryError,
+) {
 	return r.regions, r.getRegionsError
 }
 
 func (r *repositorySpy) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (domain.InstanceTypes, error) {
+) (domain.InstanceTypes, *sharedRepository.RepositoryError) {
 	r.passedGetAvailableInstanceTypesForUpdateId = id
 
 	return r.availableInstanceTypes, r.getAvailableInstanceTypesForUpdateError
@@ -56,7 +60,7 @@ func (r *repositorySpy) GetAvailableInstanceTypesForUpdate(
 func (r *repositorySpy) GetAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.AutoScalingGroup, error) {
+) (*domain.AutoScalingGroup, *sharedRepository.RepositoryError) {
 	r.passedGetAutoScalingGroupId = id
 
 	return r.autoScalingGroup, r.getAutoScalingGroupError
@@ -65,7 +69,7 @@ func (r *repositorySpy) GetAutoScalingGroup(
 func (r *repositorySpy) GetLoadBalancer(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.LoadBalancer, error) {
+) (*domain.LoadBalancer, *sharedRepository.RepositoryError) {
 	r.passedGetLoadBalancerId = id
 
 	return r.loadBalancer, r.getLoadBalancerError
@@ -73,7 +77,7 @@ func (r *repositorySpy) GetLoadBalancer(
 
 func (r *repositorySpy) GetAllInstances(ctx context.Context) (
 	domain.Instances,
-	error,
+	*sharedRepository.RepositoryError,
 ) {
 	return r.instances, r.getAllInstancesError
 }
@@ -81,7 +85,7 @@ func (r *repositorySpy) GetAllInstances(ctx context.Context) (
 func (r *repositorySpy) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*domain.Instance, *sharedRepository.RepositoryError) {
 	r.passedGetInstanceId = id
 
 	return r.instance, r.getInstanceError
@@ -90,21 +94,21 @@ func (r *repositorySpy) GetInstance(
 func (r *repositorySpy) CreateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*domain.Instance, *sharedRepository.RepositoryError) {
 	return r.instance, r.createInstanceError
 }
 
 func (r *repositorySpy) UpdateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*domain.Instance, *sharedRepository.RepositoryError) {
 	return r.instance, r.updateInstanceError
 }
 
 func (r *repositorySpy) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) error {
+) *sharedRepository.RepositoryError {
 	r.passedDeleteInstanceId = id
 
 	return r.deleteInstanceError
@@ -127,7 +131,7 @@ func TestService_GetAllInstances(t *testing.T) {
 
 			got, err := service.GetAllInstances(context.TODO())
 
-			assert.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, want, got)
 		},
 	)
@@ -136,7 +140,12 @@ func TestService_GetAllInstances(t *testing.T) {
 		"error from repository getAllInstances bubbles up",
 		func(t *testing.T) {
 			service := New(
-				&repositorySpy{getAllInstancesError: errors.New("some error")},
+				&repositorySpy{
+					getAllInstancesError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
 			)
 
 			_, err := service.GetAllInstances(context.TODO())
@@ -153,7 +162,10 @@ func TestService_GetAllInstances(t *testing.T) {
 					instances: domain.Instances{
 						{Id: value_object.NewGeneratedUuid()},
 					},
-					getInstanceError: errors.New("some error"),
+					getInstanceError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
 				},
 			)
 
@@ -176,7 +188,7 @@ func TestService_GetInstance(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -195,7 +207,12 @@ func TestService_GetInstance(t *testing.T) {
 		"bubbles up getInstance error from repository",
 		func(t *testing.T) {
 			service := New(
-				&repositorySpy{getInstanceError: errors.New("some error")},
+				&repositorySpy{
+					getInstanceError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
 			)
 
 			_, err := service.GetInstance(
@@ -213,7 +230,10 @@ func TestService_GetInstance(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getAutoScalingGroupError: errors.New("some error"),
+					getAutoScalingGroupError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
 					instance: &domain.Instance{
 						AutoScalingGroup: &domain.AutoScalingGroup{
 							Id: value_object.NewGeneratedUuid(),
@@ -241,13 +261,18 @@ func TestService_CreateInstance(t *testing.T) {
 
 		got, err := service.CreateInstance(domain.Instance{}, context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
 		instanceService := New(
-			&repositorySpy{createInstanceError: errors.New("some error")},
+			&repositorySpy{
+				createInstanceError: sharedRepository.NewGeneralError(
+					"",
+					errors.New("some error"),
+				),
+			},
 		)
 
 		_, err := instanceService.CreateInstance(domain.Instance{}, context.TODO())
@@ -265,13 +290,18 @@ func TestService_UpdateInstance(t *testing.T) {
 
 		got, err := service.UpdateInstance(domain.Instance{}, context.TODO())
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, &want, got)
 	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
 		service := New(
-			&repositorySpy{updateInstanceError: errors.New("some error")},
+			&repositorySpy{
+				updateInstanceError: sharedRepository.NewGeneralError(
+					"",
+					errors.New("some error"),
+				),
+			},
 		)
 
 		_, err := service.UpdateInstance(
@@ -293,12 +323,17 @@ func TestService_DeleteInstance(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
 		service := New(
-			&repositorySpy{deleteInstanceError: errors.New("some error")},
+			&repositorySpy{
+				deleteInstanceError: sharedRepository.NewGeneralError(
+					"",
+					errors.New("some error"),
+				),
+			},
 		)
 
 		err := service.DeleteInstance(
@@ -335,14 +370,17 @@ func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 				context.TODO(),
 			)
 
-			assert.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, want, got)
 		},
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
-			getAvailableInstanceTypesForUpdateError: errors.New("some error"),
+			getAvailableInstanceTypesForUpdateError: sharedRepository.NewGeneralError(
+				"",
+				errors.New("some error"),
+			),
 		}
 
 		service := New(spy)
@@ -376,13 +414,18 @@ func TestService_GetRegions(t *testing.T) {
 			service := New(spy)
 			got, err := service.GetRegions(context.TODO())
 
-			assert.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, want, got)
 		},
 	)
 
 	t.Run("service passes back error from repository", func(t *testing.T) {
-		spy := &repositorySpy{getRegionsError: errors.New("some error")}
+		spy := &repositorySpy{
+			getRegionsError: sharedRepository.NewGeneralError(
+				"",
+				errors.New("some error"),
+			),
+		}
 
 		service := New(spy)
 		_, err := service.GetRegions(context.TODO())
@@ -415,7 +458,7 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -428,7 +471,12 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 			},
 		}
 
-		spy := &repositorySpy{getAutoScalingGroupError: errors.New("")}
+		spy := &repositorySpy{
+			getAutoScalingGroupError: sharedRepository.NewGeneralError(
+				"",
+				errors.New(""),
+			),
+		}
 		service := New(spy)
 
 		_, _ = service.populateMissingInstanceAttributes(instance, context.TODO())
@@ -469,7 +517,7 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -486,7 +534,10 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 			autoScalingGroup: &domain.AutoScalingGroup{
 				LoadBalancer: &domain.LoadBalancer{Id: want},
 			},
-			getLoadBalancerError: errors.New(""),
+			getLoadBalancerError: sharedRepository.NewGeneralError(
+				"",
+				errors.New(""),
+			),
 		}
 		service := New(spy)
 
@@ -500,7 +551,10 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getAutoScalingGroupError: errors.New("some error"),
+					getAutoScalingGroupError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
 				},
 			)
 
@@ -521,7 +575,10 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getLoadBalancerError: errors.New("some error"),
+					getLoadBalancerError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
 					autoScalingGroup: &domain.AutoScalingGroup{
 						Id: value_object.NewGeneratedUuid(),
 						LoadBalancer: &domain.LoadBalancer{
