@@ -402,11 +402,6 @@ func (i *instanceResource) Schema(
 							"type": schema.StringAttribute{
 								Computed:    true,
 								Description: "Load balancer type",
-								Validators: []validator.String{
-									stringvalidator.OneOf(
-										[]string{"HOURLY", "MONTHLY"}...,
-									),
-								},
 							},
 							"resources": schema.SingleNestedAttribute{
 								Attributes: map[string]schema.Attribute{
