@@ -177,6 +177,20 @@ func (h PublicCloudHandler) GetRootDiskStorageTypes() []string {
 	return enum.RootDiskStorageTypeCentral.Values()
 }
 
+func (h PublicCloudHandler) GetBillingFrequencies() []int64 {
+	var convertedBillingFrequencies []int64
+
+	billingFrequencies := enum.ContractBillingFrequencyThree.Values()
+	for _, billingFrequency := range billingFrequencies {
+		convertedBillingFrequencies = append(
+			convertedBillingFrequencies,
+			int64(billingFrequency),
+		)
+	}
+
+	return convertedBillingFrequencies
+}
+
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
 	return PublicCloudHandler{
 		publicCloudService:                               publicCloudService,

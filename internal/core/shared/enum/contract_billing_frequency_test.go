@@ -19,3 +19,10 @@ func TestNewContractBillingFrequency(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 }
+
+func TestContractBillingFrequency_Values(t *testing.T) {
+	want := []int{0, 1, 3, 6, 12}
+	got := ContractBillingFrequencyThree.Values()
+
+	assert.Equal(t, want, got)
+}

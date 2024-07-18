@@ -492,3 +492,11 @@ func TestPublicCloudHandler_GetRootDiskStorageTypes(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func TestPublicCloudHandler_GetBillingFrequencies(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := []int64{0, 1, 3, 6, 12}
+	got := handler.GetBillingFrequencies()
+
+	assert.Equal(t, want, got)
+}

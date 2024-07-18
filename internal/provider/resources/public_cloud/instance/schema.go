@@ -281,9 +281,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "The billing frequency (in months) of the instance.",
 						Validators: []validator.Int64{
-							int64validator.OneOf(
-								[]int64{0, 1, 3, 6, 12}...,
-							),
+							int64validator.OneOf(handler.GetBillingFrequencies()...),
 						},
 					},
 					"term": schema.Int64Attribute{
