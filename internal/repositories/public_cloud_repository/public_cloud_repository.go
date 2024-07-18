@@ -54,16 +54,16 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 ) {
 	var instances domain.Instances
 
-	result, _, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
+	result, response, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
 
 	if err != nil {
-		return nil, fmt.Errorf("GetAllInstances: %w", err)
+		return nil, newPublicCloudRepositoryError("GetAllInstances", err, response)
 	}
 
 	for _, sdkInstance := range result.Instances {
 		instance, err := p.convertInstance(sdkInstance)
 		if err != nil {
-			return nil, fmt.Errorf("GetAllInstances: %w", err)
+			return nil, newPublicCloudRepositoryError("GetAllInstances", err, nil)
 		}
 
 		instances = append(instances, *instance)
@@ -76,13 +76,17 @@ func (p PublicCloudRepository) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.Instance, error) {
-	instanceDetails, _, err := p.publicCLoudAPI.GetInstance(
+	instanceDetails, response, err := p.publicCLoudAPI.GetInstance(
 		p.authContext(ctx),
 		id.String(),
 	).Execute()
 
 	if err != nil {
-		return nil, fmt.Errorf("GetInstance %q: %w", id, err)
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("GetInstance %q", id),
+			err,
+			response,
+		)
 	}
 
 	return p.convertInstanceDetails(*instanceDetails)
@@ -92,20 +96,24 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.AutoScalingGroup, error) {
-	sdkAutoScalingGroupDetails, _, err := p.publicCLoudAPI.GetAutoScalingGroup(
+	sdkAutoScalingGroupDetails, response, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
 		id.String(),
 	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("GetAutoScalingGroup %q: %w", id, err)
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("GetAutoScalingGroup %q", id),
+			err,
+			response,
+		)
 	}
 
 	autoScalingGroup, err := p.convertAutoScalingGroupDetails(*sdkAutoScalingGroupDetails)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"GetAutoScalingGroup %q: %w",
-			sdkAutoScalingGroupDetails.GetId(),
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("GetAutoScalingGroup %q", id),
 			err,
+			nil,
 		)
 	}
 
@@ -118,20 +126,24 @@ func (p PublicCloudRepository) GetLoadBalancer(
 ) (*domain.LoadBalancer, error) {
 	var loadBalancer *domain.LoadBalancer
 
-	sdkLoadBalancerDetails, _, err := p.publicCLoudAPI.GetLoadBalancer(
+	sdkLoadBalancerDetails, response, err := p.publicCLoudAPI.GetLoadBalancer(
 		p.authContext(ctx),
 		id.String(),
 	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("GetLoadBalancer %q: %w", id, err)
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("GetLoadBalancer %q", id),
+			err,
+			response,
+		)
 	}
 
 	loadBalancer, err = p.convertLoadBalancerDetails(*sdkLoadBalancerDetails)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"GetLoadBalancer %q: %w",
-			sdkLoadBalancerDetails.GetId(),
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("GetLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
 			err,
+			nil,
 		)
 	}
 
@@ -145,13 +157,21 @@ func (p PublicCloudRepository) CreateInstance(
 
 	launchInstanceOpts, err := p.convertEntityToLaunchInstanceOpts(instance)
 	if err != nil {
-		return nil, fmt.Errorf("CreateInstance : %w", err)
+		return nil, newPublicCloudRepositoryError(
+			"CreateInstance",
+			err,
+			nil,
+		)
 	}
 
-	launchedInstance, _, err := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx)).LaunchInstanceOpts(*launchInstanceOpts).Execute()
+	launchedInstance, response, err := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx)).LaunchInstanceOpts(*launchInstanceOpts).Execute()
 
 	if err != nil {
-		return nil, fmt.Errorf("CreateInstance: %w", err)
+		return nil, newPublicCloudRepositoryError(
+			"CreateInstance",
+			err,
+			response,
+		)
 	}
 
 	return p.convertInstance(*launchedInstance)
@@ -164,15 +184,23 @@ func (p PublicCloudRepository) UpdateInstance(
 
 	updateInstanceOpts, err := p.convertEntityToUpdateInstanceOpts(instance)
 	if err != nil {
-		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("UpdateInstance %q", instance.Id),
+			err,
+			nil,
+		)
 	}
 
-	updatedInstance, _, err := p.publicCLoudAPI.UpdateInstance(
+	updatedInstance, response, err := p.publicCLoudAPI.UpdateInstance(
 		p.authContext(ctx),
 		instance.Id.String(),
 	).UpdateInstanceOpts(*updateInstanceOpts).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("UpdateInstance %q: %w", instance.Id, err)
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("UpdateInstance %q", instance.Id),
+			err,
+			response,
+		)
 	}
 
 	return p.convertInstanceDetails(*updatedInstance)
@@ -182,9 +210,13 @@ func (p PublicCloudRepository) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) error {
-	_, err := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String()).Execute()
+	response, err := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
-		return fmt.Errorf("DeleteInstance %q: %w", id, err)
+		return newPublicCloudRepositoryError(
+			fmt.Sprintf("DeleteInstance %q", id),
+			err,
+			response,
+		)
 	}
 
 	return nil
@@ -196,12 +228,12 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 ) (domain.InstanceTypes, error) {
 	var instanceTypes domain.InstanceTypes
 
-	sdkInstanceTypes, _, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(p.authContext(ctx), id.String()).Execute()
+	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"GetAvailableInstanceTypesForUpdate %q: %w",
-			id,
+		return nil, newPublicCloudRepositoryError(
+			fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
 			err,
+			response,
 		)
 	}
 
@@ -221,9 +253,13 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 ) {
 	var regions domain.Regions
 
-	sdkRegions, _, err := p.publicCLoudAPI.GetRegionList(p.authContext(ctx)).Execute()
+	sdkRegions, response, err := p.publicCLoudAPI.GetRegionList(p.authContext(ctx)).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("GetRegions: %w", err)
+		return nil, newPublicCloudRepositoryError(
+			"GetRegions",
+			err,
+			response,
+		)
 	}
 
 	for _, sdkRegion := range sdkRegions.Regions {
