@@ -77,3 +77,10 @@ func TestFindEnumForInt(t *testing.T) {
 		assert.ErrorContains(t, err, "enum.dummyIntEnum")
 	})
 }
+
+func Test_convertIntEnumToValues(t *testing.T) {
+	got := convertIntEnumToValues([]dummyIntEnum{setIntEnumValue})
+	want := []int{6}
+
+	assert.Equal(t, want, got)
+}

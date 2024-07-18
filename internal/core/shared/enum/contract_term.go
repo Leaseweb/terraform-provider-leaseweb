@@ -6,6 +6,10 @@ func (t ContractTerm) Value() int {
 	return int(t)
 }
 
+func (t ContractTerm) Values() []int {
+	return convertIntEnumToValues(contractTerms)
+}
+
 const (
 	ContractTermZero ContractTerm = iota
 	ContractTermOne

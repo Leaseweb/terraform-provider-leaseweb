@@ -30,6 +30,19 @@ type PublicCloudHandler struct {
 	) (*domain.Instance, error)
 }
 
+func convertIntArrayToInt64(items []int) []int64 {
+	var convertedItems []int64
+
+	for _, item := range items {
+		convertedItems = append(
+			convertedItems,
+			int64(item),
+		)
+	}
+
+	return convertedItems
+}
+
 func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 	*dataSourceModel.Instances,
 	error,
@@ -178,17 +191,11 @@ func (h PublicCloudHandler) GetRootDiskStorageTypes() []string {
 }
 
 func (h PublicCloudHandler) GetBillingFrequencies() []int64 {
-	var convertedBillingFrequencies []int64
+	return convertIntArrayToInt64(enum.ContractBillingFrequencyThree.Values())
+}
 
-	billingFrequencies := enum.ContractBillingFrequencyThree.Values()
-	for _, billingFrequency := range billingFrequencies {
-		convertedBillingFrequencies = append(
-			convertedBillingFrequencies,
-			int64(billingFrequency),
-		)
-	}
-
-	return convertedBillingFrequencies
+func (h PublicCloudHandler) GetContractTerms() []int64 {
+	return convertIntArrayToInt64(enum.ContractTermThree.Values())
 }
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {

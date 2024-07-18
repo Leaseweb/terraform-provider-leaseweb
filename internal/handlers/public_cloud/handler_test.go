@@ -500,3 +500,18 @@ func TestPublicCloudHandler_GetBillingFrequencies(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func Test_convertIntArrayToInt64(t *testing.T) {
+	want := []int64{5}
+	got := convertIntArrayToInt64([]int{5})
+
+	assert.Equal(t, want, got)
+}
+
+func TestPublicCloudHandler_GetContractTerms(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := []int64{0, 1, 3, 6, 12}
+	got := handler.GetContractTerms()
+
+	assert.Equal(t, want, got)
+}

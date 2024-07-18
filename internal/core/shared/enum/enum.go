@@ -45,3 +45,13 @@ func findEnumForInt[T intEnum](
 		value,
 	)}
 }
+
+func convertIntEnumToValues[T intEnum](enumValues []T) []int {
+	var values []int
+
+	for _, v := range enumValues {
+		values = append(values, v.Value())
+	}
+
+	return values
+}

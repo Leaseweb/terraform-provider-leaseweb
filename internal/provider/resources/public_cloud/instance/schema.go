@@ -288,9 +288,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Contract term (in months). Used only when contract type is MONTHLY",
 						Validators: []validator.Int64{
-							int64validator.OneOf(
-								[]int64{0, 1, 3, 6, 12}...,
-							),
+							int64validator.OneOf(handler.GetContractTerms()...),
 						},
 					},
 					"type": schema.StringAttribute{

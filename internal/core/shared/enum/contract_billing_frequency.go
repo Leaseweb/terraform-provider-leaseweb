@@ -7,13 +7,7 @@ func (c ContractBillingFrequency) Value() int {
 }
 
 func (c ContractBillingFrequency) Values() []int {
-	var values []int
-
-	for _, v := range contractBillingFrequencies {
-		values = append(values, int(v))
-	}
-
-	return values
+	return convertIntEnumToValues(contractBillingFrequencies)
 }
 
 const (

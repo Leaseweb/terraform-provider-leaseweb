@@ -19,3 +19,10 @@ func TestNewContractTerm(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 }
+
+func TestContractTerm_Values(t *testing.T) {
+	want := []int{0, 1, 3, 6, 12}
+	got := ContractTermThree.Values()
+
+	assert.Equal(t, want, got)
+}
