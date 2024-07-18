@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"terraform-provider-leaseweb/internal/handlers/public_cloud"
-	customerValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
+	customValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
 
 func (i *instanceResource) Schema(
@@ -311,7 +311,7 @@ func (i *instanceResource) Schema(
 						Computed: true,
 					},
 				},
-				Validators: []validator.Object{customerValidator.ContractTermIsValid()},
+				Validators: []validator.Object{customValidator.ContractTermIsValid()},
 			},
 			"iso": schema.SingleNestedAttribute{
 				Computed: true,
