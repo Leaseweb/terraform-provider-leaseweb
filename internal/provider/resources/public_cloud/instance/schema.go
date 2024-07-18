@@ -224,7 +224,7 @@ func (i *instanceResource) Schema(
 				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(value_object.SshRegexp),
+						regexp.MustCompile(handler.GetSshKeyRegularExpression()),
 						"Invalid ssh key",
 					),
 				},

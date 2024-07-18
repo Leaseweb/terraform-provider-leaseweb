@@ -460,3 +460,11 @@ func TestPublicCloudHandler_GetImageIds(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func TestPublicCloudHandler_GetSshKeyRegularExpression(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := value_object.SshRegexp
+	got := handler.GetSshKeyRegularExpression()
+
+	assert.Equal(t, want, got)
+}

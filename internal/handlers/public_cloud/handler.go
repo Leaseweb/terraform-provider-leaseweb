@@ -160,6 +160,11 @@ func (h PublicCloudHandler) GetImageIds() []string {
 	return enum.Debian1064Bit.Values()
 }
 
+// GetSshKeyRegularExpression Returns regular expression used to validate ssh keys.
+func (h PublicCloudHandler) GetSshKeyRegularExpression() string {
+	return value_object.SshRegexp
+}
+
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
 	return PublicCloudHandler{
 		publicCloudService:                               publicCloudService,
