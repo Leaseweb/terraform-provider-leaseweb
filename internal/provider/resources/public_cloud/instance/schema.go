@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/handlers/public_cloud"
 	customerValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
@@ -243,9 +242,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type",
 				Validators: []validator.String{
-					stringvalidator.OneOf(
-						enum.RootDiskStorageTypeCentral.Values()...,
-					),
+					stringvalidator.OneOf(handler.GetRootDiskStorageTypes()...),
 				},
 			},
 			"ips": schema.ListNestedAttribute{

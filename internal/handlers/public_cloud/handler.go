@@ -173,6 +173,10 @@ func (h PublicCloudHandler) GetMaximumRootDiskSize() int64 {
 	return int64(value_object.MaxRootDiskSize)
 }
 
+func (h PublicCloudHandler) GetRootDiskStorageTypes() []string {
+	return enum.RootDiskStorageTypeCentral.Values()
+}
+
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
 	return PublicCloudHandler{
 		publicCloudService:                               publicCloudService,

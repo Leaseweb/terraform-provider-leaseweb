@@ -484,3 +484,11 @@ func TestPublicCloudHandler_GetMaximumRootDiskSize(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func TestPublicCloudHandler_GetRootDiskStorageTypes(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := enum.RootDiskStorageTypeCentral.Values()
+	got := handler.GetRootDiskStorageTypes()
+
+	assert.Equal(t, want, got)
+}
