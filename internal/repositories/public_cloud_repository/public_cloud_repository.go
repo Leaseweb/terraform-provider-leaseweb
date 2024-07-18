@@ -1,4 +1,4 @@
-package instance_repository
+package public_cloud_repository
 
 import (
 	"context"
