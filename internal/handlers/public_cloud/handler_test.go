@@ -515,3 +515,11 @@ func TestPublicCloudHandler_GetContractTerms(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func TestPublicCloudHandler_GetContractTypes(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := []string{"HOURLY", "MONTHLY"}
+	got := handler.GetContractTypes()
+
+	assert.Equal(t, want, got)
+}

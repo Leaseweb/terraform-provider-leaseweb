@@ -84,3 +84,10 @@ func Test_convertIntEnumToValues(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func Test_convertStringEnumToValues(t *testing.T) {
+	got := convertStringEnumToValues([]dummyStringEnum{setStringEnumValue})
+	want := []string{"tralala"}
+
+	assert.Equal(t, want, got)
+}

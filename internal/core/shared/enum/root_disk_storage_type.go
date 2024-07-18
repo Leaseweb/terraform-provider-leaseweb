@@ -7,13 +7,7 @@ func (r RootDiskStorageType) String() string {
 }
 
 func (r RootDiskStorageType) Values() []string {
-	var stringValues []string
-
-	for _, rootDiskStorageType := range rootDiskStorageTypes {
-		stringValues = append(stringValues, string(rootDiskStorageType))
-	}
-
-	return stringValues
+	return convertStringEnumToValues(rootDiskStorageTypes)
 }
 
 const (

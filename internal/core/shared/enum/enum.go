@@ -55,3 +55,13 @@ func convertIntEnumToValues[T intEnum](enumValues []T) []int {
 
 	return values
 }
+
+func convertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
+	var values []string
+
+	for _, v := range enumValues {
+		values = append(values, v.String())
+	}
+
+	return values
+}

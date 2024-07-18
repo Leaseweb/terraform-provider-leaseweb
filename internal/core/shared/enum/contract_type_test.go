@@ -19,3 +19,10 @@ func TestNewContractType(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 }
+
+func TestContractType_Values(t *testing.T) {
+	want := []string{"HOURLY", "MONTHLY"}
+	got := ContractTypeMonthly.Values()
+
+	assert.EqualValues(t, want, got)
+}

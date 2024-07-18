@@ -294,9 +294,7 @@ func (i *instanceResource) Schema(
 					"type": schema.StringAttribute{
 						Required: true,
 						Validators: []validator.String{
-							stringvalidator.OneOf(
-								[]string{"HOURLY", "MONTHLY"}...,
-							),
+							stringvalidator.OneOf(handler.GetContractTypes()...),
 						},
 						Description: "Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage",
 					},

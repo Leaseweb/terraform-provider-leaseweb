@@ -198,6 +198,10 @@ func (h PublicCloudHandler) GetContractTerms() []int64 {
 	return convertIntArrayToInt64(enum.ContractTermThree.Values())
 }
 
+func (h PublicCloudHandler) GetContractTypes() []string {
+	return enum.ContractTypeHourly.Values()
+}
+
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
 	return PublicCloudHandler{
 		publicCloudService:                               publicCloudService,
