@@ -2,8 +2,11 @@ package instance
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"terraform-provider-leaseweb/internal/provider/logging"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -20,9 +23,25 @@ func (i *instanceResource) Update(
 		return
 	}
 
+	tflog.Info(ctx, fmt.Sprintf(
+		"Updating public cloud instance %q",
+		plan.Id.ValueString(),
+	))
 	updatedInstance, err := i.client.PublicCloudHandler.UpdateInstance(plan, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating instance", err.Error())
+
+		logging.HandleError(
+			ctx,
+			err.GetResponse(),
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Unable to update public cloud instance %q",
+				plan.Id.ValueString(),
+			),
+			err.Error(),
+		)
+
 		return
 	}
 

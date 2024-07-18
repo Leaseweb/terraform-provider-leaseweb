@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"terraform-provider-leaseweb/internal/provider/logging"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -20,16 +22,32 @@ func (i *instanceResource) Delete(
 		return
 	}
 
+	tflog.Info(ctx, fmt.Sprintf(
+		"Deleting public cloud instance %q",
+		state.Id.ValueString(),
+	))
 	err := i.client.PublicCloudHandler.DeleteInstance(state.Id.ValueString(), ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error terminating Public Cloud Instance",
 			fmt.Sprintf(
-				"Could not terminate Public CLoud Instance, unexpected error: %q",
+				"Could not terminate Public Cloud Instance, unexpected error: %q",
 				err.Error(),
 			),
 		)
+
+		logging.HandleError(
+			ctx,
+			err.GetResponse(),
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Error deleting public cloud instance %q",
+				state.Id.ValueString(),
+			),
+			err.Error(),
+		)
+
 		return
 	}
 }

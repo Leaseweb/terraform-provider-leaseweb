@@ -2,6 +2,8 @@ package shared
 
 import (
 	"fmt"
+	"io"
+	"strings"
 
 	sharedService "terraform-provider-leaseweb/internal/core/services/shared"
 )
@@ -14,6 +16,24 @@ type HandlerError struct {
 
 func (e HandlerError) Error() string {
 	return e.msg
+}
+
+func (e HandlerError) GetResponse() *string {
+	if e.ServiceError != nil {
+		if e.ServiceError.RepositoryError != nil {
+			if e.ServiceError.RepositoryError.SdkHttpResponse != nil {
+				body := e.ServiceError.RepositoryError.SdkHttpResponse.Body
+				buf := new(strings.Builder)
+				_, sdkResponseError := io.Copy(buf, body)
+				if sdkResponseError == nil {
+					bodyContent := buf.String()
+					return &bodyContent
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func NewServiceError(

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"terraform-provider-leaseweb/internal/provider/logging"
 )
 
 func (d *instancesDataSource) Read(
@@ -12,10 +14,19 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
+	tflog.Info(ctx, "Read public cloud instances")
 	instances, err := d.client.PublicCloudHandler.GetAllInstances(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
+		logging.HandleError(
+			ctx,
+			err.GetResponse(),
+			&resp.Diagnostics,
+			"Unable to read instances",
+			err.Error(),
+		)
+
 		return
 	}
 
