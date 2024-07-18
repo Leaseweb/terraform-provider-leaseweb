@@ -125,7 +125,7 @@ func (srv Service) populateMissingInstanceAttributes(
 		// Get loadBalancerDetails.
 		if autoScalingGroup.LoadBalancer != nil {
 			loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(
-				instance.AutoScalingGroup.Id,
+				autoScalingGroup.LoadBalancer.Id,
 				ctx,
 			)
 			if err != nil {

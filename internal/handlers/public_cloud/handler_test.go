@@ -130,7 +130,6 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 			ctx context.Context,
 		) (*domain.Instance, error) {
 			return &domain.Instance{}, nil
-
 		}
 
 		got, err := handler.CreateInstance(instance, context.TODO())
