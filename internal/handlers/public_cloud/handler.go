@@ -2,6 +2,9 @@ package public_cloud
 
 import (
 	"context"
+	"errors"
+	"log"
+	"time"
 
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
@@ -10,6 +13,9 @@ import (
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
+
+var ErrContractTermCannotBeZero = domain.ErrContractTermCannotBeZero
+var ErrContractTermMustBeZero = domain.ErrContractTermMustBeZero
 
 type PublicCloudHandler struct {
 	publicCloudService             ports.PublicCloudService
@@ -200,6 +206,44 @@ func (h PublicCloudHandler) GetContractTerms() []int64 {
 
 func (h PublicCloudHandler) GetContractTypes() []string {
 	return enum.ContractTypeHourly.Values()
+}
+
+func (h PublicCloudHandler) ValidateContractTerm(
+	contractTerm int64,
+	contractType string,
+) error {
+
+	contractTermEnum, err := enum.NewContractTerm(int(contractTerm))
+	if err != nil {
+		return err
+	}
+	contractTypeEnum, err := enum.NewContractType(contractType)
+	if err != nil {
+		return err
+	}
+
+	_, err = domain.NewContract(
+		enum.ContractBillingFrequencySix,
+		contractTermEnum,
+		contractTypeEnum,
+		time.Now(),
+		time.Now(),
+		enum.ContractStateActive,
+		nil,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrContractTermMustBeZero):
+			return ErrContractTermMustBeZero
+		case errors.Is(err, domain.ErrContractTermCannotBeZero):
+			return ErrContractTermCannotBeZero
+		default:
+			log.Fatal(err)
+		}
+	}
+
+	return nil
 }
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {

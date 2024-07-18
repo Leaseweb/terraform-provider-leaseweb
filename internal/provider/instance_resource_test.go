@@ -170,11 +170,11 @@ resource "leaseweb_public_cloud_instance" "test" {
   root_disk_storage_type = "CENTRAL"
   contract = {
     billing_frequency = 1
-    term              = 5
+    term              = 3
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 5"),
+					ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 3"),
 				},
 			},
 		})

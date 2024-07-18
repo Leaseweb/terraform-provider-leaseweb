@@ -51,7 +51,7 @@ func TestNewContract(t *testing.T) {
 				nil,
 			)
 
-			assert.Error(t, ErrContractTermCannotBeZero, err)
+			assert.ErrorIs(t, err, ErrContractTermCannotBeZero)
 		},
 	)
 
@@ -68,7 +68,7 @@ func TestNewContract(t *testing.T) {
 				nil,
 			)
 
-			assert.NotNil(t, ErrContractTermMustBeZero, err)
+			assert.ErrorIs(t, err, ErrContractTermMustBeZero)
 		},
 	)
 

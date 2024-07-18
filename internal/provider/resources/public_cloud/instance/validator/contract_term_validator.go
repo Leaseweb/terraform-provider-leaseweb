@@ -2,10 +2,12 @@ package validator
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"terraform-provider-leaseweb/internal/handlers/public_cloud"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -27,24 +29,34 @@ func (v contractTermValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
+	handler := public_cloud.PublicCloudHandler{}
 
 	contract := model.Contract{}
 	request.ConfigValue.As(ctx, &contract, basetypes.ObjectAsOptions{})
+	err := handler.ValidateContractTerm(
+		contract.Term.ValueInt64(),
+		contract.Type.ValueString(),
+	)
 
-	if contract.Type.ValueString() == "MONTHLY" && contract.Term.ValueInt64() == 0 {
-		response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
-			request.Path.AtName("term"),
-			"cannot be 0 when contract.type is \"MONTHLY\"",
-			contract.Term.String(),
-		))
-	}
-
-	if contract.Type.ValueString() == "HOURLY" && contract.Term.ValueInt64() != 0 {
-		response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
-			request.Path.AtName("term"),
-			"must be 0 when contract.type is \"HOURLY\"",
-			contract.Term.String(),
-		))
+	if err != nil {
+		switch {
+		case errors.Is(err, public_cloud.ErrContractTermCannotBeZero):
+			response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
+				request.Path.AtName("term"),
+				"cannot be 0 when contract.type is \"MONTHLY\"",
+				contract.Term.String(),
+			))
+			return
+		case errors.Is(err, public_cloud.ErrContractTermMustBeZero):
+			response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
+				request.Path.AtName("term"),
+				"must be 0 when contract.type is \"HOURLY\"",
+				contract.Term.String(),
+			))
+			return
+		default:
+			return
+		}
 	}
 }
 

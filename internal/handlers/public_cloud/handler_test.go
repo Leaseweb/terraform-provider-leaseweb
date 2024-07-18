@@ -523,3 +523,55 @@ func TestPublicCloudHandler_GetContractTypes(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
+	t.Run(
+		"ErrContractTermCannotBeZero is returned when contract returns ErrContractTermCannotBeZero",
+		func(t *testing.T) {
+			handler := PublicCloudHandler{}
+			got := handler.ValidateContractTerm(0, "MONTHLY")
+
+			assert.ErrorIs(t, got, ErrContractTermCannotBeZero)
+		},
+	)
+
+	t.Run(
+		"ErrContractTermMustBeZero is returned when contract returns ErrContractTermMustBeZero",
+		func(t *testing.T) {
+			handler := PublicCloudHandler{}
+			got := handler.ValidateContractTerm(3, "HOURLY")
+
+			assert.ErrorIs(t, got, ErrContractTermMustBeZero)
+		},
+	)
+
+	t.Run(
+		"no error is returned when contract does not return an error",
+		func(t *testing.T) {
+			handler := PublicCloudHandler{}
+			got := handler.ValidateContractTerm(0, "HOURLY")
+
+			assert.NoError(t, got)
+		},
+	)
+
+	t.Run(
+		"error is returned when invalid contractTerm is passed",
+		func(t *testing.T) {
+			handler := PublicCloudHandler{}
+			got := handler.ValidateContractTerm(55, "HOURLY")
+
+			assert.ErrorContains(t, got, "55")
+		},
+	)
+
+	t.Run(
+		"error is returned when invalid contractType is passed",
+		func(t *testing.T) {
+			handler := PublicCloudHandler{}
+			got := handler.ValidateContractTerm(0, "tralala")
+
+			assert.ErrorContains(t, got, "tralala")
+		},
+	)
+}
