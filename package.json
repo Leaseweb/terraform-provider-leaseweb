@@ -34,7 +34,6 @@
     "**/Dockerfile": "docker-compose run --rm hadolint hadolint",
     ".husky/commit-msg": "docker-compose run --rm shellcheck -x",
     ".husky/pre-commit": "docker-compose run --rm shellcheck -x",
-    ".husky/pre-push": "docker-compose run --rm shellcheck -x",
-    "examples/resources/leaseweb_instance/import.sh": "docker-compose run --rm shellcheck -x"
+    ".husky/pre-push": "docker-compose run --rm shellcheck -x"
   }
 }
