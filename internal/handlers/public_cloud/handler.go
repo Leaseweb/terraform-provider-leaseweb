@@ -165,6 +165,14 @@ func (h PublicCloudHandler) GetSshKeyRegularExpression() string {
 	return value_object.SshRegexp
 }
 
+func (h PublicCloudHandler) GetMinimumRootDiskSize() int64 {
+	return int64(value_object.MinRootDiskSize)
+}
+
+func (h PublicCloudHandler) GetMaximumRootDiskSize() int64 {
+	return int64(value_object.MaxRootDiskSize)
+}
+
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
 	return PublicCloudHandler{
 		publicCloudService:                               publicCloudService,

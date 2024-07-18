@@ -468,3 +468,19 @@ func TestPublicCloudHandler_GetSshKeyRegularExpression(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func TestPublicCloudHandler_GetMinimumRootDiskSize(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := int64(value_object.MinRootDiskSize)
+	got := handler.GetMinimumRootDiskSize()
+
+	assert.Equal(t, want, got)
+}
+
+func TestPublicCloudHandler_GetMaximumRootDiskSize(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := int64(value_object.MaxRootDiskSize)
+	got := handler.GetMaximumRootDiskSize()
+
+	assert.Equal(t, want, got)
+}

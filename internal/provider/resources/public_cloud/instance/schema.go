@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/handlers/public_cloud"
 	customerValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
@@ -235,8 +234,8 @@ func (i *instanceResource) Schema(
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
 				Validators: []validator.Int64{
 					int64validator.Between(
-						int64(value_object.MinRootDiskSize),
-						int64(value_object.MaxRootDiskSize),
+						handler.GetMinimumRootDiskSize(),
+						handler.GetMaximumRootDiskSize(),
 					),
 				},
 			},
