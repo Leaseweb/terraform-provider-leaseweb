@@ -5,6 +5,7 @@ import (
 
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
@@ -153,6 +154,10 @@ func (h PublicCloudHandler) UpdateInstance(
 	}
 
 	return h.convertInstanceToResourceModel(*updatedInstance, ctx)
+}
+
+func (h PublicCloudHandler) GetImageIds() []string {
+	return enum.Debian1064Bit.Values()
 }
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {

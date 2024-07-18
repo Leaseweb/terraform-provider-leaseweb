@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
@@ -450,4 +451,12 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
+}
+
+func TestPublicCloudHandler_GetImageIds(t *testing.T) {
+	handler := PublicCloudHandler{}
+	want := enum.Debian1064Bit.Values()
+	got := handler.GetImageIds()
+
+	assert.Equal(t, want, got)
 }

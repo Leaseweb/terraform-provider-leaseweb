@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/handlers/public_cloud"
 	customerValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
 
@@ -22,6 +23,9 @@ func (i *instanceResource) Schema(
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
+
+	handler := public_cloud.PublicCloudHandler{}
+
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -88,7 +92,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Image ID",
 						Validators: []validator.String{
-							stringvalidator.OneOf(enum.Debian1064Bit.Values()...),
+							stringvalidator.OneOf(handler.GetImageIds()...),
 						},
 					},
 					"name": schema.StringAttribute{
