@@ -7,6 +7,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 type Optional struct {
@@ -57,13 +58,13 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	result, response, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
 
 	if err != nil {
-		return nil, newPublicCloudRepositoryError("GetAllInstances", err, response)
+		return nil, shared.NewRepositoryError("GetAllInstances", err, response)
 	}
 
 	for _, sdkInstance := range result.Instances {
 		instance, err := p.convertInstance(sdkInstance)
 		if err != nil {
-			return nil, newPublicCloudRepositoryError("GetAllInstances", err, nil)
+			return nil, shared.NewRepositoryError("GetAllInstances", err, nil)
 		}
 
 		instances = append(instances, *instance)
@@ -82,7 +83,7 @@ func (p PublicCloudRepository) GetInstance(
 	).Execute()
 
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("GetInstance %q", id),
 			err,
 			response,
@@ -101,7 +102,7 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 		id.String(),
 	).Execute()
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("GetAutoScalingGroup %q", id),
 			err,
 			response,
@@ -110,7 +111,7 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 
 	autoScalingGroup, err := p.convertAutoScalingGroupDetails(*sdkAutoScalingGroupDetails)
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("GetAutoScalingGroup %q", id),
 			err,
 			nil,
@@ -131,7 +132,7 @@ func (p PublicCloudRepository) GetLoadBalancer(
 		id.String(),
 	).Execute()
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("GetLoadBalancer %q", id),
 			err,
 			response,
@@ -140,7 +141,7 @@ func (p PublicCloudRepository) GetLoadBalancer(
 
 	loadBalancer, err = p.convertLoadBalancerDetails(*sdkLoadBalancerDetails)
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("GetLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
 			err,
 			nil,
@@ -157,7 +158,7 @@ func (p PublicCloudRepository) CreateInstance(
 
 	launchInstanceOpts, err := p.convertEntityToLaunchInstanceOpts(instance)
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			"CreateInstance",
 			err,
 			nil,
@@ -167,7 +168,7 @@ func (p PublicCloudRepository) CreateInstance(
 	launchedInstance, response, err := p.publicCLoudAPI.LaunchInstance(p.authContext(ctx)).LaunchInstanceOpts(*launchInstanceOpts).Execute()
 
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			"CreateInstance",
 			err,
 			response,
@@ -184,7 +185,7 @@ func (p PublicCloudRepository) UpdateInstance(
 
 	updateInstanceOpts, err := p.convertEntityToUpdateInstanceOpts(instance)
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("UpdateInstance %q", instance.Id),
 			err,
 			nil,
@@ -196,7 +197,7 @@ func (p PublicCloudRepository) UpdateInstance(
 		instance.Id.String(),
 	).UpdateInstanceOpts(*updateInstanceOpts).Execute()
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("UpdateInstance %q", instance.Id),
 			err,
 			response,
@@ -212,7 +213,7 @@ func (p PublicCloudRepository) DeleteInstance(
 ) error {
 	response, err := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
-		return newPublicCloudRepositoryError(
+		return shared.NewRepositoryError(
 			fmt.Sprintf("DeleteInstance %q", id),
 			err,
 			response,
@@ -230,7 +231,7 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 
 	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(p.authContext(ctx), id.String()).Execute()
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
 			err,
 			response,
@@ -255,7 +256,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 
 	sdkRegions, response, err := p.publicCLoudAPI.GetRegionList(p.authContext(ctx)).Execute()
 	if err != nil {
-		return nil, newPublicCloudRepositoryError(
+		return nil, shared.NewRepositoryError(
 			"GetRegions",
 			err,
 			response,

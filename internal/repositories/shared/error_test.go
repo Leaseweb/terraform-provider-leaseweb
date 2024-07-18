@@ -1,4 +1,4 @@
-package public_cloud_repository
+package shared
 
 import (
 	"errors"
@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewPublicCloudRepositoryError(t *testing.T) {
+func TestNewRepositoryError(t *testing.T) {
 	err := errors.New("tralala")
 	response := http.Response{StatusCode: 500, Body: nil}
 
-	got := newPublicCloudRepositoryError("prefix", err, &response)
-	want := PublicCloudRepositoryError{
+	got := NewRepositoryError("prefix", err, &response)
+	want := RepositoryError{
 		msg:             "prefix: tralala",
 		err:             err,
 		SdkHttpResponse: &response,
@@ -22,8 +22,8 @@ func TestNewPublicCloudRepositoryError(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudRepositoryError_Error(t *testing.T) {
-	err := PublicCloudRepositoryError{msg: "tralala"}
+func TestRepositoryError_Error(t *testing.T) {
+	err := RepositoryError{msg: "tralala"}
 	want := "tralala"
 	got := err.Error()
 

@@ -1,26 +1,26 @@
-package public_cloud_repository
+package shared
 
 import (
 	"fmt"
 	"net/http"
 )
 
-type PublicCloudRepositoryError struct {
+type RepositoryError struct {
 	msg             string
 	err             error
 	SdkHttpResponse *http.Response
 }
 
-func (e PublicCloudRepositoryError) Error() string {
+func (e RepositoryError) Error() string {
 	return e.msg
 }
 
-func newPublicCloudRepositoryError(
+func NewRepositoryError(
 	errorPrefix string,
 	sdkError error,
 	sdkHttpResponse *http.Response,
 ) error {
-	return PublicCloudRepositoryError{
+	return RepositoryError{
 		msg:             fmt.Errorf("%s: %w", errorPrefix, sdkError).Error(),
 		err:             sdkError,
 		SdkHttpResponse: sdkHttpResponse,
