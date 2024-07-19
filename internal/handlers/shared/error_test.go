@@ -1,33 +1,35 @@
 package shared
 
 import (
-	"bytes"
 	"errors"
-	"io"
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	sharedService "terraform-provider-leaseweb/internal/core/services/shared"
 	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
+	"terraform-provider-leaseweb/internal/shared"
 )
 
-func TestNewServiceError(t *testing.T) {
+func TestNewFromServiceError(t *testing.T) {
 	err := errors.New("tralala")
+	errorResponse := shared.ErrorResponse{ErrorCode: "123"}
+
 	repositoryError := sharedRepository.NewGeneralError(
 		"repositoryErrorPrefix",
 		err,
 	)
+	repositoryError.ErrorResponse = &errorResponse
 
-	serviceError := sharedService.NewRepositoryError(
+	serviceError := sharedService.NewFromRepositoryError(
 		"serviceErrorPrefix",
 		repositoryError,
 	)
-	got := NewServiceError("prefix", serviceError)
+
+	got := NewFromServicesError("prefix", serviceError)
 
 	want := HandlerError{
-		msg:          "prefix: serviceErrorPrefix: repositoryErrorPrefix: tralala",
-		ServiceError: serviceError,
+		msg:           "prefix: serviceErrorPrefix: repositoryErrorPrefix: tralala",
+		ErrorResponse: &errorResponse,
 	}
 
 	assert.Equal(t, want, *got)
@@ -41,10 +43,10 @@ func TestHandlerError_Error(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func TestNewGeneralError(t *testing.T) {
+func TestNewError(t *testing.T) {
 	err := errors.New("tralala")
 
-	got := NewGeneralError("prefix", err)
+	got := NewError("prefix", err)
 
 	want := HandlerError{
 		msg:          "prefix: tralala",
@@ -52,46 +54,4 @@ func TestNewGeneralError(t *testing.T) {
 	}
 
 	assert.Equal(t, want, *got)
-}
-
-func TestHandlerError_GetResponse(t *testing.T) {
-	t.Run("nil returned if serviceError is not set", func(t *testing.T) {
-		handlerError := HandlerError{}
-		got := handlerError.GetResponse()
-
-		assert.Nil(t, got)
-	})
-
-	t.Run("nil returned if repositoryError is not set", func(t *testing.T) {
-		handlerError := HandlerError{ServiceError: &sharedService.ServiceError{}}
-		got := handlerError.GetResponse()
-
-		assert.Nil(t, got)
-	})
-
-	t.Run("nil returned if http response is not set", func(t *testing.T) {
-		handlerError := HandlerError{
-			ServiceError: &sharedService.ServiceError{
-				RepositoryError: &sharedRepository.RepositoryError{},
-			},
-		}
-		got := handlerError.GetResponse()
-
-		assert.Nil(t, got)
-	})
-
-	t.Run("response body is returned if set", func(t *testing.T) {
-		handlerError := HandlerError{
-			ServiceError: &sharedService.ServiceError{
-				RepositoryError: &sharedRepository.RepositoryError{
-					SdkHttpResponse: &http.Response{
-						Body: io.NopCloser(bytes.NewReader([]byte("tralala"))),
-					},
-				},
-			},
-		}
-		got := handlerError.GetResponse()
-
-		assert.Equal(t, "tralala", *got)
-	})
 }

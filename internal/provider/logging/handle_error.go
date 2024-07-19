@@ -5,20 +5,21 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"terraform-provider-leaseweb/internal/shared"
 )
 
 func HandleError(
 	ctx context.Context,
-	response *string,
+	errorResponse *shared.ErrorResponse,
 	diags *diag.Diagnostics,
 	summary string,
 	detail string,
 ) {
-	if response != nil {
-		tflog.Debug(
+	if errorResponse != nil {
+		tflog.Error(
 			ctx,
-			"API response",
-			map[string]interface{}{"response": response},
+			summary,
+			map[string]interface{}{"ErrorResponse": errorResponse},
 		)
 	}
 

@@ -56,7 +56,7 @@ func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 ) {
 	instances, err := h.publicCloudService.GetAllInstances(ctx)
 	if err != nil {
-		return nil, shared.NewServiceError("GetAllInstances", err)
+		return nil, shared.NewFromServicesError("GetAllInstances", err)
 	}
 
 	dataSourceInstances := convertInstancesToDataSourceModel(instances)
@@ -74,7 +74,7 @@ func (h PublicCloudHandler) CreateInstance(
 		ctx,
 	)
 	if err != nil {
-		return nil, shared.NewGeneralError("CreateInstance", err)
+		return nil, shared.NewError("CreateInstance", err)
 	}
 
 	createdInstance, serviceErr := h.publicCloudService.CreateInstance(
@@ -82,12 +82,12 @@ func (h PublicCloudHandler) CreateInstance(
 		ctx,
 	)
 	if serviceErr != nil {
-		return nil, shared.NewServiceError("CreateInstance", serviceErr)
+		return nil, shared.NewFromServicesError("CreateInstance", serviceErr)
 	}
 
 	instance, err := h.convertInstanceToResourceModel(*createdInstance, ctx)
 	if err != nil {
-		return nil, shared.NewGeneralError("CreateInstance", err)
+		return nil, shared.NewError("CreateInstance", err)
 	}
 
 	return instance, nil
@@ -99,12 +99,12 @@ func (h PublicCloudHandler) DeleteInstance(
 ) *shared.HandlerError {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
-		return shared.NewGeneralError("DeleteInstance", err)
+		return shared.NewError("DeleteInstance", err)
 	}
 
 	serviceErr := h.publicCloudService.DeleteInstance(*instanceId, ctx)
 	if serviceErr != nil {
-		return shared.NewServiceError("DeleteInstance", serviceErr)
+		return shared.NewFromServicesError("DeleteInstance", serviceErr)
 	}
 
 	return nil
@@ -116,7 +116,7 @@ func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 ) (*domain.InstanceTypes, *shared.HandlerError) {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
-		return nil, shared.NewGeneralError(
+		return nil, shared.NewError(
 			"GetAvailableInstanceTypesForUpdate",
 			err,
 		)
@@ -127,7 +127,7 @@ func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 		ctx,
 	)
 	if serviceErr != nil {
-		return nil, shared.NewServiceError(
+		return nil, shared.NewFromServicesError(
 			"GetAvailableInstanceTypesForUpdate",
 			serviceErr,
 		)
@@ -142,7 +142,7 @@ func (h PublicCloudHandler) GetRegions(ctx context.Context) (
 ) {
 	regions, err := h.publicCloudService.GetRegions(ctx)
 	if err != nil {
-		return nil, shared.NewServiceError("GetRegions", err)
+		return nil, shared.NewFromServicesError("GetRegions", err)
 	}
 
 	return &regions, nil
@@ -154,17 +154,17 @@ func (h PublicCloudHandler) GetInstance(
 ) (*resourceModel.Instance, *shared.HandlerError) {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
-		return nil, shared.NewGeneralError("GetInstance", err)
+		return nil, shared.NewError("GetInstance", err)
 	}
 
 	instance, serviceErr := h.publicCloudService.GetInstance(*instanceId, ctx)
 	if serviceErr != nil {
-		return nil, shared.NewServiceError("GetInstance", serviceErr)
+		return nil, shared.NewFromServicesError("GetInstance", serviceErr)
 	}
 
 	convertedInstance, err := h.convertInstanceToResourceModel(*instance, ctx)
 	if err != nil {
-		return nil, shared.NewGeneralError("GetInstance", err)
+		return nil, shared.NewError("GetInstance", err)
 	}
 
 	return convertedInstance, nil
@@ -180,7 +180,7 @@ func (h PublicCloudHandler) UpdateInstance(
 		ctx,
 	)
 	if err != nil {
-		return nil, shared.NewGeneralError("UpdateInstance", err)
+		return nil, shared.NewError("UpdateInstance", err)
 	}
 
 	updatedInstance, updateInstanceErr := h.publicCloudService.UpdateInstance(
@@ -188,7 +188,7 @@ func (h PublicCloudHandler) UpdateInstance(
 		ctx,
 	)
 	if updateInstanceErr != nil {
-		return nil, shared.NewServiceError(
+		return nil, shared.NewFromServicesError(
 			"UpdateInstance",
 			updateInstanceErr,
 		)
@@ -199,7 +199,7 @@ func (h PublicCloudHandler) UpdateInstance(
 		ctx,
 	)
 	if err != nil {
-		return nil, shared.NewGeneralError("UpdateInstance", err)
+		return nil, shared.NewError("UpdateInstance", err)
 	}
 
 	return convertedInstance, nil
@@ -245,11 +245,11 @@ func (h PublicCloudHandler) ValidateContractTerm(
 
 	contractTermEnum, err := enum.NewContractTerm(int(contractTerm))
 	if err != nil {
-		return shared.NewGeneralError("ValidateContractTerm", err)
+		return shared.NewError("ValidateContractTerm", err)
 	}
 	contractTypeEnum, err := enum.NewContractType(contractType)
 	if err != nil {
-		return shared.NewGeneralError("ValidateContractType", err)
+		return shared.NewError("ValidateContractType", err)
 	}
 
 	_, err = domain.NewContract(

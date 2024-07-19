@@ -6,17 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/shared"
 )
 
 func TestHandleError(t *testing.T) {
 	t.Run("response is set", func(t *testing.T) {
 
 		diags := diag.Diagnostics{}
-		response := "response"
 
 		HandleError(
 			context.TODO(),
-			&response,
+			&shared.ErrorResponse{},
 			&diags,
 			"summary",
 			"detail",

@@ -33,7 +33,7 @@ func (i *instanceResource) Update(
 
 		logging.HandleError(
 			ctx,
-			err.GetResponse(),
+			err.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Unable to update public cloud instance %q",

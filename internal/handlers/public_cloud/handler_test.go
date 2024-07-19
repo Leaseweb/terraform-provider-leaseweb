@@ -167,7 +167,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 				return &domain.Instance{}, nil
 			},
 			publicCloudService: &serviceSpy{
-				createInstanceError: shared.NewGeneralError(
+				createInstanceError: shared.NewError(
 					"",
 					errors.New("some error"),
 				),
@@ -230,7 +230,7 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			deleteInstanceError: shared.NewGeneralError(
+			deleteInstanceError: shared.NewError(
 				"",
 				errors.New("some errors"),
 			),
@@ -277,7 +277,7 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			instanceTypesForUpdateError: shared.NewGeneralError(
+			instanceTypesForUpdateError: shared.NewError(
 				"",
 				errors.New("some errors"),
 			),
@@ -309,7 +309,7 @@ func TestPublicCloudHandler_GetRegions(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			getRegionsError: shared.NewGeneralError(
+			getRegionsError: shared.NewError(
 				"",
 				errors.New("some errors"),
 			),
@@ -362,7 +362,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
 				publicCloudService: &serviceSpy{
-					getInstanceError: shared.NewGeneralError(
+					getInstanceError: shared.NewError(
 						"",
 						errors.New("some error"),
 					),
@@ -438,7 +438,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
 				publicCloudService: &serviceSpy{
-					getInstancesError: shared.NewGeneralError(
+					getInstancesError: shared.NewError(
 						"",
 						errors.New("some error"),
 					),
@@ -523,7 +523,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 				return &domain.Instance{}, nil
 			},
 			publicCloudService: &serviceSpy{
-				updateInstanceError: shared.NewGeneralError(
+				updateInstanceError: shared.NewError(
 					"",
 					errors.New("some error"),
 				),

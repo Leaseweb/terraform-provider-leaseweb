@@ -35,7 +35,7 @@ func (i *instanceResource) Read(
 
 		logging.HandleError(
 			ctx,
-			err.GetResponse(),
+			err.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf("Unable to read instance %q", state.Id.ValueString()),
 			err.Error(),

@@ -39,7 +39,7 @@ func (i *instanceResource) Delete(
 
 		logging.HandleError(
 			ctx,
-			err.GetResponse(),
+			err.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Error deleting public cloud instance %q",

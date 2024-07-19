@@ -4,29 +4,30 @@ import (
 	"fmt"
 
 	"terraform-provider-leaseweb/internal/repositories/shared"
+	shared2 "terraform-provider-leaseweb/internal/shared"
 )
 
 type ServiceError struct {
-	msg             string
-	RepositoryError *shared.RepositoryError
-	GeneralError    error
+	msg           string
+	GeneralError  error
+	ErrorResponse *shared2.ErrorResponse
 }
 
 func (e ServiceError) Error() string {
 	return e.msg
 }
 
-func NewRepositoryError(
+func NewFromRepositoryError(
 	errorPrefix string,
 	repositoryError *shared.RepositoryError,
 ) *ServiceError {
 	return &ServiceError{
-		msg:             fmt.Errorf("%s: %w", errorPrefix, repositoryError).Error(),
-		RepositoryError: repositoryError,
+		msg:           fmt.Errorf("%s: %w", errorPrefix, repositoryError).Error(),
+		ErrorResponse: repositoryError.ErrorResponse,
 	}
 }
 
-func NewGeneralError(
+func NewError(
 	errorPrefix string,
 	err error,
 ) *ServiceError {

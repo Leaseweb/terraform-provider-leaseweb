@@ -29,7 +29,7 @@ func (i *instanceResource) Create(
 
 		logging.HandleError(
 			ctx,
-			err.GetResponse(),
+			err.ErrorResponse,
 			&resp.Diagnostics,
 			"Error creating public cloud instance",
 			err.Error(),
