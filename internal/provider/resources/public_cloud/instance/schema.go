@@ -142,8 +142,10 @@ func (i *instanceResource) Schema(
 				},
 			},
 			"ssh_key": schema.StringAttribute{
-				Optional:    true,
-				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+				Optional:      true,
+				Sensitive:     true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(handler.GetSshKeyRegularExpression()),
