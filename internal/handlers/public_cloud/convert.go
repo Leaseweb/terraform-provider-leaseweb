@@ -41,7 +41,7 @@ func convertInstanceToResourceModel(
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
 	plan.HasPublicIpv4 = basetypes.NewBoolValue(instance.HasPublicIpv4)
 	plan.HasPrivateNetwork = basetypes.NewBoolValue(instance.HasPrivateNetwork)
-	plan.Type = basetypes.NewStringValue(instance.Type)
+	plan.Type = basetypes.NewStringValue(string(instance.Type))
 	plan.RootDiskSize = basetypes.NewInt64Value(int64(instance.RootDiskSize.Value))
 	plan.RootDiskStorageType = basetypes.NewStringValue(string(instance.RootDiskStorageType))
 	plan.StartedAt = shared.ConvertNullableTimeToStringValue(instance.StartedAt)
@@ -379,7 +379,7 @@ func convertLoadBalancerToResourceModel(
 
 	return &resourcesModel.LoadBalancer{
 		Id:                        basetypes.NewStringValue(loadBalancer.Id.String()),
-		Type:                      basetypes.NewStringValue(loadBalancer.Type),
+		Type:                      basetypes.NewStringValue(string(loadBalancer.Type)),
 		Resources:                 resources,
 		Region:                    basetypes.NewStringValue(loadBalancer.Region),
 		Reference:                 shared.ConvertNullableStringToStringValue(loadBalancer.Reference),
@@ -575,9 +575,17 @@ func convertInstanceResourceModelToCreateInstanceOpts(
 		}
 	}
 
+	instanceType, err := enum.NewInstanceType(instanceResourceModel.Type.ValueString())
+	if err != nil {
+		return nil, fmt.Errorf(
+			"convertInstanceResourceModelToCreateInstanceOpts: %w",
+			err,
+		)
+	}
+
 	createInstanceOpts := domain.NewCreateInstance(
 		instanceResourceModel.Region.ValueString(),
-		instanceResourceModel.Type.ValueString(),
+		instanceType,
 		rootDiskStorageType,
 		imageId,
 		contractType,
@@ -616,7 +624,7 @@ func convertInstanceToDataSourceModel(domainInstance domain.Instance) dataSource
 		ProductType:         basetypes.NewStringValue(domainInstance.ProductType),
 		HasPublicIpv4:       basetypes.NewBoolValue(domainInstance.HasPublicIpv4),
 		HasPrivateNetwork:   basetypes.NewBoolValue(domainInstance.HasPrivateNetwork),
-		Type:                basetypes.NewStringValue(domainInstance.Type),
+		Type:                basetypes.NewStringValue(string(domainInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(domainInstance.RootDiskSize.Value)),
 		RootDiskStorageType: basetypes.NewStringValue(string(domainInstance.RootDiskStorageType)),
 		StartedAt:           shared.ConvertNullableTimeToStringValue(domainInstance.StartedAt),
@@ -745,7 +753,7 @@ func convertLoadBalancerToDataSourceModel(loadBalancer domain.LoadBalancer) *dat
 
 	return &dataSourceModel.LoadBalancer{
 		Id:        basetypes.NewStringValue(loadBalancer.Id.String()),
-		Type:      basetypes.NewStringValue(loadBalancer.Type),
+		Type:      basetypes.NewStringValue(string(loadBalancer.Type)),
 		Resources: convertResourcesToDataSourceModel(loadBalancer.Resources),
 		Region:    basetypes.NewStringValue(loadBalancer.Region),
 		Reference: shared.ConvertNullableStringToStringValue(loadBalancer.Reference),
@@ -846,7 +854,6 @@ func convertInstanceResourceModelToUpdateInstanceOpts(
 	}
 
 	optionalValues := domain.OptionalUpdateInstanceValues{
-		Type:      instanceResourceModel.Type.ValueStringPointer(),
 		Reference: instanceResourceModel.Reference.ValueStringPointer(),
 	}
 
@@ -901,6 +908,17 @@ func convertInstanceResourceModelToUpdateInstanceOpts(
 			)
 		}
 		optionalValues.BillingFrequency = &billingFrequency
+	}
+
+	if instanceResourceModel.Type.ValueString() != "" {
+		instanceType, err := enum.NewInstanceType(instanceResourceModel.Type.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf(
+				"convertInstanceResourceModelToUpdateInstanceOpts: %w",
+				err,
+			)
+		}
+		optionalValues.Type = &instanceType
 	}
 
 	instance := domain.NewUpdateInstance(*id, optionalValues)

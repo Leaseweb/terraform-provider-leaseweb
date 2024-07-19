@@ -26,7 +26,7 @@ func TestNewInstance(t *testing.T) {
 			false,
 			true,
 			*rootDiskSize,
-			"instanceType",
+			enum.InstanceTypeC3Large,
 			enum.RootDiskStorageTypeCentral,
 			Ips{{Ip: "1.2.3.4"}},
 			Contract{BillingFrequency: enum.ContractBillingFrequencyOne},
@@ -41,7 +41,7 @@ func TestNewInstance(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.False(t, got.HasPublicIpv4)
 		assert.True(t, got.HasPrivateNetwork)
-		assert.Equal(t, "instanceType", got.Type)
+		assert.Equal(t, enum.InstanceTypeC3Large, got.Type)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(
@@ -113,7 +113,7 @@ func TestNewCreateInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		got := NewCreateInstance(
 			"region",
-			"instanceType",
+			enum.InstanceTypeC3Large,
 			enum.RootDiskStorageTypeCentral,
 			enum.Almalinux864Bit,
 			enum.ContractTypeMonthly,
@@ -123,7 +123,7 @@ func TestNewCreateInstance(t *testing.T) {
 		)
 
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, "instanceType", got.Type)
+		assert.Equal(t, enum.InstanceTypeC3Large, got.Type)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, enum.Almalinux864Bit, got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -187,7 +187,7 @@ func TestNewUpdateInstance(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		instanceType := "lsw.m4.large"
+		instanceType := enum.InstanceTypeC4Large
 		reference := "reference"
 		contractType := enum.ContractTypeMonthly
 		contractTerm := enum.ContractTermSix
@@ -206,7 +206,7 @@ func TestNewUpdateInstance(t *testing.T) {
 			},
 		)
 
-		assert.Equal(t, "lsw.m4.large", got.Type)
+		assert.Equal(t, enum.InstanceTypeC4Large, got.Type)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermSix, got.Contract.Term)

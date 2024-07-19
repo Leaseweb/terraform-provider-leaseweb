@@ -61,6 +61,11 @@ func convertInstance(sdkInstance publicCloud.Instance) (
 		}
 	}
 
+	instanceType, err := enum.NewInstanceType(string(sdkInstance.GetType()))
+	if err != nil {
+		return nil, fmt.Errorf("convertInstance: %w", err)
+	}
+
 	optionalValues := domain.OptionalInstanceValues{
 		Reference:        convertNullableStringToValue(sdkInstance.Reference),
 		MarketAppId:      convertNullableStringToValue(sdkInstance.MarketAppId),
@@ -78,7 +83,7 @@ func convertInstance(sdkInstance publicCloud.Instance) (
 		sdkInstance.GetHasPublicIpV4(),
 		sdkInstance.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		string(sdkInstance.GetType()),
+		instanceType,
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -153,6 +158,13 @@ func convertInstanceDetails(
 		optionalValues.PrivateNetwork = &privateNetwork
 	}
 
+	instanceType, err := enum.NewInstanceType(
+		string(sdkInstanceDetails.GetType()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
+	}
+
 	instance := domain.NewInstance(
 		*instanceId,
 		sdkInstanceDetails.GetRegion(),
@@ -163,7 +175,7 @@ func convertInstanceDetails(
 		sdkInstanceDetails.GetHasPublicIpV4(),
 		sdkInstanceDetails.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		string(sdkInstanceDetails.GetType()),
+		instanceType,
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -505,9 +517,14 @@ func convertLoadBalancerDetails(sdkLoadBalancer publicCloud.LoadBalancerDetails)
 		options.PrivateNetwork = &privateNetwork
 	}
 
+	instanceType, err := enum.NewInstanceType(string(sdkLoadBalancer.GetType()))
+	if err != nil {
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
+	}
+
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		string(sdkLoadBalancer.GetType()),
+		instanceType,
 		convertResources(sdkLoadBalancer.GetResources()),
 		sdkLoadBalancer.GetRegion(),
 		state,
@@ -533,6 +550,11 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
 	}
 
+	instanceType, err := enum.NewInstanceType(string(sdkLoadBalancer.GetType()))
+	if err != nil {
+		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
+	}
+
 	options := domain.OptionalLoadBalancerValues{
 		Reference: convertNullableStringToValue(sdkLoadBalancer.Reference),
 		StartedAt: convertNullableTimeToValue(sdkLoadBalancer.StartedAt),
@@ -540,7 +562,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		string(sdkLoadBalancer.GetType()),
+		instanceType,
 		convertResources(sdkLoadBalancer.GetResources()),
 		"",
 		state,
@@ -621,7 +643,7 @@ func convertEntityToLaunchInstanceOpts(instance domain.Instance) (
 	error,
 ) {
 	instanceTypeName, err := publicCloud.NewTypeNameFromValue(
-		instance.Type,
+		string(instance.Type),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
@@ -693,7 +715,9 @@ func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 	}
 
 	if instance.Type != "" {
-		instanceTypeName, err := publicCloud.NewTypeNameFromValue(instance.Type)
+		instanceTypeName, err := publicCloud.NewTypeNameFromValue(
+			string(instance.Type),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}

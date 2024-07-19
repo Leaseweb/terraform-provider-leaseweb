@@ -283,20 +283,17 @@ func Test_convertResourcesToResourceModel(t *testing.T) {
 
 func Test_convertHealthCheckToResourceModel(t *testing.T) {
 	host := "host"
-	entityHealthCheck := domain.NewHealthCheck(
-		"method",
+	healthCheck := domain.NewHealthCheck(
+		enum.MethodGet,
 		"uri",
 		22,
 		domain.OptionalHealthCheckValues{Host: &host},
 	)
 
-	got, err := convertHealthCheckToResourceModel(
-		context.TODO(),
-		entityHealthCheck,
-	)
+	got, err := convertHealthCheckToResourceModel(context.TODO(), healthCheck)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "method", got.Method.ValueString())
+	assert.Equal(t, "GET", got.Method.ValueString())
 	assert.Equal(t, "uri", got.Uri.ValueString())
 	assert.Equal(t, host, got.Host.ValueString())
 	assert.Equal(t, int64(22), got.Port.ValueInt64())
@@ -354,10 +351,9 @@ func Test_convertLoadBalancerConfigurationToResourceModel(t *testing.T) {
 }
 
 func Test_convertDdosToResourceModel(t *testing.T) {
+	ddos := domain.NewDdos("detectionProfile", "protectionType")
 
-	entityDdos := domain.NewDdos("detectionProfile", "protectionType")
-
-	got, err := convertDdosToResourceModel(context.TODO(), entityDdos)
+	got, err := convertDdosToResourceModel(context.TODO(), ddos)
 
 	assert.NoError(t, err)
 
@@ -376,7 +372,6 @@ func Test_convertDdosToResourceModel(t *testing.T) {
 }
 
 func Test_convertIpToResourceModel(t *testing.T) {
-
 	reverseLookup := "reverse-lookup"
 
 	ip := domain.NewIp(
@@ -449,7 +444,6 @@ func Test_convertIpToResourceModel(t *testing.T) {
 }
 
 func Test_convertLoadBalancerToResourceModel(t *testing.T) {
-
 	t.Run("loadBalancer Conversion works", func(t *testing.T) {
 		reference := "reference"
 		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
@@ -547,30 +541,17 @@ func Test_convertInstanceToResourceModel(t *testing.T) {
 		autoScalingGroupId := value_object.NewGeneratedUuid()
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 
-		instance := domain.NewInstance(
-			id,
-			"region",
-			domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
-			domain.Image{Id: enum.Ubuntu200464Bit},
-			enum.StateCreating,
-			"productType",
-			false,
-			true,
-			*rootDiskSize,
-			"lsw.m5a.4xlarge",
-			enum.RootDiskStorageTypeCentral,
-			domain.Ips{{Ip: "1.2.3.4"}},
-			domain.Contract{Type: enum.ContractTypeMonthly},
-			domain.OptionalInstanceValues{
-				Reference:        &reference,
-				Iso:              &domain.Iso{Id: "isoId"},
-				MarketAppId:      &marketAppId,
-				SshKey:           sshKeyValueObject,
-				StartedAt:        &startedAt,
-				PrivateNetwork:   &domain.PrivateNetwork{Id: "privateNetworkId"},
-				AutoScalingGroup: &domain.AutoScalingGroup{Id: autoScalingGroupId},
-			},
-		)
+		instance := generateDomainInstance()
+		instance.Id = id
+		instance.Type = enum.InstanceTypeM5A4Xlarge
+		instance.RootDiskSize = *rootDiskSize
+		instance.StartedAt = &startedAt
+		instance.MarketAppId = &marketAppId
+		instance.Reference = &reference
+		instance.SshKey = sshKeyValueObject
+		instance.PrivateNetwork.Id = "privateNetworkId"
+		instance.AutoScalingGroup.Id = autoScalingGroupId
+		instance.Resources.Cpu.Unit = "cpu"
 
 		got, err := convertInstanceToResourceModel(instance, context.TODO())
 
@@ -729,7 +710,6 @@ func Test_convertInstanceToResourceModel(t *testing.T) {
 }
 
 func Test_convertAutoScalingGroupToResourceModel(t *testing.T) {
-
 	desiredAmount := 1
 	createdAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	updatedAt, _ := time.Parse(time.RFC3339, "2020-09-08T00:00:00Z")
@@ -811,9 +791,9 @@ func Test_convertAutoScalingGroupToResourceModel(t *testing.T) {
 }
 
 func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
-
 	t.Run("required values are set", func(t *testing.T) {
 		instance := generateInstanceModel(
+			nil,
 			nil,
 			nil,
 			nil,
@@ -830,7 +810,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, "lsw.m5a.4xlarge", got.Type)
+		assert.Equal(t, enum.InstanceTypeM5A4Xlarge, got.Type)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, enum.Ubuntu200464Bit, got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -843,6 +823,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 	t.Run("optional values are passed", func(t *testing.T) {
 		instance := generateInstanceModel(
+			nil,
 			nil,
 			nil,
 			nil,
@@ -876,6 +857,32 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
+				nil,
+			)
+
+			_, err := convertInstanceResourceModelToCreateInstanceOpts(
+				instance,
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "tralala")
+		},
+	)
+
+	t.Run(
+		"returns error if invalid instanceType is passed",
+		func(t *testing.T) {
+			instanceType := "tralala"
+			instance := generateInstanceModel(
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				&instanceType,
 			)
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
@@ -898,6 +905,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			nil,
+			nil,
 		)
 
 		_, err := convertInstanceResourceModelToCreateInstanceOpts(
@@ -915,6 +923,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			&contractType,
+			nil,
 			nil,
 			nil,
 			nil,
@@ -942,6 +951,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
+				nil,
 			)
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
@@ -966,6 +976,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 				&billingFrequency,
 				nil,
 				nil,
+				nil,
 			)
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
@@ -987,6 +998,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			&sshKey,
+			nil,
 			nil,
 		)
 
@@ -1011,6 +1023,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				&rootDiskSize,
+				nil,
 			)
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
@@ -1032,6 +1045,7 @@ func generateInstanceModel(
 	billingFrequency *int,
 	sshKey *string,
 	rootDiskSize *int,
+	instanceType *string,
 ) model.Instance {
 	defaultRootDiskStorageType := "CENTRAL"
 	defaultImageId := "UBUNTU_20_04_64BIT"
@@ -1039,6 +1053,7 @@ func generateInstanceModel(
 	defaultContractTerm := 3
 	defaultBillingFrequency := 1
 	defaultRootDiskSize := 55
+	defaultInstanceType := "lsw.m5a.4xlarge"
 
 	if rootDiskStorageType == nil {
 		rootDiskStorageType = &defaultRootDiskStorageType
@@ -1060,6 +1075,9 @@ func generateInstanceModel(
 	}
 	if sshKey == nil {
 		sshKey = &defaultSshKey
+	}
+	if instanceType == nil {
+		instanceType = &defaultInstanceType
 	}
 
 	image, _ := types.ObjectValueFrom(
@@ -1092,8 +1110,9 @@ func generateInstanceModel(
 	)
 
 	instance := model.Instance{
+		Id:                  basetypes.NewStringValue(value_object.NewGeneratedUuid().String()),
 		Region:              basetypes.NewStringValue("region"),
-		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
+		Type:                basetypes.NewStringValue(*instanceType),
 		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),
 		RootDiskSize:        basetypes.NewInt64Value(int64(*rootDiskSize)),
 		Image:               image,
@@ -1117,7 +1136,6 @@ func Test_convertInstancesToDataSourceModel(t *testing.T) {
 }
 
 func Test_convertInstanceToDataSourceModel(t *testing.T) {
-
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	marketAppId := "marketAppId"
 	reference := "reference"
@@ -1126,33 +1144,14 @@ func Test_convertInstanceToDataSourceModel(t *testing.T) {
 	autoScalingGroupId := value_object.NewGeneratedUuid()
 	loadBalancerId := value_object.NewGeneratedUuid()
 
-	instance := domain.NewInstance(
-		id,
-		"region",
-		domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
-		domain.Image{Id: enum.Ubuntu200464Bit},
-		"state",
-		"productType",
-		true,
-		false,
-		value_object.RootDiskSize{Value: 55},
-		"lsw.m3.large",
-		enum.RootDiskStorageTypeCentral,
-		domain.Ips{{Ip: "1.2.3.4"}},
-		domain.Contract{Type: enum.ContractTypeMonthly},
-		domain.OptionalInstanceValues{
-			Reference:      &reference,
-			Iso:            &domain.Iso{Id: "isoId"},
-			MarketAppId:    &marketAppId,
-			SshKey:         sshKeyValueObject,
-			StartedAt:      &startedAt,
-			PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
-			AutoScalingGroup: &domain.AutoScalingGroup{
-				Id:           autoScalingGroupId,
-				LoadBalancer: &domain.LoadBalancer{Id: loadBalancerId},
-			},
-		},
-	)
+	instance := generateDomainInstance()
+	instance.Id = id
+	instance.StartedAt = &startedAt
+	instance.MarketAppId = &marketAppId
+	instance.Reference = &reference
+	instance.SshKey = sshKeyValueObject
+	instance.AutoScalingGroup.Id = autoScalingGroupId
+	instance.AutoScalingGroup.LoadBalancer.Id = loadBalancerId
 
 	got := convertInstanceToDataSourceModel(instance)
 
@@ -1170,7 +1169,7 @@ func Test_convertInstanceToDataSourceModel(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"state",
+		"CREATING",
 		got.State.ValueString(),
 		"state should be set",
 	)
@@ -1180,21 +1179,19 @@ func Test_convertInstanceToDataSourceModel(t *testing.T) {
 		got.ProductType.ValueString(),
 		"productType should be set",
 	)
-	assert.Equal(
+	assert.False(
 		t,
-		true,
 		got.HasPublicIpv4.ValueBool(),
 		"hasPublicIpv should be set",
 	)
-	assert.Equal(
+	assert.True(
 		t,
-		false,
 		got.HasPrivateNetwork.ValueBool(),
 		"hasPrivateNetwork should be set",
 	)
 	assert.Equal(
 		t,
-		"lsw.m3.large",
+		"lsw.c3.large",
 		got.Type.ValueString(),
 		"type should be set",
 	)
@@ -1242,7 +1239,7 @@ func Test_convertInstanceToDataSourceModel(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"cpu",
+		"cpuUnit",
 		got.Resources.Cpu.Unit.ValueString(),
 		"PrivateNetwork should be set",
 	)
@@ -1260,7 +1257,7 @@ func Test_convertInstanceToDataSourceModel(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		"privateNetworkId",
+		"id",
 		got.PrivateNetwork.Id.ValueString(),
 		"PrivateNetwork should be set",
 	)
@@ -1500,79 +1497,6 @@ func Test_convertContractToDataSourceModel(t *testing.T) {
 		got.State.ValueString(),
 		"state should be set",
 	)
-}
-
-func Test_convertInstanceToDataSourceModel1(t *testing.T) {
-
-	id := value_object.NewGeneratedUuid()
-	desiredAmount := 1
-	createdAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-	updatedAt, _ := time.Parse(time.RFC3339, "2020-09-08T00:00:00Z")
-	startsAt, _ := time.Parse(time.RFC3339, "2010-09-08T00:00:00Z")
-	endsAt, _ := time.Parse(time.RFC3339, "2011-09-08T00:00:00Z")
-	minimumAmount := 2
-	maximumAmount := 3
-	cpuThreshold := 4
-	warmupTime := 5
-	cooldownTime := 6
-	reference, _ := value_object.NewAutoScalingGroupReference("reference")
-	loadBalancerId := value_object.NewGeneratedUuid()
-
-	autoScalingGroup := domain.NewAutoScalingGroup(
-		id,
-		enum.AutoScalingGroupTypeScheduled,
-		enum.AutoScalingGroupStateDestroying,
-		"region",
-		*reference,
-		createdAt,
-		updatedAt,
-		domain.AutoScalingGroupOptions{
-			DesiredAmount: &desiredAmount,
-			StartsAt:      &startsAt,
-			EndsAt:        &endsAt,
-			MinimumAmount: &minimumAmount,
-			MaximumAmount: &maximumAmount,
-			CpuThreshold:  &cpuThreshold,
-			WarmupTime:    &warmupTime,
-			CoolDownTime:  &cooldownTime,
-			LoadBalancer:  &domain.LoadBalancer{Id: loadBalancerId},
-		},
-	)
-
-	got := convertAutoScalingGroupToDataSourceModel(autoScalingGroup)
-
-	assert.Equal(t, id.String(), got.Id.ValueString())
-	assert.Equal(t, "SCHEDULED", got.Type.ValueString())
-	assert.Equal(t, "DESTROYING", got.State.ValueString())
-	assert.Equal(t, int64(1), got.DesiredAmount.ValueInt64())
-	assert.Equal(t, "region", got.Region.ValueString())
-	assert.Equal(t, "reference", got.Reference.ValueString())
-	assert.Equal(
-		t,
-		"2019-09-08 00:00:00 +0000 UTC",
-		got.CreatedAt.ValueString(),
-	)
-	assert.Equal(
-		t,
-		"2020-09-08 00:00:00 +0000 UTC",
-		got.UpdatedAt.ValueString(),
-	)
-	assert.Equal(
-		t,
-		"2010-09-08 00:00:00 +0000 UTC",
-		got.StartsAt.ValueString(),
-	)
-	assert.Equal(
-		t,
-		"2011-09-08 00:00:00 +0000 UTC",
-		got.EndsAt.ValueString(),
-	)
-	assert.Equal(t, int64(2), got.MinimumAmount.ValueInt64())
-	assert.Equal(t, int64(3), got.MaximumAmount.ValueInt64())
-	assert.Equal(t, int64(4), got.CpuThreshold.ValueInt64())
-	assert.Equal(t, int64(5), got.WarmupTime.ValueInt64())
-	assert.Equal(t, int64(6), got.CooldownTime.ValueInt64())
-	assert.Equal(t, loadBalancerId.String(), got.LoadBalancer.Id.ValueString())
 }
 
 func Test_convertLoadBalancerToDataSourceModel(t *testing.T) {
@@ -1854,24 +1778,16 @@ func Test_convertInstanceResourceModelToUpdateInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
-		contract, _ := types.ObjectValueFrom(
-			context.TODO(),
-			model.Contract{}.AttributeTypes(),
-			model.Contract{
-				Type:             basetypes.NewStringValue("MONTHLY"),
-				Term:             basetypes.NewInt64Value(3),
-				BillingFrequency: basetypes.NewInt64Value(3),
-			},
+		instance := generateInstanceModel(
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
 		)
-
-		instance := model.Instance{
-			Id:           basetypes.NewStringValue(id.String()),
-			Type:         basetypes.NewStringValue("lsw.m5a.4xlarge"),
-			Contract:     contract,
-			Reference:    basetypes.NewStringValue("reference"),
-			RootDiskSize: basetypes.NewInt64Value(65),
-		}
 
 		got, diags := convertInstanceResourceModelToUpdateInstanceOpts(
 			instance,
@@ -1879,15 +1795,188 @@ func Test_convertInstanceResourceModelToUpdateInstanceOpts(t *testing.T) {
 		)
 
 		assert.Nil(t, diags)
-		assert.Equal(t, "lsw.m5a.4xlarge", got.Type)
+		assert.Equal(t, enum.InstanceTypeM5A4Xlarge, got.Type)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermThree, got.Contract.Term)
 		assert.Equal(
 			t,
-			enum.ContractBillingFrequencyThree,
+			enum.ContractBillingFrequencyOne,
 			got.Contract.BillingFrequency,
 		)
 		assert.Equal(t, "reference", *got.Reference)
-		assert.Equal(t, 65, got.RootDiskSize.Value)
+		assert.Equal(t, 55, got.RootDiskSize.Value)
 	})
+}
+
+func generateDomainInstance() domain.Instance {
+	cpu := domain.NewCpu(1, "cpuUnit")
+	memory := domain.NewMemory(2, "memoryUnit")
+	publicNetworkSpeed := domain.NewNetworkSpeed(
+		3,
+		"publicNetworkSpeedUnit",
+	)
+	privateNetworkSpeed := domain.NewNetworkSpeed(
+		4,
+		"privateNetworkSpeedUnit",
+	)
+
+	resources := domain.NewResources(
+		cpu,
+		memory,
+		publicNetworkSpeed,
+		privateNetworkSpeed,
+	)
+
+	image := domain.NewImage(
+		enum.Ubuntu200464Bit,
+		"name",
+		"version",
+		"family",
+		"flavour",
+		"architecture",
+		[]string{"one"},
+		[]string{"storageType"},
+	)
+
+	rootDiskSize, _ := value_object.NewRootDiskSize(55)
+
+	reverseLookup := "reverseLookup"
+	ip := domain.NewIp(
+		"1.2.3.4",
+		"prefix-length",
+		46,
+		true,
+		false,
+		"tralala",
+		domain.OptionalIpValues{
+			Ddos:          &domain.Ddos{ProtectionType: "protection-type"},
+			ReverseLookup: &reverseLookup,
+		},
+	)
+
+	endsAt, _ := time.Parse(
+		"2006-01-02 15:04:05",
+		"2023-12-14 17:09:47",
+	)
+	renewalsAt, _ := time.Parse(
+		"2006-01-02 15:04:05",
+		"2022-12-14 17:09:47",
+	)
+	createdAt, _ := time.Parse(
+		"2006-01-02 15:04:05",
+		"2021-12-14 17:09:47",
+	)
+	contract, _ := domain.NewContract(
+		enum.ContractBillingFrequencySix,
+		enum.ContractTermThree,
+		enum.ContractTypeMonthly,
+		renewalsAt,
+		createdAt,
+		enum.ContractStateActive,
+		&endsAt,
+	)
+
+	reference := "reference"
+	marketAppId := "marketAppId"
+	sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
+	startedAt := time.Now()
+
+	privateNetwork := domain.NewPrivateNetwork(
+		"id",
+		"status",
+		"subnet",
+	)
+
+	stickySession := domain.NewStickySession(true, 5)
+
+	host := "host"
+	healthCheck := domain.NewHealthCheck(
+		enum.MethodGet,
+		"uri",
+		22,
+		domain.OptionalHealthCheckValues{Host: &host},
+	)
+
+	loadBalancerConfiguration := domain.NewLoadBalancerConfiguration(
+		enum.BalanceSource,
+		false,
+		5,
+		6,
+		domain.OptionalLoadBalancerConfigurationOptions{
+			StickySession: &stickySession,
+			HealthCheck:   &healthCheck,
+		},
+	)
+
+	loadBalancer := domain.NewLoadBalancer(
+		value_object.NewGeneratedUuid(),
+		"type",
+		resources,
+		"region",
+		enum.StateCreating,
+		*contract,
+		domain.Ips{ip},
+		domain.OptionalLoadBalancerValues{
+			Reference:      &reference,
+			StartedAt:      &startedAt,
+			PrivateNetwork: &privateNetwork,
+			Configuration:  &loadBalancerConfiguration,
+		},
+	)
+
+	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference("reference")
+	autoScalingGroupCreatedAt := time.Now()
+	autoScalingGroupUpdatedAt := time.Now()
+	autoScalingGroupDesiredAmount := 1
+	autoScalingGroupStartsAt := time.Now()
+	autoScalingGroupEndsAt := time.Now()
+	autoScalingMinimumAmount := 2
+	autoScalingMaximumAmount := 3
+	autoScalingCpuThreshold := 4
+	autoScalingWarmupTime := 5
+	autoScalingCooldownTime := 6
+	autoScalingGroup := domain.NewAutoScalingGroup(
+		value_object.NewGeneratedUuid(),
+		"type",
+		"state",
+		"region",
+		*autoScalingGroupReference,
+		autoScalingGroupCreatedAt,
+		autoScalingGroupUpdatedAt,
+		domain.AutoScalingGroupOptions{
+			DesiredAmount: &autoScalingGroupDesiredAmount,
+			StartsAt:      &autoScalingGroupStartsAt,
+			EndsAt:        &autoScalingGroupEndsAt,
+			MinimumAmount: &autoScalingMinimumAmount,
+			MaximumAmount: &autoScalingMaximumAmount,
+			CpuThreshold:  &autoScalingCpuThreshold,
+			WarmupTime:    &autoScalingWarmupTime,
+			CoolDownTime:  &autoScalingCooldownTime,
+			LoadBalancer:  &loadBalancer,
+		})
+
+	return domain.NewInstance(
+		value_object.NewGeneratedUuid(),
+		"region",
+		resources,
+		image,
+		enum.StateCreating,
+		"productType",
+		false,
+		true,
+		*rootDiskSize,
+		enum.InstanceTypeC3Large,
+		enum.RootDiskStorageTypeCentral,
+		domain.Ips{ip},
+		*contract,
+		domain.OptionalInstanceValues{
+			Reference:        &reference,
+			Iso:              &domain.Iso{Id: "isoId"},
+			MarketAppId:      &marketAppId,
+			SshKey:           sshKeyValueObject,
+			StartedAt:        &startedAt,
+			PrivateNetwork:   &privateNetwork,
+			AutoScalingGroup: &autoScalingGroup,
+		},
+	)
 }

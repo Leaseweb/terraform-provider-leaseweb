@@ -15,7 +15,7 @@ func TestNewLoadBalancer(t *testing.T) {
 
 		got := NewLoadBalancer(
 			id,
-			"loadBalancerType",
+			enum.InstanceTypeC3Large,
 			Resources{Cpu: Cpu{Unit: "cpu"}},
 			"region",
 			enum.StateRunning,
@@ -25,7 +25,7 @@ func TestNewLoadBalancer(t *testing.T) {
 		)
 
 		assert.Equal(t, id, got.Id)
-		assert.Equal(t, "loadBalancerType", got.Type)
+		assert.Equal(t, enum.InstanceTypeC3Large, got.Type)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, enum.StateRunning, got.State)

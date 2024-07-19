@@ -9,7 +9,7 @@ import (
 
 type LoadBalancer struct {
 	Id             value_object.Uuid
-	Type           string
+	Type           enum.InstanceType
 	Resources      Resources
 	Region         string
 	State          enum.State
@@ -30,7 +30,7 @@ type OptionalLoadBalancerValues struct {
 
 func NewLoadBalancer(
 	id value_object.Uuid,
-	loadBalancerType string,
+	loadBalancerType enum.InstanceType,
 	resources Resources,
 	region string,
 	state enum.State,
