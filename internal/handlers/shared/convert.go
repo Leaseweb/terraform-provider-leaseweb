@@ -157,3 +157,11 @@ func ConvertEntitiesToListValue[T any, U any](
 
 	return listObject, nil
 }
+
+func ConvertValueStringPointerToString(value types.String) *string {
+	if value.IsUnknown() {
+		return nil
+	}
+
+	return value.ValueStringPointer()
+}

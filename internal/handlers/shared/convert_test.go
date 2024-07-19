@@ -323,3 +323,23 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 		},
 	)
 }
+
+func TestConvertValueStringPointerToString(t *testing.T) {
+	t.Run("returns nil when value is unknown", func(t *testing.T) {
+		value := basetypes.NewStringUnknown()
+		assert.Nil(t, ConvertValueStringPointerToString(value))
+	})
+
+	t.Run("returns pointer when value is set", func(t *testing.T) {
+		target := "tralala"
+		value := basetypes.NewStringPointerValue(&target)
+
+		assert.Equal(t, target, *ConvertValueStringPointerToString(value))
+	})
+
+	t.Run("returns nil when value is not set", func(t *testing.T) {
+		value := basetypes.NewStringPointerValue(nil)
+
+		assert.Nil(t, ConvertValueStringPointerToString(value))
+	})
+}
