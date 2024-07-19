@@ -18,6 +18,8 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 	*shared.ServiceError,
 ) {
 	var detailedInstances domain.Instances
+	resultChan := make(chan domain.Instance)
+	errorChan := make(chan *shared.ServiceError)
 
 	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
@@ -27,17 +29,21 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 		)
 	}
 
-	// Get instance details.
 	for _, instance := range instances {
-		detailedInstance, err := srv.GetInstance(instance.Id, ctx)
-		if err != nil {
-			return domain.Instances{}, shared.NewError(
-				"GetAllAllInstances",
-				err,
-			)
-		}
+		go func(id value_object.Uuid) {
+			detailedInstance, err := srv.GetInstance(id, ctx)
+			if err != nil {
+				errorChan <- err
+			}
+			resultChan <- *detailedInstance
+		}(instance.Id)
+	}
 
-		detailedInstances = append(detailedInstances, *detailedInstance)
+	select {
+	case err := <-errorChan:
+		return domain.Instances{}, err
+	case res := <-resultChan:
+		detailedInstances = append(detailedInstances, res)
 	}
 
 	return detailedInstances, nil
