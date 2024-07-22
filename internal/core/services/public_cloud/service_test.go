@@ -161,6 +161,8 @@ func TestService_GetAllInstances(t *testing.T) {
 				&repositorySpy{
 					instances: domain.Instances{
 						{Id: value_object.NewGeneratedUuid()},
+						{Id: value_object.NewGeneratedUuid()},
+						{Id: value_object.NewGeneratedUuid()},
 					},
 					getInstanceError: sharedRepository.NewGeneralError(
 						"",

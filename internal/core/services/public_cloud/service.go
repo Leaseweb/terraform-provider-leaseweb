@@ -34,6 +34,7 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 			detailedInstance, err := srv.GetInstance(id, ctx)
 			if err != nil {
 				errorChan <- err
+				return
 			}
 			resultChan <- *detailedInstance
 		}(instance.Id)
