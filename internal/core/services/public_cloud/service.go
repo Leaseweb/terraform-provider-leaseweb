@@ -40,11 +40,13 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 		}(instance.Id)
 	}
 
-	select {
-	case err := <-errorChan:
-		return domain.Instances{}, err
-	case res := <-resultChan:
-		detailedInstances = append(detailedInstances, res)
+	for i := 0; i < len(instances); i++ {
+		select {
+		case err := <-errorChan:
+			return domain.Instances{}, err
+		case res := <-resultChan:
+			detailedInstances = append(detailedInstances, res)
+		}
 	}
 
 	return detailedInstances, nil

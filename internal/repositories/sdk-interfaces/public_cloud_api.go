@@ -6,7 +6,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type publicCloudApi interface {
+type PublicCloudApi interface {
 	GetInstanceList(ctx context.Context) publicCloud.ApiGetInstanceListRequest
 
 	GetInstance(
