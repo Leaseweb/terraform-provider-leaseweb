@@ -1,4 +1,4 @@
-package public_cloud_repository
+package sdk_interfaces
 
 import (
 	"context"

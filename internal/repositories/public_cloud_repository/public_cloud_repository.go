@@ -7,6 +7,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/repositories/sdk-interfaces"
 	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
@@ -16,7 +17,7 @@ type Optional struct {
 }
 
 type PublicCloudRepository struct {
-	publicCLoudAPI         publicCloudApi
+	publicCLoudAPI         sdk_interfaces.PublicCloudApi
 	token                  string
 	convertInstanceDetails func(
 		sdkInstance publicCloud.InstanceDetails,
@@ -55,19 +56,40 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 ) {
 	var instances domain.Instances
 
-	result, response, err := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx)).Execute()
+	request := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx))
+
+	result, response, err := request.Execute()
 
 	if err != nil {
 		return nil, shared.NewSdkError("GetAllInstances", err, response)
 	}
 
-	for _, sdkInstance := range result.Instances {
-		instance, err := p.convertInstance(sdkInstance)
+	pagination := shared.NewPagination(result.GetMetadata())
+
+	for {
+		for _, sdkInstance := range result.Instances {
+			instance, err := p.convertInstance(sdkInstance)
+			if err != nil {
+				return nil, shared.NewGeneralError("GetAllInstances", err)
+			}
+
+			instances = append(instances, *instance)
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		err := pagination.NextPage()
 		if err != nil {
 			return nil, shared.NewGeneralError("GetAllInstances", err)
 		}
 
-		instances = append(instances, *instance)
+		request.Offset(int32(pagination.Offset))
+		result, response, err = request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
+		}
 	}
 
 	return instances, nil
