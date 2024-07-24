@@ -37,7 +37,7 @@ type PublicCloudHandler struct {
 	) (*domain.Instance, error)
 }
 
-// GetAllInstances Retrieve all instances
+// GetAllInstances Retrieve all instances.
 func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 	*dataSourceModel.Instances,
 	*shared.HandlerError,
