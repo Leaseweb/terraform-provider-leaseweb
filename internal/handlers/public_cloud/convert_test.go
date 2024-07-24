@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
@@ -1979,4 +1980,25 @@ func generateDomainInstance() domain.Instance {
 			AutoScalingGroup: &autoScalingGroup,
 		},
 	)
+}
+
+func Test_returnError(t *testing.T) {
+	t.Run("diagnostics contain errors", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+		diags.AddError("summary", "detail")
+
+		got := returnError("functionName", diags)
+		want := `functionName: "summary" "detail"`
+
+		assert.Error(t, got)
+		assert.Equal(t, want, got.Error())
+	})
+
+	t.Run("diagnostics do not contain errors", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+
+		got := returnError("functionName", diags)
+
+		assert.NoError(t, got)
+	})
 }

@@ -25,7 +25,7 @@ func returnError(functionName string, diags diag.Diagnostics) error {
 		)
 	}
 
-	return fmt.Errorf("%s", functionName)
+	return nil
 }
 
 func convertInstanceToResourceModel(
