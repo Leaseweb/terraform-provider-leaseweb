@@ -2002,3 +2002,10 @@ func Test_returnError(t *testing.T) {
 		assert.NoError(t, got)
 	})
 }
+
+func Test_convertIntArrayToInt64(t *testing.T) {
+	want := []int64{5}
+	got := convertIntArrayToInt64([]int{5})
+
+	assert.Equal(t, want, got)
+}

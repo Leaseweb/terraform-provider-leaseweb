@@ -925,3 +925,16 @@ func convertInstanceResourceModelToUpdateInstanceOpts(
 
 	return &instance, nil
 }
+
+func convertIntArrayToInt64(items []int) []int64 {
+	var convertedItems []int64
+
+	for _, item := range items {
+		convertedItems = append(
+			convertedItems,
+			int64(item),
+		)
+	}
+
+	return convertedItems
+}
