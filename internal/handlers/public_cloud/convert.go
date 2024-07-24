@@ -592,8 +592,8 @@ func convertInstanceResourceModelToCreateInstanceOpts(
 		contractTerm,
 		billingFrequency,
 		domain.OptionalCreateInstanceValues{
-			MarketAppId:  shared.ConvertValueStringPointerToString(instanceResourceModel.MarketAppId),
-			Reference:    shared.ConvertValueStringPointerToString(instanceResourceModel.Reference),
+			MarketAppId:  shared.ConvertStringPointerValueToNullableString(instanceResourceModel.MarketAppId),
+			Reference:    shared.ConvertStringPointerValueToNullableString(instanceResourceModel.Reference),
 			SshKey:       sshKey,
 			RootDiskSize: rootDiskSize,
 		},
@@ -854,7 +854,7 @@ func convertInstanceResourceModelToUpdateInstanceOpts(
 	}
 
 	optionalValues := domain.OptionalUpdateInstanceValues{
-		Reference: shared.ConvertValueStringPointerToString(instanceResourceModel.Reference),
+		Reference: shared.ConvertStringPointerValueToNullableString(instanceResourceModel.Reference),
 	}
 
 	if instanceResourceModel.RootDiskSize.ValueInt64() != 0 {

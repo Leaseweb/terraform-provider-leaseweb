@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// ConvertNullableIntToInt64Value Convert NullableInt to terraform Int64.
+// ConvertNullableIntToInt64Value Convert NullableInt toTerraform Int64Value.
 func ConvertNullableIntToInt64Value(value *int) basetypes.Int64Value {
 	if value == nil {
 		return basetypes.NewInt64Null()
@@ -19,7 +19,7 @@ func ConvertNullableIntToInt64Value(value *int) basetypes.Int64Value {
 	return basetypes.NewInt64Value(int64(*value))
 }
 
-// ConvertNullableTimeToStringValue Convert NullableTime to terraform String.
+// ConvertNullableTimeToStringValue Convert NullableTime toTerraform StringValue.
 func ConvertNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
 	if value == nil {
 		return basetypes.NewStringNull()
@@ -28,7 +28,7 @@ func ConvertNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
 	return basetypes.NewStringValue(value.String())
 }
 
-// ConvertNullableStringToStringValue Convert NullableString to terraform String.
+// ConvertNullableStringToStringValue Convert NullableString toTerraform StringValue.
 func ConvertNullableStringToStringValue(value *string) basetypes.StringValue {
 	if value == nil {
 		return basetypes.NewStringNull()
@@ -37,10 +37,10 @@ func ConvertNullableStringToStringValue(value *string) basetypes.StringValue {
 	return basetypes.NewStringValue(*value)
 }
 
-// ConvertNullableDomainEntityToDatasourceModel Convert nullable domain entity to datasource model.
+// ConvertNullableDomainEntityToDatasourceModel Convert nullable domain entity to Terraform datasource model.
 func ConvertNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
 	entity *T,
-	generateModel func(sdkEntity T) *U,
+	generateModel func(entity T) *U,
 ) *U {
 	if entity == nil {
 		return nil
@@ -49,7 +49,7 @@ func ConvertNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
 	return generateModel(*entity)
 }
 
-// ConvertNullableDomainEntityToResourceObject Convert nullable domain entity to resource object.
+// ConvertNullableDomainEntityToResourceObject Convert nullable domain entity to Terraform resource object.
 func ConvertNullableDomainEntityToResourceObject[T any, U any](
 	entity *T,
 	attributeTypes map[string]attr.Type,
@@ -79,7 +79,7 @@ func ConvertNullableDomainEntityToResourceObject[T any, U any](
 	return resourceObject, nil
 }
 
-// ConvertDomainEntityToResourceObject Convert domain entity to resource object.
+// ConvertDomainEntityToResourceObject Convert domain entity to Terraform resource object.
 func ConvertDomainEntityToResourceObject[T any, U any](
 	entity T,
 	attributeTypes map[string]attr.Type,
@@ -116,12 +116,12 @@ func ConvertDomainEntityToResourceObject[T any, U any](
 	return objectValue, nil
 }
 
-// ConvertEntitiesToListValue Convert a slice of entities to a list value.
+// ConvertEntitiesToListValue Convert a domain entities object to a Terraform list value.
 func ConvertEntitiesToListValue[T any, U any](
 	entities []T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateTerraformModel func(
+	generateModel func(
 		ctx context.Context,
 		entity T,
 	) (*U, error),
@@ -129,7 +129,7 @@ func ConvertEntitiesToListValue[T any, U any](
 	var listValues []U
 
 	for _, value := range entities {
-		resourceObject, err := generateTerraformModel(ctx, value)
+		resourceObject, err := generateModel(ctx, value)
 		if err != nil {
 			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
 				"unable to convert domain entity to resource: %w",
@@ -158,7 +158,8 @@ func ConvertEntitiesToListValue[T any, U any](
 	return listObject, nil
 }
 
-func ConvertValueStringPointerToString(value types.String) *string {
+// ConvertStringPointerValueToNullableString Convert Terraform StringPointerValue to nullable string.
+func ConvertStringPointerValueToNullableString(value types.String) *string {
 	if value.IsUnknown() {
 		return nil
 	}

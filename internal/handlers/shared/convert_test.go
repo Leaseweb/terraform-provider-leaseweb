@@ -3,6 +3,7 @@ package shared
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,6 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
+	"terraform-provider-leaseweb/internal/core/domain"
+	"terraform-provider-leaseweb/internal/core/shared/enum"
+	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 type mockDomainEntity struct {
@@ -324,22 +329,233 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 	)
 }
 
-func TestConvertValueStringPointerToString(t *testing.T) {
+func TestConvertStringPointerValueToNullableString(t *testing.T) {
 	t.Run("returns nil when value is unknown", func(t *testing.T) {
 		value := basetypes.NewStringUnknown()
-		assert.Nil(t, ConvertValueStringPointerToString(value))
+		assert.Nil(t, ConvertStringPointerValueToNullableString(value))
 	})
 
 	t.Run("returns pointer when value is set", func(t *testing.T) {
 		target := "tralala"
 		value := basetypes.NewStringPointerValue(&target)
 
-		assert.Equal(t, target, *ConvertValueStringPointerToString(value))
+		assert.Equal(t, target, *ConvertStringPointerValueToNullableString(value))
 	})
 
 	t.Run("returns nil when value is not set", func(t *testing.T) {
 		value := basetypes.NewStringPointerValue(nil)
 
-		assert.Nil(t, ConvertValueStringPointerToString(value))
+		assert.Nil(t, ConvertStringPointerValueToNullableString(value))
 	})
+}
+
+func ExampleConvertNullableIntToInt64Value() {
+	nullableInt := 64
+	value := ConvertNullableIntToInt64Value(&nullableInt)
+
+	fmt.Println(value)
+	// Output: 64
+}
+
+func ExampleConvertNullableIntToInt64Value_second() {
+	value := ConvertNullableIntToInt64Value(nil)
+
+	fmt.Println(value)
+	// Output: <null>
+}
+
+func ExampleConvertNullableTimeToStringValue() {
+	nullableTime, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
+	value := ConvertNullableTimeToStringValue(&nullableTime)
+
+	fmt.Println(value)
+	// Output: "2019-09-08 00:00:00 +0000 UTC"
+}
+
+func ExampleConvertNullableTimeToStringValue_second() {
+	value := ConvertNullableTimeToStringValue(nil)
+
+	fmt.Println(value)
+	// Output: <null>
+}
+
+func ExampleConvertNullableStringToStringValue() {
+	nullableString := "tralala"
+	value := ConvertNullableStringToStringValue(&nullableString)
+
+	fmt.Println(value)
+	// Output: "tralala"
+}
+
+func ExampleConvertNullableStringToStringValue_second() {
+	value := ConvertNullableStringToStringValue(nil)
+
+	fmt.Println(value)
+	// Output: <null>
+}
+
+func ExampleConvertNullableDomainEntityToDatasourceModel() {
+	iso := domain.NewIso("id", "name")
+
+	datasourceModel := ConvertNullableDomainEntityToDatasourceModel(
+		&iso,
+		func(iso domain.Iso) *dataSourceModel.Iso {
+			return &dataSourceModel.Iso{
+				Id:   basetypes.NewStringValue(iso.Id),
+				Name: basetypes.NewStringValue(iso.Name),
+			}
+		},
+	)
+
+	fmt.Println(datasourceModel)
+	// Output: &{"id" "name"}
+}
+
+func ExampleConvertNullableDomainEntityToDatasourceModel_second() {
+	datasourceModel := ConvertNullableDomainEntityToDatasourceModel(
+		nil,
+		func(iso domain.Iso) *dataSourceModel.Iso {
+			return &dataSourceModel.Iso{
+				Id:   basetypes.NewStringValue(iso.Id),
+				Name: basetypes.NewStringValue(iso.Name),
+			}
+		},
+	)
+
+	fmt.Println(datasourceModel)
+	// Output: <nil>
+}
+
+func ExampleConvertNullableDomainEntityToResourceObject() {
+	iso := domain.NewIso("id", "name")
+
+	datasourceModel, _ := ConvertNullableDomainEntityToResourceObject(
+		&iso,
+		map[string]attr.Type{
+			"id":   types.StringType,
+			"name": types.StringType,
+		},
+		context.TODO(),
+		func(ctx context.Context, iso domain.Iso) (*model.Iso, error) {
+			return &model.Iso{
+				Id:   basetypes.NewStringValue(iso.Id),
+				Name: basetypes.NewStringValue(iso.Name),
+			}, nil
+		},
+	)
+
+	fmt.Println(datasourceModel)
+	// Output: {"id":"id","name":"name"}
+}
+
+func ExampleConvertNullableDomainEntityToResourceObject_second() {
+	datasourceModel, _ := ConvertNullableDomainEntityToResourceObject(
+		nil,
+		map[string]attr.Type{
+			"id":   types.StringType,
+			"name": types.StringType,
+		},
+		context.TODO(),
+		func(ctx context.Context, iso domain.Iso) (*model.Iso, error) {
+			return &model.Iso{
+				Id:   basetypes.NewStringValue(iso.Id),
+				Name: basetypes.NewStringValue(iso.Name),
+			}, nil
+		},
+	)
+
+	fmt.Println(datasourceModel)
+	// Output: <null>
+}
+
+func ExampleConvertDomainEntityToResourceObject() {
+
+	datasourceModel, _ := ConvertDomainEntityToResourceObject(
+		domain.NewIso("id", "name"),
+		map[string]attr.Type{
+			"id":   types.StringType,
+			"name": types.StringType,
+		},
+		context.TODO(),
+		func(ctx context.Context, iso domain.Iso) (*model.Iso, error) {
+			return &model.Iso{
+				Id:   basetypes.NewStringValue(iso.Id),
+				Name: basetypes.NewStringValue(iso.Name),
+			}, nil
+		},
+	)
+
+	fmt.Println(datasourceModel)
+	// Output: {"id":"id","name":"name"}
+}
+
+func ExampleConvertEntitiesToListValue() {
+	listValue, _ := ConvertEntitiesToListValue(
+		domain.Ips{domain.NewIp(
+			"1.2.3.4",
+			"prefixLength",
+			2,
+			false,
+			true,
+			enum.NetworkTypeInternal,
+			domain.OptionalIpValues{},
+		)},
+		map[string]attr.Type{
+			"ip":             types.StringType,
+			"prefix_length":  types.StringType,
+			"version":        types.Int64Type,
+			"null_routed":    types.BoolType,
+			"main_ip":        types.BoolType,
+			"network_type":   types.StringType,
+			"reverse_lookup": types.StringType,
+			"ddos":           types.ObjectType{AttrTypes: model.Ddos{}.AttributeTypes()},
+		},
+		context.TODO(),
+		func(ctx context.Context, entity domain.Ip) (*model.Ip, error) {
+			ddos, _ := ConvertNullableDomainEntityToResourceObject(
+				entity.Ddos,
+				model.Ddos{}.AttributeTypes(),
+				ctx,
+				func(ctx context.Context, ddos domain.Ddos) (*model.Ddos, error) {
+					return &model.Ddos{
+						DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
+						ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
+					}, nil
+				},
+			)
+
+			return &model.Ip{
+				Ip:            basetypes.NewStringValue(entity.Ip),
+				PrefixLength:  basetypes.NewStringValue(entity.PrefixLength),
+				Version:       basetypes.NewInt64Value(int64(entity.Version)),
+				NullRouted:    basetypes.NewBoolValue(entity.NullRouted),
+				MainIp:        basetypes.NewBoolValue(entity.MainIp),
+				NetworkType:   basetypes.NewStringValue(string(entity.NetworkType)),
+				ReverseLookup: basetypes.NewStringPointerValue(entity.ReverseLookup),
+				Ddos:          ddos,
+			}, nil
+		},
+	)
+
+	fmt.Println(listValue)
+	// Output: [{"ddos":<null>,"ip":"1.2.3.4","main_ip":true,"network_type":"INTERNAL","null_routed":false,"prefix_length":"prefixLength","reverse_lookup":<null>,"version":2}]
+}
+
+func ExampleConvertStringPointerValueToNullableString() {
+	value := "tralala"
+	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
+
+	convertedValue := ConvertStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(convertedValue)
+	// Output "tralala"
+}
+
+func ExampleConvertStringPointerValueToNullableString_second() {
+	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
+
+	convertedValue := ConvertStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(convertedValue)
+	// Output <null>
 }
