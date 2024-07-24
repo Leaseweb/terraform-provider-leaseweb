@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type RootDiskStorageType string
 
 func (r RootDiskStorageType) String() string {
@@ -7,7 +11,7 @@ func (r RootDiskStorageType) String() string {
 }
 
 func (r RootDiskStorageType) Values() []string {
-	return convertStringEnumToValues(rootDiskStorageTypes)
+	return enum_utils.ConvertStringEnumToValues(rootDiskStorageTypes)
 }
 
 const (
@@ -21,5 +25,5 @@ var rootDiskStorageTypes = []RootDiskStorageType{
 }
 
 func NewRootDiskStorageType(value string) (RootDiskStorageType, error) {
-	return findEnumForString(value, rootDiskStorageTypes, RootDiskStorageTypeLocal)
+	return enum_utils.FindEnumForString(value, rootDiskStorageTypes, RootDiskStorageTypeLocal)
 }

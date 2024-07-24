@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type ContractBillingFrequency int
 
 func (c ContractBillingFrequency) Value() int {
@@ -7,7 +11,7 @@ func (c ContractBillingFrequency) Value() int {
 }
 
 func (c ContractBillingFrequency) Values() []int {
-	return convertIntEnumToValues(contractBillingFrequencies)
+	return enum_utils.ConvertIntEnumToValues(contractBillingFrequencies)
 }
 
 const (
@@ -27,7 +31,7 @@ var contractBillingFrequencies = []ContractBillingFrequency{
 }
 
 func NewContractBillingFrequency(value int) (ContractBillingFrequency, error) {
-	return findEnumForInt(
+	return enum_utils.FindEnumForInt(
 		value,
 		contractBillingFrequencies,
 		ContractBillingFrequencyZero,

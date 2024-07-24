@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type ContractType string
 
 func (t ContractType) String() string {
@@ -7,7 +11,7 @@ func (t ContractType) String() string {
 }
 
 func (t ContractType) Values() []string {
-	return convertStringEnumToValues(contractTypes)
+	return enum_utils.ConvertStringEnumToValues(contractTypes)
 }
 
 const (
@@ -20,5 +24,5 @@ var contractTypes = []ContractType{
 }
 
 func NewContractType(s string) (ContractType, error) {
-	return findEnumForString(s, contractTypes, ContractTypeHourly)
+	return enum_utils.FindEnumForString(s, contractTypes, ContractTypeHourly)
 }

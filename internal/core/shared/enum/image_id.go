@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type ImageId string
 
 func (i ImageId) String() string {
@@ -58,5 +62,5 @@ var imageIds = []ImageId{
 }
 
 func NewImageId(value string) (ImageId, error) {
-	return findEnumForString(value, imageIds, Almalinux864Bit)
+	return enum_utils.FindEnumForString(value, imageIds, Almalinux864Bit)
 }

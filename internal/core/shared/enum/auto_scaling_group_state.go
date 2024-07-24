@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type AutoScalingGroupState string
 
 func (a AutoScalingGroupState) String() string {
@@ -27,7 +31,7 @@ var autoScalingGroupStates = []AutoScalingGroupState{
 }
 
 func NewAutoScalingGroupState(s string) (AutoScalingGroupState, error) {
-	return findEnumForString(
+	return enum_utils.FindEnumForString(
 		s,
 		autoScalingGroupStates,
 		AutoScalingGroupStateActive,

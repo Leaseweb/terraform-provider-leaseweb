@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type Method string
 
 func (m Method) String() string {
@@ -16,5 +20,5 @@ const (
 var methods = []Method{MethodGet, MethodHead, MethodPost, MethodOptions}
 
 func NewMethod(value string) (Method, error) {
-	return findEnumForString(value, methods, MethodGet)
+	return enum_utils.FindEnumForString(value, methods, MethodGet)
 }

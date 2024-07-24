@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type InstanceType string
 
 func (i InstanceType) String() string {
@@ -171,5 +175,5 @@ var instanceTypes = []InstanceType{
 }
 
 func NewInstanceType(value string) (InstanceType, error) {
-	return findEnumForString(value, instanceTypes, InstanceTypeC3Large)
+	return enum_utils.FindEnumForString(value, instanceTypes, InstanceTypeC3Large)
 }

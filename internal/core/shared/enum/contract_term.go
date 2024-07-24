@@ -1,5 +1,9 @@
 package enum
 
+import (
+	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+)
+
 type ContractTerm int64
 
 func (t ContractTerm) Value() int {
@@ -7,7 +11,7 @@ func (t ContractTerm) Value() int {
 }
 
 func (t ContractTerm) Values() []int {
-	return convertIntEnumToValues(contractTerms)
+	return enum_utils.ConvertIntEnumToValues(contractTerms)
 }
 
 const (
@@ -27,5 +31,5 @@ var contractTerms = []ContractTerm{
 }
 
 func NewContractTerm(value int) (ContractTerm, error) {
-	return findEnumForInt(value, contractTerms, ContractTermZero)
+	return enum_utils.FindEnumForInt(value, contractTerms, ContractTermZero)
 }

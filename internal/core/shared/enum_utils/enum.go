@@ -1,4 +1,4 @@
-package enum
+package enum_utils
 
 import (
 	"fmt"
@@ -12,7 +12,8 @@ func (c errCannotFindEnumForValue[T]) Error() string {
 	return c.msg
 }
 
-func findEnumForString[T fmt.Stringer](
+// FindEnumForString Return enum for passed string or return an error if the enum is not found.
+func FindEnumForString[T fmt.Stringer](
 	value string,
 	enumValues []T,
 	defaultEnum T,
@@ -29,7 +30,8 @@ func findEnumForString[T fmt.Stringer](
 	)}
 }
 
-func findEnumForInt[T intEnum](
+// FindEnumForInt Return enum for passed into or return an error if the enum is not found.
+func FindEnumForInt[T intEnum](
 	value int,
 	enumValues []T,
 	defaultEnum T,
@@ -46,7 +48,8 @@ func findEnumForInt[T intEnum](
 	)}
 }
 
-func convertIntEnumToValues[T intEnum](enumValues []T) []int {
+// ConvertIntEnumToValues Return an int array for all enum values.
+func ConvertIntEnumToValues[T intEnum](enumValues []T) []int {
 	var values []int
 
 	for _, v := range enumValues {
@@ -56,7 +59,8 @@ func convertIntEnumToValues[T intEnum](enumValues []T) []int {
 	return values
 }
 
-func convertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
+// ConvertStringEnumToValues Return a string array for all enum values.
+func ConvertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
 	var values []string
 
 	for _, v := range enumValues {
