@@ -22,7 +22,7 @@ func TestNewFromServiceError(t *testing.T) {
 
 	serviceError := sharedService.NewFromRepositoryError(
 		"serviceErrorPrefix",
-		repositoryError,
+		*repositoryError,
 	)
 
 	got := NewFromServicesError("prefix", serviceError)

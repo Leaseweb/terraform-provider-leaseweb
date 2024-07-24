@@ -25,7 +25,7 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 	if err != nil {
 		return domain.Instances{}, shared.NewFromRepositoryError(
 			"GetAllInstances",
-			err,
+			*err,
 		)
 	}
 
@@ -58,7 +58,7 @@ func (srv Service) GetInstance(
 ) (*domain.Instance, *shared.ServiceError) {
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("GetInstance", err)
+		return nil, shared.NewFromRepositoryError("GetInstance", *err)
 	}
 
 	return srv.populateMissingInstanceAttributes(*instance, ctx)
@@ -70,7 +70,7 @@ func (srv Service) CreateInstance(
 ) (*domain.Instance, *shared.ServiceError) {
 	createdInstance, err := srv.publicCloudRepository.CreateInstance(instance, ctx)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("CreateInstance", err)
+		return nil, shared.NewFromRepositoryError("CreateInstance", *err)
 	}
 
 	// call GetInstance as createdInstance is created from instance and not instanceDetails
@@ -86,7 +86,7 @@ func (srv Service) UpdateInstance(
 		ctx,
 	)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("UpdateInstance", err)
+		return nil, shared.NewFromRepositoryError("UpdateInstance", *err)
 	}
 
 	return srv.populateMissingInstanceAttributes(*updatedInstance, ctx)
@@ -115,7 +115,7 @@ func (srv Service) GetAvailableInstanceTypesForUpdate(
 	if err != nil {
 		return nil, shared.NewFromRepositoryError(
 			"GetAvailableInstanceTypesForUpdate",
-			err,
+			*err,
 		)
 	}
 
@@ -128,7 +128,7 @@ func (srv Service) GetRegions(ctx context.Context) (
 ) {
 	regions, err := srv.publicCloudRepository.GetRegions(ctx)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("GetRegions", err)
+		return nil, shared.NewFromRepositoryError("GetRegions", *err)
 	}
 
 	return regions, nil
@@ -148,7 +148,7 @@ func (srv Service) populateMissingInstanceAttributes(
 		if err != nil {
 			return nil, shared.NewFromRepositoryError(
 				"populateMissingInstanceAttributes",
-				err,
+				*err,
 			)
 		}
 
@@ -161,7 +161,7 @@ func (srv Service) populateMissingInstanceAttributes(
 			if err != nil {
 				return nil, shared.NewFromRepositoryError(
 					"populateMissingInstanceAttributes",
-					err,
+					*err,
 				)
 			}
 			autoScalingGroup.LoadBalancer = loadBalancer

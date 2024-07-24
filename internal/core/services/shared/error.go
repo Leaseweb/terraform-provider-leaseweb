@@ -3,23 +3,24 @@ package shared
 import (
 	"fmt"
 
-	"terraform-provider-leaseweb/internal/repositories/shared"
-	shared2 "terraform-provider-leaseweb/internal/shared"
+	repository "terraform-provider-leaseweb/internal/repositories/shared"
+	"terraform-provider-leaseweb/internal/shared"
 )
 
 type ServiceError struct {
 	msg           string
 	GeneralError  error
-	ErrorResponse *shared2.ErrorResponse
+	ErrorResponse *shared.ErrorResponse
 }
 
 func (e ServiceError) Error() string {
 	return e.msg
 }
 
+// NewFromRepositoryError Generate a new error from the returned repository error.
 func NewFromRepositoryError(
 	errorPrefix string,
-	repositoryError *shared.RepositoryError,
+	repositoryError repository.RepositoryError,
 ) *ServiceError {
 	return &ServiceError{
 		msg:           fmt.Errorf("%s: %w", errorPrefix, repositoryError).Error(),
@@ -27,6 +28,7 @@ func NewFromRepositoryError(
 	}
 }
 
+// NewError Generate a new general error.
 func NewError(
 	errorPrefix string,
 	err error,

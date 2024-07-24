@@ -3,6 +3,7 @@ package shared
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -28,7 +29,7 @@ func TestNewFromRepositoryError(t *testing.T) {
 	)
 	repositoryError.ErrorResponse = &errorResponse
 
-	got := NewFromRepositoryError("prefix", repositoryError)
+	got := NewFromRepositoryError("prefix", *repositoryError)
 
 	want := ServiceError{
 		msg:           "prefix: repositoryErrorPrefix: tralala",
@@ -57,4 +58,27 @@ func TestNewError(t *testing.T) {
 	}
 
 	assert.Equal(t, want, *got)
+}
+
+func ExampleNewFromRepositoryError() {
+	repositoryError := sharedRepository.NewSdkError(
+		"repositoryErrorPrefix",
+		errors.New("sdk error"),
+		nil,
+	)
+
+	fromRepositoryError := NewFromRepositoryError(
+		"prefix",
+		*repositoryError,
+	)
+
+	fmt.Println(fromRepositoryError)
+	// Output: prefix: repositoryErrorPrefix: sdk error
+}
+
+func ExampleNewError() {
+	newError := NewError("prefix", errors.New("tralala"))
+
+	fmt.Println(newError)
+	// Output: prefix: tralala
 }
