@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
@@ -9,45 +10,36 @@ import (
 
 func Test_pagination_canIncrement(t *testing.T) {
 	t.Run(
-		"can not increment when Offset is equal to TotalCount",
+		"can not increment when offset is equal to totalCount",
 		func(t *testing.T) {
-			metadata := publicCloud.Metadata{
-				TotalCount: 7,
-				Offset:     7,
-				Limit:      2,
-			}
+			request := publicCloud.ApiGetInstanceListRequest{}
 
-			pagination := NewPagination(metadata)
+			pagination := NewPagination(10, 0, request)
+			pagination.offset = 7
 
 			assert.False(t, pagination.CanIncrement())
 		},
 	)
 
 	t.Run(
-		"can not increment when Offset + limit passes TotalCount",
+		"can not increment when offset + limit passes totalCount",
 		func(t *testing.T) {
-			metadata := publicCloud.Metadata{
-				TotalCount: 7,
-				Offset:     3,
-				Limit:      10,
-			}
+			request := publicCloud.ApiGetInstanceListRequest{}
 
-			pagination := NewPagination(metadata)
+			pagination := NewPagination(10, 7, request)
+			pagination.offset = 3
 
 			assert.False(t, pagination.CanIncrement())
 		},
 	)
 
 	t.Run(
-		"can increment when Offset + limit is less than TotalCount",
+		"can increment when offset + limit is less than totalCount",
 		func(t *testing.T) {
-			metadata := publicCloud.Metadata{
-				TotalCount: 10,
-				Offset:     7,
-				Limit:      2,
-			}
+			request := publicCloud.ApiGetInstanceListRequest{}
 
-			pagination := NewPagination(metadata)
+			pagination := NewPagination(2, 10, request)
+			pagination.offset = 7
 
 			assert.True(t, pagination.CanIncrement())
 		},
@@ -58,16 +50,14 @@ func Test_pagination_nextPage(t *testing.T) {
 	t.Run(
 		"calling NextPage returns an error if we can't increment",
 		func(t *testing.T) {
-			metadata := publicCloud.Metadata{
-				TotalCount: 10,
-				Offset:     11,
-				Limit:      2,
-			}
+			request := publicCloud.ApiGetInstanceListRequest{}
 
-			pagination := NewPagination(metadata)
+			pagination := NewPagination(2, 10, request)
+			pagination.offset = 11
 
-			err := pagination.NextPage()
+			newRequest, err := pagination.NextPage()
 
+			assert.Nil(t, newRequest)
 			assert.Error(t, err)
 			assert.ErrorContains(
 				t,
@@ -81,18 +71,22 @@ func Test_pagination_nextPage(t *testing.T) {
 	t.Run(
 		"NextPage increments successfully",
 		func(t *testing.T) {
-			metadata := publicCloud.Metadata{
-				TotalCount: 10,
-				Offset:     5,
-				Limit:      2,
-			}
+			request := publicCloud.ApiGetInstanceListRequest{}
 
-			pagination := NewPagination(metadata)
+			pagination := NewPagination(2, 10, request)
+			pagination.offset = 5
 
-			err := pagination.NextPage()
+			newRequest, err := pagination.NextPage()
 
 			assert.NoError(t, err)
-			assert.Equal(t, 7, pagination.Offset)
+			assert.Equal(t, 7, pagination.offset)
+
+			assert.Equal(
+				t,
+				int64(7),
+				reflect.ValueOf(*newRequest).FieldByName("offset").Elem().Int(),
+				"request offset is set properly",
+			)
 		},
 	)
 }

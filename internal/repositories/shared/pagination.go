@@ -15,9 +15,10 @@ func (e ErrCannotIncrementPagination) Error() string {
 }
 
 type Pagination struct {
-	Offset     int
-	Limit      int
-	TotalCount int
+	offset     int
+	limit      int
+	totalCount int
+	Request    publicCloud.ApiGetInstanceListRequest
 }
 
 type Response interface {
@@ -25,28 +26,35 @@ type Response interface {
 }
 
 func (p *Pagination) CanIncrement() bool {
-	return p.Offset+p.Limit < p.TotalCount
+	return p.offset+p.limit < p.totalCount
 }
 
-func (p *Pagination) NextPage() error {
+func (p *Pagination) NextPage() (*publicCloud.ApiGetInstanceListRequest, error) {
 	if !p.CanIncrement() {
-		return ErrCannotIncrementPagination{
+		return nil, ErrCannotIncrementPagination{
 			msg: fmt.Sprintf(
 				"cannot increment as next offset %d is larger than the total %d",
-				p.Offset+p.TotalCount,
-				p.TotalCount,
+				p.offset+p.totalCount,
+				p.totalCount,
 			),
 		}
 	}
 
-	p.Offset += p.Limit
-	return nil
+	p.offset += p.limit
+	p.Request = p.Request.Offset(int32(p.offset))
+
+	return &p.Request, nil
 }
 
-func NewPagination(metadata publicCloud.Metadata) Pagination {
+func NewPagination(
+	limit int32,
+	totalCount int32,
+	request publicCloud.ApiGetInstanceListRequest,
+) Pagination {
 	return Pagination{
-		Offset:     int(metadata.GetOffset()),
-		Limit:      int(metadata.GetLimit()),
-		TotalCount: int(metadata.GetTotalCount()),
+		offset:     0,
+		limit:      int(limit),
+		totalCount: int(totalCount),
+		Request:    request,
 	}
 }

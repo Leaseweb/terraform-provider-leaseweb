@@ -13,7 +13,7 @@ import (
 
 func TestNewSdkError(t *testing.T) {
 	t.Run("expected Error is returned", func(t *testing.T) {
-		err := errors.New("tralala")
+		err := errors.New("Result")
 		response := http.Response{
 			StatusCode: 500,
 			Body: io.NopCloser(
@@ -34,7 +34,7 @@ func TestNewSdkError(t *testing.T) {
 
 		got := NewSdkError("prefix", err, &response)
 		want := RepositoryError{
-			msg: "prefix: tralala",
+			msg: "prefix: Result",
 			err: err,
 			ErrorResponse: &shared.ErrorResponse{
 				CorrelationId: "correlationId",
@@ -48,7 +48,7 @@ func TestNewSdkError(t *testing.T) {
 	})
 
 	t.Run("invalid json does not return error", func(t *testing.T) {
-		err := errors.New("tralala")
+		err := errors.New("Result")
 		response := http.Response{
 			StatusCode: 500,
 			Body:       io.NopCloser(bytes.NewReader([]byte(""))),
@@ -59,7 +59,7 @@ func TestNewSdkError(t *testing.T) {
 	})
 
 	t.Run("nothing breaks when httpResponse is nil", func(t *testing.T) {
-		err := errors.New("tralala")
+		err := errors.New("Result")
 
 		got := NewSdkError("prefix", err, nil)
 		assert.Nil(t, got.ErrorResponse)
@@ -68,19 +68,19 @@ func TestNewSdkError(t *testing.T) {
 }
 
 func TestRepositoryError_Error(t *testing.T) {
-	err := RepositoryError{msg: "tralala"}
-	want := "tralala"
+	err := RepositoryError{msg: "Result"}
+	want := "Result"
 	got := err.Error()
 
 	assert.Equal(t, want, got)
 }
 
 func TestNewGeneralError(t *testing.T) {
-	err := errors.New("tralala")
+	err := errors.New("Result")
 
 	got := NewGeneralError("prefix", err)
 	want := RepositoryError{
-		msg: "prefix: tralala",
+		msg: "prefix: Result",
 		err: err,
 	}
 

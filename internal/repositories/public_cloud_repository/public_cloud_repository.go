@@ -64,9 +64,19 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 		return nil, shared.NewSdkError("GetAllInstances", err, response)
 	}
 
-	pagination := shared.NewPagination(result.GetMetadata())
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
 
 	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
+		}
+
 		for _, sdkInstance := range result.Instances {
 			instance, err := p.convertInstance(sdkInstance)
 			if err != nil {
@@ -80,16 +90,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 			break
 		}
 
-		err := pagination.NextPage()
-		if err != nil {
-			return nil, shared.NewGeneralError("GetAllInstances", err)
-		}
-
-		request.Offset(int32(pagination.Offset))
-		result, response, err = request.Execute()
-		if err != nil {
-			return nil, shared.NewSdkError("GetAllInstances", err, response)
-		}
+		request = pagination.Request
 	}
 
 	return instances, nil
