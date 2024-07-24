@@ -2,8 +2,6 @@ package shared
 
 import (
 	"fmt"
-
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
 type ErrCannotIncrementPagination struct {
@@ -14,22 +12,22 @@ func (e ErrCannotIncrementPagination) Error() string {
 	return e.msg
 }
 
-type Pagination struct {
+type Pagination[T Request[T]] struct {
 	offset     int
 	limit      int
 	totalCount int
-	Request    publicCloud.ApiGetInstanceListRequest
+	Request    T
 }
 
-type Response interface {
-	GetMetadata() publicCloud.Metadata
+type Request[T any] interface {
+	Offset(offset int32) T
 }
 
-func (p *Pagination) CanIncrement() bool {
+func (p *Pagination[any]) CanIncrement() bool {
 	return p.offset+p.limit < p.totalCount
 }
 
-func (p *Pagination) NextPage() (*publicCloud.ApiGetInstanceListRequest, error) {
+func (p *Pagination[Request]) NextPage() (*Request, error) {
 	if !p.CanIncrement() {
 		return nil, ErrCannotIncrementPagination{
 			msg: fmt.Sprintf(
@@ -46,12 +44,12 @@ func (p *Pagination) NextPage() (*publicCloud.ApiGetInstanceListRequest, error) 
 	return &p.Request, nil
 }
 
-func NewPagination(
+func NewPagination[T Request[T]](
 	limit int32,
 	totalCount int32,
-	request publicCloud.ApiGetInstanceListRequest,
-) Pagination {
-	return Pagination{
+	request T,
+) Pagination[T] {
+	return Pagination[T]{
 		offset:     0,
 		limit:      int(limit),
 		totalCount: int(totalCount),
