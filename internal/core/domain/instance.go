@@ -30,6 +30,7 @@ type Instance struct {
 	AutoScalingGroup    *AutoScalingGroup
 }
 
+// OptionalInstanceValues Optional supported instance fields.
 type OptionalInstanceValues struct {
 	Reference        *string
 	Iso              *Iso
@@ -40,6 +41,7 @@ type OptionalInstanceValues struct {
 	AutoScalingGroup *AutoScalingGroup
 }
 
+// OptionalCreateInstanceValues Optional supported fields for instance creation.
 type OptionalCreateInstanceValues struct {
 	MarketAppId  *string
 	Reference    *string
@@ -56,6 +58,7 @@ type OptionalUpdateInstanceValues struct {
 	RootDiskSize     *value_object.RootDiskSize
 }
 
+// NewInstance Create a new instance with all supported options.
 func NewInstance(
 	id value_object.Uuid,
 	region string,
@@ -99,6 +102,7 @@ func NewInstance(
 	return instance
 }
 
+// NewCreateInstance All the supported fields for instance creation.
 func NewCreateInstance(
 	region string,
 	instanceType enum.InstanceType,
@@ -132,6 +136,7 @@ func NewCreateInstance(
 	return instance
 }
 
+// NewUpdateInstance All the supported fields for instance updates.
 func NewUpdateInstance(
 	id value_object.Uuid,
 	options OptionalUpdateInstanceValues,
