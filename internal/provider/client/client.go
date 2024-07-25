@@ -6,6 +6,7 @@ import (
 	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
 )
 
+// Client handles instantiation of the handlers.
 type Client struct {
 	PublicCloudHandler public_cloud.PublicCloudHandler
 }
@@ -22,5 +23,7 @@ func NewClient(token string, optional Optional) Client {
 	)
 	publicCloudService := publiccloudservice.New(publicCloudRepository)
 
-	return Client{PublicCloudHandler: public_cloud.NewPublicCloudHandler(publicCloudService)}
+	return Client{
+		PublicCloudHandler: public_cloud.NewPublicCloudHandler(publicCloudService),
+	}
 }

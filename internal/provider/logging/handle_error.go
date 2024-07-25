@@ -8,6 +8,7 @@ import (
 	"terraform-provider-leaseweb/internal/shared"
 )
 
+// HandleError prints the passed errorResponse as a Terraform error log.
 func HandleError(
 	ctx context.Context,
 	errorResponse *shared.ErrorResponse,

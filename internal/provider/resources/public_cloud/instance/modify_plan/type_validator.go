@@ -22,7 +22,8 @@ func NewTypeValidator(
 		planInstanceType:  planInstanceType,
 	}
 }
-func (v TypeValidator) HashTypeChanged() bool {
+
+func (v TypeValidator) HasTypeChanged() bool {
 	// There is nothing to check when creating
 	if v.stateInstanceId.ValueString() == "" {
 		return false

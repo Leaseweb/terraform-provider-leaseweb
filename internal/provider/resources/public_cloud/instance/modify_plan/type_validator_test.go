@@ -58,7 +58,7 @@ func TestTypeValidator_HashTypeChanged(t *testing.T) {
 	for _, tt := range tests {
 		v := NewTypeValidator(tt.fields.stateInstanceId, tt.fields.stateInstanceType, tt.fields.planInstanceType)
 		t.Run(tt.name, func(t *testing.T) {
-			got := v.HashTypeChanged()
+			got := v.HasTypeChanged()
 			assert.Equal(t, tt.want, got, fmt.Sprintf("%v", tt.name))
 		})
 	}

@@ -13,6 +13,7 @@ import (
 
 var _ validator.Object = contractTermValidator{}
 
+// Checks that contractType/contractTerm combination is valid.
 type contractTermValidator struct {
 }
 

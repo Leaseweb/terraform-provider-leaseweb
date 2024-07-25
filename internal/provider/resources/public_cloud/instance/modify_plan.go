@@ -12,6 +12,7 @@ import (
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
+// ModifyPlan checks that the planned instanceType & region are valid.
 func (i *instanceResource) ModifyPlan(
 	ctx context.Context,
 	request resource.ModifyPlanRequest,
@@ -49,7 +50,7 @@ func (i *instanceResource) validateInstanceType(
 ) error {
 	typeValidator := modify_plan.NewTypeValidator(stateId, stateType, planType)
 
-	hasTypeChanged := typeValidator.HashTypeChanged()
+	hasTypeChanged := typeValidator.HasTypeChanged()
 
 	if !hasTypeChanged {
 		return nil
