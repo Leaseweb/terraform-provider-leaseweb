@@ -9,7 +9,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
-// Service fulfills the service port contract for public_cloud.
+// Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
 	publicCloudRepository ports.PublicCloudRepository
 }

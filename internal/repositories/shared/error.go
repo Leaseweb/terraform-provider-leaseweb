@@ -19,6 +19,7 @@ func (e RepositoryError) Error() string {
 	return e.msg
 }
 
+// NewSdkError generates a new error from an sdk error & response.
 func NewSdkError(
 	errorPrefix string,
 	sdkError error,
@@ -45,6 +46,7 @@ func NewSdkError(
 	return &repositoryError
 }
 
+// NewGeneralError generates a new general error.
 func NewGeneralError(errorPrefix string, err error) *RepositoryError {
 	return &RepositoryError{
 		msg: fmt.Errorf("%s: %w", errorPrefix, err).Error(),

@@ -14,8 +14,8 @@ func Test_pagination_canIncrement(t *testing.T) {
 		func(t *testing.T) {
 			request := publicCloud.ApiGetInstanceListRequest{}
 
-			pagination := NewPagination(10, 0, request)
-			pagination.offset = 7
+			pagination := NewPagination(10, 5, request)
+			pagination.offset = 5
 
 			assert.False(t, pagination.CanIncrement())
 		},

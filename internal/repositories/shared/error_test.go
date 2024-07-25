@@ -3,6 +3,7 @@ package shared
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -13,7 +14,7 @@ import (
 
 func TestNewSdkError(t *testing.T) {
 	t.Run("expected Error is returned", func(t *testing.T) {
-		err := errors.New("Result")
+		err := errors.New("result")
 		response := http.Response{
 			StatusCode: 500,
 			Body: io.NopCloser(
@@ -34,7 +35,7 @@ func TestNewSdkError(t *testing.T) {
 
 		got := NewSdkError("prefix", err, &response)
 		want := RepositoryError{
-			msg: "prefix: Result",
+			msg: "prefix: result",
 			err: err,
 			ErrorResponse: &shared.ErrorResponse{
 				CorrelationId: "correlationId",
@@ -85,4 +86,46 @@ func TestNewGeneralError(t *testing.T) {
 	}
 
 	assert.Equal(t, want, *got)
+}
+
+func ExampleNewSdkError() {
+	httpResponse := http.Response{
+		StatusCode: 500,
+		Body: io.NopCloser(
+			bytes.NewReader(
+				[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attribute": ["error1", "error2"]
+  }
+}
+          `),
+			),
+		),
+	}
+
+	repositoryError := NewSdkError(
+		"prefix",
+		errors.New("some error"),
+		&httpResponse,
+	)
+
+	fmt.Println(repositoryError)
+	fmt.Println(repositoryError.ErrorResponse)
+	// Output:
+	// prefix: some error
+	// &{correlationId errorCode errorMessage map[attribute:[error1 error2]]}
+}
+
+func ExampleNewGeneralError() {
+	repositoryError := NewGeneralError(
+		"prefix",
+		errors.New("some error"),
+	)
+
+	fmt.Println(repositoryError)
+	// Output: prefix: some error
 }

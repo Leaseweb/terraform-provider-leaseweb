@@ -11,11 +11,13 @@ import (
 	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
+// Optional contains optional values that can be passed to NewPublicCloudRepository.
 type Optional struct {
 	Host   *string
 	Scheme *string
 }
 
+// PublicCloudRepository fulfills contract for ports.PublicCloudRepository.
 type PublicCloudRepository struct {
 	publicCLoudAPI         sdk_interfaces.PublicCloudApi
 	token                  string
@@ -40,6 +42,7 @@ type PublicCloudRepository struct {
 	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) domain.InstanceType
 }
 
+// Injects the authentication token into the context for the sdk.
 func (p PublicCloudRepository) authContext(ctx context.Context) context.Context {
 	return context.WithValue(
 		ctx,

@@ -12,6 +12,7 @@ func (e ErrCannotIncrementPagination) Error() string {
 	return e.msg
 }
 
+// Pagination handles pagination for the passed request. The request offset is updated every time NextPage is called.
 type Pagination[T Request[T]] struct {
 	offset     int
 	limit      int
@@ -19,14 +20,17 @@ type Pagination[T Request[T]] struct {
 	Request    T
 }
 
+// Request is a contract that Pagination.Request must adhere to so it is supported.
 type Request[T any] interface {
 	Offset(offset int32) T
 }
 
+// CanIncrement returns true if there are any results on the next page.
 func (p *Pagination[any]) CanIncrement() bool {
-	return p.offset+p.limit < p.totalCount
+	return p.offset+p.limit <= p.totalCount
 }
 
+// NextPage returns an updated Request with a new offset.
 func (p *Pagination[Request]) NextPage() (*Request, error) {
 	if !p.CanIncrement() {
 		return nil, ErrCannotIncrementPagination{
