@@ -8,6 +8,7 @@ import (
 	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
+// PublicCloudRepository Used to connect to public_cloud api.
 type PublicCloudRepository interface {
 	// GetAllInstances Retrieve all instances from the public cloud api.
 	GetAllInstances(ctx context.Context) (

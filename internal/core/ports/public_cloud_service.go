@@ -8,6 +8,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
+// PublicCloudService Used to get data linked to public_cloud.
 type PublicCloudService interface {
 	// GetAllInstances Get all instances.
 	GetAllInstances(ctx context.Context) (domain.Instances, *shared.ServiceError)
