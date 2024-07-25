@@ -17,6 +17,7 @@ func (e HandlerError) Error() string {
 	return e.msg
 }
 
+// NewFromServicesError generates a new handler error from a ServiceError.
 func NewFromServicesError(
 	errorPrefix string,
 	serviceError *sharedService.ServiceError,
@@ -28,6 +29,7 @@ func NewFromServicesError(
 	}
 }
 
+// NewError generates a regular handler error.
 func NewError(
 	errorPrefix string,
 	err error,

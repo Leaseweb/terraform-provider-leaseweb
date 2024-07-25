@@ -18,6 +18,7 @@ import (
 var ErrContractTermCannotBeZero = domain.ErrContractTermCannotBeZero
 var ErrContractTermMustBeZero = domain.ErrContractTermMustBeZero
 
+// PublicCloudHandler handles all communication between provider & the core.
 type PublicCloudHandler struct {
 	publicCloudService             ports.PublicCloudService
 	convertInstanceToResourceModel func(
@@ -37,7 +38,7 @@ type PublicCloudHandler struct {
 	) (*domain.Instance, error)
 }
 
-// GetAllInstances Retrieve all instances.
+// GetAllInstances retrieve all instances.
 func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 	*dataSourceModel.Instances,
 	*shared.HandlerError,
@@ -52,7 +53,7 @@ func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 	return &dataSourceInstances, nil
 }
 
-// CreateInstance Creates an instance.
+// CreateInstance creates an instance.
 func (h PublicCloudHandler) CreateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
@@ -82,7 +83,7 @@ func (h PublicCloudHandler) CreateInstance(
 	return instance, nil
 }
 
-// DeleteInstance Deletes an instance.
+// DeleteInstance deletes an instance.
 func (h PublicCloudHandler) DeleteInstance(
 	id string,
 	ctx context.Context,
@@ -100,7 +101,7 @@ func (h PublicCloudHandler) DeleteInstance(
 	return nil
 }
 
-// GetAvailableInstanceTypesForUpdate Gets all instance types an instance is allowed to upgrade to.
+// GetAvailableInstanceTypesForUpdate gets all instance types an instance is allowed to upgrade to.
 func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
@@ -127,7 +128,7 @@ func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 	return &instanceTypes, nil
 }
 
-// GetRegions Return a list of all regions.
+// GetRegions returns a list of all regions.
 func (h PublicCloudHandler) GetRegions(ctx context.Context) (
 	*domain.Regions,
 	*shared.HandlerError,
@@ -140,7 +141,7 @@ func (h PublicCloudHandler) GetRegions(ctx context.Context) (
 	return &regions, nil
 }
 
-// GetInstance Return instance details.
+// GetInstance returns instance details.
 func (h PublicCloudHandler) GetInstance(
 	id string,
 	ctx context.Context,
@@ -163,7 +164,7 @@ func (h PublicCloudHandler) GetInstance(
 	return convertedInstance, nil
 }
 
-// UpdateInstance Update an instance.
+// UpdateInstance updates an instance.
 func (h PublicCloudHandler) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
@@ -199,47 +200,47 @@ func (h PublicCloudHandler) UpdateInstance(
 	return convertedInstance, nil
 }
 
-// GetImageIds Return a list of valid image ids.
+// GetImageIds returns a list of valid image ids.
 func (h PublicCloudHandler) GetImageIds() []string {
 	return enum.Debian1064Bit.Values()
 }
 
-// GetSshKeyRegularExpression Returns regular expression used to validate ssh keys.
+// GetSshKeyRegularExpression returns regular expression used to validate ssh keys.
 func (h PublicCloudHandler) GetSshKeyRegularExpression() string {
 	return value_object.SshRegexp
 }
 
-// GetMinimumRootDiskSize Return the minimal valid rootDiskSize.
+// GetMinimumRootDiskSize returns the minimal valid rootDiskSize.
 func (h PublicCloudHandler) GetMinimumRootDiskSize() int64 {
 	return int64(value_object.MinRootDiskSize)
 }
 
-// GetMaximumRootDiskSize Return the maximum valid rootDiskSize.
+// GetMaximumRootDiskSize returns the maximum valid rootDiskSize.
 func (h PublicCloudHandler) GetMaximumRootDiskSize() int64 {
 	return int64(value_object.MaxRootDiskSize)
 }
 
-// GetRootDiskStorageTypes Return a list of valid rootDiskStorageTypes.
+// GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
 func (h PublicCloudHandler) GetRootDiskStorageTypes() []string {
 	return enum.RootDiskStorageTypeCentral.Values()
 }
 
-// GetBillingFrequencies Return a list of valid billing frequencies.
+// GetBillingFrequencies returns a list of valid billing frequencies.
 func (h PublicCloudHandler) GetBillingFrequencies() []int64 {
 	return convertIntArrayToInt64(enum.ContractBillingFrequencyThree.Values())
 }
 
-// GetContractTerms Return a list of valid contract terms.
+// GetContractTerms returns a list of valid contract terms.
 func (h PublicCloudHandler) GetContractTerms() []int64 {
 	return convertIntArrayToInt64(enum.ContractTermThree.Values())
 }
 
-// GetContractTypes Return a list of valid contract types.
+// GetContractTypes returns a list of valid contract types.
 func (h PublicCloudHandler) GetContractTypes() []string {
 	return enum.ContractTypeHourly.Values()
 }
 
-// ValidateContractTerm Checks if the passed combination of contractTerm & contractType is valid.
+// ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
 func (h PublicCloudHandler) ValidateContractTerm(
 	contractTerm int64,
 	contractType string,
