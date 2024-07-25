@@ -11,6 +11,7 @@ var ErrReferenceIsTooLong = fmt.Errorf(
 	maxAutoScalingGroupReferenceLength,
 )
 
+// AutoScalingGroupReference ensures that the passed autoScalingGroupReference can only be 255 characters long.
 type AutoScalingGroupReference struct {
 	value                              string
 	MaxAutoScalingGroupReferenceLength int

@@ -16,6 +16,7 @@ func (e InvalidRootDiskSize) Error() string {
 const MinRootDiskSize int = 5
 const MaxRootDiskSize int = 1000
 
+// RootDiskSize ensures that rootDiskSize is between 5 & 1000 gigabytes.
 type RootDiskSize struct {
 	Value           int
 	MinRootDiskSize int

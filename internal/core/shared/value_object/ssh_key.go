@@ -11,6 +11,7 @@ const (
 	SshRegexp string = `^(ssh-dss|ecdsa-sha2-nistp256|ssh-ed25519|ssh-rsa)\s+(?:[a-zA-Z0-9+/]{4})*(?:|[a-zA-Z0-9+/]{3}=|[a-zA-Z0-9+/]{2}==|[a-zA-Z0-9+/]===)[\s+\x21-\x7F]+$`
 )
 
+// SshKey ensures that the passed ssh key is valid.
 type SshKey struct {
 	value  string
 	Regexp string
