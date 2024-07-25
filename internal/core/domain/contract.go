@@ -27,6 +27,7 @@ type Contract struct {
 	State            enum.ContractState
 }
 
+// NewContract creates a new contract. Also ensures that contractType / contractTerm combination is valid.
 func NewContract(
 	billingFrequency enum.ContractBillingFrequency,
 	term enum.ContractTerm,
