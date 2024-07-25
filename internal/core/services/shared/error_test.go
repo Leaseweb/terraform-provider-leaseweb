@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
-	"terraform-provider-leaseweb/internal/shared"
 )
 
 func TestNewFromRepositoryError(t *testing.T) {
@@ -20,7 +19,7 @@ func TestNewFromRepositoryError(t *testing.T) {
 		Body:       io.NopCloser(bytes.NewReader([]byte(""))),
 	}
 
-	errorResponse := shared.ErrorResponse{ErrorCode: "54"}
+	errorResponse := sharedRepository.ErrorResponse{ErrorCode: "54"}
 
 	repositoryError := sharedRepository.NewSdkError(
 		"repositoryErrorPrefix",

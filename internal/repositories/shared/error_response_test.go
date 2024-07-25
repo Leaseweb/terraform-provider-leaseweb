@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,4 +35,20 @@ func TestNewErrorResponse(t *testing.T) {
 		_, err := NewErrorResponse("")
 		assert.Error(t, err)
 	})
+}
+
+func ExampleNewErrorResponse() {
+	errorResponse, _ := NewErrorResponse(`
+  {
+    "correlationId": "correlationId",
+    "errorCode": "errorCode",
+    "errorMessage": "errorMessage",
+    "errorDetails":  {
+      "attribute": ["error1", "error2"]
+    }
+  }
+`)
+
+	fmt.Println(errorResponse)
+	// Output: &{correlationId errorCode errorMessage map[attribute:[error1 error2]]}
 }

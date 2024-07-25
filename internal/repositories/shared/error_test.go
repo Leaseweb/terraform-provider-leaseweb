@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/shared"
 )
 
 func TestNewSdkError(t *testing.T) {
@@ -37,7 +36,7 @@ func TestNewSdkError(t *testing.T) {
 		want := RepositoryError{
 			msg: "prefix: result",
 			err: err,
-			ErrorResponse: &shared.ErrorResponse{
+			ErrorResponse: &ErrorResponse{
 				CorrelationId: "correlationId",
 				ErrorCode:     "errorCode",
 				ErrorMessage:  "errorMessage",

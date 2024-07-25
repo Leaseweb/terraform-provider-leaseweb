@@ -11,6 +11,7 @@ type ErrorResponse struct {
 	ErrorDetails  map[string][]string `json:"errorDetails"`
 }
 
+// NewErrorResponse generates a new ErrorResponse object from an api response.
 func NewErrorResponse(jsonStr string) (*ErrorResponse, error) {
 	errorResponse := ErrorResponse{}
 

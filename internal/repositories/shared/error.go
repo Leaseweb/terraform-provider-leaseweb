@@ -5,14 +5,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"terraform-provider-leaseweb/internal/shared"
 )
 
 type RepositoryError struct {
 	msg           string
 	err           error
-	ErrorResponse *shared.ErrorResponse
+	ErrorResponse *ErrorResponse
 }
 
 func (e RepositoryError) Error() string {
@@ -36,7 +34,7 @@ func NewSdkError(
 		_, err := io.Copy(buf, sdkHttpResponse.Body)
 		if err == nil {
 			bodyContent := buf.String()
-			errorResponse, err := shared.NewErrorResponse(bodyContent)
+			errorResponse, err := NewErrorResponse(bodyContent)
 			if err == nil {
 				repositoryError.ErrorResponse = errorResponse
 			}

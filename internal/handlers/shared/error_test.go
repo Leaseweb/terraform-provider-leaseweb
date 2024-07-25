@@ -8,12 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	sharedService "terraform-provider-leaseweb/internal/core/services/shared"
 	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
-	"terraform-provider-leaseweb/internal/shared"
 )
 
 func TestNewFromServiceError(t *testing.T) {
 	err := errors.New("tralala")
-	errorResponse := shared.ErrorResponse{ErrorCode: "123"}
+	errorResponse := sharedRepository.ErrorResponse{ErrorCode: "123"}
 
 	repositoryError := sharedRepository.NewGeneralError(
 		"repositoryErrorPrefix",

@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	repository "terraform-provider-leaseweb/internal/repositories/shared"
-	"terraform-provider-leaseweb/internal/shared"
 )
 
 type ServiceError struct {
 	msg           string
 	GeneralError  error
-	ErrorResponse *shared.ErrorResponse
+	ErrorResponse *repository.ErrorResponse
 }
 
 func (e ServiceError) Error() string {

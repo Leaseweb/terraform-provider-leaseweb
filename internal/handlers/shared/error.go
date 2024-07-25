@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sharedService "terraform-provider-leaseweb/internal/core/services/shared"
-	"terraform-provider-leaseweb/internal/shared"
+	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 type HandlerError struct {
