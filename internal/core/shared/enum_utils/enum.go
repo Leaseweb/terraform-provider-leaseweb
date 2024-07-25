@@ -48,7 +48,7 @@ func FindEnumForInt[T intEnum](
 	)}
 }
 
-// ConvertIntEnumToValues returns an array of all values for an int enum.
+// ConvertIntEnumToValues returns an array of integers for all values of an int enum.
 func ConvertIntEnumToValues[T intEnum](enumValues []T) []int {
 	var values []int
 
@@ -59,7 +59,7 @@ func ConvertIntEnumToValues[T intEnum](enumValues []T) []int {
 	return values
 }
 
-// ConvertStringEnumToValues Return an array for all values of a string enum.
+// ConvertStringEnumToValues Return an array of strings for all values of a string enum.
 func ConvertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
 	var values []string
 
