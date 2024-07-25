@@ -14,6 +14,6 @@ docker-compose run --rm -T shellcheck -x ./.husky/commit-msg
 
 terraform fmt -recursive -check .
 
-go mod download && go build -v .
-golangci-lint run .
+go mod download && go build -v
+golangci-lint run
 TF_ACC=1 go test -v -cover ./internal/provider/
