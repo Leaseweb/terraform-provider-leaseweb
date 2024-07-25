@@ -2,6 +2,7 @@ package shared
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,4 +55,21 @@ func TestNewError(t *testing.T) {
 	}
 
 	assert.Equal(t, want, *got)
+}
+
+func ExampleNewFromServicesError() {
+	handlerError := NewFromServicesError(
+		"handlerPrefix",
+		sharedService.NewError("sharedPrefix", errors.New("tralala")),
+	)
+
+	fmt.Println(handlerError)
+	// Output: handlerPrefix: sharedPrefix: tralala
+}
+
+func ExampleNewError() {
+	handlerError := NewError("prefix", errors.New("tralala"))
+
+	fmt.Println(handlerError)
+	// Output: prefix: tralala
 }
