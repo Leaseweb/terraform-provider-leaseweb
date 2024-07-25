@@ -8,39 +8,39 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
-// PublicCloudService Used to get data linked to public_cloud.
+// PublicCloudService gets data associated with public_cloud.
 type PublicCloudService interface {
-	// GetAllInstances Get all instances.
+	// GetAllInstances gets all instances.
 	GetAllInstances(ctx context.Context) (domain.Instances, *shared.ServiceError)
 
-	// GetInstance Get a single instance.
+	// GetInstance gets a single instance.
 	GetInstance(
 		id value_object.Uuid,
 		ctx context.Context,
 	) (*domain.Instance, *shared.ServiceError)
 
-	// CreateInstance Create an instance.
+	// CreateInstance creates an instance.
 	CreateInstance(
 		instance domain.Instance,
 		ctx context.Context,
 	) (*domain.Instance, *shared.ServiceError)
 
-	// UpdateInstance Update an instance.
+	// UpdateInstance updates an instance.
 	UpdateInstance(
 		instance domain.Instance,
 		ctx context.Context,
 	) (*domain.Instance, *shared.ServiceError)
 
-	// DeleteInstance Delete an instance.
+	// DeleteInstance deletes an instance.
 	DeleteInstance(id value_object.Uuid, ctx context.Context) *shared.ServiceError
 
-	// GetAvailableInstanceTypesForUpdate Get all available instances types an instance can upgrade to.
+	// GetAvailableInstanceTypesForUpdate gets all available instances types an instance can upgrade to.
 	GetAvailableInstanceTypesForUpdate(
 		id value_object.Uuid,
 		ctx context.Context,
 	) (domain.InstanceTypes, *shared.ServiceError)
 
-	// GetRegions Get a list of all regions.
+	// GetRegions gets a list of all regions.
 	GetRegions(
 		ctx context.Context,
 	) (domain.Regions, *shared.ServiceError)
