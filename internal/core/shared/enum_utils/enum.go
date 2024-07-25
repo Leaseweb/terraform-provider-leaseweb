@@ -59,7 +59,7 @@ func ConvertIntEnumToValues[T intEnum](enumValues []T) []int {
 	return values
 }
 
-// ConvertStringEnumToValues Return an array of strings for all values of a string enum.
+// ConvertStringEnumToValues returns an array of strings for all values of a string enum.
 func ConvertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
 	var values []string
 
