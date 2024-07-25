@@ -17,7 +17,7 @@ func (e ServiceError) Error() string {
 	return e.msg
 }
 
-// NewFromRepositoryError Generate a new error from the returned repository error.
+// NewFromRepositoryError generates a new error from the passed repository error.
 func NewFromRepositoryError(
 	errorPrefix string,
 	repositoryError repository.RepositoryError,
@@ -28,7 +28,7 @@ func NewFromRepositoryError(
 	}
 }
 
-// NewError Generate a new general error.
+// NewError generates a new general error.
 func NewError(
 	errorPrefix string,
 	err error,
