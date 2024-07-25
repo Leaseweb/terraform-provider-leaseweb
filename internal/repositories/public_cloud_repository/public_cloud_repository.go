@@ -301,17 +301,38 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 ) {
 	var regions domain.Regions
 
-	sdkRegions, response, err := p.publicCLoudAPI.GetRegionList(p.authContext(ctx)).Execute()
+	request := p.publicCLoudAPI.GetRegionList(p.authContext(ctx))
+
+	result, response, err := request.Execute()
+
 	if err != nil {
-		return nil, shared.NewSdkError(
-			"GetRegions",
-			err,
-			response,
-		)
+		return nil, shared.NewSdkError("GetRegions", err, response)
 	}
 
-	for _, sdkRegion := range sdkRegions.Regions {
-		regions = append(regions, p.convertRegion(sdkRegion))
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetRegions", err, response)
+		}
+
+		for _, sdkRegion := range result.Regions {
+			region := p.convertRegion(sdkRegion)
+
+			regions = append(regions, region)
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request = pagination.Request
 	}
 
 	return regions, nil
