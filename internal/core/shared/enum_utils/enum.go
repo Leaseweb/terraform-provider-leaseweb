@@ -12,7 +12,7 @@ func (c errCannotFindEnumForValue[T]) Error() string {
 	return c.msg
 }
 
-// FindEnumForString Return enum for passed string or return an error if the enum is not found.
+// FindEnumForString returns the enum whose value is equal to the passed string or an error if the enum is not found.
 func FindEnumForString[T fmt.Stringer](
 	value string,
 	enumValues []T,
@@ -30,7 +30,7 @@ func FindEnumForString[T fmt.Stringer](
 	)}
 }
 
-// FindEnumForInt Return enum for passed into or return an error if the enum is not found.
+// FindEnumForInt returns an enum whose value is equal to the passed int or an error if the enum is not found.
 func FindEnumForInt[T intEnum](
 	value int,
 	enumValues []T,
@@ -48,7 +48,7 @@ func FindEnumForInt[T intEnum](
 	)}
 }
 
-// ConvertIntEnumToValues Return an int array for all enum values.
+// ConvertIntEnumToValues returns an array of all values for an int enum.
 func ConvertIntEnumToValues[T intEnum](enumValues []T) []int {
 	var values []int
 
@@ -59,7 +59,7 @@ func ConvertIntEnumToValues[T intEnum](enumValues []T) []int {
 	return values
 }
 
-// ConvertStringEnumToValues Return a string array for all enum values.
+// ConvertStringEnumToValues Return an array for all values of a string enum.
 func ConvertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
 	var values []string
 
