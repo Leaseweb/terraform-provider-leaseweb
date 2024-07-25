@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
-	"terraform-provider-leaseweb/internal/core/services/shared"
+	serviceErrors "terraform-provider-leaseweb/internal/core/services/errors"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
@@ -24,24 +24,24 @@ var (
 type serviceSpy struct {
 	createInstanceOpts          *domain.Instance
 	createdInstance             *domain.Instance
-	createInstanceError         *shared.ServiceError
+	createInstanceError         *serviceErrors.ServiceError
 	getInstance                 *domain.Instance
-	getInstanceError            *shared.ServiceError
-	deleteInstanceError         *shared.ServiceError
+	getInstanceError            *serviceErrors.ServiceError
+	deleteInstanceError         *serviceErrors.ServiceError
 	instanceTypesForUpdate      domain.InstanceTypes
-	instanceTypesForUpdateError *shared.ServiceError
+	instanceTypesForUpdateError *serviceErrors.ServiceError
 	getRegions                  domain.Regions
-	getRegionsError             *shared.ServiceError
+	getRegionsError             *serviceErrors.ServiceError
 	getInstances                domain.Instances
-	getInstancesError           *shared.ServiceError
+	getInstancesError           *serviceErrors.ServiceError
 	updateInstanceOpts          *domain.Instance
 	updatedInstance             *domain.Instance
-	updateInstanceError         *shared.ServiceError
+	updateInstanceError         *serviceErrors.ServiceError
 }
 
 func (s *serviceSpy) GetAllInstances(ctx context.Context) (
 	domain.Instances,
-	*shared.ServiceError,
+	*serviceErrors.ServiceError,
 ) {
 	return s.getInstances, s.getInstancesError
 }
@@ -49,14 +49,14 @@ func (s *serviceSpy) GetAllInstances(ctx context.Context) (
 func (s *serviceSpy) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *serviceErrors.ServiceError) {
 	return s.getInstance, s.getInstanceError
 }
 
 func (s *serviceSpy) CreateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *serviceErrors.ServiceError) {
 	s.createInstanceOpts = &instance
 
 	return s.createdInstance, s.createInstanceError
@@ -65,7 +65,7 @@ func (s *serviceSpy) CreateInstance(
 func (s *serviceSpy) UpdateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *serviceErrors.ServiceError) {
 	s.updateInstanceOpts = &instance
 
 	return s.updatedInstance, s.updateInstanceError
@@ -74,20 +74,20 @@ func (s *serviceSpy) UpdateInstance(
 func (s *serviceSpy) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) *shared.ServiceError {
+) *serviceErrors.ServiceError {
 	return s.deleteInstanceError
 }
 
 func (s *serviceSpy) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (domain.InstanceTypes, *shared.ServiceError) {
+) (domain.InstanceTypes, *serviceErrors.ServiceError) {
 	return s.instanceTypesForUpdate, s.instanceTypesForUpdateError
 }
 
 func (s *serviceSpy) GetRegions(ctx context.Context) (
 	domain.Regions,
-	*shared.ServiceError,
+	*serviceErrors.ServiceError,
 ) {
 	return s.getRegions, s.getRegionsError
 }
@@ -167,7 +167,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 				return &domain.Instance{}, nil
 			},
 			publicCloudService: &serviceSpy{
-				createInstanceError: shared.NewError(
+				createInstanceError: serviceErrors.NewError(
 					"",
 					errors.New("some error"),
 				),
@@ -230,7 +230,7 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			deleteInstanceError: shared.NewError(
+			deleteInstanceError: serviceErrors.NewError(
 				"",
 				errors.New("some errors"),
 			),
@@ -277,7 +277,7 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			instanceTypesForUpdateError: shared.NewError(
+			instanceTypesForUpdateError: serviceErrors.NewError(
 				"",
 				errors.New("some errors"),
 			),
@@ -309,7 +309,7 @@ func TestPublicCloudHandler_GetRegions(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{
-			getRegionsError: shared.NewError(
+			getRegionsError: serviceErrors.NewError(
 				"",
 				errors.New("some errors"),
 			),
@@ -362,7 +362,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
 				publicCloudService: &serviceSpy{
-					getInstanceError: shared.NewError(
+					getInstanceError: serviceErrors.NewError(
 						"",
 						errors.New("some error"),
 					),
@@ -438,7 +438,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
 				publicCloudService: &serviceSpy{
-					getInstancesError: shared.NewError(
+					getInstancesError: serviceErrors.NewError(
 						"",
 						errors.New("some error"),
 					),
@@ -523,7 +523,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 				return &domain.Instance{}, nil
 			},
 			publicCloudService: &serviceSpy{
-				updateInstanceError: shared.NewError(
+				updateInstanceError: serviceErrors.NewError(
 					"",
 					errors.New("some error"),
 				),

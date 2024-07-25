@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	sharedService "terraform-provider-leaseweb/internal/core/services/shared"
+	sharedService "terraform-provider-leaseweb/internal/core/services/errors"
 	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
 )
 

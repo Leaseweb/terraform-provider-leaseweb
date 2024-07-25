@@ -3,7 +3,7 @@ package shared
 import (
 	"fmt"
 
-	sharedService "terraform-provider-leaseweb/internal/core/services/shared"
+	sharedService "terraform-provider-leaseweb/internal/core/services/errors"
 	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 

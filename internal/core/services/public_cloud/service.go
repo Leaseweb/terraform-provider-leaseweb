@@ -5,7 +5,7 @@ import (
 
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/ports"
-	"terraform-provider-leaseweb/internal/core/services/shared"
+	"terraform-provider-leaseweb/internal/core/services/errors"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
@@ -16,15 +16,15 @@ type Service struct {
 
 func (srv Service) GetAllInstances(ctx context.Context) (
 	domain.Instances,
-	*shared.ServiceError,
+	*errors.ServiceError,
 ) {
 	var detailedInstances domain.Instances
 	resultChan := make(chan domain.Instance)
-	errorChan := make(chan *shared.ServiceError)
+	errorChan := make(chan *errors.ServiceError)
 
 	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
-		return domain.Instances{}, shared.NewFromRepositoryError(
+		return domain.Instances{}, errors.NewFromRepositoryError(
 			"GetAllInstances",
 			*err,
 		)
@@ -56,10 +56,10 @@ func (srv Service) GetAllInstances(ctx context.Context) (
 func (srv Service) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *errors.ServiceError) {
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("GetInstance", *err)
+		return nil, errors.NewFromRepositoryError("GetInstance", *err)
 	}
 
 	return srv.populateMissingInstanceAttributes(*instance, ctx)
@@ -68,10 +68,10 @@ func (srv Service) GetInstance(
 func (srv Service) CreateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *errors.ServiceError) {
 	createdInstance, err := srv.publicCloudRepository.CreateInstance(instance, ctx)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("CreateInstance", *err)
+		return nil, errors.NewFromRepositoryError("CreateInstance", *err)
 	}
 
 	// call GetInstance as createdInstance is created from instance and not instanceDetails
@@ -81,13 +81,13 @@ func (srv Service) CreateInstance(
 func (srv Service) UpdateInstance(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *errors.ServiceError) {
 	updatedInstance, err := srv.publicCloudRepository.UpdateInstance(
 		instance,
 		ctx,
 	)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("UpdateInstance", *err)
+		return nil, errors.NewFromRepositoryError("UpdateInstance", *err)
 	}
 
 	return srv.populateMissingInstanceAttributes(*updatedInstance, ctx)
@@ -96,10 +96,10 @@ func (srv Service) UpdateInstance(
 func (srv Service) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) *shared.ServiceError {
+) *errors.ServiceError {
 	err := srv.publicCloudRepository.DeleteInstance(id, ctx)
 	if err != nil {
-		return shared.NewError("DeleteInstance", err)
+		return errors.NewError("DeleteInstance", err)
 	}
 
 	return nil
@@ -108,13 +108,13 @@ func (srv Service) DeleteInstance(
 func (srv Service) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (domain.InstanceTypes, *shared.ServiceError) {
+) (domain.InstanceTypes, *errors.ServiceError) {
 	instanceTypes, err := srv.publicCloudRepository.GetAvailableInstanceTypesForUpdate(
 		id,
 		ctx,
 	)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError(
+		return nil, errors.NewFromRepositoryError(
 			"GetAvailableInstanceTypesForUpdate",
 			*err,
 		)
@@ -125,11 +125,11 @@ func (srv Service) GetAvailableInstanceTypesForUpdate(
 
 func (srv Service) GetRegions(ctx context.Context) (
 	domain.Regions,
-	*shared.ServiceError,
+	*errors.ServiceError,
 ) {
 	regions, err := srv.publicCloudRepository.GetRegions(ctx)
 	if err != nil {
-		return nil, shared.NewFromRepositoryError("GetRegions", *err)
+		return nil, errors.NewFromRepositoryError("GetRegions", *err)
 	}
 
 	return regions, nil
@@ -139,7 +139,7 @@ func (srv Service) GetRegions(ctx context.Context) (
 func (srv Service) populateMissingInstanceAttributes(
 	instance domain.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.ServiceError) {
+) (*domain.Instance, *errors.ServiceError) {
 	// Get autoScalingGroupDetails.
 	if instance.AutoScalingGroup != nil {
 		autoScalingGroup, err := srv.publicCloudRepository.GetAutoScalingGroup(
@@ -147,7 +147,7 @@ func (srv Service) populateMissingInstanceAttributes(
 			ctx,
 		)
 		if err != nil {
-			return nil, shared.NewFromRepositoryError(
+			return nil, errors.NewFromRepositoryError(
 				"populateMissingInstanceAttributes",
 				*err,
 			)
@@ -160,7 +160,7 @@ func (srv Service) populateMissingInstanceAttributes(
 				ctx,
 			)
 			if err != nil {
-				return nil, shared.NewFromRepositoryError(
+				return nil, errors.NewFromRepositoryError(
 					"populateMissingInstanceAttributes",
 					*err,
 				)
