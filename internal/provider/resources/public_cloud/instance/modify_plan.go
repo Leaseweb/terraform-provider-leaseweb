@@ -105,8 +105,9 @@ func (i *instanceResource) validateRegion(
 		path.Root("region"),
 		"Invalid Region",
 		fmt.Sprintf(
-			"Allowed regions are %v",
-			regions,
+			"Attribute region value must be one of: %q, got: %q",
+			*regions,
+			region,
 		),
 	)
 
