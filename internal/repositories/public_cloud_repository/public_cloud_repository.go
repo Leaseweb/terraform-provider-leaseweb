@@ -7,7 +7,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/repositories/sdk-interfaces"
+	"terraform-provider-leaseweb/internal/repositories/sdk"
 	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
@@ -19,7 +19,7 @@ type Optional struct {
 
 // PublicCloudRepository fulfills contract for ports.PublicCloudRepository.
 type PublicCloudRepository struct {
-	publicCLoudAPI         sdk_interfaces.PublicCloudApi
+	publicCLoudAPI         sdk.PublicCloudApi
 	token                  string
 	convertInstanceDetails func(
 		sdkInstance publicCloud.InstanceDetails,

@@ -1,4 +1,4 @@
-package sdk_interfaces
+package sdk
 
 import (
 	"context"
