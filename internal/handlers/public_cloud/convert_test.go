@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
@@ -452,7 +453,7 @@ func Test_convertLoadBalancerToResourceModel(t *testing.T) {
 
 		loadBalancer := domain.NewLoadBalancer(
 			id,
-			"type",
+			value_object.InstanceType{Type: "type"},
 			domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
 			"region",
 			enum.StateCreating,
@@ -462,7 +463,9 @@ func Test_convertLoadBalancerToResourceModel(t *testing.T) {
 				Reference:      &reference,
 				StartedAt:      &startedAt,
 				PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
-				Configuration:  &domain.LoadBalancerConfiguration{Balance: enum.BalanceSource},
+				Configuration: &domain.LoadBalancerConfiguration{
+					Balance: enum.BalanceSource,
+				},
 			},
 		)
 
@@ -544,7 +547,9 @@ func Test_convertInstanceToResourceModel(t *testing.T) {
 
 		instance := generateDomainInstance()
 		instance.Id = id
-		instance.Type = enum.InstanceTypeM5A4Xlarge
+		instance.Type = value_object.NewUnvalidatedInstanceType(
+			string(publicCloud.TYPENAME_M5A_4XLARGE),
+		)
 		instance.RootDiskSize = *rootDiskSize
 		instance.StartedAt = &startedAt
 		instance.MarketAppId = &marketAppId
@@ -742,11 +747,17 @@ func Test_convertAutoScalingGroupToResourceModel(t *testing.T) {
 			CpuThreshold:  &cpuThreshold,
 			WarmupTime:    &warmupTime,
 			CoolDownTime:  &cooldownTime,
-			LoadBalancer:  &domain.LoadBalancer{Id: loadBalancerId, StartedAt: &time.Time{}},
+			LoadBalancer: &domain.LoadBalancer{
+				Id:        loadBalancerId,
+				StartedAt: &time.Time{},
+			},
 		},
 	)
 
-	got, err := convertAutoScalingGroupToResourceModel(context.TODO(), autoScalingGroup)
+	got, err := convertAutoScalingGroupToResourceModel(
+		context.TODO(),
+		autoScalingGroup,
+	)
 
 	assert.NoError(t, err)
 
@@ -806,12 +817,13 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 		got, err := convertInstanceResourceModelToCreateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, enum.InstanceTypeM5A4Xlarge, got.Type)
+		assert.Equal(t, string(publicCloud.TYPENAME_M5A_4XLARGE), got.Type.String())
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, enum.Ubuntu200464Bit, got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -836,6 +848,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 		got, err := convertInstanceResourceModelToCreateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
@@ -863,6 +876,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
 				instance,
+				[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 				context.TODO(),
 			)
 
@@ -888,6 +902,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
 				instance,
+				[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 				context.TODO(),
 			)
 
@@ -911,6 +926,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 		_, err := convertInstanceResourceModelToCreateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
@@ -933,6 +949,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 		_, err := convertInstanceResourceModelToCreateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
@@ -957,6 +974,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
 				instance,
+				[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 				context.TODO(),
 			)
 
@@ -982,6 +1000,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
 				instance,
+				[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 				context.TODO(),
 			)
 
@@ -1005,6 +1024,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 		_, err := convertInstanceResourceModelToCreateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
@@ -1029,6 +1049,7 @@ func Test_convertInstanceResourceModelToCreateInstanceOpts(t *testing.T) {
 
 			_, err := convertInstanceResourceModelToCreateInstanceOpts(
 				instance,
+				[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 				context.TODO(),
 			)
 
@@ -1508,7 +1529,7 @@ func Test_convertLoadBalancerToDataSourceModel(t *testing.T) {
 
 	entityLoadBalancer := domain.NewLoadBalancer(
 		id,
-		"type",
+		value_object.NewUnvalidatedInstanceType("type"),
 		domain.Resources{Cpu: domain.Cpu{Unit: "Resources"}},
 		"region",
 		enum.StateCreating,
@@ -1771,6 +1792,7 @@ func Test_convertInstanceResourceModelToUpdateInstanceOpts(t *testing.T) {
 
 		got, diags := convertInstanceResourceModelToUpdateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
@@ -1792,11 +1814,12 @@ func Test_convertInstanceResourceModelToUpdateInstanceOpts(t *testing.T) {
 
 		got, diags := convertInstanceResourceModelToUpdateInstanceOpts(
 			instance,
+			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
 			context.TODO(),
 		)
 
 		assert.Nil(t, diags)
-		assert.Equal(t, enum.InstanceTypeM5A4Xlarge, got.Type)
+		assert.Equal(t, string(publicCloud.TYPENAME_M5A_4XLARGE), got.Type.String())
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermThree, got.Contract.Term)
 		assert.Equal(
@@ -1911,7 +1934,7 @@ func generateDomainInstance() domain.Instance {
 
 	loadBalancer := domain.NewLoadBalancer(
 		value_object.NewGeneratedUuid(),
-		"type",
+		value_object.NewUnvalidatedInstanceType("type"),
 		resources,
 		"region",
 		enum.StateCreating,
@@ -1966,7 +1989,9 @@ func generateDomainInstance() domain.Instance {
 		false,
 		true,
 		*rootDiskSize,
-		enum.InstanceTypeC3Large,
+		value_object.NewUnvalidatedInstanceType(
+			string(publicCloud.TYPENAME_C3_LARGE),
+		),
 		enum.RootDiskStorageTypeCentral,
 		domain.Ips{ip},
 		*contract,

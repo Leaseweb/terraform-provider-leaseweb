@@ -57,7 +57,7 @@ func Test_pagination_nextPage(t *testing.T) {
 
 			newRequest, err := pagination.NextPage()
 
-			assert.Nil(t, newRequest)
+			assert.Equal(t, request, newRequest)
 			assert.Error(t, err)
 			assert.ErrorContains(
 				t,
@@ -84,7 +84,7 @@ func Test_pagination_nextPage(t *testing.T) {
 			assert.Equal(
 				t,
 				int64(7),
-				reflect.ValueOf(*newRequest).FieldByName("offset").Elem().Int(),
+				reflect.ValueOf(newRequest).FieldByName("offset").Elem().Int(),
 				"request offset is set properly",
 			)
 		},

@@ -30,10 +30,12 @@ type PublicCloudHandler struct {
 	) dataSourceModel.Instances
 	convertInstanceResourceModelToCreateInstanceOpts func(
 		instance resourceModel.Instance,
+		allowedInstanceTypes []string,
 		ctx context.Context,
 	) (*domain.Instance, error)
 	convertInstanceResourceModelToUpdateInstanceOpts func(
 		instance resourceModel.Instance,
+		allowedInstanceTypes []string,
 		ctx context.Context,
 	) (*domain.Instance, error)
 }
@@ -59,8 +61,17 @@ func (h PublicCloudHandler) CreateInstance(
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.HandlerError) {
 
+	availableInstanceTypes, err := h.GetInstanceTypesForRegion(
+		plan.Region.ValueString(),
+		ctx,
+	)
+	if err != nil {
+		return nil, shared.NewError("CreateInstance", err)
+	}
+
 	createInstanceOpts, err := h.convertInstanceResourceModelToCreateInstanceOpts(
 		plan,
+		availableInstanceTypes,
 		ctx,
 	)
 	if err != nil {
@@ -105,7 +116,7 @@ func (h PublicCloudHandler) DeleteInstance(
 func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
-) (*domain.InstanceTypes, *shared.HandlerError) {
+) ([]string, *shared.HandlerError) {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
 		return nil, shared.NewError(
@@ -125,7 +136,7 @@ func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 		)
 	}
 
-	return &instanceTypes, nil
+	return instanceTypes.ToArray(), nil
 }
 
 // GetRegions returns a list of all regions.
@@ -169,13 +180,21 @@ func (h PublicCloudHandler) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.HandlerError) {
-
-	updateInstanceOpts, err := h.convertInstanceResourceModelToUpdateInstanceOpts(
-		plan,
+	availableInstanceTypes, err := h.GetAvailableInstanceTypesForUpdate(
+		plan.Id.ValueString(),
 		ctx,
 	)
 	if err != nil {
 		return nil, shared.NewError("UpdateInstance", err)
+	}
+
+	updateInstanceOpts, conversionError := h.convertInstanceResourceModelToUpdateInstanceOpts(
+		plan,
+		availableInstanceTypes,
+		ctx,
+	)
+	if conversionError != nil {
+		return nil, shared.NewError("UpdateInstance", conversionError)
 	}
 
 	updatedInstance, updateInstanceErr := h.publicCloudService.UpdateInstance(
@@ -189,12 +208,12 @@ func (h PublicCloudHandler) UpdateInstance(
 		)
 	}
 
-	convertedInstance, err := h.convertInstanceToResourceModel(
+	convertedInstance, conversionError := h.convertInstanceToResourceModel(
 		*updatedInstance,
 		ctx,
 	)
-	if err != nil {
-		return nil, shared.NewError("UpdateInstance", err)
+	if conversionError != nil {
+		return nil, shared.NewError("UpdateInstance", conversionError)
 	}
 
 	return convertedInstance, nil
@@ -277,6 +296,25 @@ func (h PublicCloudHandler) ValidateContractTerm(
 	}
 
 	return nil
+}
+
+func (h PublicCloudHandler) GetInstanceTypesForRegion(
+	region string,
+	ctx context.Context,
+) ([]string, error) {
+	instanceTypes, err := h.publicCloudService.GetAvailableInstanceTypesForRegion(
+		region,
+		ctx,
+	)
+
+	if err != nil {
+		return nil, shared.NewFromServicesError(
+			"GetInstanceTypesForRegion",
+			err,
+		)
+	}
+
+	return instanceTypes.ToArray(), nil
 }
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {

@@ -24,10 +24,9 @@ type PublicCloudRepository struct {
 	convertInstanceDetails func(
 		sdkInstance publicCloud.InstanceDetails,
 	) (*domain.Instance, error)
-	convertInstance func(sdkInstance publicCloud.Instance) (
-		*domain.Instance,
-		error,
-	)
+	convertInstance func(
+		sdkInstance publicCloud.Instance,
+	) (*domain.Instance, error)
 	convertAutoScalingGroupDetails func(
 		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
 	) (*domain.AutoScalingGroup, error)
@@ -39,7 +38,10 @@ type PublicCloudRepository struct {
 	convertEntityToUpdateInstanceOpts func(instance domain.Instance) (
 		*publicCloud.UpdateInstanceOpts, error)
 	convertRegion       func(sdkRegion publicCloud.Region) domain.Region
-	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) domain.InstanceType
+	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) (
+		*domain.InstanceType,
+		error,
+	)
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -93,7 +95,10 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 			break
 		}
 
-		request = pagination.Request
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
+		}
 	}
 
 	return instances, nil
@@ -144,7 +149,9 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 		)
 	}
 
-	autoScalingGroup, err := p.convertAutoScalingGroupDetails(*sdkAutoScalingGroupDetails)
+	autoScalingGroup, err := p.convertAutoScalingGroupDetails(
+		*sdkAutoScalingGroupDetails,
+	)
 	if err != nil {
 		return nil, shared.NewGeneralError(
 			fmt.Sprintf("GetAutoScalingGroup %q", id),
@@ -258,7 +265,10 @@ func (p PublicCloudRepository) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) *shared.RepositoryError {
-	response, err := p.publicCLoudAPI.TerminateInstance(p.authContext(ctx), id.String()).Execute()
+	response, err := p.publicCLoudAPI.TerminateInstance(
+		p.authContext(ctx),
+		id.String(),
+	).Execute()
 	if err != nil {
 		return shared.NewSdkError(
 			fmt.Sprintf("DeleteInstance %q", id),
@@ -276,7 +286,10 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 ) (domain.InstanceTypes, *shared.RepositoryError) {
 	var instanceTypes domain.InstanceTypes
 
-	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(p.authContext(ctx), id.String()).Execute()
+	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(
+		p.authContext(ctx),
+		id.String(),
+	).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(
 			fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
@@ -286,10 +299,15 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	}
 
 	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
-		instanceTypes = append(
-			instanceTypes,
-			p.convertInstanceType(sdkInstanceType),
-		)
+		instanceType, err := p.convertInstanceType(sdkInstanceType)
+		if err != nil {
+			return nil, shared.NewSdkError(
+				fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
+				err,
+				response,
+			)
+		}
+		instanceTypes = append(instanceTypes, *instanceType)
 	}
 
 	return instanceTypes, nil
@@ -332,10 +350,75 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 			break
 		}
 
-		request = pagination.Request
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
+		}
 	}
 
 	return regions, nil
+}
+
+func (p PublicCloudRepository) GetInstanceTypesForRegion(
+	region string,
+	ctx context.Context,
+) (domain.InstanceTypes, *shared.RepositoryError) {
+	var instanceTypes domain.InstanceTypes
+
+	request := p.publicCLoudAPI.GetInstanceTypeList(p.authContext(ctx)).
+		Region(region)
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError(
+			"GetInstanceTypesForRegion",
+			err,
+			response,
+		)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError(
+				"GetInstanceTypesForRegion",
+				err,
+				response,
+			)
+		}
+
+		for _, sdkInstanceType := range result.InstanceTypes {
+			instanceType, err := p.convertInstanceType(sdkInstanceType)
+			if err != nil {
+				return nil, shared.NewSdkError(
+					"GetInstanceTypesForRegion",
+					err,
+					response,
+				)
+			}
+
+			instanceTypes = append(instanceTypes, *instanceType)
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
+		}
+	}
+
+	return instanceTypes, nil
 }
 
 func NewPublicCloudRepository(

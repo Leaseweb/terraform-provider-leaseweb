@@ -41,11 +41,17 @@ func convertInstanceToResourceModel(
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
 	plan.HasPublicIpv4 = basetypes.NewBoolValue(instance.HasPublicIpv4)
 	plan.HasPrivateNetwork = basetypes.NewBoolValue(instance.HasPrivateNetwork)
-	plan.Type = basetypes.NewStringValue(string(instance.Type))
-	plan.RootDiskSize = basetypes.NewInt64Value(int64(instance.RootDiskSize.Value))
-	plan.RootDiskStorageType = basetypes.NewStringValue(string(instance.RootDiskStorageType))
+	plan.Type = basetypes.NewStringValue(instance.Type.String())
+	plan.RootDiskSize = basetypes.NewInt64Value(
+		int64(instance.RootDiskSize.Value),
+	)
+	plan.RootDiskStorageType = basetypes.NewStringValue(
+		string(instance.RootDiskStorageType),
+	)
 	plan.StartedAt = shared.ConvertNullableTimeToStringValue(instance.StartedAt)
-	plan.MarketAppId = shared.ConvertNullableStringToStringValue(instance.MarketAppId)
+	plan.MarketAppId = shared.ConvertNullableStringToStringValue(
+		instance.MarketAppId,
+	)
 
 	if instance.SshKey != nil {
 		plan.SshKey = basetypes.NewStringValue(instance.SshKey.String())
@@ -303,22 +309,44 @@ func convertAutoScalingGroupToResourceModel(
 		return nil, loadBalancerDiags
 	}
 	return &resourcesModel.AutoScalingGroup{
-		Id:            basetypes.NewStringValue(autoScalingGroup.Id.String()),
-		Type:          basetypes.NewStringValue(string(autoScalingGroup.Type)),
-		State:         basetypes.NewStringValue(string(autoScalingGroup.State)),
-		DesiredAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.DesiredAmount),
-		Region:        basetypes.NewStringValue(autoScalingGroup.Region),
-		Reference:     basetypes.NewStringValue(autoScalingGroup.Reference.String()),
-		CreatedAt:     basetypes.NewStringValue(autoScalingGroup.CreatedAt.String()),
-		UpdatedAt:     basetypes.NewStringValue(autoScalingGroup.UpdatedAt.String()),
-		StartsAt:      shared.ConvertNullableTimeToStringValue(autoScalingGroup.StartsAt),
-		EndsAt:        shared.ConvertNullableTimeToStringValue(autoScalingGroup.EndsAt),
-		MinimumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MinimumAmount),
-		MaximumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MaximumAmount),
-		CpuThreshold:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CpuThreshold),
-		WarmupTime:    shared.ConvertNullableIntToInt64Value(autoScalingGroup.WarmupTime),
-		CooldownTime:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CooldownTime),
-		LoadBalancer:  loadBalancer,
+		Id:    basetypes.NewStringValue(autoScalingGroup.Id.String()),
+		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
+		State: basetypes.NewStringValue(string(autoScalingGroup.State)),
+		DesiredAmount: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.DesiredAmount,
+		),
+		Region: basetypes.NewStringValue(autoScalingGroup.Region),
+		Reference: basetypes.NewStringValue(
+			autoScalingGroup.Reference.String(),
+		),
+		CreatedAt: basetypes.NewStringValue(
+			autoScalingGroup.CreatedAt.String(),
+		),
+		UpdatedAt: basetypes.NewStringValue(
+			autoScalingGroup.UpdatedAt.String(),
+		),
+		StartsAt: shared.ConvertNullableTimeToStringValue(
+			autoScalingGroup.StartsAt,
+		),
+		EndsAt: shared.ConvertNullableTimeToStringValue(
+			autoScalingGroup.EndsAt,
+		),
+		MinimumAmount: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.MinimumAmount,
+		),
+		MaximumAmount: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.MaximumAmount,
+		),
+		CpuThreshold: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.CpuThreshold,
+		),
+		WarmupTime: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.WarmupTime,
+		),
+		CooldownTime: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.CooldownTime,
+		),
+		LoadBalancer: loadBalancer,
 	}, nil
 }
 
@@ -378,14 +406,22 @@ func convertLoadBalancerToResourceModel(
 	}
 
 	return &resourcesModel.LoadBalancer{
-		Id:                        basetypes.NewStringValue(loadBalancer.Id.String()),
-		Type:                      basetypes.NewStringValue(string(loadBalancer.Type)),
-		Resources:                 resources,
-		Region:                    basetypes.NewStringValue(loadBalancer.Region),
-		Reference:                 shared.ConvertNullableStringToStringValue(loadBalancer.Reference),
-		State:                     basetypes.NewStringValue(string(loadBalancer.State)),
-		Contract:                  contract,
-		StartedAt:                 basetypes.NewStringValue(loadBalancer.StartedAt.String()),
+		Id: basetypes.NewStringValue(loadBalancer.Id.String()),
+		Type: basetypes.NewStringValue(
+			loadBalancer.Type.String(),
+		),
+		Resources: resources,
+		Region:    basetypes.NewStringValue(loadBalancer.Region),
+		Reference: shared.ConvertNullableStringToStringValue(
+			loadBalancer.Reference,
+		),
+		State: basetypes.NewStringValue(
+			loadBalancer.State.String(),
+		),
+		Contract: contract,
+		StartedAt: basetypes.NewStringValue(
+			loadBalancer.StartedAt.String(),
+		),
 		LoadBalancerConfiguration: configuration,
 		PrivateNetwork:            privateNetwork,
 		Ips:                       ips,
@@ -492,6 +528,7 @@ func convertDdosToResourceModel(
 
 func convertInstanceResourceModelToCreateInstanceOpts(
 	instanceResourceModel resourcesModel.Instance,
+	allowedInstancedTypes []string,
 	ctx context.Context,
 ) (*domain.Instance, error) {
 	var sshKey *value_object.SshKey
@@ -575,7 +612,10 @@ func convertInstanceResourceModelToCreateInstanceOpts(
 		}
 	}
 
-	instanceType, err := enum.NewInstanceType(instanceResourceModel.Type.ValueString())
+	instanceType, err := value_object.NewInstanceType(
+		instanceResourceModel.Type.ValueString(),
+		allowedInstancedTypes,
+	)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"convertInstanceResourceModelToCreateInstanceOpts: %w",
@@ -585,15 +625,19 @@ func convertInstanceResourceModelToCreateInstanceOpts(
 
 	createInstanceOpts := domain.NewCreateInstance(
 		instanceResourceModel.Region.ValueString(),
-		instanceType,
+		*instanceType,
 		rootDiskStorageType,
 		imageId,
 		contractType,
 		contractTerm,
 		billingFrequency,
 		domain.OptionalCreateInstanceValues{
-			MarketAppId:  shared.ConvertStringPointerValueToNullableString(instanceResourceModel.MarketAppId),
-			Reference:    shared.ConvertStringPointerValueToNullableString(instanceResourceModel.Reference),
+			MarketAppId: shared.ConvertStringPointerValueToNullableString(
+				instanceResourceModel.MarketAppId,
+			),
+			Reference: shared.ConvertStringPointerValueToNullableString(
+				instanceResourceModel.Reference,
+			),
 			SshKey:       sshKey,
 			RootDiskSize: rootDiskSize,
 		},
@@ -615,21 +659,37 @@ func convertInstancesToDataSourceModel(domainInstances domain.Instances) dataSou
 
 func convertInstanceToDataSourceModel(domainInstance domain.Instance) dataSourceModel.Instance {
 	instance := dataSourceModel.Instance{
-		Id:                  basetypes.NewStringValue(domainInstance.Id.String()),
-		Region:              basetypes.NewStringValue(domainInstance.Region),
-		Reference:           shared.ConvertNullableStringToStringValue(domainInstance.Reference),
-		Resources:           convertResourcesToDataSourceModel(domainInstance.Resources),
-		Image:               convertImageToDataSourceModel(domainInstance.Image),
-		State:               basetypes.NewStringValue(string(domainInstance.State)),
-		ProductType:         basetypes.NewStringValue(domainInstance.ProductType),
-		HasPublicIpv4:       basetypes.NewBoolValue(domainInstance.HasPublicIpv4),
-		HasPrivateNetwork:   basetypes.NewBoolValue(domainInstance.HasPrivateNetwork),
-		Type:                basetypes.NewStringValue(string(domainInstance.Type)),
-		RootDiskSize:        basetypes.NewInt64Value(int64(domainInstance.RootDiskSize.Value)),
-		RootDiskStorageType: basetypes.NewStringValue(string(domainInstance.RootDiskStorageType)),
-		StartedAt:           shared.ConvertNullableTimeToStringValue(domainInstance.StartedAt),
-		Contract:            convertContractToDataSourceModel(domainInstance.Contract),
-		MarketAppId:         shared.ConvertNullableStringToStringValue(domainInstance.MarketAppId),
+		Id:     basetypes.NewStringValue(domainInstance.Id.String()),
+		Region: basetypes.NewStringValue(domainInstance.Region),
+		Reference: shared.ConvertNullableStringToStringValue(
+			domainInstance.Reference,
+		),
+		Resources: convertResourcesToDataSourceModel(
+			domainInstance.Resources,
+		),
+		Image:         convertImageToDataSourceModel(domainInstance.Image),
+		State:         basetypes.NewStringValue(string(domainInstance.State)),
+		ProductType:   basetypes.NewStringValue(domainInstance.ProductType),
+		HasPublicIpv4: basetypes.NewBoolValue(domainInstance.HasPublicIpv4),
+		HasPrivateNetwork: basetypes.NewBoolValue(
+			domainInstance.HasPrivateNetwork,
+		),
+		Type: basetypes.NewStringValue(domainInstance.Type.String()),
+		RootDiskSize: basetypes.NewInt64Value(
+			int64(domainInstance.RootDiskSize.Value),
+		),
+		RootDiskStorageType: basetypes.NewStringValue(
+			string(domainInstance.RootDiskStorageType),
+		),
+		StartedAt: shared.ConvertNullableTimeToStringValue(
+			domainInstance.StartedAt,
+		),
+		Contract: convertContractToDataSourceModel(
+			domainInstance.Contract,
+		),
+		MarketAppId: shared.ConvertNullableStringToStringValue(
+			domainInstance.MarketAppId,
+		),
 		AutoScalingGroup: shared.ConvertNullableDomainEntityToDatasourceModel(
 			domainInstance.AutoScalingGroup,
 			convertAutoScalingGroupToDataSourceModel,
@@ -654,10 +714,14 @@ func convertInstanceToDataSourceModel(domainInstance domain.Instance) dataSource
 
 func convertResourcesToDataSourceModel(resources domain.Resources) dataSourceModel.Resources {
 	return dataSourceModel.Resources{
-		Cpu:                 convertCpuToDataSourceModel(resources.Cpu),
-		Memory:              convertMemoryToDataSourceModel(resources.Memory),
-		PublicNetworkSpeed:  convertNetworkSpeedToDataSourceModel(resources.PublicNetworkSpeed),
-		PrivateNetworkSpeed: convertNetworkSpeedToDataSourceModel(resources.PrivateNetworkSpeed),
+		Cpu:    convertCpuToDataSourceModel(resources.Cpu),
+		Memory: convertMemoryToDataSourceModel(resources.Memory),
+		PublicNetworkSpeed: convertNetworkSpeedToDataSourceModel(
+			resources.PublicNetworkSpeed,
+		),
+		PrivateNetworkSpeed: convertNetworkSpeedToDataSourceModel(
+			resources.PrivateNetworkSpeed,
+		),
 	}
 }
 
@@ -723,21 +787,43 @@ func convertContractToDataSourceModel(contract domain.Contract) dataSourceModel.
 
 func convertAutoScalingGroupToDataSourceModel(autoScalingGroup domain.AutoScalingGroup) *dataSourceModel.AutoScalingGroup {
 	return &dataSourceModel.AutoScalingGroup{
-		Id:            basetypes.NewStringValue(autoScalingGroup.Id.String()),
-		Type:          basetypes.NewStringValue(string(autoScalingGroup.Type)),
-		State:         basetypes.NewStringValue(string(autoScalingGroup.State)),
-		DesiredAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.DesiredAmount),
-		Region:        basetypes.NewStringValue(autoScalingGroup.Region),
-		Reference:     basetypes.NewStringValue(autoScalingGroup.Reference.String()),
-		CreatedAt:     basetypes.NewStringValue(autoScalingGroup.CreatedAt.String()),
-		UpdatedAt:     basetypes.NewStringValue(autoScalingGroup.UpdatedAt.String()),
-		StartsAt:      shared.ConvertNullableTimeToStringValue(autoScalingGroup.StartsAt),
-		EndsAt:        shared.ConvertNullableTimeToStringValue(autoScalingGroup.EndsAt),
-		MinimumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MinimumAmount),
-		MaximumAmount: shared.ConvertNullableIntToInt64Value(autoScalingGroup.MaximumAmount),
-		CpuThreshold:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CpuThreshold),
-		WarmupTime:    shared.ConvertNullableIntToInt64Value(autoScalingGroup.WarmupTime),
-		CooldownTime:  shared.ConvertNullableIntToInt64Value(autoScalingGroup.CooldownTime),
+		Id:    basetypes.NewStringValue(autoScalingGroup.Id.String()),
+		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
+		State: basetypes.NewStringValue(string(autoScalingGroup.State)),
+		DesiredAmount: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.DesiredAmount,
+		),
+		Region: basetypes.NewStringValue(autoScalingGroup.Region),
+		Reference: basetypes.NewStringValue(
+			autoScalingGroup.Reference.String(),
+		),
+		CreatedAt: basetypes.NewStringValue(
+			autoScalingGroup.CreatedAt.String(),
+		),
+		UpdatedAt: basetypes.NewStringValue(
+			autoScalingGroup.UpdatedAt.String(),
+		),
+		StartsAt: shared.ConvertNullableTimeToStringValue(
+			autoScalingGroup.StartsAt,
+		),
+		EndsAt: shared.ConvertNullableTimeToStringValue(
+			autoScalingGroup.EndsAt,
+		),
+		MinimumAmount: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.MinimumAmount,
+		),
+		MaximumAmount: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.MaximumAmount,
+		),
+		CpuThreshold: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.CpuThreshold,
+		),
+		WarmupTime: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.WarmupTime,
+		),
+		CooldownTime: shared.ConvertNullableIntToInt64Value(
+			autoScalingGroup.CooldownTime,
+		),
 		LoadBalancer: shared.ConvertNullableDomainEntityToDatasourceModel(
 			autoScalingGroup.LoadBalancer,
 			convertLoadBalancerToDataSourceModel,
@@ -753,7 +839,7 @@ func convertLoadBalancerToDataSourceModel(loadBalancer domain.LoadBalancer) *dat
 
 	return &dataSourceModel.LoadBalancer{
 		Id:        basetypes.NewStringValue(loadBalancer.Id.String()),
-		Type:      basetypes.NewStringValue(string(loadBalancer.Type)),
+		Type:      basetypes.NewStringValue(loadBalancer.Type.String()),
 		Resources: convertResourcesToDataSourceModel(loadBalancer.Resources),
 		Region:    basetypes.NewStringValue(loadBalancer.Region),
 		Reference: shared.ConvertNullableStringToStringValue(loadBalancer.Reference),
@@ -845,6 +931,7 @@ func convertDdosToDataSourceModel(ddos domain.Ddos) *dataSourceModel.Ddos {
 
 func convertInstanceResourceModelToUpdateInstanceOpts(
 	instanceResourceModel resourcesModel.Instance,
+	allowedInstanceTypes []string,
 	ctx context.Context,
 ) (*domain.Instance, error) {
 
@@ -900,7 +987,9 @@ func convertInstanceResourceModelToUpdateInstanceOpts(
 	}
 
 	if contract.BillingFrequency.ValueInt64() != 0 {
-		billingFrequency, err := enum.NewContractBillingFrequency(int(contract.BillingFrequency.ValueInt64()))
+		billingFrequency, err := enum.NewContractBillingFrequency(
+			int(contract.BillingFrequency.ValueInt64()),
+		)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"convertInstanceResourceModelToUpdateInstanceOpts: %w",
@@ -911,14 +1000,17 @@ func convertInstanceResourceModelToUpdateInstanceOpts(
 	}
 
 	if instanceResourceModel.Type.ValueString() != "" {
-		instanceType, err := enum.NewInstanceType(instanceResourceModel.Type.ValueString())
+		instanceType, err := value_object.NewInstanceType(
+			instanceResourceModel.Type.ValueString(),
+			allowedInstanceTypes,
+		)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"convertInstanceResourceModelToUpdateInstanceOpts: %w",
 				err,
 			)
 		}
-		optionalValues.Type = &instanceType
+		optionalValues.Type = instanceType
 	}
 
 	instance := domain.NewUpdateInstance(*id, optionalValues)

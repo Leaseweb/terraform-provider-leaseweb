@@ -69,7 +69,10 @@ func (srv Service) CreateInstance(
 	instance domain.Instance,
 	ctx context.Context,
 ) (*domain.Instance, *errors.ServiceError) {
-	createdInstance, err := srv.publicCloudRepository.CreateInstance(instance, ctx)
+	createdInstance, err := srv.publicCloudRepository.CreateInstance(
+		instance,
+		ctx,
+	)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError("CreateInstance", *err)
 	}
@@ -172,6 +175,24 @@ func (srv Service) populateMissingInstanceAttributes(
 	}
 
 	return &instance, nil
+}
+
+func (srv Service) GetAvailableInstanceTypesForRegion(
+	region string,
+	ctx context.Context,
+) (domain.InstanceTypes, *errors.ServiceError) {
+	instanceTypes, err := srv.publicCloudRepository.GetInstanceTypesForRegion(
+		region,
+		ctx,
+	)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"populateMissingInstanceAttributes",
+			*err,
+		)
+	}
+
+	return instanceTypes, nil
 }
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {

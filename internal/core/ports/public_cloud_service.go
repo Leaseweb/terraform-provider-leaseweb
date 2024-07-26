@@ -44,4 +44,10 @@ type PublicCloudService interface {
 	GetRegions(
 		ctx context.Context,
 	) (domain.Regions, *errors.ServiceError)
+
+	// GetAvailableInstanceTypesForRegion gets all available instances types for a specific region.
+	GetAvailableInstanceTypesForRegion(
+		region string,
+		ctx context.Context,
+	) (domain.InstanceTypes, *errors.ServiceError)
 }

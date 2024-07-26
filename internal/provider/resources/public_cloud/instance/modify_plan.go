@@ -24,57 +24,121 @@ func (i *instanceResource) ModifyPlan(
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
-	err := i.validateInstanceType(
-		ctx,
+	typeValidator := modify_plan.NewTypeValidator(
 		stateInstance.Id,
 		stateInstance.Type,
 		planInstance.Type,
-		response,
 	)
+
+	err := i.validateRegion(ctx, response, planInstance.Region.ValueString())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = i.validateRegion(ctx, response, planInstance.Region.ValueString())
+	err = i.validateInstanceType(
+		typeValidator,
+		planInstance.Region,
+		stateInstance.Id,
+		planInstance.Type,
+		response,
+		ctx,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func (i *instanceResource) validateInstanceType(
-	ctx context.Context,
+	typeValidator modify_plan.TypeValidator,
+	planRegion types.String,
 	stateId types.String,
-	stateType types.String,
-	planType types.String,
+	planInstanceType types.String,
 	response *resource.ModifyPlanResponse,
+	ctx context.Context,
 ) error {
-	typeValidator := modify_plan.NewTypeValidator(stateId, stateType, planType)
-
-	hasTypeChanged := typeValidator.HasTypeChanged()
-
-	if !hasTypeChanged {
-		return nil
+	if typeValidator.IsBeingCreated() {
+		return i.validateInstanceTypeForCreate(
+			ctx,
+			planRegion.ValueString(),
+			planInstanceType.ValueString(),
+			typeValidator,
+			response,
+		)
 	}
 
-	allowedInstanceTypes, err := i.client.PublicCloudHandler.GetAvailableInstanceTypesForUpdate(
+	return i.validateInstanceTypeForUpdate(
+		ctx,
+		typeValidator,
 		stateId.ValueString(),
+		planInstanceType.ValueString(),
+		response,
+	)
+}
+
+func (i *instanceResource) validateInstanceTypeForCreate(
+	ctx context.Context,
+	region string,
+	instanceType string,
+	typeValidator modify_plan.TypeValidator,
+	response *resource.ModifyPlanResponse,
+) error {
+	allowedInstanceTypes, err := i.client.PublicCloudHandler.GetInstanceTypesForRegion(
+		region,
 		ctx,
 	)
 
 	if err != nil {
-		return fmt.Errorf("validateInstanceType: %w", err)
+		return fmt.Errorf("validateInstanceTypeForCreate: %w", err)
 	}
 
-	if typeValidator.IsTypeValid(*allowedInstanceTypes) {
+	if typeValidator.IsTypeValid(allowedInstanceTypes) {
 		return nil
 	}
 
 	response.Diagnostics.AddAttributeError(
 		path.Root("type"),
-		"Invalid Instance Type",
+		"Invalid Type",
 		fmt.Sprintf(
-			"Allowed types are %v",
+			"Attribute type value must be one of: %q, got: %q",
 			allowedInstanceTypes,
+			instanceType,
+		),
+	)
+
+	return nil
+}
+
+func (i *instanceResource) validateInstanceTypeForUpdate(
+	ctx context.Context,
+	typeValidator modify_plan.TypeValidator,
+	id string,
+	instanceType string,
+	response *resource.ModifyPlanResponse,
+) error {
+	if !typeValidator.HasTypeChanged() {
+		return nil
+	}
+
+	allowedInstanceTypes, err := i.client.PublicCloudHandler.GetAvailableInstanceTypesForUpdate(
+		id,
+		ctx,
+	)
+
+	if err != nil {
+		return fmt.Errorf("validateInstanceTypeForUpdate: %w", err)
+	}
+
+	if typeValidator.IsTypeValid(allowedInstanceTypes) {
+		return nil
+	}
+
+	response.Diagnostics.AddAttributeError(
+		path.Root("type"),
+		"Invalid Type",
+		fmt.Sprintf(
+			"Attribute type value must be one of: %q, got: %q",
+			allowedInstanceTypes,
+			instanceType,
 		),
 	)
 

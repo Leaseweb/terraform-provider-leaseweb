@@ -17,18 +17,20 @@ var (
 )
 
 type repositorySpy struct {
-	instances              domain.Instances
-	instance               *domain.Instance
-	autoScalingGroup       *domain.AutoScalingGroup
-	loadBalancer           *domain.LoadBalancer
-	availableInstanceTypes domain.InstanceTypes
-	regions                domain.Regions
+	instances                       domain.Instances
+	instance                        *domain.Instance
+	autoScalingGroup                *domain.AutoScalingGroup
+	loadBalancer                    *domain.LoadBalancer
+	availableInstanceTypesForUpdate domain.InstanceTypes
+	regions                         domain.Regions
+	instanceTypesForRegion          domain.InstanceTypes
 
 	passedGetAvailableInstanceTypesForUpdateId value_object.Uuid
 	passedGetAutoScalingGroupId                value_object.Uuid
 	passedGetLoadBalancerId                    value_object.Uuid
 	passedGetInstanceId                        value_object.Uuid
 	passedDeleteInstanceId                     value_object.Uuid
+	passedGetInstanceTypesForRegionRegion      string
 
 	getAutoScalingGroupError                *sharedRepository.RepositoryError
 	getLoadBalancerError                    *sharedRepository.RepositoryError
@@ -39,6 +41,16 @@ type repositorySpy struct {
 	deleteInstanceError                     *sharedRepository.RepositoryError
 	getAvailableInstanceTypesForUpdateError *sharedRepository.RepositoryError
 	getRegionsError                         *sharedRepository.RepositoryError
+	getInstanceTypesForRegionError          *sharedRepository.RepositoryError
+}
+
+func (r *repositorySpy) GetInstanceTypesForRegion(
+	region string,
+	ctx context.Context,
+) (domain.InstanceTypes, *sharedRepository.RepositoryError) {
+	r.passedGetInstanceTypesForRegionRegion = region
+
+	return r.instanceTypesForRegion, r.getInstanceTypesForRegionError
 }
 
 func (r *repositorySpy) GetRegions(ctx context.Context) (
@@ -54,7 +66,7 @@ func (r *repositorySpy) GetAvailableInstanceTypesForUpdate(
 ) (domain.InstanceTypes, *sharedRepository.RepositoryError) {
 	r.passedGetAvailableInstanceTypesForUpdateId = id
 
-	return r.availableInstanceTypes, r.getAvailableInstanceTypesForUpdateError
+	return r.availableInstanceTypesForUpdate, r.getAvailableInstanceTypesForUpdateError
 }
 
 func (r *repositorySpy) GetAutoScalingGroup(
@@ -364,7 +376,7 @@ func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 		"expected instance types returned from repository",
 		func(t *testing.T) {
 			want := domain.InstanceTypes{{Name: "tralala"}}
-			spy := &repositorySpy{availableInstanceTypes: want}
+			spy := &repositorySpy{availableInstanceTypesForUpdate: want}
 
 			service := New(spy)
 			got, err := service.GetAvailableInstanceTypesForUpdate(
@@ -606,4 +618,52 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 			assert.ErrorContains(t, err, "some error")
 		},
 	)
+}
+
+func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
+	t.Run("instanceTypes are returned", func(t *testing.T) {
+		wanted := domain.InstanceTypes{domain.InstanceType{Name: "tralala"}}
+
+		spy := &repositorySpy{instanceTypesForRegion: wanted}
+		service := New(spy)
+
+		got, err := service.GetAvailableInstanceTypesForRegion(
+			"region",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, wanted, got)
+	})
+
+	t.Run("region is passed to repository", func(t *testing.T) {
+		spy := &repositorySpy{}
+		service := New(spy)
+
+		_, _ = service.GetAvailableInstanceTypesForRegion(
+			"region",
+			context.TODO(),
+		)
+
+		assert.Equal(t, "region", spy.passedGetInstanceTypesForRegionRegion)
+	})
+
+	t.Run("errors from repository bubble up", func(t *testing.T) {
+		spy := &repositorySpy{
+			getInstanceTypesForRegionError: sharedRepository.NewGeneralError(
+				"",
+				errors.New("some error"),
+			),
+		}
+
+		service := New(spy)
+
+		_, err := service.GetAvailableInstanceTypesForRegion(
+			"",
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
 }

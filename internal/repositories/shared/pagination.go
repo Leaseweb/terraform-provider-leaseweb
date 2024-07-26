@@ -31,9 +31,9 @@ func (p *Pagination[any]) CanIncrement() bool {
 }
 
 // NextPage returns an updated Request with a new offset.
-func (p *Pagination[Request]) NextPage() (*Request, error) {
+func (p *Pagination[Request]) NextPage() (Request, error) {
 	if !p.CanIncrement() {
-		return nil, ErrCannotIncrementPagination{
+		return p.Request, ErrCannotIncrementPagination{
 			msg: fmt.Sprintf(
 				"cannot increment as next offset %d is larger than the total %d",
 				p.offset+p.totalCount,
@@ -45,7 +45,7 @@ func (p *Pagination[Request]) NextPage() (*Request, error) {
 	p.offset += p.limit
 	p.Request = p.Request.Offset(int32(p.offset))
 
-	return &p.Request, nil
+	return p.Request, nil
 }
 
 func NewPagination[T Request[T]](

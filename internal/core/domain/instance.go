@@ -18,7 +18,7 @@ type Instance struct {
 	ProductType         string
 	HasPublicIpv4       bool
 	HasPrivateNetwork   bool
-	Type                enum.InstanceType
+	Type                value_object.InstanceType
 	RootDiskStorageType enum.RootDiskStorageType
 	RootDiskSize        value_object.RootDiskSize
 	Ips                 Ips
@@ -50,7 +50,7 @@ type OptionalCreateInstanceValues struct {
 }
 
 type OptionalUpdateInstanceValues struct {
-	Type             *enum.InstanceType
+	Type             *value_object.InstanceType
 	Reference        *string
 	ContractType     *enum.ContractType
 	Term             *enum.ContractTerm
@@ -69,7 +69,7 @@ func NewInstance(
 	hasPublicIpv4 bool,
 	hasPrivateNetwork bool,
 	rootDiskSize value_object.RootDiskSize,
-	instanceType enum.InstanceType,
+	instanceType value_object.InstanceType,
 	rootDiskStorageType enum.RootDiskStorageType,
 	ips Ips,
 	contract Contract,
@@ -105,7 +105,7 @@ func NewInstance(
 // NewCreateInstance creates a new instance with only all the supported fields for instance creation.
 func NewCreateInstance(
 	region string,
-	instanceType enum.InstanceType,
+	instanceType value_object.InstanceType,
 	rootDiskStorageType enum.RootDiskStorageType,
 	imageId enum.ImageId,
 	contractType enum.ContractType,

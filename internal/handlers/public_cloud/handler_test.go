@@ -22,21 +22,43 @@ var (
 )
 
 type serviceSpy struct {
-	createInstanceOpts          *domain.Instance
-	createdInstance             *domain.Instance
-	createInstanceError         *serviceErrors.ServiceError
-	getInstance                 *domain.Instance
-	getInstanceError            *serviceErrors.ServiceError
-	deleteInstanceError         *serviceErrors.ServiceError
-	instanceTypesForUpdate      domain.InstanceTypes
-	instanceTypesForUpdateError *serviceErrors.ServiceError
-	getRegions                  domain.Regions
-	getRegionsError             *serviceErrors.ServiceError
-	getInstances                domain.Instances
-	getInstancesError           *serviceErrors.ServiceError
-	updateInstanceOpts          *domain.Instance
-	updatedInstance             *domain.Instance
-	updateInstanceError         *serviceErrors.ServiceError
+	createInstancePassedInstance *domain.Instance
+	createdInstance              *domain.Instance
+	createInstanceError          *serviceErrors.ServiceError
+
+	getRegions      domain.Regions
+	getRegionsError *serviceErrors.ServiceError
+
+	instanceTypesForUpdate                  domain.InstanceTypes
+	instanceTypesForUpdateError             *serviceErrors.ServiceError
+	availableInstanceTypesForUpdatePassedId value_object.Uuid
+
+	deleteInstancePassedId value_object.Uuid
+	deleteInstanceError    *serviceErrors.ServiceError
+
+	updatedInstancePassedInstance *domain.Instance
+	updatedInstance               *domain.Instance
+	updateInstanceError           *serviceErrors.ServiceError
+
+	getInstances      domain.Instances
+	getInstancesError *serviceErrors.ServiceError
+
+	getInstancePassedId value_object.Uuid
+	getInstance         *domain.Instance
+	getInstanceError    *serviceErrors.ServiceError
+
+	getAvailableInstanceTypesForRegion             domain.InstanceTypes
+	getAvailableInstanceTypesForRegionError        *serviceErrors.ServiceError
+	getAvailableInstanceTypesForRegionPassedRegion string
+}
+
+func (s *serviceSpy) GetAvailableInstanceTypesForRegion(
+	region string,
+	ctx context.Context,
+) (domain.InstanceTypes, *serviceErrors.ServiceError) {
+	s.getAvailableInstanceTypesForRegionPassedRegion = region
+
+	return s.getAvailableInstanceTypesForRegion, s.getAvailableInstanceTypesForRegionError
 }
 
 func (s *serviceSpy) GetAllInstances(ctx context.Context) (
@@ -50,6 +72,8 @@ func (s *serviceSpy) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.Instance, *serviceErrors.ServiceError) {
+	s.getInstancePassedId = id
+
 	return s.getInstance, s.getInstanceError
 }
 
@@ -57,7 +81,7 @@ func (s *serviceSpy) CreateInstance(
 	instance domain.Instance,
 	ctx context.Context,
 ) (*domain.Instance, *serviceErrors.ServiceError) {
-	s.createInstanceOpts = &instance
+	s.createInstancePassedInstance = &instance
 
 	return s.createdInstance, s.createInstanceError
 }
@@ -66,7 +90,7 @@ func (s *serviceSpy) UpdateInstance(
 	instance domain.Instance,
 	ctx context.Context,
 ) (*domain.Instance, *serviceErrors.ServiceError) {
-	s.updateInstanceOpts = &instance
+	s.updatedInstancePassedInstance = &instance
 
 	return s.updatedInstance, s.updateInstanceError
 }
@@ -75,6 +99,8 @@ func (s *serviceSpy) DeleteInstance(
 	id value_object.Uuid,
 	ctx context.Context,
 ) *serviceErrors.ServiceError {
+	s.deleteInstancePassedId = id
+
 	return s.deleteInstanceError
 }
 
@@ -82,6 +108,8 @@ func (s *serviceSpy) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (domain.InstanceTypes, *serviceErrors.ServiceError) {
+	s.availableInstanceTypesForUpdatePassedId = id
+
 	return s.instanceTypesForUpdate, s.instanceTypesForUpdateError
 }
 
@@ -108,7 +136,9 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 
 		image, _ := basetypes.NewObjectValue(
 			model.Image{}.AttributeTypes(),
-			map[string]attr.Value{"Id": basetypes.NewStringValue("UBUNTU_20_04_64BIT")},
+			map[string]attr.Value{
+				"Id": basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			},
 		)
 
 		contract, _ := basetypes.NewObjectValue(
@@ -131,6 +161,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 		handler := NewPublicCloudHandler(service)
 		handler.convertInstanceResourceModelToCreateInstanceOpts = func(
 			instance model.Instance,
+			allowedInstanceTypes []string,
 			ctx context.Context,
 		) (*domain.Instance, error) {
 			return &domain.Instance{}, nil
@@ -143,13 +174,14 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 	})
 
 	t.Run("error is returned if createInstanceOpts fails", func(t *testing.T) {
-		handler := PublicCloudHandler{
-			convertInstanceResourceModelToCreateInstanceOpts: func(
-				instance model.Instance,
-				ctx context.Context,
-			) (*domain.Instance, error) {
-				return &domain.Instance{}, errors.New("some error")
-			},
+		spy := serviceSpy{}
+		handler := NewPublicCloudHandler(&spy)
+		handler.convertInstanceResourceModelToCreateInstanceOpts = func(
+			instance model.Instance,
+			allowedInstanceTypes []string,
+			ctx context.Context,
+		) (*domain.Instance, error) {
+			return &domain.Instance{}, errors.New("some error")
 		}
 
 		_, err := handler.CreateInstance(model.Instance{}, context.TODO())
@@ -158,52 +190,78 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 		assert.ErrorContains(t, err, "some error")
 	})
 
-	t.Run("error is returned if service CreateInstance fails", func(t *testing.T) {
-		handler := PublicCloudHandler{
-			convertInstanceResourceModelToCreateInstanceOpts: func(
+	t.Run(
+		"error is returned if service CreateInstance fails",
+		func(t *testing.T) {
+			handler := PublicCloudHandler{
+				convertInstanceResourceModelToCreateInstanceOpts: func(
+					instance model.Instance,
+					allowedInstanceTypes []string,
+					ctx context.Context,
+				) (*domain.Instance, error) {
+					return &domain.Instance{}, nil
+				},
+				publicCloudService: &serviceSpy{
+					createInstanceError: serviceErrors.NewError(
+						"",
+						errors.New("some error"),
+					),
+				},
+			}
+
+			_, err := handler.CreateInstance(model.Instance{}, context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned if convertInstanceToResourceModel fails",
+		func(t *testing.T) {
+			createdInstance := domain.Instance{Id: value_object.NewGeneratedUuid()}
+			service := &serviceSpy{createdInstance: &createdInstance}
+			instance := model.Instance{}
+
+			handler := NewPublicCloudHandler(service)
+			handler.convertInstanceResourceModelToCreateInstanceOpts = func(
 				instance model.Instance,
+				allowedInstanceTypes []string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, nil
-			},
-			publicCloudService: &serviceSpy{
-				createInstanceError: serviceErrors.NewError(
+			}
+			handler.convertInstanceToResourceModel = func(
+				instance domain.Instance,
+				ctx context.Context,
+			) (*model.Instance, error) {
+				return nil, errors.New("some error")
+			}
+
+			_, err := handler.CreateInstance(instance, context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned if GetInstanceTypesForRegion fails",
+		func(t *testing.T) {
+			spy := serviceSpy{
+				getAvailableInstanceTypesForRegionError: serviceErrors.NewError(
 					"",
 					errors.New("some error"),
 				),
-			},
-		}
+			}
+			handler := NewPublicCloudHandler(&spy)
 
-		_, err := handler.CreateInstance(model.Instance{}, context.TODO())
+			_, err := handler.CreateInstance(model.Instance{}, context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("error is returned if convertInstanceToResourceModel fails", func(t *testing.T) {
-		createdInstance := domain.Instance{Id: value_object.NewGeneratedUuid()}
-		service := &serviceSpy{createdInstance: &createdInstance}
-		instance := model.Instance{}
-
-		handler := NewPublicCloudHandler(service)
-		handler.convertInstanceResourceModelToCreateInstanceOpts = func(
-			instance model.Instance,
-			ctx context.Context,
-		) (*domain.Instance, error) {
-			return &domain.Instance{}, nil
-		}
-		handler.convertInstanceToResourceModel = func(
-			instance domain.Instance,
-			ctx context.Context,
-		) (*model.Instance, error) {
-			return nil, errors.New("some error")
-		}
-
-		_, err := handler.CreateInstance(instance, context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }
 
 func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
@@ -245,13 +303,25 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
+
+	t.Run("id is passed to repository", func(t *testing.T) {
+		spy := &serviceSpy{}
+		handler := PublicCloudHandler{publicCloudService: spy}
+		wanted := "3cf0ddcb-b375-45a8-b18a-1bdad52527f2"
+
+		_ = handler.DeleteInstance(wanted, context.TODO())
+
+		assert.Equal(t, wanted, spy.deleteInstancePassedId.String())
+	})
 }
 
 func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 	t.Run("expected instanceTypes are returned", func(t *testing.T) {
-		want := domain.InstanceTypes{{Name: "tralala"}}
+		want := []string{"tralala"}
 
-		spy := &serviceSpy{instanceTypesForUpdate: want}
+		spy := &serviceSpy{
+			instanceTypesForUpdate: domain.InstanceTypes{{Name: "tralala"}},
+		}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
 		got, err := handler.GetAvailableInstanceTypesForUpdate(
@@ -260,7 +330,7 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 		)
 
 		assert.Nil(t, err)
-		assert.Equal(t, want, *got)
+		assert.Equal(t, want, got)
 	})
 
 	t.Run("invalid id returns an error", func(t *testing.T) {
@@ -291,6 +361,20 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("id is passed to repository", func(t *testing.T) {
+		want := "085075b0-a6ad-4026-a0d1-e3256d3f7c47"
+
+		spy := &serviceSpy{}
+		handler := PublicCloudHandler{publicCloudService: spy}
+
+		_, _ = handler.GetAvailableInstanceTypesForUpdate(
+			want,
+			context.TODO(),
+		)
+
+		assert.Equal(t, want, spy.availableInstanceTypesForUpdatePassedId.String())
 	})
 }
 
@@ -404,6 +488,19 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 			assert.ErrorContains(t, err, "some error")
 		},
 	)
+
+	t.Run("id is passed to repository", func(t *testing.T) {
+		instanceId := value_object.NewGeneratedUuid()
+
+		spy := serviceSpy{getInstanceError: &serviceErrors.ServiceError{}}
+		handler := PublicCloudHandler{
+			publicCloudService: &spy,
+		}
+
+		_, _ = handler.GetInstance(instanceId.String(), context.TODO())
+
+		assert.Equal(t, instanceId, spy.getInstancePassedId)
+	})
 }
 
 func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
@@ -456,7 +553,11 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 
 func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
-		plan := model.Instance{Id: basetypes.NewStringValue("CreateInstance")}
+		createInstanceId := value_object.NewGeneratedUuid()
+
+		plan := model.Instance{
+			Id: basetypes.NewStringValue(createInstanceId.String()),
+		}
 		want := model.Instance{Id: basetypes.NewStringValue("tralala")}
 
 		instanceOpts := domain.Instance{}
@@ -467,11 +568,12 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 			publicCloudService: &spy,
 			convertInstanceResourceModelToUpdateInstanceOpts: func(
 				instance model.Instance,
+				allowedInstanceTypes []string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				assert.Equal(
 					t,
-					"CreateInstance",
+					createInstanceId.String(),
 					instance.Id.ValueString(),
 					"model is converted into opts",
 				)
@@ -498,68 +600,117 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		assert.Equal(t, want, *got)
 	})
 
-	t.Run("error is returned if updateInstanceOpts fails", func(t *testing.T) {
-		handler := PublicCloudHandler{
-			convertInstanceResourceModelToUpdateInstanceOpts: func(
+	t.Run(
+		"error is returned if updatedInstancePassedInstance fails",
+		func(t *testing.T) {
+			spy := serviceSpy{}
+			handler := NewPublicCloudHandler(&spy)
+			handler.convertInstanceResourceModelToUpdateInstanceOpts = func(
 				instance model.Instance,
+				allowedInstanceTypes []string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, errors.New("some error")
-			},
-		}
+			}
 
-		_, err := handler.UpdateInstance(model.Instance{}, context.TODO())
+			_, err := handler.UpdateInstance(
+				model.Instance{
+					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
+				},
+				context.TODO(),
+			)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 
-	t.Run("error is returned if service UpdateInstance fails", func(t *testing.T) {
-		handler := PublicCloudHandler{
-			convertInstanceResourceModelToUpdateInstanceOpts: func(
-				instance model.Instance,
-				ctx context.Context,
-			) (*domain.Instance, error) {
-				return &domain.Instance{}, nil
-			},
-			publicCloudService: &serviceSpy{
+	t.Run(
+		"error is returned if service UpdateInstance fails",
+		func(t *testing.T) {
+			spy := serviceSpy{
 				updateInstanceError: serviceErrors.NewError(
 					"",
 					errors.New("some error"),
 				),
-			},
-		}
-
-		_, err := handler.UpdateInstance(model.Instance{}, context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("error is returned if convertInstanceToResourceModel fails", func(t *testing.T) {
-		spy := serviceSpy{updatedInstance: &domain.Instance{}}
-		handler := PublicCloudHandler{
-			publicCloudService: &spy,
-			convertInstanceResourceModelToUpdateInstanceOpts: func(
+			}
+			handler := NewPublicCloudHandler(&spy)
+			handler.convertInstanceResourceModelToUpdateInstanceOpts = func(
 				instance model.Instance,
+				allowedInstanceTypes []string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
-
 				return &domain.Instance{}, nil
-			},
-			convertInstanceToResourceModel: func(
-				instance domain.Instance,
-				ctx context.Context,
-			) (*model.Instance, error) {
-				return nil, errors.New("some error")
-			},
-		}
+			}
 
-		_, err := handler.UpdateInstance(model.Instance{}, context.TODO())
+			_, err := handler.UpdateInstance(
+				model.Instance{
+					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
+				},
+				context.TODO(),
+			)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned if convertInstanceToResourceModel fails",
+		func(t *testing.T) {
+			spy := serviceSpy{updatedInstance: &domain.Instance{}}
+			handler := PublicCloudHandler{
+				publicCloudService: &spy,
+				convertInstanceResourceModelToUpdateInstanceOpts: func(
+					instance model.Instance,
+					allowedInstanceTypes []string,
+					ctx context.Context,
+				) (*domain.Instance, error) {
+
+					return &domain.Instance{}, nil
+				},
+				convertInstanceToResourceModel: func(
+					instance domain.Instance,
+					ctx context.Context,
+				) (*model.Instance, error) {
+					return nil, errors.New("some error")
+				},
+			}
+
+			_, err := handler.UpdateInstance(
+				model.Instance{
+					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
+				},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned if GetAvailableInstancesTypesForUpdate fails",
+		func(t *testing.T) {
+			spy := serviceSpy{
+				instanceTypesForUpdateError: serviceErrors.NewError(
+					"",
+					errors.New("some error"),
+				),
+			}
+			handler := NewPublicCloudHandler(&spy)
+
+			_, err := handler.UpdateInstance(
+				model.Instance{
+					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
+				},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }
 
 func TestPublicCloudHandler_GetImageIds(t *testing.T) {
@@ -676,4 +827,50 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 			assert.ErrorContains(t, got, "tralala")
 		},
 	)
+}
+
+func TestPublicCloudHandler_GetInstanceTypesForRegion(t *testing.T) {
+	t.Run("expected instanceTypes are returned", func(t *testing.T) {
+		want := []string{"tralala"}
+
+		spy := serviceSpy{
+			getAvailableInstanceTypesForRegion: domain.InstanceTypes{
+				domain.InstanceType{Name: "tralala"},
+			},
+		}
+		handler := NewPublicCloudHandler(&spy)
+
+		got, err := handler.GetInstanceTypesForRegion("", context.TODO())
+
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("error from service bubbles up", func(t *testing.T) {
+		spy := serviceSpy{
+			getAvailableInstanceTypesForRegionError: serviceErrors.NewError(
+				"",
+				errors.New("some error"),
+			),
+		}
+		handler := NewPublicCloudHandler(&spy)
+
+		_, err := handler.GetInstanceTypesForRegion("", context.TODO())
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("region is passed to service", func(t *testing.T) {
+		spy := serviceSpy{}
+		handler := NewPublicCloudHandler(&spy)
+
+		_, _ = handler.GetInstanceTypesForRegion("region", context.TODO())
+
+		assert.Equal(
+			t,
+			"region",
+			spy.getAvailableInstanceTypesForRegionPassedRegion,
+		)
+	})
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/handlers/public_cloud"
 	customValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
@@ -137,9 +136,6 @@ func (i *instanceResource) Schema(
 			"type": schema.StringAttribute{
 				Required:    true,
 				Description: "Instance type",
-				Validators: []validator.String{
-					stringvalidator.OneOf(enum.InstanceTypeC3Large.Values()...),
-				},
 			},
 			"ssh_key": schema.StringAttribute{
 				Optional:      true,

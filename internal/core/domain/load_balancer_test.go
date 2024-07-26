@@ -12,10 +12,14 @@ import (
 func TestNewLoadBalancer(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		id := value_object.NewGeneratedUuid()
+		instanceType, _ := value_object.NewInstanceType(
+			"instanceType",
+			[]string{"instanceType"},
+		)
 
 		got := NewLoadBalancer(
 			id,
-			enum.InstanceTypeC3Large,
+			*instanceType,
 			Resources{Cpu: Cpu{Unit: "cpu"}},
 			"region",
 			enum.StateRunning,
@@ -25,7 +29,7 @@ func TestNewLoadBalancer(t *testing.T) {
 		)
 
 		assert.Equal(t, id, got.Id)
-		assert.Equal(t, enum.InstanceTypeC3Large, got.Type)
+		assert.Equal(t, *instanceType, got.Type)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, enum.StateRunning, got.State)
@@ -41,10 +45,14 @@ func TestNewLoadBalancer(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
 		reference := "reference"
 		startedAt := time.Now()
+		instanceType, _ := value_object.NewInstanceType(
+			"instanceType",
+			[]string{"instanceType"},
+		)
 
 		got := NewLoadBalancer(
 			value_object.NewGeneratedUuid(),
-			"",
+			*instanceType,
 			Resources{},
 			"",
 			enum.StateRunning,

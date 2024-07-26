@@ -558,7 +558,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Invalid Instance Type"),
+					ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
 				},
 			},
 		})

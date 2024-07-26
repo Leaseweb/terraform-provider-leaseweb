@@ -10,7 +10,9 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
-func convertInstance(sdkInstance publicCloud.Instance) (
+func convertInstance(
+	sdkInstance publicCloud.Instance,
+) (
 	*domain.Instance,
 	error,
 ) {
@@ -31,7 +33,9 @@ func convertInstance(sdkInstance publicCloud.Instance) (
 		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
 
-	rootDiskSize, err := value_object.NewRootDiskSize(int(sdkInstance.GetRootDiskSize()))
+	rootDiskSize, err := value_object.NewRootDiskSize(
+		int(sdkInstance.GetRootDiskSize()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("convertInstance: %w", err)
 	}
@@ -61,11 +65,6 @@ func convertInstance(sdkInstance publicCloud.Instance) (
 		}
 	}
 
-	instanceType, err := enum.NewInstanceType(string(sdkInstance.GetType()))
-	if err != nil {
-		return nil, fmt.Errorf("convertInstance: %w", err)
-	}
-
 	optionalValues := domain.OptionalInstanceValues{
 		Reference:        convertNullableStringToValue(sdkInstance.Reference),
 		MarketAppId:      convertNullableStringToValue(sdkInstance.MarketAppId),
@@ -83,7 +82,7 @@ func convertInstance(sdkInstance publicCloud.Instance) (
 		sdkInstance.GetHasPublicIpV4(),
 		sdkInstance.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		instanceType,
+		value_object.NewUnvalidatedInstanceType(string(sdkInstance.GetType())),
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -113,7 +112,9 @@ func convertInstanceDetails(
 		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
 	}
 
-	rootDiskSize, err := value_object.NewRootDiskSize(int(sdkInstanceDetails.GetRootDiskSize()))
+	rootDiskSize, err := value_object.NewRootDiskSize(
+		int(sdkInstanceDetails.GetRootDiskSize()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
 	}
@@ -144,8 +145,12 @@ func convertInstanceDetails(
 	}
 
 	optionalValues := domain.OptionalInstanceValues{
-		Reference:        convertNullableStringToValue(sdkInstanceDetails.Reference),
-		MarketAppId:      convertNullableStringToValue(sdkInstanceDetails.MarketAppId),
+		Reference: convertNullableStringToValue(
+			sdkInstanceDetails.Reference,
+		),
+		MarketAppId: convertNullableStringToValue(
+			sdkInstanceDetails.MarketAppId,
+		),
 		StartedAt:        convertNullableTimeToValue(sdkInstanceDetails.StartedAt),
 		AutoScalingGroup: autoScalingGroup,
 	}
@@ -154,15 +159,10 @@ func convertInstanceDetails(
 		optionalValues.Iso = &iso
 	}
 	if sdkInstanceDetails.PrivateNetwork.Get() != nil {
-		privateNetwork := convertPrivateNetwork(*sdkInstanceDetails.PrivateNetwork.Get())
+		privateNetwork := convertPrivateNetwork(
+			*sdkInstanceDetails.PrivateNetwork.Get(),
+		)
 		optionalValues.PrivateNetwork = &privateNetwork
-	}
-
-	instanceType, err := enum.NewInstanceType(
-		string(sdkInstanceDetails.GetType()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("convertInstanceDetails: %w", err)
 	}
 
 	instance := domain.NewInstance(
@@ -175,7 +175,9 @@ func convertInstanceDetails(
 		sdkInstanceDetails.GetHasPublicIpV4(),
 		sdkInstanceDetails.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		instanceType,
+		value_object.NewUnvalidatedInstanceType(
+			string(sdkInstanceDetails.GetType()),
+		),
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -414,12 +416,16 @@ func convertAutoScalingGroupDetails(
 		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
 	}
 
-	state, err := enum.NewAutoScalingGroupState(string(sdkAutoScalingGroup.GetState()))
+	state, err := enum.NewAutoScalingGroupState(
+		string(sdkAutoScalingGroup.GetState()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
 	}
 
-	reference, err := value_object.NewAutoScalingGroupReference(sdkAutoScalingGroup.GetReference())
+	reference, err := value_object.NewAutoScalingGroupReference(
+		sdkAutoScalingGroup.GetReference(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("convertAutoScalingGroupDetails: %w", err)
 	}
@@ -475,7 +481,9 @@ func convertNullableInt32ToValue(nullableInt publicCloud.NullableInt32) *int {
 	return &value
 }
 
-func convertLoadBalancerDetails(sdkLoadBalancer publicCloud.LoadBalancerDetails) (
+func convertLoadBalancerDetails(
+	sdkLoadBalancer publicCloud.LoadBalancerDetails,
+) (
 	*domain.LoadBalancer,
 	error,
 ) {
@@ -517,14 +525,9 @@ func convertLoadBalancerDetails(sdkLoadBalancer publicCloud.LoadBalancerDetails)
 		options.PrivateNetwork = &privateNetwork
 	}
 
-	instanceType, err := enum.NewInstanceType(string(sdkLoadBalancer.GetType()))
-	if err != nil {
-		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
-	}
-
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		instanceType,
+		value_object.NewUnvalidatedInstanceType(string(sdkLoadBalancer.GetType())),
 		convertResources(sdkLoadBalancer.GetResources()),
 		sdkLoadBalancer.GetRegion(),
 		state,
@@ -550,11 +553,6 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
 	}
 
-	instanceType, err := enum.NewInstanceType(string(sdkLoadBalancer.GetType()))
-	if err != nil {
-		return nil, fmt.Errorf("convertLoadBalancerDetails: %w", err)
-	}
-
 	options := domain.OptionalLoadBalancerValues{
 		Reference: convertNullableStringToValue(sdkLoadBalancer.Reference),
 		StartedAt: convertNullableTimeToValue(sdkLoadBalancer.StartedAt),
@@ -562,7 +560,7 @@ func convertLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		instanceType,
+		value_object.NewUnvalidatedInstanceType(string(sdkLoadBalancer.GetType())),
 		convertResources(sdkLoadBalancer.GetResources()),
 		"",
 		state,
@@ -643,7 +641,7 @@ func convertEntityToLaunchInstanceOpts(instance domain.Instance) (
 	error,
 ) {
 	instanceTypeName, err := publicCloud.NewTypeNameFromValue(
-		string(instance.Type),
+		instance.Type.String(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("convertEntityToLaunchInstanceOpts: %w", err)
@@ -714,9 +712,9 @@ func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 		updateInstanceOpts.RootDiskSize = &rootDiskSize
 	}
 
-	if instance.Type != "" {
+	if instance.Type.String() != "" {
 		instanceTypeName, err := publicCloud.NewTypeNameFromValue(
-			string(instance.Type),
+			instance.Type.String(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
@@ -733,7 +731,9 @@ func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 	}
 
 	if instance.Contract.Term != 0 {
-		contractTerm, err := publicCloud.NewContractTermFromValue(int32(instance.Contract.Term.Value()))
+		contractTerm, err := publicCloud.NewContractTermFromValue(
+			int32(instance.Contract.Term.Value()),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
@@ -741,7 +741,9 @@ func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 	}
 
 	if instance.Contract.BillingFrequency != 0 {
-		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(int32(instance.Contract.BillingFrequency.Value()))
+		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+			int32(instance.Contract.BillingFrequency.Value()),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("convertEntityToUpdateInstanceOpts: %w", err)
 		}
@@ -751,8 +753,69 @@ func convertEntityToUpdateInstanceOpts(instance domain.Instance) (
 	return updateInstanceOpts, nil
 }
 
-func convertInstanceType(sdkInstanceType publicCloud.InstanceType) domain.InstanceType {
-	return domain.NewInstanceType(sdkInstanceType.GetName())
+func convertInstanceType(sdkInstanceType publicCloud.InstanceType) (
+	*domain.InstanceType,
+	error,
+) {
+	resources := convertResources(sdkInstanceType.GetResources())
+	prices := convertPrices(sdkInstanceType.GetPrices())
+
+	optional := domain.OptionalInstanceTypeValues{}
+
+	sdkStorageTypes, _ := sdkInstanceType.GetStorageTypesOk()
+	if sdkStorageTypes != nil {
+		storageTypes, err := convertStorageTypes(sdkStorageTypes)
+		if err != nil {
+			return nil, fmt.Errorf("convertInstanceType: %w", err)
+		}
+		optional.StorageTypes = storageTypes
+	}
+
+	instanceType := domain.NewInstanceType(
+		sdkInstanceType.GetName(),
+		resources,
+		prices,
+		optional,
+	)
+
+	return &instanceType, nil
+}
+
+func convertPrices(sdkPrices publicCloud.Prices) domain.Prices {
+	return domain.NewPrices(
+		sdkPrices.GetCurrency(),
+		sdkPrices.GetCurrencySymbol(),
+		convertPrice(sdkPrices.GetCompute()),
+		convertStorage(sdkPrices.GetStorage()),
+	)
+}
+
+func convertStorage(sdkStorage publicCloud.Storage) domain.Storage {
+	return domain.NewStorage(
+		convertPrice(sdkStorage.Local),
+		convertPrice(sdkStorage.Central),
+	)
+}
+
+func convertPrice(sdkPrice publicCloud.Price) domain.Price {
+	return domain.NewPrice(sdkPrice.GetHourlyPrice(), sdkPrice.GetMonthlyPrice())
+}
+
+func convertStorageTypes(sdkStorageTypes []publicCloud.RootDiskStorageType) (
+	*domain.StorageTypes,
+	error,
+) {
+	var storageTypes domain.StorageTypes
+
+	for _, sdkStorageType := range sdkStorageTypes {
+		storageType, err := enum.NewRootDiskStorageType(string(sdkStorageType))
+		if err != nil {
+			return nil, fmt.Errorf("convertStorageTypes: %w", err)
+		}
+		storageTypes = append(storageTypes, storageType)
+	}
+
+	return &storageTypes, nil
 }
 
 func convertRegion(sdkRegion publicCloud.Region) domain.Region {

@@ -59,4 +59,10 @@ type PublicCloudRepository interface {
 	GetRegions(
 		ctx context.Context,
 	) (domain.Regions, *shared.RepositoryError)
+
+	// GetInstanceTypesForRegion gets all instance types for a specific region.
+	GetInstanceTypesForRegion(
+		region string,
+		ctx context.Context,
+	) (domain.InstanceTypes, *shared.RepositoryError)
 }
