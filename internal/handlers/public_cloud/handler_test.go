@@ -378,17 +378,37 @@ func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 	})
 }
 
-func TestPublicCloudHandler_GetRegions(t *testing.T) {
-	t.Run("expected regions are returned", func(t *testing.T) {
+func TestPublicCloudHandler_IsRegionValid(t *testing.T) {
+	t.Run("returns true if region is valid", func(t *testing.T) {
 		want := domain.Regions{{Name: "region"}}
 
 		spy := &serviceSpy{getRegions: want}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
-		got, err := handler.GetRegions(context.TODO())
+		got, validRegions, err := handler.IsRegionValid(
+			"region",
+			context.TODO(),
+		)
 
 		assert.Nil(t, err)
-		assert.Equal(t, want, *got)
+		assert.Equal(t, []string{"region"}, validRegions)
+		assert.True(t, got)
+	})
+
+	t.Run("returns false if region is invalid", func(t *testing.T) {
+		want := domain.Regions{{Name: "region"}}
+
+		spy := &serviceSpy{getRegions: want}
+		handler := PublicCloudHandler{publicCloudService: spy}
+
+		got, validRegions, err := handler.IsRegionValid(
+			"tralala",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{"region"}, validRegions)
+		assert.False(t, got)
 	})
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
@@ -400,7 +420,7 @@ func TestPublicCloudHandler_GetRegions(t *testing.T) {
 		}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
-		_, err := handler.GetRegions(context.TODO())
+		_, _, err := handler.IsRegionValid("region", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")

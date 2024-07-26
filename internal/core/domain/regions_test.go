@@ -20,3 +20,11 @@ func TestRegions_Contains(t *testing.T) {
 	})
 
 }
+
+func TestRegions_ToArray(t *testing.T) {
+	regions := Regions{{Name: "region"}}
+	got := regions.ToArray()
+	want := []string{"region"}
+
+	assert.Equal(t, want, got)
+}

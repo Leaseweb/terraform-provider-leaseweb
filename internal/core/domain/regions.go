@@ -11,3 +11,12 @@ func (r Regions) Contains(region string) bool {
 
 	return false
 }
+
+func (r Regions) ToArray() []string {
+	var values []string
+	for _, region := range r {
+		values = append(values, region.String())
+	}
+
+	return values
+}

@@ -139,19 +139,6 @@ func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
 	return instanceTypes.ToArray(), nil
 }
 
-// GetRegions returns a list of all regions.
-func (h PublicCloudHandler) GetRegions(ctx context.Context) (
-	*domain.Regions,
-	*shared.HandlerError,
-) {
-	regions, err := h.publicCloudService.GetRegions(ctx)
-	if err != nil {
-		return nil, shared.NewFromServicesError("GetRegions", err)
-	}
-
-	return &regions, nil
-}
-
 // GetInstance returns instance details.
 func (h PublicCloudHandler) GetInstance(
 	id string,
@@ -298,6 +285,7 @@ func (h PublicCloudHandler) ValidateContractTerm(
 	return nil
 }
 
+// GetInstanceTypesForRegion returns the valid instance types for the passed region.
 func (h PublicCloudHandler) GetInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
@@ -315,6 +303,23 @@ func (h PublicCloudHandler) GetInstanceTypesForRegion(
 	}
 
 	return instanceTypes.ToArray(), nil
+}
+
+// IsRegionValid checks if passed region is valid.
+func (h PublicCloudHandler) IsRegionValid(
+	region string,
+	ctx context.Context,
+) (bool, []string, error) {
+	regions, err := h.publicCloudService.GetRegions(ctx)
+	if err != nil {
+		return false, nil, shared.NewFromServicesError("IsRegionValid", err)
+	}
+
+	if regions.Contains(region) {
+		return true, regions.ToArray(), nil
+	}
+
+	return false, regions.ToArray(), nil
 }
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {

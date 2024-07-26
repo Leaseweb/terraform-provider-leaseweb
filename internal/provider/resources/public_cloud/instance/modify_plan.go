@@ -30,12 +30,15 @@ func (i *instanceResource) ModifyPlan(
 		planInstance.Type,
 	)
 
-	err := i.validateRegion(ctx, response, planInstance.Region.ValueString())
-	if err != nil {
-		log.Fatal(err)
+	// Only validation if region changes
+	if planInstance.Region.ValueString() != "" {
+		err := i.validateRegion(ctx, response, planInstance.Region.ValueString())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	err = i.validateInstanceType(
+	err := i.validateInstanceType(
 		typeValidator,
 		planInstance.Region,
 		stateInstance.Id,
@@ -150,18 +153,16 @@ func (i *instanceResource) validateRegion(
 	response *resource.ModifyPlanResponse,
 	region string,
 ) error {
-	// Region has not changed here.
-	if region == "" {
-		return nil
-	}
-
-	regions, err := i.client.PublicCloudHandler.GetRegions(ctx)
+	regionIsValid, validRegions, err := i.client.PublicCloudHandler.IsRegionValid(
+		region,
+		ctx,
+	)
 
 	if err != nil {
 		return fmt.Errorf("validateRegion: %w", err)
 	}
 
-	if regions.Contains(region) {
+	if regionIsValid {
 		return nil
 	}
 
@@ -170,7 +171,7 @@ func (i *instanceResource) validateRegion(
 		"Invalid Region",
 		fmt.Sprintf(
 			"Attribute region value must be one of: %q, got: %q",
-			*regions,
+			validRegions,
 			region,
 		),
 	)
