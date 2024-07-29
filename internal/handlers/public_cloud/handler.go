@@ -61,17 +61,17 @@ func (h PublicCloudHandler) CreateInstance(
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.HandlerError) {
 
-	availableInstanceTypes, err := h.GetInstanceTypesForRegion(
+	availableInstanceTypes, serviceError := h.publicCloudService.GetAvailableInstanceTypesForRegion(
 		plan.Region.ValueString(),
 		ctx,
 	)
-	if err != nil {
-		return nil, shared.NewError("CreateInstance", err)
+	if serviceError != nil {
+		return nil, shared.NewError("CreateInstance", serviceError)
 	}
 
 	createInstanceOpts, err := h.convertInstanceResourceModelToCreateInstanceOpts(
 		plan,
-		availableInstanceTypes,
+		availableInstanceTypes.ToArray(),
 		ctx,
 	)
 	if err != nil {
@@ -285,26 +285,6 @@ func (h PublicCloudHandler) ValidateContractTerm(
 	return nil
 }
 
-// GetInstanceTypesForRegion returns the valid instance types for the passed region.
-func (h PublicCloudHandler) GetInstanceTypesForRegion(
-	region string,
-	ctx context.Context,
-) ([]string, error) {
-	instanceTypes, err := h.publicCloudService.GetAvailableInstanceTypesForRegion(
-		region,
-		ctx,
-	)
-
-	if err != nil {
-		return nil, shared.NewFromServicesError(
-			"GetInstanceTypesForRegion",
-			err,
-		)
-	}
-
-	return instanceTypes.ToArray(), nil
-}
-
 // IsRegionValid checks if passed region is valid.
 func (h PublicCloudHandler) IsRegionValid(
 	region string,
@@ -320,6 +300,26 @@ func (h PublicCloudHandler) IsRegionValid(
 	}
 
 	return false, regions.ToArray(), nil
+}
+
+// IsInstanceTypeAvailableForRegion checks if the instanceType is available for the region.
+func (h PublicCloudHandler) IsInstanceTypeAvailableForRegion(
+	instanceType string,
+	region string,
+	ctx context.Context,
+) (bool, []string, error) {
+	instanceTypes, err := h.publicCloudService.GetAvailableInstanceTypesForRegion(
+		region,
+		ctx,
+	)
+	if err != nil {
+		return false, nil, shared.NewFromServicesError(
+			"IsInstanceTypeAvailableForRegion",
+			err,
+		)
+	}
+
+	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
 }
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {

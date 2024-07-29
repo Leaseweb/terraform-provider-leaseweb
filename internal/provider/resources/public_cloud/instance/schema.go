@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -136,6 +137,11 @@ func (i *instanceResource) Schema(
 			"type": schema.StringAttribute{
 				Required:    true,
 				Description: "Instance type",
+				Validators: []validator.String{
+					stringvalidator.AlsoRequires(
+						path.Expressions{path.MatchRoot("region")}...,
+					),
+				},
 			},
 			"ssh_key": schema.StringAttribute{
 				Optional:      true,

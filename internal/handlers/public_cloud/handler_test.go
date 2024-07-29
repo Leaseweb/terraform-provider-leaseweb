@@ -849,48 +849,80 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 	)
 }
 
-func TestPublicCloudHandler_GetInstanceTypesForRegion(t *testing.T) {
-	t.Run("expected instanceTypes are returned", func(t *testing.T) {
-		want := []string{"tralala"}
+func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
+	t.Run(
+		"return true when instanceType is available for region",
+		func(t *testing.T) {
+			spy := serviceSpy{getAvailableInstanceTypesForRegion: domain.InstanceTypes{
+				domain.InstanceType{Name: "tralala"}},
+			}
+			handler := NewPublicCloudHandler(&spy)
 
-		spy := serviceSpy{
-			getAvailableInstanceTypesForRegion: domain.InstanceTypes{
-				domain.InstanceType{Name: "tralala"},
-			},
-		}
-		handler := NewPublicCloudHandler(&spy)
+			got, instanceTypes, err := handler.IsInstanceTypeAvailableForRegion(
+				"tralala",
+				"region",
+				context.TODO(),
+			)
 
-		got, err := handler.GetInstanceTypesForRegion("", context.TODO())
+			assert.NoError(t, err)
+			assert.Equal(t, []string{"tralala"}, instanceTypes)
+			assert.True(t, got)
+		},
+	)
 
-		assert.NoError(t, err)
-		assert.Equal(t, want, got)
-	})
+	t.Run(
+		"return true when instanceType is not available for region",
+		func(t *testing.T) {
+			spy := serviceSpy{getAvailableInstanceTypesForRegion: domain.InstanceTypes{
+				domain.InstanceType{Name: "piet"}},
+			}
+			handler := NewPublicCloudHandler(&spy)
 
-	t.Run("error from service bubbles up", func(t *testing.T) {
-		spy := serviceSpy{
-			getAvailableInstanceTypesForRegionError: serviceErrors.NewError(
-				"",
-				errors.New("some error"),
-			),
-		}
-		handler := NewPublicCloudHandler(&spy)
+			got, instanceTypes, err := handler.IsInstanceTypeAvailableForRegion(
+				"tralala",
+				"region",
+				context.TODO(),
+			)
 
-		_, err := handler.GetInstanceTypesForRegion("", context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
+			assert.NoError(t, err)
+			assert.Equal(t, []string{"piet"}, instanceTypes)
+			assert.False(t, got)
+		},
+	)
 
 	t.Run("region is passed to service", func(t *testing.T) {
 		spy := serviceSpy{}
 		handler := NewPublicCloudHandler(&spy)
 
-		_, _ = handler.GetInstanceTypesForRegion("region", context.TODO())
+		_, _, _ = handler.IsInstanceTypeAvailableForRegion(
+			"tralala",
+			"region",
+			context.TODO(),
+		)
 
 		assert.Equal(
 			t,
 			"region",
 			spy.getAvailableInstanceTypesForRegionPassedRegion,
 		)
+	})
+
+	t.Run("errors from service bubble up", func(t *testing.T) {
+		spy := serviceSpy{
+			getAvailableInstanceTypesForRegionError: serviceErrors.NewError(
+				"prefix",
+				errors.New("some error"),
+			),
+		}
+		handler := NewPublicCloudHandler(&spy)
+
+		_, _, err := handler.IsInstanceTypeAvailableForRegion(
+			"tralala",
+			"region",
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
 	})
 }

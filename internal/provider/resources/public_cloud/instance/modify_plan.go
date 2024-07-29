@@ -30,7 +30,7 @@ func (i *instanceResource) ModifyPlan(
 		planInstance.Type,
 	)
 
-	// Only validation if region changes
+	// Only validate region if it changes
 	if planInstance.Region.ValueString() != "" {
 		err := i.validateRegion(ctx, response, planInstance.Region.ValueString())
 		if err != nil {
@@ -64,7 +64,6 @@ func (i *instanceResource) validateInstanceType(
 			ctx,
 			planRegion.ValueString(),
 			planInstanceType.ValueString(),
-			typeValidator,
 			response,
 		)
 	}
@@ -82,10 +81,10 @@ func (i *instanceResource) validateInstanceTypeForCreate(
 	ctx context.Context,
 	region string,
 	instanceType string,
-	typeValidator modify_plan.TypeValidator,
 	response *resource.ModifyPlanResponse,
 ) error {
-	allowedInstanceTypes, err := i.client.PublicCloudHandler.GetInstanceTypesForRegion(
+	isAvailable, availableInstanceTypes, err := i.client.PublicCloudHandler.IsInstanceTypeAvailableForRegion(
+		instanceType,
 		region,
 		ctx,
 	)
@@ -94,7 +93,7 @@ func (i *instanceResource) validateInstanceTypeForCreate(
 		return fmt.Errorf("validateInstanceTypeForCreate: %w", err)
 	}
 
-	if typeValidator.IsTypeValid(allowedInstanceTypes) {
+	if isAvailable {
 		return nil
 	}
 
@@ -103,7 +102,7 @@ func (i *instanceResource) validateInstanceTypeForCreate(
 		"Invalid Type",
 		fmt.Sprintf(
 			"Attribute type value must be one of: %q, got: %q",
-			allowedInstanceTypes,
+			availableInstanceTypes,
 			instanceType,
 		),
 	)
