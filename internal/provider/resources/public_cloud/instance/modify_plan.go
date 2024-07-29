@@ -30,7 +30,7 @@ func (i *instanceResource) ModifyPlan(
 		planInstance.Type,
 	)
 
-	// Only validate region if it changes
+	// Only validate a region if it changes
 	if planInstance.Region.ValueString() != "" {
 		err := i.validateRegion(ctx, response, planInstance.Region.ValueString())
 		if err != nil {
