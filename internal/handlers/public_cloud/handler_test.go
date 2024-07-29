@@ -315,69 +315,6 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 	})
 }
 
-func TestPublicCloudHandler_GetAvailableInstanceTypesForUpdate(t *testing.T) {
-	t.Run("expected instanceTypes are returned", func(t *testing.T) {
-		want := []string{"tralala"}
-
-		spy := &serviceSpy{
-			instanceTypesForUpdate: domain.InstanceTypes{{Name: "tralala"}},
-		}
-		handler := PublicCloudHandler{publicCloudService: spy}
-
-		got, err := handler.GetAvailableInstanceTypesForUpdate(
-			"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
-			context.TODO(),
-		)
-
-		assert.Nil(t, err)
-		assert.Equal(t, want, got)
-	})
-
-	t.Run("invalid id returns an error", func(t *testing.T) {
-		handler := PublicCloudHandler{}
-
-		_, err := handler.GetAvailableInstanceTypesForUpdate(
-			"tralala",
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("errors from the service bubble up", func(t *testing.T) {
-		spy := &serviceSpy{
-			instanceTypesForUpdateError: serviceErrors.NewError(
-				"",
-				errors.New("some errors"),
-			),
-		}
-		handler := PublicCloudHandler{publicCloudService: spy}
-
-		_, err := handler.GetAvailableInstanceTypesForUpdate(
-			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("id is passed to repository", func(t *testing.T) {
-		want := "085075b0-a6ad-4026-a0d1-e3256d3f7c47"
-
-		spy := &serviceSpy{}
-		handler := PublicCloudHandler{publicCloudService: spy}
-
-		_, _ = handler.GetAvailableInstanceTypesForUpdate(
-			want,
-			context.TODO(),
-		)
-
-		assert.Equal(t, want, spy.availableInstanceTypesForUpdatePassedId.String())
-	})
-}
-
 func TestPublicCloudHandler_IsRegionValid(t *testing.T) {
 	t.Run("returns true if region is valid", func(t *testing.T) {
 		want := domain.Regions{{Name: "region"}}
@@ -731,6 +668,19 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 			assert.ErrorContains(t, err, "some error")
 		},
 	)
+
+	t.Run("passing an invalid id returns an error", func(t *testing.T) {
+		handler := PublicCloudHandler{}
+		_, err := handler.UpdateInstance(
+			model.Instance{
+				Id: basetypes.NewStringValue("tralala"),
+			},
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
 }
 
 func TestPublicCloudHandler_GetImageIds(t *testing.T) {
@@ -924,5 +874,94 @@ func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
+	})
+}
+
+func TestPublicCloudHandler_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
+	t.Run(
+		"returns true if instanceType can be used with instance",
+		func(t *testing.T) {
+			spy := &serviceSpy{
+				instanceTypesForUpdate: domain.InstanceTypes{{Name: "tralala"}},
+			}
+			handler := PublicCloudHandler{publicCloudService: spy}
+
+			got, instanceTypes, err := handler.CanInstanceTypeBeUsedWithInstance(
+				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"tralala",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"tralala"}, instanceTypes)
+			assert.True(t, got)
+		},
+	)
+
+	t.Run(
+		"returns false if instanceType cannot be used with instance",
+		func(t *testing.T) {
+			spy := &serviceSpy{
+				instanceTypesForUpdate: domain.InstanceTypes{{Name: "piet"}},
+			}
+			handler := PublicCloudHandler{publicCloudService: spy}
+
+			got, instanceTypes, err := handler.CanInstanceTypeBeUsedWithInstance(
+				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"tralala",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"piet"}, instanceTypes)
+			assert.False(t, got)
+		},
+	)
+
+	t.Run("invalid id returns an error", func(t *testing.T) {
+		handler := PublicCloudHandler{}
+
+		_, _, err := handler.CanInstanceTypeBeUsedWithInstance(
+			"tralala",
+			"",
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("errors from the service bubble up", func(t *testing.T) {
+		spy := &serviceSpy{
+			instanceTypesForUpdateError: serviceErrors.NewError(
+				"",
+				errors.New("some errors"),
+			),
+		}
+		handler := PublicCloudHandler{publicCloudService: spy}
+
+		_, _, err := handler.CanInstanceTypeBeUsedWithInstance(
+			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
+			"",
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("id is passed to repository", func(t *testing.T) {
+		want := "085075b0-a6ad-4026-a0d1-e3256d3f7c47"
+
+		spy := &serviceSpy{}
+		handler := PublicCloudHandler{publicCloudService: spy}
+
+		_, _, _ = handler.CanInstanceTypeBeUsedWithInstance(
+			want,
+			"",
+			context.TODO(),
+		)
+
+		assert.Equal(t, want, spy.availableInstanceTypesForUpdatePassedId.String())
 	})
 }

@@ -63,64 +63,6 @@ func TestTypeValidator_HashTypeChanged(t *testing.T) {
 	}
 }
 
-func TestTypeValidator_IsTypeValid(t *testing.T) {
-	type fields struct {
-		stateInstanceId   types.String
-		stateInstanceType types.String
-		planInstanceType  types.String
-	}
-	type args struct {
-		allowedInstanceTypes []string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
-	}{
-		{
-			name: "is valid",
-			fields: fields{
-				stateInstanceId:   basetypes.NewStringValue("123"),
-				stateInstanceType: basetypes.NewStringValue("oldValue"),
-				planInstanceType:  basetypes.NewStringValue("newValue"),
-			},
-			args: args{
-				allowedInstanceTypes: []string{"newValue"},
-			},
-			want: true,
-		},
-		{
-			name: "is not valid",
-			fields: fields{
-				stateInstanceId:   basetypes.NewStringValue("123"),
-				stateInstanceType: basetypes.NewStringValue("oldValue"),
-				planInstanceType:  basetypes.NewStringValue("newValue"),
-			},
-			args: args{
-				allowedInstanceTypes: []string{},
-			},
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			v := TypeValidator{
-				stateInstanceId:   tt.fields.stateInstanceId,
-				stateInstanceType: tt.fields.stateInstanceType,
-				planInstanceType:  tt.fields.planInstanceType,
-			}
-			assert.Equalf(
-				t,
-				tt.want,
-				v.IsTypeValid(tt.args.allowedInstanceTypes),
-				"IsTypeValid(%v)",
-				tt.args.allowedInstanceTypes,
-			)
-		})
-	}
-}
-
 func TestTypeValidator_IsBeingCreated(t *testing.T) {
 	type fields struct {
 		stateInstanceId   types.String

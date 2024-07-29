@@ -41,18 +41,6 @@ func (v TypeValidator) HasTypeChanged() bool {
 	return true
 }
 
-func (v TypeValidator) IsTypeValid(
-	allowedInstanceTypes []string,
-) bool {
-	for _, allowedInstanceType := range allowedInstanceTypes {
-		if allowedInstanceType == v.planInstanceType.ValueString() {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (v TypeValidator) IsBeingCreated() bool {
 	return v.stateInstanceId.ValueString() == ""
 }

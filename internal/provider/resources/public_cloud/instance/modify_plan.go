@@ -77,6 +77,7 @@ func (i *instanceResource) validateInstanceType(
 	)
 }
 
+// On creation, we need to check that the instance is available for the region.
 func (i *instanceResource) validateInstanceTypeForCreate(
 	ctx context.Context,
 	region string,
@@ -110,6 +111,7 @@ func (i *instanceResource) validateInstanceTypeForCreate(
 	return nil
 }
 
+// On update check that the passed instanceType can be used wit the instance.
 func (i *instanceResource) validateInstanceTypeForUpdate(
 	ctx context.Context,
 	typeValidator modify_plan.TypeValidator,
@@ -121,8 +123,9 @@ func (i *instanceResource) validateInstanceTypeForUpdate(
 		return nil
 	}
 
-	allowedInstanceTypes, err := i.client.PublicCloudHandler.GetAvailableInstanceTypesForUpdate(
+	canInstanceTypeBeUsed, allowedInstanceTypes, err := i.client.PublicCloudHandler.CanInstanceTypeBeUsedWithInstance(
 		id,
+		instanceType,
 		ctx,
 	)
 
@@ -130,7 +133,7 @@ func (i *instanceResource) validateInstanceTypeForUpdate(
 		return fmt.Errorf("validateInstanceTypeForUpdate: %w", err)
 	}
 
-	if typeValidator.IsTypeValid(allowedInstanceTypes) {
+	if canInstanceTypeBeUsed {
 		return nil
 	}
 

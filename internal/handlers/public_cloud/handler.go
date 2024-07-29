@@ -112,33 +112,6 @@ func (h PublicCloudHandler) DeleteInstance(
 	return nil
 }
 
-// GetAvailableInstanceTypesForUpdate gets all instance types an instance is allowed to upgrade to.
-func (h PublicCloudHandler) GetAvailableInstanceTypesForUpdate(
-	id string,
-	ctx context.Context,
-) ([]string, *shared.HandlerError) {
-	instanceId, err := value_object.NewUuid(id)
-	if err != nil {
-		return nil, shared.NewError(
-			"GetAvailableInstanceTypesForUpdate",
-			err,
-		)
-	}
-
-	instanceTypes, serviceErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
-		*instanceId,
-		ctx,
-	)
-	if serviceErr != nil {
-		return nil, shared.NewFromServicesError(
-			"GetAvailableInstanceTypesForUpdate",
-			serviceErr,
-		)
-	}
-
-	return instanceTypes.ToArray(), nil
-}
-
 // GetInstance returns instance details.
 func (h PublicCloudHandler) GetInstance(
 	id string,
@@ -167,17 +140,22 @@ func (h PublicCloudHandler) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.HandlerError) {
-	availableInstanceTypes, err := h.GetAvailableInstanceTypesForUpdate(
-		plan.Id.ValueString(),
-		ctx,
-	)
+	id, err := value_object.NewUuid(plan.Id.ValueString())
 	if err != nil {
 		return nil, shared.NewError("UpdateInstance", err)
 	}
 
+	availableInstanceTypes, repositoryErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
+		*id,
+		ctx,
+	)
+	if repositoryErr != nil {
+		return nil, shared.NewError("UpdateInstance", repositoryErr)
+	}
+
 	updateInstanceOpts, conversionError := h.convertInstanceResourceModelToUpdateInstanceOpts(
 		plan,
-		availableInstanceTypes,
+		availableInstanceTypes.ToArray(),
 		ctx,
 	)
 	if conversionError != nil {
@@ -316,6 +294,35 @@ func (h PublicCloudHandler) IsInstanceTypeAvailableForRegion(
 		return false, nil, shared.NewFromServicesError(
 			"IsInstanceTypeAvailableForRegion",
 			err,
+		)
+	}
+
+	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
+}
+
+// CanInstanceTypeBeUsedWithInstance checks
+// if the passed instanceType can be used with the passed instance.
+func (h PublicCloudHandler) CanInstanceTypeBeUsedWithInstance(
+	instanceId string,
+	instanceType string,
+	ctx context.Context,
+) (bool, []string, error) {
+	uuid, err := value_object.NewUuid(instanceId)
+	if err != nil {
+		return false, nil, shared.NewError(
+			"CanInstanceTypeBeUsedWithInstance",
+			err,
+		)
+	}
+
+	instanceTypes, serviceErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
+		*uuid,
+		ctx,
+	)
+	if serviceErr != nil {
+		return false, nil, shared.NewFromServicesError(
+			"CanInstanceTypeBeUsedWithInstance",
+			serviceErr,
 		)
 	}
 
