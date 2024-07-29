@@ -24,7 +24,7 @@ func NewTypeValidator(
 
 func (v TypeValidator) HasTypeChanged() bool {
 	// There is nothing to check when creating
-	if v.stateInstanceId.ValueString() == "" {
+	if v.IsBeingCreated() {
 		return false
 	}
 
