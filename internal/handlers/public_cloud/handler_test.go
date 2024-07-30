@@ -315,14 +315,14 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 	})
 }
 
-func TestPublicCloudHandler_IsRegionValid(t *testing.T) {
-	t.Run("returns true if region is valid", func(t *testing.T) {
+func TestPublicCloudHandler_DoesRegionExist(t *testing.T) {
+	t.Run("returns true if region exists", func(t *testing.T) {
 		want := domain.Regions{{Name: "region"}}
 
 		spy := &serviceSpy{getRegions: want}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
-		got, validRegions, err := handler.IsRegionValid(
+		got, validRegions, err := handler.DoesRegionExist(
 			"region",
 			context.TODO(),
 		)
@@ -332,13 +332,13 @@ func TestPublicCloudHandler_IsRegionValid(t *testing.T) {
 		assert.True(t, got)
 	})
 
-	t.Run("returns false if region is invalid", func(t *testing.T) {
+	t.Run("returns false if region does not exist", func(t *testing.T) {
 		want := domain.Regions{{Name: "region"}}
 
 		spy := &serviceSpy{getRegions: want}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
-		got, validRegions, err := handler.IsRegionValid(
+		got, validRegions, err := handler.DoesRegionExist(
 			"tralala",
 			context.TODO(),
 		)
@@ -357,7 +357,7 @@ func TestPublicCloudHandler_IsRegionValid(t *testing.T) {
 		}
 		handler := PublicCloudHandler{publicCloudService: spy}
 
-		_, _, err := handler.IsRegionValid("region", context.TODO())
+		_, _, err := handler.DoesRegionExist("region", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")

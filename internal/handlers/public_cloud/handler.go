@@ -263,14 +263,17 @@ func (h PublicCloudHandler) ValidateContractTerm(
 	return nil
 }
 
-// IsRegionValid checks if passed region is valid.
-func (h PublicCloudHandler) IsRegionValid(
+// DoesRegionExist checks if the region exists.
+func (h PublicCloudHandler) DoesRegionExist(
 	region string,
 	ctx context.Context,
-) (bool, []string, error) {
+) (bool, []string, *shared.HandlerError) {
 	regions, err := h.publicCloudService.GetRegions(ctx)
 	if err != nil {
-		return false, nil, shared.NewFromServicesError("IsRegionValid", err)
+		return false, nil, shared.NewFromServicesError(
+			"DoesRegionExist",
+			err,
+		)
 	}
 
 	if regions.Contains(region) {

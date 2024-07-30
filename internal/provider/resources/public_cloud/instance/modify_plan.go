@@ -7,8 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	validator2 "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/modify_plan"
+	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -30,12 +32,9 @@ func (i *instanceResource) ModifyPlan(
 		planInstance.Type,
 	)
 
-	// Only validate a region if it changes
-	if planInstance.Region.ValueString() != "" {
-		err := i.validateRegion(ctx, response, planInstance.Region.ValueString())
-		if err != nil {
-			log.Fatal(err)
-		}
+	i.validateRegion(planInstance.Region, response, ctx)
+	if response.Diagnostics.HasError() {
+		return
 	}
 
 	err := i.validateInstanceType(
@@ -48,6 +47,26 @@ func (i *instanceResource) ModifyPlan(
 	)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+// Region validator has to be called here instead of in the schema as the client
+// isn't initialized yet when the schema is generated.
+func (i *instanceResource) validateRegion(
+	region types.String,
+	response *resource.ModifyPlanResponse,
+	ctx context.Context,
+) {
+	regionRequest := validator2.StringRequest{ConfigValue: region}
+	regionResponse := validator2.StringResponse{}
+
+	regionValidator := validator.NewRegionValidator(
+		i.client.PublicCloudHandler.DoesRegionExist,
+	)
+	regionValidator.ValidateString(ctx, regionRequest, &regionResponse)
+
+	if regionResponse.Diagnostics.HasError() {
+		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
 	}
 }
 
@@ -144,37 +163,6 @@ func (i *instanceResource) validateInstanceTypeForUpdate(
 			"Attribute type value must be one of: %q, got: %q",
 			allowedInstanceTypes,
 			instanceType,
-		),
-	)
-
-	return nil
-}
-
-func (i *instanceResource) validateRegion(
-	ctx context.Context,
-	response *resource.ModifyPlanResponse,
-	region string,
-) error {
-	regionIsValid, validRegions, err := i.client.PublicCloudHandler.IsRegionValid(
-		region,
-		ctx,
-	)
-
-	if err != nil {
-		return fmt.Errorf("validateRegion: %w", err)
-	}
-
-	if regionIsValid {
-		return nil
-	}
-
-	response.Diagnostics.AddAttributeError(
-		path.Root("region"),
-		"Invalid Region",
-		fmt.Sprintf(
-			"Attribute region value must be one of: %q, got: %q",
-			validRegions,
-			region,
 		),
 	)
 
