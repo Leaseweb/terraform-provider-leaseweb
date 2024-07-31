@@ -7,7 +7,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_instance"
+	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_domain_entity"
 	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
 	"terraform-provider-leaseweb/internal/repositories/sdk"
 	"terraform-provider-leaseweb/internal/repositories/shared"
@@ -441,13 +441,13 @@ func NewPublicCloudRepository(
 	return PublicCloudRepository{
 		publicCLoudAPI:               client.PublicCloudAPI,
 		token:                        token,
-		adaptInstanceDetails:         to_sdk_model.AdaptInstanceDetails,
-		adaptInstance:                to_sdk_model.AdaptInstance,
-		adaptAutoScalingGroupDetails: to_sdk_model.AdaptAutoScalingGroupDetails,
-		adaptLoadBalancerDetails:     to_sdk_model.AdaptLoadBalancerDetails,
-		adaptInstanceType:            to_sdk_model.AdaptInstanceType,
-		adaptRegion:                  to_sdk_model.AdaptRegion,
-		adaptToLaunchInstanceOpts:    to_instance.AdaptToLaunchInstanceOpts,
-		adaptToUpdateInstanceOpts:    to_instance.AdaptToUpdateInstanceOpts,
+		adaptInstanceDetails:         to_domain_entity.AdaptInstanceDetails,
+		adaptInstance:                to_domain_entity.AdaptInstance,
+		adaptAutoScalingGroupDetails: to_domain_entity.AdaptAutoScalingGroupDetails,
+		adaptLoadBalancerDetails:     to_domain_entity.AdaptLoadBalancerDetails,
+		adaptInstanceType:            to_domain_entity.AdaptInstanceType,
+		adaptRegion:                  to_domain_entity.AdaptRegion,
+		adaptToLaunchInstanceOpts:    to_sdk_model.AdaptToLaunchInstanceOpts,
+		adaptToUpdateInstanceOpts:    to_sdk_model.AdaptToUpdateInstanceOpts,
 	}
 }

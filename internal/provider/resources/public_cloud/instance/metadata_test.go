@@ -2,9 +2,10 @@ package instance
 
 import (
 	"context"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_instanceResource_Metadata(t *testing.T) {
