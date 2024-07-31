@@ -10,6 +10,9 @@ import (
 	"terraform-provider-leaseweb/internal/core/ports"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/handlers/public_cloud/data_adapters/to_data_source_model"
+	"terraform-provider-leaseweb/internal/handlers/public_cloud/data_adapters/to_instance"
+	"terraform-provider-leaseweb/internal/handlers/public_cloud/data_adapters/to_resource_model"
 	"terraform-provider-leaseweb/internal/handlers/shared"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
@@ -20,20 +23,20 @@ var ErrContractTermMustBeZero = domain.ErrContractTermMustBeZero
 
 // PublicCloudHandler handles all communication between provider & the core.
 type PublicCloudHandler struct {
-	publicCloudService             ports.PublicCloudService
-	convertInstanceToResourceModel func(
+	publicCloudService           ports.PublicCloudService
+	adaptInstanceToResourceModel func(
 		instance domain.Instance,
 		ctx context.Context,
 	) (*resourceModel.Instance, error)
-	convertInstancesToDataSourceModel func(
+	adaptInstancesToDataSourceModel func(
 		instances domain.Instances,
 	) dataSourceModel.Instances
-	convertInstanceResourceModelToCreateInstanceOpts func(
+	adaptToCreateInstanceOpts func(
 		instance resourceModel.Instance,
 		allowedInstanceTypes []string,
 		ctx context.Context,
 	) (*domain.Instance, error)
-	convertInstanceResourceModelToUpdateInstanceOpts func(
+	adaptToUpdateInstanceOpts func(
 		instance resourceModel.Instance,
 		allowedInstanceTypes []string,
 		ctx context.Context,
@@ -50,7 +53,7 @@ func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 		return nil, shared.NewFromServicesError("GetAllInstances", err)
 	}
 
-	dataSourceInstances := convertInstancesToDataSourceModel(instances)
+	dataSourceInstances := to_data_source_model.AdaptInstances(instances)
 
 	return &dataSourceInstances, nil
 }
@@ -69,7 +72,7 @@ func (h PublicCloudHandler) CreateInstance(
 		return nil, shared.NewError("CreateInstance", serviceError)
 	}
 
-	createInstanceOpts, err := h.convertInstanceResourceModelToCreateInstanceOpts(
+	createInstanceOpts, err := h.adaptToCreateInstanceOpts(
 		plan,
 		availableInstanceTypes.ToArray(),
 		ctx,
@@ -86,7 +89,7 @@ func (h PublicCloudHandler) CreateInstance(
 		return nil, shared.NewFromServicesError("CreateInstance", serviceErr)
 	}
 
-	instance, err := h.convertInstanceToResourceModel(*createdInstance, ctx)
+	instance, err := h.adaptInstanceToResourceModel(*createdInstance, ctx)
 	if err != nil {
 		return nil, shared.NewError("CreateInstance", err)
 	}
@@ -127,7 +130,7 @@ func (h PublicCloudHandler) GetInstance(
 		return nil, shared.NewFromServicesError("GetInstance", serviceErr)
 	}
 
-	convertedInstance, err := h.convertInstanceToResourceModel(*instance, ctx)
+	convertedInstance, err := h.adaptInstanceToResourceModel(*instance, ctx)
 	if err != nil {
 		return nil, shared.NewError("GetInstance", err)
 	}
@@ -153,7 +156,7 @@ func (h PublicCloudHandler) UpdateInstance(
 		return nil, shared.NewError("UpdateInstance", repositoryErr)
 	}
 
-	updateInstanceOpts, conversionError := h.convertInstanceResourceModelToUpdateInstanceOpts(
+	updateInstanceOpts, conversionError := h.adaptToUpdateInstanceOpts(
 		plan,
 		availableInstanceTypes.ToArray(),
 		ctx,
@@ -173,7 +176,7 @@ func (h PublicCloudHandler) UpdateInstance(
 		)
 	}
 
-	convertedInstance, conversionError := h.convertInstanceToResourceModel(
+	convertedInstance, conversionError := h.adaptInstanceToResourceModel(
 		*updatedInstance,
 		ctx,
 	)
@@ -211,12 +214,16 @@ func (h PublicCloudHandler) GetRootDiskStorageTypes() []string {
 
 // GetBillingFrequencies returns a list of valid billing frequencies.
 func (h PublicCloudHandler) GetBillingFrequencies() []int64 {
-	return convertIntArrayToInt64(enum.ContractBillingFrequencyThree.Values())
+	return shared.AdaptIntArrayToInt64Array(
+		enum.ContractBillingFrequencyThree.Values(),
+	)
 }
 
 // GetContractTerms returns a list of valid contract terms.
 func (h PublicCloudHandler) GetContractTerms() []int64 {
-	return convertIntArrayToInt64(enum.ContractTermThree.Values())
+	return shared.AdaptIntArrayToInt64Array(
+		enum.ContractTermThree.Values(),
+	)
 }
 
 // GetContractTypes returns a list of valid contract types.
@@ -334,10 +341,10 @@ func (h PublicCloudHandler) CanInstanceTypeBeUsedWithInstance(
 
 func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
 	return PublicCloudHandler{
-		publicCloudService:                               publicCloudService,
-		convertInstanceToResourceModel:                   convertInstanceToResourceModel,
-		convertInstancesToDataSourceModel:                convertInstancesToDataSourceModel,
-		convertInstanceResourceModelToCreateInstanceOpts: convertInstanceResourceModelToCreateInstanceOpts,
-		convertInstanceResourceModelToUpdateInstanceOpts: convertInstanceResourceModelToUpdateInstanceOpts,
+		publicCloudService:              publicCloudService,
+		adaptInstanceToResourceModel:    to_resource_model.AdaptInstance,
+		adaptInstancesToDataSourceModel: to_data_source_model.AdaptInstances,
+		adaptToCreateInstanceOpts:       to_instance.AdaptToCreateInstanceOpts,
+		adaptToUpdateInstanceOpts:       to_instance.AdaptToUpdateInstanceOpts,
 	}
 }

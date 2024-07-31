@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +25,7 @@ type mockModel struct {
 	Value string `tfsdk:"value"`
 }
 
-func TestConvertNullableIntToInt64Value(t *testing.T) {
+func TestAdaptNullableIntToInt64Value(t *testing.T) {
 	value := 1234
 
 	type args struct {
@@ -51,15 +52,15 @@ func TestConvertNullableIntToInt64Value(t *testing.T) {
 			assert.Equalf(
 				t,
 				tt.want,
-				ConvertNullableIntToInt64Value(tt.args.value),
-				"ConvertNullableIntToInt64Value(%v)",
+				AdaptNullableIntToInt64Value(tt.args.value),
+				"AdaptNullableIntToInt64Value(%v)",
 				tt.args.value,
 			)
 		})
 	}
 }
 
-func TestConvertNullableTimeToStringValue(t *testing.T) {
+func TestAdaptNullableTimeToStringValue(t *testing.T) {
 	value, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 
 	type args struct {
@@ -83,14 +84,14 @@ func TestConvertNullableTimeToStringValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, ConvertNullableTimeToStringValue(
+			assert.Equalf(t, tt.want, AdaptNullableTimeToStringValue(
 				tt.args.value,
-			), "ConvertNullableTimeToStringValue(%v)", tt.args.value)
+			), "AdaptNullableTimeToStringValue(%v)", tt.args.value)
 		})
 	}
 }
 
-func TestConvertNullableDomainEntityToDatasourceModel(t *testing.T) {
+func TestAdaptNullableDomainEntityToDatasourceModel(t *testing.T) {
 	entity := mockDomainEntity{}
 	mockGenerator := func(domainEntity mockDomainEntity) *string {
 		value := "tralala"
@@ -98,20 +99,20 @@ func TestConvertNullableDomainEntityToDatasourceModel(t *testing.T) {
 	}
 
 	t.Run("value is nil", func(t *testing.T) {
-		got := ConvertNullableDomainEntityToDatasourceModel(nil, mockGenerator)
+		got := AdaptNullableDomainEntityToDatasourceModel(nil, mockGenerator)
 		assert.Nil(t, got)
 	})
 	t.Run("value is set", func(t *testing.T) {
-		got := ConvertNullableDomainEntityToDatasourceModel(&entity, mockGenerator)
+		got := AdaptNullableDomainEntityToDatasourceModel(&entity, mockGenerator)
 		assert.Equal(t, "tralala", *got)
 	})
 }
 
-func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
+func TestAdaptNullableDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run("value is nil", func(t *testing.T) {
-		got, gotDiags := ConvertNullableDomainEntityToResourceObject(
+		got, gotDiags := AdaptNullableDomainEntityToResourceObject(
 			nil,
 			map[string]attr.Type{},
 			context.TODO(),
@@ -128,7 +129,7 @@ func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("value is set", func(t *testing.T) {
-		got, gotDiags := ConvertNullableDomainEntityToResourceObject(
+		got, gotDiags := AdaptNullableDomainEntityToResourceObject(
 			&entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
@@ -146,7 +147,7 @@ func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := ConvertNullableDomainEntityToResourceObject(
+		got, err := AdaptNullableDomainEntityToResourceObject(
 			&entity,
 			map[string]attr.Type{},
 			context.TODO(),
@@ -164,11 +165,11 @@ func TestConvertNullableDomainEntityToResourceObject(t *testing.T) {
 	})
 }
 
-func TestConvertDomainEntityToResourceObject(t *testing.T) {
+func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := ConvertDomainEntityToResourceObject(
+		got, err := AdaptDomainEntityToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
@@ -186,7 +187,7 @@ func TestConvertDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
-		got, err := ConvertDomainEntityToResourceObject(
+		got, err := AdaptDomainEntityToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
@@ -205,7 +206,7 @@ func TestConvertDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
-		got, diags := ConvertDomainEntityToResourceObject(
+		got, diags := AdaptDomainEntityToResourceObject(
 			entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
@@ -223,7 +224,7 @@ func TestConvertDomainEntityToResourceObject(t *testing.T) {
 	})
 }
 
-func TestConvertNullableStringToStringValue(t *testing.T) {
+func TestAdaptNullableStringToStringValue(t *testing.T) {
 	value := "tralala"
 
 	type args struct {
@@ -250,21 +251,21 @@ func TestConvertNullableStringToStringValue(t *testing.T) {
 			assert.Equalf(
 				t,
 				tt.want,
-				ConvertNullableStringToStringValue(tt.args.value),
-				"ConvertNullableStringToStringValue(%v)",
+				AdaptNullableStringToStringValue(tt.args.value),
+				"AdaptNullableStringToStringValue(%v)",
 				tt.args.value,
 			)
 		})
 	}
 }
 
-func TestConvertDomainSliceToListValue(t *testing.T) {
+func TestAdaptDomainSliceToListValue(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run(
 		"slice can successfully be converted into a ListValue",
 		func(t *testing.T) {
-			got, diags := ConvertEntitiesToListValue(
+			got, diags := AdaptEntitiesToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
@@ -290,7 +291,7 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"error is returned if list element cannot be converted",
 		func(t *testing.T) {
-			_, err := ConvertEntitiesToListValue(
+			_, err := AdaptEntitiesToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
@@ -310,7 +311,7 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
-			_, err := ConvertEntitiesToListValue(
+			_, err := AdaptEntitiesToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
@@ -329,75 +330,75 @@ func TestConvertDomainSliceToListValue(t *testing.T) {
 	)
 }
 
-func TestConvertStringPointerValueToNullableString(t *testing.T) {
+func TestAdaptStringPointerValueToNullableString(t *testing.T) {
 	t.Run("returns nil when value is unknown", func(t *testing.T) {
 		value := basetypes.NewStringUnknown()
-		assert.Nil(t, ConvertStringPointerValueToNullableString(value))
+		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
 	})
 
 	t.Run("returns pointer when value is set", func(t *testing.T) {
 		target := "tralala"
 		value := basetypes.NewStringPointerValue(&target)
 
-		assert.Equal(t, target, *ConvertStringPointerValueToNullableString(value))
+		assert.Equal(t, target, *AdaptStringPointerValueToNullableString(value))
 	})
 
 	t.Run("returns nil when value is not set", func(t *testing.T) {
 		value := basetypes.NewStringPointerValue(nil)
 
-		assert.Nil(t, ConvertStringPointerValueToNullableString(value))
+		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
 	})
 }
 
-func ExampleConvertNullableIntToInt64Value() {
+func ExampleAdaptNullableIntToInt64Value() {
 	nullableInt := 64
-	value := ConvertNullableIntToInt64Value(&nullableInt)
+	value := AdaptNullableIntToInt64Value(&nullableInt)
 
 	fmt.Println(value)
 	// Output: 64
 }
 
-func ExampleConvertNullableIntToInt64Value_second() {
-	value := ConvertNullableIntToInt64Value(nil)
+func ExampleAdaptNullableIntToInt64Value_second() {
+	value := AdaptNullableIntToInt64Value(nil)
 
 	fmt.Println(value)
 	// Output: <null>
 }
 
-func ExampleConvertNullableTimeToStringValue() {
+func ExampleAdaptNullableTimeToStringValue() {
 	nullableTime, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-	value := ConvertNullableTimeToStringValue(&nullableTime)
+	value := AdaptNullableTimeToStringValue(&nullableTime)
 
 	fmt.Println(value)
 	// Output: "2019-09-08 00:00:00 +0000 UTC"
 }
 
-func ExampleConvertNullableTimeToStringValue_second() {
-	value := ConvertNullableTimeToStringValue(nil)
+func ExampleAdaptNullableTimeToStringValue_second() {
+	value := AdaptNullableTimeToStringValue(nil)
 
 	fmt.Println(value)
 	// Output: <null>
 }
 
-func ExampleConvertNullableStringToStringValue() {
+func ExampleAdaptNullableStringToStringValue() {
 	nullableString := "tralala"
-	value := ConvertNullableStringToStringValue(&nullableString)
+	value := AdaptNullableStringToStringValue(&nullableString)
 
 	fmt.Println(value)
 	// Output: "tralala"
 }
 
-func ExampleConvertNullableStringToStringValue_second() {
-	value := ConvertNullableStringToStringValue(nil)
+func ExampleAdaptNullableStringToStringValue_second() {
+	value := AdaptNullableStringToStringValue(nil)
 
 	fmt.Println(value)
 	// Output: <null>
 }
 
-func ExampleConvertNullableDomainEntityToDatasourceModel() {
+func ExampleAdaptNullableDomainEntityToDatasourceModel() {
 	iso := domain.NewIso("id", "name")
 
-	datasourceModel := ConvertNullableDomainEntityToDatasourceModel(
+	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
 		&iso,
 		func(iso domain.Iso) *dataSourceModel.Iso {
 			return &dataSourceModel.Iso{
@@ -411,8 +412,8 @@ func ExampleConvertNullableDomainEntityToDatasourceModel() {
 	// Output: &{"id" "name"}
 }
 
-func ExampleConvertNullableDomainEntityToDatasourceModel_second() {
-	datasourceModel := ConvertNullableDomainEntityToDatasourceModel(
+func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
+	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
 		nil,
 		func(iso domain.Iso) *dataSourceModel.Iso {
 			return &dataSourceModel.Iso{
@@ -426,10 +427,10 @@ func ExampleConvertNullableDomainEntityToDatasourceModel_second() {
 	// Output: <nil>
 }
 
-func ExampleConvertNullableDomainEntityToResourceObject() {
+func ExampleAdaptNullableDomainEntityToResourceObject() {
 	iso := domain.NewIso("id", "name")
 
-	datasourceModel, _ := ConvertNullableDomainEntityToResourceObject(
+	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
 		&iso,
 		map[string]attr.Type{
 			"id":   types.StringType,
@@ -448,8 +449,8 @@ func ExampleConvertNullableDomainEntityToResourceObject() {
 	// Output: {"id":"id","name":"name"}
 }
 
-func ExampleConvertNullableDomainEntityToResourceObject_second() {
-	datasourceModel, _ := ConvertNullableDomainEntityToResourceObject(
+func ExampleAdaptNullableDomainEntityToResourceObject_second() {
+	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
 		nil,
 		map[string]attr.Type{
 			"id":   types.StringType,
@@ -468,9 +469,9 @@ func ExampleConvertNullableDomainEntityToResourceObject_second() {
 	// Output: <null>
 }
 
-func ExampleConvertDomainEntityToResourceObject() {
+func ExampleAdaptDomainEntityToResourceObject() {
 
-	datasourceModel, _ := ConvertDomainEntityToResourceObject(
+	datasourceModel, _ := AdaptDomainEntityToResourceObject(
 		domain.NewIso("id", "name"),
 		map[string]attr.Type{
 			"id":   types.StringType,
@@ -489,8 +490,8 @@ func ExampleConvertDomainEntityToResourceObject() {
 	// Output: {"id":"id","name":"name"}
 }
 
-func ExampleConvertEntitiesToListValue() {
-	listValue, _ := ConvertEntitiesToListValue(
+func ExampleAdaptEntitiesToListValue() {
+	listValue, _ := AdaptEntitiesToListValue(
 		domain.Ips{domain.NewIp(
 			"1.2.3.4",
 			"prefixLength",
@@ -512,7 +513,7 @@ func ExampleConvertEntitiesToListValue() {
 		},
 		context.TODO(),
 		func(ctx context.Context, entity domain.Ip) (*model.Ip, error) {
-			ddos, _ := ConvertNullableDomainEntityToResourceObject(
+			ddos, _ := AdaptNullableDomainEntityToResourceObject(
 				entity.Ddos,
 				model.Ddos{}.AttributeTypes(),
 				ctx,
@@ -541,21 +542,66 @@ func ExampleConvertEntitiesToListValue() {
 	// Output: [{"ddos":<null>,"ip":"1.2.3.4","main_ip":true,"network_type":"INTERNAL","null_routed":false,"prefix_length":"prefixLength","reverse_lookup":<null>,"version":2}]
 }
 
-func ExampleConvertStringPointerValueToNullableString() {
+func ExampleAdaptStringPointerValueToNullableString() {
 	value := "tralala"
 	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
 
-	convertedValue := ConvertStringPointerValueToNullableString(terraformStringPointerValue)
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
 
-	fmt.Println(convertedValue)
-	// Output "tralala"
+	fmt.Println(*convertedValue)
+	// Output: tralala
 }
 
-func ExampleConvertStringPointerValueToNullableString_second() {
+func ExampleAdaptStringPointerValueToNullableString_second() {
 	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
 
-	convertedValue := ConvertStringPointerValueToNullableString(terraformStringPointerValue)
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
 
 	fmt.Println(convertedValue)
-	// Output <null>
+	// Output: <nil>
+}
+
+func TestAdaptIntArrayToInt64(t *testing.T) {
+	want := []int64{5}
+	got := AdaptIntArrayToInt64Array([]int{5})
+
+	assert.Equal(t, want, got)
+}
+
+func ExampleAdaptIntArrayToInt64Array() {
+	convertedValue := AdaptIntArrayToInt64Array([]int{5})
+
+	fmt.Println(convertedValue)
+	// Output: [5]
+}
+
+func TestReturnError(t *testing.T) {
+	t.Run("diagnostics contain errors", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+		diags.AddError("summary", "detail")
+
+		got := ReturnError("functionName", diags)
+		want := `functionName: "summary" "detail"`
+
+		assert.Error(t, got)
+		assert.Equal(t, want, got.Error())
+	})
+
+	t.Run("diagnostics do not contain errors", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+
+		got := ReturnError("functionName", diags)
+
+		assert.NoError(t, got)
+	})
+}
+
+func ExampleReturnError() {
+	diags := diag.Diagnostics{}
+	diags.AddError("summary", "detail")
+
+	returnedErrors := ReturnError("functionName", diags)
+
+	fmt.Println(returnedErrors)
+	// Output:  functionName: "summary" "detail"
 }

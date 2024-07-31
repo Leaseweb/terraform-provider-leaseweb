@@ -159,7 +159,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 		}
 
 		handler := NewPublicCloudHandler(service)
-		handler.convertInstanceResourceModelToCreateInstanceOpts = func(
+		handler.adaptToCreateInstanceOpts = func(
 			instance model.Instance,
 			allowedInstanceTypes []string,
 			ctx context.Context,
@@ -176,7 +176,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 	t.Run("error is returned if createInstanceOpts fails", func(t *testing.T) {
 		spy := serviceSpy{}
 		handler := NewPublicCloudHandler(&spy)
-		handler.convertInstanceResourceModelToCreateInstanceOpts = func(
+		handler.adaptToCreateInstanceOpts = func(
 			instance model.Instance,
 			allowedInstanceTypes []string,
 			ctx context.Context,
@@ -194,7 +194,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 		"error is returned if service CreateInstance fails",
 		func(t *testing.T) {
 			handler := PublicCloudHandler{
-				convertInstanceResourceModelToCreateInstanceOpts: func(
+				adaptToCreateInstanceOpts: func(
 					instance model.Instance,
 					allowedInstanceTypes []string,
 					ctx context.Context,
@@ -217,21 +217,21 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 	)
 
 	t.Run(
-		"error is returned if convertInstanceToResourceModel fails",
+		"error is returned if adaptInstanceToResourceModel fails",
 		func(t *testing.T) {
 			createdInstance := domain.Instance{Id: value_object.NewGeneratedUuid()}
 			service := &serviceSpy{createdInstance: &createdInstance}
 			instance := model.Instance{}
 
 			handler := NewPublicCloudHandler(service)
-			handler.convertInstanceResourceModelToCreateInstanceOpts = func(
+			handler.adaptToCreateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, nil
 			}
-			handler.convertInstanceToResourceModel = func(
+			handler.adaptInstanceToResourceModel = func(
 				instance domain.Instance,
 				ctx context.Context,
 			) (*model.Instance, error) {
@@ -374,7 +374,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 		spy := serviceSpy{getInstance: &sdkInstance}
 		handler := PublicCloudHandler{
 			publicCloudService: &spy,
-			convertInstanceToResourceModel: func(
+			adaptInstanceToResourceModel: func(
 				instance domain.Instance,
 				ctx context.Context,
 			) (*model.Instance, error) {
@@ -421,14 +421,14 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 	)
 
 	t.Run(
-		"error is returned if convertInstanceToResourceModel fails",
+		"error is returned if adaptInstanceToResourceModel fails",
 		func(t *testing.T) {
 			sdkInstance := domain.Instance{}
 
 			spy := serviceSpy{getInstance: &sdkInstance}
 			handler := PublicCloudHandler{
 				publicCloudService: &spy,
-				convertInstanceToResourceModel: func(
+				adaptInstanceToResourceModel: func(
 					instance domain.Instance,
 					ctx context.Context,
 				) (*model.Instance, error) {
@@ -475,7 +475,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 
 		handler := PublicCloudHandler{
 			publicCloudService: spy,
-			convertInstancesToDataSourceModel: func(instances domain.Instances) dataSourceModel.Instances {
+			adaptInstancesToDataSourceModel: func(instances domain.Instances) dataSourceModel.Instances {
 				assert.Equal(t, instanceId, instances[0].Id)
 				return modelInstances
 			},
@@ -523,7 +523,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		spy := serviceSpy{updatedInstance: &updatedInstance}
 		handler := PublicCloudHandler{
 			publicCloudService: &spy,
-			convertInstanceResourceModelToUpdateInstanceOpts: func(
+			adaptToUpdateInstanceOpts: func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
@@ -537,7 +537,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 
 				return &instanceOpts, nil
 			},
-			convertInstanceToResourceModel: func(
+			adaptInstanceToResourceModel: func(
 				instance domain.Instance,
 				ctx context.Context,
 			) (*model.Instance, error) {
@@ -562,7 +562,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		func(t *testing.T) {
 			spy := serviceSpy{}
 			handler := NewPublicCloudHandler(&spy)
-			handler.convertInstanceResourceModelToUpdateInstanceOpts = func(
+			handler.adaptToUpdateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
@@ -592,7 +592,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 				),
 			}
 			handler := NewPublicCloudHandler(&spy)
-			handler.convertInstanceResourceModelToUpdateInstanceOpts = func(
+			handler.adaptToUpdateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
@@ -613,12 +613,12 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 	)
 
 	t.Run(
-		"error is returned if convertInstanceToResourceModel fails",
+		"error is returned if adaptInstanceToResourceModel fails",
 		func(t *testing.T) {
 			spy := serviceSpy{updatedInstance: &domain.Instance{}}
 			handler := PublicCloudHandler{
 				publicCloudService: &spy,
-				convertInstanceResourceModelToUpdateInstanceOpts: func(
+				adaptToUpdateInstanceOpts: func(
 					instance model.Instance,
 					allowedInstanceTypes []string,
 					ctx context.Context,
@@ -626,7 +626,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 
 					return &domain.Instance{}, nil
 				},
-				convertInstanceToResourceModel: func(
+				adaptInstanceToResourceModel: func(
 					instance domain.Instance,
 					ctx context.Context,
 				) (*model.Instance, error) {
