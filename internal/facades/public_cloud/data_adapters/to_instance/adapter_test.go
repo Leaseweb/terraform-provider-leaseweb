@@ -13,6 +13,8 @@ import (
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
+var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
+
 func TestAdaptToCreateInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instance := generateInstanceModel(
@@ -299,4 +301,88 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, 55, got.RootDiskSize.Value)
 	})
+}
+
+func generateInstanceModel(
+	rootDiskStorageType *string,
+	contractType *string,
+	contractTerm *int,
+	billingFrequency *int,
+	sshKey *string,
+	rootDiskSize *int,
+	instanceType *string,
+) model.Instance {
+	defaultRootDiskStorageType := "CENTRAL"
+	defaultContractType := "MONTHLY"
+	defaultContractTerm := 3
+	defaultBillingFrequency := 1
+	defaultRootDiskSize := 55
+	defaultInstanceType := "lsw.m5a.4xlarge"
+
+	if rootDiskStorageType == nil {
+		rootDiskStorageType = &defaultRootDiskStorageType
+	}
+	if contractType == nil {
+		contractType = &defaultContractType
+	}
+	if contractTerm == nil {
+		contractTerm = &defaultContractTerm
+	}
+	if billingFrequency == nil {
+		billingFrequency = &defaultBillingFrequency
+	}
+	if rootDiskSize == nil {
+		rootDiskSize = &defaultRootDiskSize
+	}
+	if sshKey == nil {
+		sshKey = &defaultSshKey
+	}
+	if instanceType == nil {
+		instanceType = &defaultInstanceType
+	}
+
+	image, _ := types.ObjectValueFrom(
+		context.TODO(),
+		model.Image{}.AttributeTypes(),
+		model.Image{
+			Id:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			Name:         basetypes.NewStringUnknown(),
+			Version:      basetypes.NewStringUnknown(),
+			Family:       basetypes.NewStringUnknown(),
+			Flavour:      basetypes.NewStringUnknown(),
+			MarketApps:   basetypes.NewListUnknown(types.StringType),
+			StorageTypes: basetypes.NewListUnknown(types.StringType),
+		},
+	)
+
+	contract, _ := types.ObjectValueFrom(
+		context.TODO(),
+		model.Contract{}.AttributeTypes(),
+		model.Contract{
+			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
+			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
+			Type:             basetypes.NewStringValue(*contractType),
+			EndsAt:           basetypes.NewStringUnknown(),
+			RenewalsAt:       basetypes.NewStringUnknown(),
+			CreatedAt:        basetypes.NewStringUnknown(),
+			State:            basetypes.NewStringUnknown(),
+		},
+	)
+
+	instance := model.Instance{
+		Id: basetypes.NewStringValue(
+			value_object.NewGeneratedUuid().String(),
+		),
+		Region:              basetypes.NewStringValue("region"),
+		Type:                basetypes.NewStringValue(*instanceType),
+		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),
+		RootDiskSize:        basetypes.NewInt64Value(int64(*rootDiskSize)),
+		Image:               image,
+		Contract:            contract,
+		MarketAppId:         basetypes.NewStringValue("marketAppId"),
+		Reference:           basetypes.NewStringValue("reference"),
+		SshKey:              basetypes.NewStringValue(*sshKey),
+	}
+
+	return instance
 }
