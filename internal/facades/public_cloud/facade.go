@@ -187,11 +187,6 @@ func (h PublicCloudFacade) UpdateInstance(
 	return convertedInstance, nil
 }
 
-// GetImageIds returns a list of valid image ids.
-func (h PublicCloudFacade) GetImageIds() []string {
-	return enum.Debian1064Bit.Values()
-}
-
 // GetSshKeyRegularExpression returns regular expression used to validate ssh keys.
 func (h PublicCloudFacade) GetSshKeyRegularExpression() string {
 	return value_object.SshRegexp

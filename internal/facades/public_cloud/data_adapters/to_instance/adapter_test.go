@@ -23,7 +23,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			nil,
-			nil,
 		)
 
 		got, err := AdaptToCreateInstanceOpts(
@@ -36,7 +35,7 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, string(publicCloud.TYPENAME_M5A_4XLARGE), got.Type.String())
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
-		assert.Equal(t, enum.Ubuntu200464Bit, got.Image.Id)
+		assert.Equal(t, "UBUNTU_20_04_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermThree, got.Contract.Term)
 		assert.Equal(t,
@@ -47,7 +46,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 
 	t.Run("optional values are passed", func(t *testing.T) {
 		instance := generateInstanceModel(
-			nil,
 			nil,
 			nil,
 			nil,
@@ -82,7 +80,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
-				nil,
 			)
 
 			_, err := AdaptToCreateInstanceOpts(
@@ -107,7 +104,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
-				nil,
 				&instanceType,
 			)
 
@@ -122,58 +118,36 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		},
 	)
 
-	t.Run("returns error if invalid imageId is passed", func(t *testing.T) {
-		imageId := "tralala"
-		instance := generateInstanceModel(
-			nil,
-			&imageId,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-		)
+	t.Run(
+		"returns error if invalid contractType is passed",
+		func(t *testing.T) {
+			contractType := "tralala"
+			instance := generateInstanceModel(
+				nil,
+				&contractType,
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+			)
 
-		_, err := AdaptToCreateInstanceOpts(
-			instance,
-			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
-			context.TODO(),
-		)
+			_, err := AdaptToCreateInstanceOpts(
+				instance,
+				[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
+				context.TODO(),
+			)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("returns error if invalid contractType is passed", func(t *testing.T) {
-		contractType := "tralala"
-		instance := generateInstanceModel(
-			nil,
-			nil,
-			&contractType,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-		)
-
-		_, err := AdaptToCreateInstanceOpts(
-			instance,
-			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
-			context.TODO(),
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "tralala")
+		},
+	)
 
 	t.Run(
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
 			instance := generateInstanceModel(
-				nil,
 				nil,
 				nil,
 				&contractTerm,
@@ -202,7 +176,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
-				nil,
 				&billingFrequency,
 				nil,
 				nil,
@@ -227,7 +200,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			nil,
-			nil,
 			&sshKey,
 			nil,
 			nil,
@@ -248,7 +220,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			rootDiskSize := 1
 			instance := generateInstanceModel(
-				nil,
 				nil,
 				nil,
 				nil,
@@ -301,7 +272,6 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 
 	t.Run("optional values are set", func(t *testing.T) {
 		instance := generateInstanceModel(
-			nil,
 			nil,
 			nil,
 			nil,

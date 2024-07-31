@@ -150,7 +150,7 @@ func adaptImage(
 		)
 	}
 
-	plan.Id = basetypes.NewStringValue(string(image.Id))
+	plan.Id = basetypes.NewStringValue(image.Id)
 	plan.Name = basetypes.NewStringValue(image.Name)
 	plan.Version = basetypes.NewStringValue(image.Version)
 	plan.Family = basetypes.NewStringValue(image.Family)

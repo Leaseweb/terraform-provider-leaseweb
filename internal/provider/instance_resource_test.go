@@ -442,32 +442,6 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("invalid image_id", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = "lsw.m3.large"
-  reference = "my webserver"
-  image = {
-    id = "tralala"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					ExpectError: regexp.MustCompile("Attribute image.id value must be one of"),
-				},
-			},
-		})
-	})
-
 	type errorTestCases struct {
 		requiredField string
 		expectedError string

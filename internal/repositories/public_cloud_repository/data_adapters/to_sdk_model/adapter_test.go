@@ -26,24 +26,15 @@ func Test_adaptImageDetails(t *testing.T) {
 			[]string{"storageType"},
 		)
 
-		got, err := adaptImageDetails(*sdkImage)
+		got := adaptImageDetails(*sdkImage)
 
-		assert.Nil(t, err)
-		assert.Equal(t, enum.Ubuntu240464Bit, got.Id)
+		assert.Equal(t, "UBUNTU_24_04_64BIT", got.Id)
 		assert.Equal(t, "name", got.Name)
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
 		assert.Equal(t, "flavour", got.Flavour)
 		assert.Equal(t, []string{"marketApp"}, got.MarketApps)
 		assert.Equal(t, []string{"storageType"}, got.StorageTypes)
-	})
-
-	t.Run("invalid imageId returns error", func(t *testing.T) {
-		sdkImage := publicCloud.ImageDetails{Id: "tralala"}
-
-		_, err := adaptImageDetails(sdkImage)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -119,7 +110,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		)
 		assert.Equal(t, "isoId", got.Iso.Id)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
-		assert.Equal(t, enum.Centos764Bit, got.Image.Id)
+		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id.String())
 	})
@@ -127,16 +118,6 @@ func TestAdaptInstanceDetails(t *testing.T) {
 	t.Run("invalid id returns error", func(t *testing.T) {
 		sdkInstance := generateInstanceDetails(t, nil)
 		sdkInstance.Id = "tralala"
-
-		_, err := AdaptInstanceDetails(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid Image returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
-		sdkInstance.Image.Id = "tralala"
 
 		_, err := AdaptInstanceDetails(sdkInstance)
 
@@ -764,7 +745,7 @@ func TestAdaptInstance(t *testing.T) {
 			enum.ContractBillingFrequencyOne,
 			got.Contract.BillingFrequency,
 		)
-		assert.Equal(t, enum.Centos764Bit, got.Image.Id)
+		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id.String())
 	})
@@ -859,22 +840,13 @@ func Test_adaptImage(t *testing.T) {
 			"flavour",
 		)
 
-		got, err := adaptImage(*sdkImage)
+		got := adaptImage(*sdkImage)
 
-		assert.Nil(t, err)
-		assert.Equal(t, enum.Ubuntu240464Bit, got.Id)
+		assert.Equal(t, "UBUNTU_24_04_64BIT", got.Id)
 		assert.Equal(t, "name", got.Name)
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
 		assert.Equal(t, "flavour", got.Flavour)
-	})
-
-	t.Run("invalid imageId returns error", func(t *testing.T) {
-		sdkImage := publicCloud.Image{Id: "tralala"}
-
-		_, err := adaptImage(sdkImage)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 }
 

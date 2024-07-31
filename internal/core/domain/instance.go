@@ -107,7 +107,7 @@ func NewCreateInstance(
 	region string,
 	instanceType value_object.InstanceType,
 	rootDiskStorageType enum.RootDiskStorageType,
-	imageId enum.ImageId,
+	imageId string,
 	contractType enum.ContractType,
 	contractTerm enum.ContractTerm,
 	billingFrequency enum.ContractBillingFrequency,

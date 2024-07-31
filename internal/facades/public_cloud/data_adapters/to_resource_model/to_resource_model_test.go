@@ -18,7 +18,7 @@ var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzY
 
 func Test_adaptImage(t *testing.T) {
 	image := domain.NewImage(
-		enum.Ubuntu200464Bit,
+		"UBUNTU_20_04_64BIT",
 		"name",
 		"version",
 		"family",
@@ -813,7 +813,7 @@ func generateDomainInstance() domain.Instance {
 	)
 
 	image := domain.NewImage(
-		enum.Ubuntu200464Bit,
+		"UBUNTU_20_04_64BIT",
 		"name",
 		"version",
 		"family",

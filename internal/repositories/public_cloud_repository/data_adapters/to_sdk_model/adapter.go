@@ -23,11 +23,6 @@ func AdaptInstance(
 		return nil, fmt.Errorf("AdaptInstance: %w", err)
 	}
 
-	image, err := adaptImage(sdkInstance.GetImage())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstance: %w", err)
-	}
-
 	state, err := enum.NewState(string(sdkInstance.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf("AdaptInstance: %w", err)
@@ -76,7 +71,7 @@ func AdaptInstance(
 		*instanceId,
 		sdkInstance.GetRegion(),
 		adaptResources(sdkInstance.GetResources()),
-		*image,
+		adaptImage(sdkInstance.GetImage()),
 		state,
 		sdkInstance.GetProductType(),
 		sdkInstance.GetHasPublicIpV4(),
@@ -98,11 +93,6 @@ func AdaptInstanceDetails(
 	var autoScalingGroup *domain.AutoScalingGroup
 
 	instanceId, err := value_object.NewUuid(sdkInstanceDetails.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstanceDetails: %w", err)
-	}
-
-	image, err := adaptImageDetails(sdkInstanceDetails.GetImage())
 	if err != nil {
 		return nil, fmt.Errorf("AdaptInstanceDetails: %w", err)
 	}
@@ -169,7 +159,7 @@ func AdaptInstanceDetails(
 		*instanceId,
 		sdkInstanceDetails.GetRegion(),
 		adaptResources(sdkInstanceDetails.GetResources()),
-		*image,
+		adaptImageDetails(sdkInstanceDetails.GetImage()),
 		state,
 		sdkInstanceDetails.GetProductType(),
 		sdkInstanceDetails.GetHasPublicIpV4(),
@@ -213,17 +203,9 @@ func adaptNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) domain.NetworkS
 	)
 }
 
-func adaptImageDetails(sdkImage publicCloud.ImageDetails) (
-	*domain.Image,
-	error,
-) {
-	imageId, err := enum.NewImageId(sdkImage.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("adaptImageDetails: %w", err)
-	}
-
-	image := domain.NewImage(
-		imageId,
+func adaptImageDetails(sdkImage publicCloud.ImageDetails) domain.Image {
+	return domain.NewImage(
+		sdkImage.GetId(),
 		sdkImage.GetName(),
 		sdkImage.GetVersion(),
 		sdkImage.GetFamily(),
@@ -231,18 +213,11 @@ func adaptImageDetails(sdkImage publicCloud.ImageDetails) (
 		sdkImage.GetMarketApps(),
 		sdkImage.GetStorageTypes(),
 	)
-
-	return &image, nil
 }
 
-func adaptImage(sdkImage publicCloud.Image) (*domain.Image, error) {
-	imageId, err := enum.NewImageId(sdkImage.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("adaptImage: %w", err)
-	}
-
-	image := domain.NewImage(
-		imageId,
+func adaptImage(sdkImage publicCloud.Image) domain.Image {
+	return domain.NewImage(
+		sdkImage.GetId(),
 		sdkImage.GetName(),
 		sdkImage.GetVersion(),
 		sdkImage.GetFamily(),
@@ -250,8 +225,6 @@ func adaptImage(sdkImage publicCloud.Image) (*domain.Image, error) {
 		[]string{},
 		[]string{},
 	)
-
-	return &image, nil
 }
 
 func adaptIpsDetails(sdkIps []publicCloud.IpDetails) (domain.Ips, error) {

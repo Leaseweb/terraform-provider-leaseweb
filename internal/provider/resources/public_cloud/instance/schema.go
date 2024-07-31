@@ -80,7 +80,7 @@ func (i *instanceResource) Schema(
 						},
 					},
 				},
-				Description: "i available for the load balancer",
+				Description: "Available resources",
 				Computed:    true,
 			},
 			"image": schema.SingleNestedAttribute{
@@ -89,9 +89,6 @@ func (i *instanceResource) Schema(
 					"id": schema.StringAttribute{
 						Required:    true,
 						Description: "Image ID",
-						Validators: []validator.String{
-							stringvalidator.OneOf(facade.GetImageIds()...),
-						},
 					},
 					"name": schema.StringAttribute{
 						Computed: true,

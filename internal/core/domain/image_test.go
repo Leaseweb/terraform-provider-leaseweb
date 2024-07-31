@@ -4,12 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 func TestNewImage(t *testing.T) {
 	image := NewImage(
-		enum.Ubuntu240464Bit,
+		"UBUNTU_24_04_64BIT",
 		"name",
 		"version",
 		"family",
@@ -17,7 +16,7 @@ func TestNewImage(t *testing.T) {
 		[]string{"marketApp"},
 		[]string{"storageType"})
 
-	assert.Equal(t, enum.Ubuntu240464Bit, image.Id)
+	assert.Equal(t, "UBUNTU_24_04_64BIT", image.Id)
 	assert.Equal(t, "name", image.Name)
 	assert.Equal(t, "version", image.Version)
 	assert.Equal(t, "family", image.Family)

@@ -73,7 +73,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 			"region",
 			value_object.InstanceType{Type: string(publicCloud.TYPENAME_C3_4XLARGE)},
 			enum.RootDiskStorageTypeCentral,
-			enum.Almalinux864Bit,
+			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
@@ -111,7 +111,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 				string(publicCloud.TYPENAME_M3_LARGE),
 			),
 			enum.RootDiskStorageTypeCentral,
-			enum.Almalinux864Bit,
+			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
@@ -229,7 +229,7 @@ func generateDomainInstance() domain.Instance {
 	)
 
 	image := domain.NewImage(
-		enum.Ubuntu200464Bit,
+		"ALMALINUX_8_64BIT",
 		"name",
 		"version",
 		"family",

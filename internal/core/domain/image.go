@@ -1,11 +1,7 @@
 package domain
 
-import (
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-)
-
 type Image struct {
-	Id           enum.ImageId
+	Id           string
 	Name         string
 	Version      string
 	Family       string
@@ -15,7 +11,7 @@ type Image struct {
 }
 
 func NewImage(
-	id enum.ImageId,
+	id string,
 	name string,
 	version string,
 	family string,

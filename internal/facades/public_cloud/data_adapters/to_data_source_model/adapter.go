@@ -110,7 +110,7 @@ func adaptNetworkSpeed(networkSpeed domain.NetworkSpeed) model.NetworkSpeed {
 
 func adaptImage(domainImage domain.Image) model.Image {
 	image := model.Image{
-		Id:      basetypes.NewStringValue(string(domainImage.Id)),
+		Id:      basetypes.NewStringValue(domainImage.Id),
 		Name:    basetypes.NewStringValue(domainImage.Name),
 		Version: basetypes.NewStringValue(domainImage.Version),
 		Family:  basetypes.NewStringValue(domainImage.Family),

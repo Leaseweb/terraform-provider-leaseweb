@@ -683,14 +683,6 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 	})
 }
 
-func TestPublicCloudFacade_GetImageIds(t *testing.T) {
-	facade := PublicCloudFacade{}
-	want := enum.Debian1064Bit.Values()
-	got := facade.GetImageIds()
-
-	assert.Equal(t, want, got)
-}
-
 func TestPublicCloudFacade_GetSshKeyRegularExpression(t *testing.T) {
 	facade := PublicCloudFacade{}
 	want := value_object.SshRegexp

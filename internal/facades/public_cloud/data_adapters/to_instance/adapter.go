@@ -59,14 +59,6 @@ func AdaptToCreateInstanceOpts(
 		)
 	}
 
-	imageId, err := enum.NewImageId(image.Id.ValueString())
-	if err != nil {
-		return nil, fmt.Errorf(
-			"AdaptToCreateInstanceOpts: %w",
-			err,
-		)
-	}
-
 	contractType, err := enum.NewContractType(contract.Type.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -132,7 +124,7 @@ func AdaptToCreateInstanceOpts(
 		instanceResourceModel.Region.ValueString(),
 		*instanceType,
 		rootDiskStorageType,
-		imageId,
+		image.Id.ValueString(),
 		contractType,
 		contractTerm,
 		billingFrequency,
@@ -253,7 +245,6 @@ func AdaptToUpdateInstanceOpts(
 
 func generateInstanceModel(
 	rootDiskStorageType *string,
-	imageId *string,
 	contractType *string,
 	contractTerm *int,
 	billingFrequency *int,
@@ -262,7 +253,6 @@ func generateInstanceModel(
 	instanceType *string,
 ) model.Instance {
 	defaultRootDiskStorageType := "CENTRAL"
-	defaultImageId := "UBUNTU_20_04_64BIT"
 	defaultContractType := "MONTHLY"
 	defaultContractTerm := 3
 	defaultBillingFrequency := 1
@@ -271,9 +261,6 @@ func generateInstanceModel(
 
 	if rootDiskStorageType == nil {
 		rootDiskStorageType = &defaultRootDiskStorageType
-	}
-	if imageId == nil {
-		imageId = &defaultImageId
 	}
 	if contractType == nil {
 		contractType = &defaultContractType
@@ -298,7 +285,7 @@ func generateInstanceModel(
 		context.TODO(),
 		model.Image{}.AttributeTypes(),
 		model.Image{
-			Id:           basetypes.NewStringValue(*imageId),
+			Id:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			Name:         basetypes.NewStringUnknown(),
 			Version:      basetypes.NewStringUnknown(),
 			Family:       basetypes.NewStringUnknown(),

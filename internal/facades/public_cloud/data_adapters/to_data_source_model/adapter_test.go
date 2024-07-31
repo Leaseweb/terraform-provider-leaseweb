@@ -651,7 +651,7 @@ func generateDomainInstance() domain.Instance {
 	)
 
 	image := domain.NewImage(
-		enum.Ubuntu200464Bit,
+		"UBUNTU_20_04_64BIT",
 		"name",
 		"version",
 		"family",

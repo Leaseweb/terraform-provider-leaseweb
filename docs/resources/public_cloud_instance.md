@@ -58,7 +58,7 @@ resource "leaseweb_public_cloud_instance" "example" {
 - `iso` (Attributes) (see [below for nested schema](#nestedatt--iso))
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--private_network))
 - `product_type` (String) The product type
-- `resources` (Attributes) i available for the load balancer (see [below for nested schema](#nestedatt--resources))
+- `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--resources))
 - `started_at` (String) Date and time when the instance was started for the first time, right after launching it
 - `state` (String) The instance's current state
 
