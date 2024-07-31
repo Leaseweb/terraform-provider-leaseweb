@@ -7,6 +7,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/domain"
 )
 
+// AdaptToLaunchInstanceOpts adapts an instance domain entity to supported launch instance opts.
 func AdaptToLaunchInstanceOpts(instance domain.Instance) (
 	*publicCloud.LaunchInstanceOpts,
 	error,
@@ -66,6 +67,7 @@ func AdaptToLaunchInstanceOpts(instance domain.Instance) (
 	return launchInstanceOpts, nil
 }
 
+// AdaptToUpdateInstanceOpts adapts an instance domain entity to supported update instance opts.
 func AdaptToUpdateInstanceOpts(instance domain.Instance) (
 	*publicCloud.UpdateInstanceOpts,
 	error,
