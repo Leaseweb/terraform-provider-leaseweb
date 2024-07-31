@@ -50,7 +50,7 @@ func AdaptNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
 	return generateModel(*entity)
 }
 
-// AdaptNullableDomainEntityToResourceObject converts a nullable domain entity to Terraform resource object.
+// AdaptNullableDomainEntityToResourceObject converts a nullable domain entity to a Terraform resource object.
 func AdaptNullableDomainEntityToResourceObject[T any, U any](
 	entity *T,
 	attributeTypes map[string]attr.Type,
@@ -104,11 +104,11 @@ func AdaptDomainEntityToResourceObject[T any, U any](
 		resourceObject,
 	)
 	if diags.HasError() {
-		for _, diag := range diags {
+		for _, v := range diags {
 			return types.ObjectUnknown(attributeTypes), fmt.Errorf(
 				"unable to convert domain entity to resource: %q %q",
-				diag.Summary(),
-				diag.Detail(),
+				v.Summary(),
+				v.Detail(),
 			)
 		}
 
@@ -147,11 +147,11 @@ func AdaptEntitiesToListValue[T any, U any](
 	)
 
 	if diags.HasError() {
-		for _, diag := range diags {
+		for _, v := range diags {
 			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
 				"unable to convert domain entity to resource: %q %q",
-				diag.Summary(),
-				diag.Detail(),
+				v.Summary(),
+				v.Detail(),
 			)
 		}
 	}
