@@ -1,4 +1,4 @@
-package to_instance
+package to_domain_entity
 
 import (
 	"context"

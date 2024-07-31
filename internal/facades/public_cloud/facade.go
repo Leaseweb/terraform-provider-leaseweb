@@ -11,7 +11,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
 	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_data_source_model"
-	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_instance"
+	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_domain_entity"
 	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_resource_model"
 	"terraform-provider-leaseweb/internal/facades/shared"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
@@ -339,7 +339,7 @@ func NewPublicCloudFacade(publicCloudService ports.PublicCloudService) PublicClo
 		publicCloudService:              publicCloudService,
 		adaptInstanceToResourceModel:    to_resource_model.AdaptInstance,
 		adaptInstancesToDataSourceModel: to_data_source_model.AdaptInstances,
-		adaptToCreateInstanceOpts:       to_instance.AdaptToCreateInstanceOpts,
-		adaptToUpdateInstanceOpts:       to_instance.AdaptToUpdateInstanceOpts,
+		adaptToCreateInstanceOpts:       to_domain_entity.AdaptToCreateInstanceOpts,
+		adaptToUpdateInstanceOpts:       to_domain_entity.AdaptToUpdateInstanceOpts,
 	}
 }

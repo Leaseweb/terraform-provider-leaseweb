@@ -1,4 +1,4 @@
-package to_instance
+package to_domain_entity
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
+// AdaptToCreateInstanceOpts transforms a resource model to an instance domain
+// entity with all supported fields for creating an instance.
 func AdaptToCreateInstanceOpts(
 	instanceResourceModel model.Instance,
 	allowedInstancedTypes []string,
@@ -140,6 +142,8 @@ func AdaptToCreateInstanceOpts(
 	return &createInstanceOpts, nil
 }
 
+// AdaptToUpdateInstanceOpts transforms a resource model to an instance domain
+// entity with all supported fields for updating an instance.
 func AdaptToUpdateInstanceOpts(
 	instanceResourceModel model.Instance,
 	allowedInstanceTypes []string,
