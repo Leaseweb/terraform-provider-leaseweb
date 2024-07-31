@@ -9,9 +9,11 @@ import (
 	"terraform-provider-leaseweb/internal/handlers/shared"
 )
 
+var _ validator.String = RegionValidator{}
+
 // RegionValidator validates if a region exists.
 type RegionValidator struct {
-	DoesRegionExist func(
+	doesRegionExist func(
 		region string,
 		ctx context.Context,
 	) (bool, []string, *shared.HandlerError)
@@ -30,12 +32,12 @@ func (r RegionValidator) ValidateString(
 	request validator.StringRequest,
 	response *validator.StringResponse,
 ) {
-	// If the value is unknown or null, there is nothing to validate.
+	// If the region is unknown or null, there is nothing to validate.
 	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
 		return
 	}
 
-	regionExists, currentRegions, err := r.DoesRegionExist(
+	regionExists, currentRegions, err := r.doesRegionExist(
 		request.ConfigValue.ValueString(),
 		ctx,
 	)
@@ -54,7 +56,6 @@ func (r RegionValidator) ValidateString(
 				request.ConfigValue.ValueString(),
 			),
 		)
-		return
 	}
 }
 
@@ -62,5 +63,5 @@ func NewRegionValidator(doesRegionExist func(
 	region string,
 	ctx context.Context,
 ) (bool, []string, *shared.HandlerError)) RegionValidator {
-	return RegionValidator{DoesRegionExist: doesRegionExist}
+	return RegionValidator{doesRegionExist: doesRegionExist}
 }
