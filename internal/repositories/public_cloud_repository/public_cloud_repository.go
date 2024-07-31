@@ -7,6 +7,8 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_instance"
+	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
 	"terraform-provider-leaseweb/internal/repositories/sdk"
 	"terraform-provider-leaseweb/internal/repositories/shared"
 )
@@ -19,26 +21,26 @@ type Optional struct {
 
 // PublicCloudRepository fulfills contract for ports.PublicCloudRepository.
 type PublicCloudRepository struct {
-	publicCLoudAPI         sdk.PublicCloudApi
-	token                  string
-	convertInstanceDetails func(
+	publicCLoudAPI       sdk.PublicCloudApi
+	token                string
+	adaptInstanceDetails func(
 		sdkInstance publicCloud.InstanceDetails,
 	) (*domain.Instance, error)
-	convertInstance func(
+	adaptInstance func(
 		sdkInstance publicCloud.Instance,
 	) (*domain.Instance, error)
-	convertAutoScalingGroupDetails func(
+	adaptAutoScalingGroupDetails func(
 		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
 	) (*domain.AutoScalingGroup, error)
-	convertLoadBalancerDetails func(
+	adaptLoadBalancerDetails func(
 		sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
 	) (*domain.LoadBalancer, error)
-	convertEntityToLaunchInstanceOpts func(instance domain.Instance) (
+	adaptToLaunchInstanceOpts func(instance domain.Instance) (
 		*publicCloud.LaunchInstanceOpts, error)
-	convertEntityToUpdateInstanceOpts func(instance domain.Instance) (
+	adaptToUpdateInstanceOpts func(instance domain.Instance) (
 		*publicCloud.UpdateInstanceOpts, error)
-	convertRegion       func(sdkRegion publicCloud.Region) domain.Region
-	convertInstanceType func(sdkInstanceType publicCloud.InstanceType) (
+	adaptRegion       func(sdkRegion publicCloud.Region) domain.Region
+	adaptInstanceType func(sdkInstanceType publicCloud.InstanceType) (
 		*domain.InstanceType,
 		error,
 	)
@@ -83,7 +85,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 		}
 
 		for _, sdkInstance := range result.Instances {
-			instance, err := p.convertInstance(sdkInstance)
+			instance, err := p.adaptInstance(sdkInstance)
 			if err != nil {
 				return nil, shared.NewGeneralError("GetAllInstances", err)
 			}
@@ -121,7 +123,7 @@ func (p PublicCloudRepository) GetInstance(
 		)
 	}
 
-	instance, err := p.convertInstanceDetails(*sdkInstance)
+	instance, err := p.adaptInstanceDetails(*sdkInstance)
 	if err != nil {
 		return nil, shared.NewSdkError(
 			fmt.Sprintf("GetInstance %q", id),
@@ -149,7 +151,7 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 		)
 	}
 
-	autoScalingGroup, err := p.convertAutoScalingGroupDetails(
+	autoScalingGroup, err := p.adaptAutoScalingGroupDetails(
 		*sdkAutoScalingGroupDetails,
 	)
 	if err != nil {
@@ -180,7 +182,7 @@ func (p PublicCloudRepository) GetLoadBalancer(
 		)
 	}
 
-	loadBalancer, err = p.convertLoadBalancerDetails(*sdkLoadBalancerDetails)
+	loadBalancer, err = p.adaptLoadBalancerDetails(*sdkLoadBalancerDetails)
 	if err != nil {
 		return nil, shared.NewGeneralError(
 			fmt.Sprintf("GetLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
@@ -196,7 +198,7 @@ func (p PublicCloudRepository) CreateInstance(
 	ctx context.Context,
 ) (*domain.Instance, *shared.RepositoryError) {
 
-	launchInstanceOpts, err := p.convertEntityToLaunchInstanceOpts(instance)
+	launchInstanceOpts, err := p.adaptToLaunchInstanceOpts(instance)
 	if err != nil {
 		return nil, shared.NewGeneralError(
 			"CreateInstance",
@@ -216,7 +218,7 @@ func (p PublicCloudRepository) CreateInstance(
 		)
 	}
 
-	launchedInstance, err := p.convertInstance(*sdkLaunchedInstance)
+	launchedInstance, err := p.adaptInstance(*sdkLaunchedInstance)
 
 	if err != nil {
 		return nil, shared.NewGeneralError("CreateInstance", err)
@@ -230,7 +232,7 @@ func (p PublicCloudRepository) UpdateInstance(
 	ctx context.Context,
 ) (*domain.Instance, *shared.RepositoryError) {
 
-	updateInstanceOpts, err := p.convertEntityToUpdateInstanceOpts(instance)
+	updateInstanceOpts, err := p.adaptToUpdateInstanceOpts(instance)
 	if err != nil {
 		return nil, shared.NewGeneralError(
 			fmt.Sprintf("UpdateInstance %q", instance.Id),
@@ -250,7 +252,7 @@ func (p PublicCloudRepository) UpdateInstance(
 		)
 	}
 
-	updatedInstance, err := p.convertInstanceDetails(*sdkUpdatedInstance)
+	updatedInstance, err := p.adaptInstanceDetails(*sdkUpdatedInstance)
 	if err != nil {
 		return nil, shared.NewGeneralError(
 			fmt.Sprintf("UpdateInstance %q", instance.Id),
@@ -299,7 +301,7 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	}
 
 	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
-		instanceType, err := p.convertInstanceType(sdkInstanceType)
+		instanceType, err := p.adaptInstanceType(sdkInstanceType)
 		if err != nil {
 			return nil, shared.NewSdkError(
 				fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
@@ -341,7 +343,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 		}
 
 		for _, sdkRegion := range result.Regions {
-			region := p.convertRegion(sdkRegion)
+			region := p.adaptRegion(sdkRegion)
 
 			regions = append(regions, region)
 		}
@@ -396,7 +398,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 		}
 
 		for _, sdkInstanceType := range result.InstanceTypes {
-			instanceType, err := p.convertInstanceType(sdkInstanceType)
+			instanceType, err := p.adaptInstanceType(sdkInstanceType)
 			if err != nil {
 				return nil, shared.NewSdkError(
 					"GetInstanceTypesForRegion",
@@ -437,15 +439,15 @@ func NewPublicCloudRepository(
 	client := *publicCloud.NewAPIClient(configuration)
 
 	return PublicCloudRepository{
-		publicCLoudAPI:                    client.PublicCloudAPI,
-		token:                             token,
-		convertInstanceDetails:            convertInstanceDetails,
-		convertInstance:                   convertInstance,
-		convertAutoScalingGroupDetails:    convertAutoScalingGroupDetails,
-		convertLoadBalancerDetails:        convertLoadBalancerDetails,
-		convertInstanceType:               convertInstanceType,
-		convertRegion:                     convertRegion,
-		convertEntityToLaunchInstanceOpts: convertEntityToLaunchInstanceOpts,
-		convertEntityToUpdateInstanceOpts: convertEntityToUpdateInstanceOpts,
+		publicCLoudAPI:               client.PublicCloudAPI,
+		token:                        token,
+		adaptInstanceDetails:         to_sdk_model.AdaptInstanceDetails,
+		adaptInstance:                to_sdk_model.AdaptInstance,
+		adaptAutoScalingGroupDetails: to_sdk_model.AdaptAutoScalingGroupDetails,
+		adaptLoadBalancerDetails:     to_sdk_model.AdaptLoadBalancerDetails,
+		adaptInstanceType:            to_sdk_model.AdaptInstanceType,
+		adaptRegion:                  to_sdk_model.AdaptRegion,
+		adaptToLaunchInstanceOpts:    to_instance.AdaptToLaunchInstanceOpts,
+		adaptToUpdateInstanceOpts:    to_instance.AdaptToUpdateInstanceOpts,
 	}
 }
