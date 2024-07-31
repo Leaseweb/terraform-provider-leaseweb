@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"terraform-provider-leaseweb/internal/handlers/shared"
+	"terraform-provider-leaseweb/internal/facades/shared"
 )
 
 var _ validator.String = RegionValidator{}
@@ -16,7 +16,7 @@ type RegionValidator struct {
 	doesRegionExist func(
 		region string,
 		ctx context.Context,
-	) (bool, []string, *shared.HandlerError)
+	) (bool, []string, *shared.FacadeError)
 }
 
 func (r RegionValidator) Description(ctx context.Context) string {
@@ -62,6 +62,6 @@ func (r RegionValidator) ValidateString(
 func NewRegionValidator(doesRegionExist func(
 	region string,
 	ctx context.Context,
-) (bool, []string, *shared.HandlerError)) RegionValidator {
+) (bool, []string, *shared.FacadeError)) RegionValidator {
 	return RegionValidator{doesRegionExist: doesRegionExist}
 }

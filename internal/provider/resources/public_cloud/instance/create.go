@@ -23,7 +23,7 @@ func (i *instanceResource) Create(
 	}
 
 	tflog.Info(ctx, "Creating public cloud instance")
-	instance, err := i.client.PublicCloudHandler.CreateInstance(plan, ctx)
+	instance, err := i.client.PublicCloudFacade.CreateInstance(plan, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Instance", err.Error())
 

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/handlers/shared"
+	"terraform-provider-leaseweb/internal/facades/shared"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 

@@ -26,7 +26,7 @@ func (i *instanceResource) Read(
 		"Read public cloud instance %q",
 		state.Id.ValueString(),
 	))
-	instance, err := i.client.PublicCloudHandler.GetInstance(
+	instance, err := i.client.PublicCloudFacade.GetInstance(
 		state.Id.ValueString(),
 		ctx,
 	)

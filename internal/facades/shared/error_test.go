@@ -27,7 +27,7 @@ func TestNewFromServiceError(t *testing.T) {
 
 	got := NewFromServicesError("prefix", serviceError)
 
-	want := HandlerError{
+	want := FacadeError{
 		msg:           "prefix: serviceErrorPrefix: repositoryErrorPrefix: tralala",
 		ErrorResponse: &errorResponse,
 	}
@@ -35,8 +35,8 @@ func TestNewFromServiceError(t *testing.T) {
 	assert.Equal(t, want, *got)
 }
 
-func TestHandlerError_Error(t *testing.T) {
-	err := HandlerError{msg: "tralala"}
+func TestFacadeError_Error(t *testing.T) {
+	err := FacadeError{msg: "tralala"}
 	want := "tralala"
 	got := err.Error()
 
@@ -48,7 +48,7 @@ func TestNewError(t *testing.T) {
 
 	got := NewError("prefix", err)
 
-	want := HandlerError{
+	want := FacadeError{
 		msg:          "prefix: tralala",
 		GeneralError: err,
 	}
@@ -57,18 +57,18 @@ func TestNewError(t *testing.T) {
 }
 
 func ExampleNewFromServicesError() {
-	handlerError := NewFromServicesError(
-		"handlerPrefix",
+	facadeError := NewFromServicesError(
+		"facadePrefix",
 		sharedService.NewError("sharedPrefix", errors.New("tralala")),
 	)
 
-	fmt.Println(handlerError)
-	// Output: handlerPrefix: sharedPrefix: tralala
+	fmt.Println(facadeError)
+	// Output: facadePrefix: sharedPrefix: tralala
 }
 
 func ExampleNewError() {
-	handlerError := NewError("prefix", errors.New("tralala"))
+	facadeError := NewError("prefix", errors.New("tralala"))
 
-	fmt.Println(handlerError)
+	fmt.Println(facadeError)
 	// Output: prefix: tralala
 }

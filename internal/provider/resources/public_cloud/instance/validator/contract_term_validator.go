@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/handlers/public_cloud"
+	"terraform-provider-leaseweb/internal/facades/public_cloud"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -30,11 +30,11 @@ func (v contractTermValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
-	handler := public_cloud.PublicCloudHandler{}
+	facade := public_cloud.PublicCloudFacade{}
 
 	contract := model.Contract{}
 	request.ConfigValue.As(ctx, &contract, basetypes.ObjectAsOptions{})
-	err := handler.ValidateContractTerm(
+	err := facade.ValidateContractTerm(
 		contract.Term.ValueInt64(),
 		contract.Type.ValueString(),
 	)

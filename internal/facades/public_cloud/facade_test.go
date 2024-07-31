@@ -120,14 +120,14 @@ func (s *serviceSpy) GetRegions(ctx context.Context) (
 	return s.getRegions, s.getRegionsError
 }
 
-func TestPublicCloudHandler_NewPublicCloudHandler(t *testing.T) {
+func TestPublicCloudFacadeNewPublicCloudFacade(t *testing.T) {
 	service := &serviceSpy{}
-	handler := NewPublicCloudHandler(service)
+	facade := NewPublicCloudFacade(service)
 
-	assert.Equal(t, service, handler.publicCloudService)
+	assert.Equal(t, service, facade.publicCloudService)
 }
 
-func TestPublicCloudHandler_CreateInstance(t *testing.T) {
+func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
 		createdInstanceId := value_object.NewGeneratedUuid()
 		createdInstance := domain.Instance{Id: createdInstanceId}
@@ -158,8 +158,8 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 			Contract:            contract,
 		}
 
-		handler := NewPublicCloudHandler(service)
-		handler.adaptToCreateInstanceOpts = func(
+		facade := NewPublicCloudFacade(service)
+		facade.adaptToCreateInstanceOpts = func(
 			instance model.Instance,
 			allowedInstanceTypes []string,
 			ctx context.Context,
@@ -167,7 +167,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 			return &domain.Instance{}, nil
 		}
 
-		got, err := handler.CreateInstance(instance, context.TODO())
+		got, err := facade.CreateInstance(instance, context.TODO())
 
 		assert.Nil(t, err)
 		assert.Equal(t, createdInstanceId.String(), got.Id.ValueString())
@@ -175,8 +175,8 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 
 	t.Run("error is returned if createInstanceOpts fails", func(t *testing.T) {
 		spy := serviceSpy{}
-		handler := NewPublicCloudHandler(&spy)
-		handler.adaptToCreateInstanceOpts = func(
+		facade := NewPublicCloudFacade(&spy)
+		facade.adaptToCreateInstanceOpts = func(
 			instance model.Instance,
 			allowedInstanceTypes []string,
 			ctx context.Context,
@@ -184,7 +184,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 			return &domain.Instance{}, errors.New("some error")
 		}
 
-		_, err := handler.CreateInstance(model.Instance{}, context.TODO())
+		_, err := facade.CreateInstance(model.Instance{}, context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
@@ -193,7 +193,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 	t.Run(
 		"error is returned if service CreateInstance fails",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{
+			facade := PublicCloudFacade{
 				adaptToCreateInstanceOpts: func(
 					instance model.Instance,
 					allowedInstanceTypes []string,
@@ -209,7 +209,7 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 				},
 			}
 
-			_, err := handler.CreateInstance(model.Instance{}, context.TODO())
+			_, err := facade.CreateInstance(model.Instance{}, context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")
@@ -223,22 +223,22 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 			service := &serviceSpy{createdInstance: &createdInstance}
 			instance := model.Instance{}
 
-			handler := NewPublicCloudHandler(service)
-			handler.adaptToCreateInstanceOpts = func(
+			facade := NewPublicCloudFacade(service)
+			facade.adaptToCreateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, nil
 			}
-			handler.adaptInstanceToResourceModel = func(
+			facade.adaptInstanceToResourceModel = func(
 				instance domain.Instance,
 				ctx context.Context,
 			) (*model.Instance, error) {
 				return nil, errors.New("some error")
 			}
 
-			_, err := handler.CreateInstance(instance, context.TODO())
+			_, err := facade.CreateInstance(instance, context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")
@@ -254,9 +254,9 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 					errors.New("some error"),
 				),
 			}
-			handler := NewPublicCloudHandler(&spy)
+			facade := NewPublicCloudFacade(&spy)
 
-			_, err := handler.CreateInstance(model.Instance{}, context.TODO())
+			_, err := facade.CreateInstance(model.Instance{}, context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")
@@ -264,12 +264,12 @@ func TestPublicCloudHandler_CreateInstance(t *testing.T) {
 	)
 }
 
-func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
+func TestPublicCloudFacade_DeleteInstance(t *testing.T) {
 	t.Run("instance is deleted successfully", func(t *testing.T) {
 		spy := &serviceSpy{}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		err := handler.DeleteInstance(
+		err := facade.DeleteInstance(
 			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
 			context.TODO(),
 		)
@@ -278,9 +278,9 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 	})
 
 	t.Run("invalid id returns error", func(t *testing.T) {
-		handler := PublicCloudHandler{}
+		facade := PublicCloudFacade{}
 
-		err := handler.DeleteInstance("tralala", context.TODO())
+		err := facade.DeleteInstance("tralala", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -293,9 +293,9 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 				errors.New("some errors"),
 			),
 		}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		err := handler.DeleteInstance(
+		err := facade.DeleteInstance(
 			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
 			context.TODO(),
 		)
@@ -306,23 +306,23 @@ func TestPublicCloudHandler_DeleteInstance(t *testing.T) {
 
 	t.Run("id is passed to repository", func(t *testing.T) {
 		spy := &serviceSpy{}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 		wanted := "3cf0ddcb-b375-45a8-b18a-1bdad52527f2"
 
-		_ = handler.DeleteInstance(wanted, context.TODO())
+		_ = facade.DeleteInstance(wanted, context.TODO())
 
 		assert.Equal(t, wanted, spy.deleteInstancePassedId.String())
 	})
 }
 
-func TestPublicCloudHandler_DoesRegionExist(t *testing.T) {
+func TestPublicCloudFacade_DoesRegionExist(t *testing.T) {
 	t.Run("returns true if region exists", func(t *testing.T) {
 		want := domain.Regions{{Name: "region"}}
 
 		spy := &serviceSpy{getRegions: want}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		got, validRegions, err := handler.DoesRegionExist(
+		got, validRegions, err := facade.DoesRegionExist(
 			"region",
 			context.TODO(),
 		)
@@ -336,9 +336,9 @@ func TestPublicCloudHandler_DoesRegionExist(t *testing.T) {
 		want := domain.Regions{{Name: "region"}}
 
 		spy := &serviceSpy{getRegions: want}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		got, validRegions, err := handler.DoesRegionExist(
+		got, validRegions, err := facade.DoesRegionExist(
 			"tralala",
 			context.TODO(),
 		)
@@ -355,16 +355,16 @@ func TestPublicCloudHandler_DoesRegionExist(t *testing.T) {
 				errors.New("some errors"),
 			),
 		}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		_, _, err := handler.DoesRegionExist("region", context.TODO())
+		_, _, err := facade.DoesRegionExist("region", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
 }
 
-func TestPublicCloudHandler_GetInstance(t *testing.T) {
+func TestPublicCloudFacade_GetInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
 		instanceId := value_object.NewGeneratedUuid()
 		sdkInstance := domain.Instance{Id: instanceId}
@@ -372,7 +372,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 		want := model.Instance{Id: basetypes.NewStringValue(instanceId.String())}
 
 		spy := serviceSpy{getInstance: &sdkInstance}
-		handler := PublicCloudHandler{
+		facade := PublicCloudFacade{
 			publicCloudService: &spy,
 			adaptInstanceToResourceModel: func(
 				instance domain.Instance,
@@ -383,16 +383,16 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 			},
 		}
 
-		got, err := handler.GetInstance(instanceId.String(), context.TODO())
+		got, err := facade.GetInstance(instanceId.String(), context.TODO())
 
 		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
 
 	t.Run("error is returned if id is invalid", func(t *testing.T) {
-		handler := PublicCloudHandler{}
+		facade := PublicCloudFacade{}
 
-		_, err := handler.GetInstance("tralala", context.TODO())
+		_, err := facade.GetInstance("tralala", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -401,7 +401,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 	t.Run(
 		"error is returned if service GetInstance fails",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{
+			facade := PublicCloudFacade{
 				publicCloudService: &serviceSpy{
 					getInstanceError: serviceErrors.NewError(
 						"",
@@ -410,7 +410,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 				},
 			}
 
-			_, err := handler.GetInstance(
+			_, err := facade.GetInstance(
 				"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
 				context.TODO(),
 			)
@@ -426,7 +426,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 			sdkInstance := domain.Instance{}
 
 			spy := serviceSpy{getInstance: &sdkInstance}
-			handler := PublicCloudHandler{
+			facade := PublicCloudFacade{
 				publicCloudService: &spy,
 				adaptInstanceToResourceModel: func(
 					instance domain.Instance,
@@ -436,7 +436,7 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 				},
 			}
 
-			_, err := handler.GetInstance(
+			_, err := facade.GetInstance(
 				value_object.NewGeneratedUuid().String(),
 				context.TODO(),
 			)
@@ -450,17 +450,17 @@ func TestPublicCloudHandler_GetInstance(t *testing.T) {
 		instanceId := value_object.NewGeneratedUuid()
 
 		spy := serviceSpy{getInstanceError: &serviceErrors.ServiceError{}}
-		handler := PublicCloudHandler{
+		facade := PublicCloudFacade{
 			publicCloudService: &spy,
 		}
 
-		_, _ = handler.GetInstance(instanceId.String(), context.TODO())
+		_, _ = facade.GetInstance(instanceId.String(), context.TODO())
 
 		assert.Equal(t, instanceId, spy.getInstancePassedId)
 	})
 }
 
-func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
+func TestPublicCloudFacade_GetAllInstances(t *testing.T) {
 	t.Run("expected instances are returned", func(t *testing.T) {
 		instanceId := value_object.NewGeneratedUuid()
 		domainInstances := domain.Instances{{Id: instanceId}}
@@ -473,7 +473,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 
 		spy := &serviceSpy{getInstances: domainInstances}
 
-		handler := PublicCloudHandler{
+		facade := PublicCloudFacade{
 			publicCloudService: spy,
 			adaptInstancesToDataSourceModel: func(instances domain.Instances) dataSourceModel.Instances {
 				assert.Equal(t, instanceId, instances[0].Id)
@@ -481,7 +481,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 			},
 		}
 
-		got, err := handler.GetAllInstances(context.TODO())
+		got, err := facade.GetAllInstances(context.TODO())
 
 		assert.Nil(t, err)
 		assert.Equal(t, instanceId.String(), got.Instances[0].Id.ValueString())
@@ -490,7 +490,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 	t.Run(
 		"error is returned if service GetAllInstances fails",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{
+			facade := PublicCloudFacade{
 				publicCloudService: &serviceSpy{
 					getInstancesError: serviceErrors.NewError(
 						"",
@@ -499,7 +499,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 				},
 			}
 
-			_, err := handler.GetAllInstances(context.TODO())
+			_, err := facade.GetAllInstances(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")
@@ -508,7 +508,7 @@ func TestPublicCloudHandler_GetAllInstances(t *testing.T) {
 
 }
 
-func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
+func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
 		createInstanceId := value_object.NewGeneratedUuid()
 
@@ -521,7 +521,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		updatedInstance := domain.Instance{Id: value_object.NewGeneratedUuid()}
 
 		spy := serviceSpy{updatedInstance: &updatedInstance}
-		handler := PublicCloudHandler{
+		facade := PublicCloudFacade{
 			publicCloudService: &spy,
 			adaptToUpdateInstanceOpts: func(
 				instance model.Instance,
@@ -551,7 +551,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 			},
 		}
 
-		got, err := handler.UpdateInstance(plan, context.TODO())
+		got, err := facade.UpdateInstance(plan, context.TODO())
 
 		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
@@ -561,8 +561,8 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		"error is returned if updatedInstancePassedInstance fails",
 		func(t *testing.T) {
 			spy := serviceSpy{}
-			handler := NewPublicCloudHandler(&spy)
-			handler.adaptToUpdateInstanceOpts = func(
+			facade := NewPublicCloudFacade(&spy)
+			facade.adaptToUpdateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
@@ -570,7 +570,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 				return &domain.Instance{}, errors.New("some error")
 			}
 
-			_, err := handler.UpdateInstance(
+			_, err := facade.UpdateInstance(
 				model.Instance{
 					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
 				},
@@ -591,8 +591,8 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 					errors.New("some error"),
 				),
 			}
-			handler := NewPublicCloudHandler(&spy)
-			handler.adaptToUpdateInstanceOpts = func(
+			facade := NewPublicCloudFacade(&spy)
+			facade.adaptToUpdateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
 				ctx context.Context,
@@ -600,7 +600,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 				return &domain.Instance{}, nil
 			}
 
-			_, err := handler.UpdateInstance(
+			_, err := facade.UpdateInstance(
 				model.Instance{
 					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
 				},
@@ -616,7 +616,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 		"error is returned if adaptInstanceToResourceModel fails",
 		func(t *testing.T) {
 			spy := serviceSpy{updatedInstance: &domain.Instance{}}
-			handler := PublicCloudHandler{
+			facade := PublicCloudFacade{
 				publicCloudService: &spy,
 				adaptToUpdateInstanceOpts: func(
 					instance model.Instance,
@@ -634,7 +634,7 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 				},
 			}
 
-			_, err := handler.UpdateInstance(
+			_, err := facade.UpdateInstance(
 				model.Instance{
 					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
 				},
@@ -655,9 +655,9 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 					errors.New("some error"),
 				),
 			}
-			handler := NewPublicCloudHandler(&spy)
+			facade := NewPublicCloudFacade(&spy)
 
-			_, err := handler.UpdateInstance(
+			_, err := facade.UpdateInstance(
 				model.Instance{
 					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
 				},
@@ -670,8 +670,8 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 	)
 
 	t.Run("passing an invalid id returns an error", func(t *testing.T) {
-		handler := PublicCloudHandler{}
-		_, err := handler.UpdateInstance(
+		facade := PublicCloudFacade{}
+		_, err := facade.UpdateInstance(
 			model.Instance{
 				Id: basetypes.NewStringValue("tralala"),
 			},
@@ -683,76 +683,76 @@ func TestPublicCloudHandler_UpdateInstance(t *testing.T) {
 	})
 }
 
-func TestPublicCloudHandler_GetImageIds(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetImageIds(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := enum.Debian1064Bit.Values()
-	got := handler.GetImageIds()
+	got := facade.GetImageIds()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetSshKeyRegularExpression(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetSshKeyRegularExpression(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := value_object.SshRegexp
-	got := handler.GetSshKeyRegularExpression()
+	got := facade.GetSshKeyRegularExpression()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetMinimumRootDiskSize(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetMinimumRootDiskSize(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := int64(value_object.MinRootDiskSize)
-	got := handler.GetMinimumRootDiskSize()
+	got := facade.GetMinimumRootDiskSize()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetMaximumRootDiskSize(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetMaximumRootDiskSize(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := int64(value_object.MaxRootDiskSize)
-	got := handler.GetMaximumRootDiskSize()
+	got := facade.GetMaximumRootDiskSize()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetRootDiskStorageTypes(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetRootDiskStorageTypes(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := enum.RootDiskStorageTypeCentral.Values()
-	got := handler.GetRootDiskStorageTypes()
+	got := facade.GetRootDiskStorageTypes()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetBillingFrequencies(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetBillingFrequencies(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := []int64{0, 1, 3, 6, 12}
-	got := handler.GetBillingFrequencies()
+	got := facade.GetBillingFrequencies()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetContractTerms(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetContractTerms(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := []int64{0, 1, 3, 6, 12}
-	got := handler.GetContractTerms()
+	got := facade.GetContractTerms()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_GetContractTypes(t *testing.T) {
-	handler := PublicCloudHandler{}
+func TestPublicCloudFacade_GetContractTypes(t *testing.T) {
+	facade := PublicCloudFacade{}
 	want := []string{"HOURLY", "MONTHLY"}
-	got := handler.GetContractTypes()
+	got := facade.GetContractTypes()
 
 	assert.Equal(t, want, got)
 }
 
-func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
+func TestPublicCloudFacade_ValidateContractTerm(t *testing.T) {
 	t.Run(
 		"ErrContractTermCannotBeZero is returned when contract returns ErrContractTermCannotBeZero",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{}
-			got := handler.ValidateContractTerm(0, "MONTHLY")
+			facade := PublicCloudFacade{}
+			got := facade.ValidateContractTerm(0, "MONTHLY")
 
 			assert.ErrorIs(t, got, ErrContractTermCannotBeZero)
 		},
@@ -761,8 +761,8 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 	t.Run(
 		"ErrContractTermMustBeZero is returned when contract returns ErrContractTermMustBeZero",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{}
-			got := handler.ValidateContractTerm(3, "HOURLY")
+			facade := PublicCloudFacade{}
+			got := facade.ValidateContractTerm(3, "HOURLY")
 
 			assert.ErrorIs(t, got, ErrContractTermMustBeZero)
 		},
@@ -771,8 +771,8 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 	t.Run(
 		"no error is returned when contract does not return an error",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{}
-			got := handler.ValidateContractTerm(0, "HOURLY")
+			facade := PublicCloudFacade{}
+			got := facade.ValidateContractTerm(0, "HOURLY")
 
 			assert.Nil(t, got)
 		},
@@ -781,8 +781,8 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 	t.Run(
 		"error is returned when invalid contractTerm is passed",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{}
-			got := handler.ValidateContractTerm(55, "HOURLY")
+			facade := PublicCloudFacade{}
+			got := facade.ValidateContractTerm(55, "HOURLY")
 
 			assert.ErrorContains(t, got, "55")
 		},
@@ -791,24 +791,24 @@ func TestPublicCloudHandler_ValidateContractTerm(t *testing.T) {
 	t.Run(
 		"error is returned when invalid contractType is passed",
 		func(t *testing.T) {
-			handler := PublicCloudHandler{}
-			got := handler.ValidateContractTerm(0, "tralala")
+			facade := PublicCloudFacade{}
+			got := facade.ValidateContractTerm(0, "tralala")
 
 			assert.ErrorContains(t, got, "tralala")
 		},
 	)
 }
 
-func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
+func TestPublicCloudFacade_IsInstanceTypeAvailableForRegion(t *testing.T) {
 	t.Run(
 		"return true when instanceType is available for region",
 		func(t *testing.T) {
 			spy := serviceSpy{getAvailableInstanceTypesForRegion: domain.InstanceTypes{
 				domain.InstanceType{Name: "tralala"}},
 			}
-			handler := NewPublicCloudHandler(&spy)
+			facade := NewPublicCloudFacade(&spy)
 
-			got, instanceTypes, err := handler.IsInstanceTypeAvailableForRegion(
+			got, instanceTypes, err := facade.IsInstanceTypeAvailableForRegion(
 				"tralala",
 				"region",
 				context.TODO(),
@@ -826,9 +826,9 @@ func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
 			spy := serviceSpy{getAvailableInstanceTypesForRegion: domain.InstanceTypes{
 				domain.InstanceType{Name: "piet"}},
 			}
-			handler := NewPublicCloudHandler(&spy)
+			facade := NewPublicCloudFacade(&spy)
 
-			got, instanceTypes, err := handler.IsInstanceTypeAvailableForRegion(
+			got, instanceTypes, err := facade.IsInstanceTypeAvailableForRegion(
 				"tralala",
 				"region",
 				context.TODO(),
@@ -842,9 +842,9 @@ func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
 
 	t.Run("region is passed to service", func(t *testing.T) {
 		spy := serviceSpy{}
-		handler := NewPublicCloudHandler(&spy)
+		facade := NewPublicCloudFacade(&spy)
 
-		_, _, _ = handler.IsInstanceTypeAvailableForRegion(
+		_, _, _ = facade.IsInstanceTypeAvailableForRegion(
 			"tralala",
 			"region",
 			context.TODO(),
@@ -864,9 +864,9 @@ func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
 				errors.New("some error"),
 			),
 		}
-		handler := NewPublicCloudHandler(&spy)
+		facade := NewPublicCloudFacade(&spy)
 
-		_, _, err := handler.IsInstanceTypeAvailableForRegion(
+		_, _, err := facade.IsInstanceTypeAvailableForRegion(
 			"tralala",
 			"region",
 			context.TODO(),
@@ -877,16 +877,16 @@ func TestPublicCloudHandler_IsInstanceTypeAvailableForRegion(t *testing.T) {
 	})
 }
 
-func TestPublicCloudHandler_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
+func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 	t.Run(
 		"returns true if instanceType can be used with instance",
 		func(t *testing.T) {
 			spy := &serviceSpy{
 				instanceTypesForUpdate: domain.InstanceTypes{{Name: "tralala"}},
 			}
-			handler := PublicCloudHandler{publicCloudService: spy}
+			facade := PublicCloudFacade{publicCloudService: spy}
 
-			got, instanceTypes, err := handler.CanInstanceTypeBeUsedWithInstance(
+			got, instanceTypes, err := facade.CanInstanceTypeBeUsedWithInstance(
 				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
 				"tralala",
 				context.TODO(),
@@ -904,9 +904,9 @@ func TestPublicCloudHandler_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 			spy := &serviceSpy{
 				instanceTypesForUpdate: domain.InstanceTypes{{Name: "piet"}},
 			}
-			handler := PublicCloudHandler{publicCloudService: spy}
+			facade := PublicCloudFacade{publicCloudService: spy}
 
-			got, instanceTypes, err := handler.CanInstanceTypeBeUsedWithInstance(
+			got, instanceTypes, err := facade.CanInstanceTypeBeUsedWithInstance(
 				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
 				"tralala",
 				context.TODO(),
@@ -919,9 +919,9 @@ func TestPublicCloudHandler_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 	)
 
 	t.Run("invalid id returns an error", func(t *testing.T) {
-		handler := PublicCloudHandler{}
+		facade := PublicCloudFacade{}
 
-		_, _, err := handler.CanInstanceTypeBeUsedWithInstance(
+		_, _, err := facade.CanInstanceTypeBeUsedWithInstance(
 			"tralala",
 			"",
 			context.TODO(),
@@ -938,9 +938,9 @@ func TestPublicCloudHandler_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 				errors.New("some errors"),
 			),
 		}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		_, _, err := handler.CanInstanceTypeBeUsedWithInstance(
+		_, _, err := facade.CanInstanceTypeBeUsedWithInstance(
 			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
 			"",
 			context.TODO(),
@@ -954,9 +954,9 @@ func TestPublicCloudHandler_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 		want := "085075b0-a6ad-4026-a0d1-e3256d3f7c47"
 
 		spy := &serviceSpy{}
-		handler := PublicCloudHandler{publicCloudService: spy}
+		facade := PublicCloudFacade{publicCloudService: spy}
 
-		_, _, _ = handler.CanInstanceTypeBeUsedWithInstance(
+		_, _, _ = facade.CanInstanceTypeBeUsedWithInstance(
 			want,
 			"",
 			context.TODO(),

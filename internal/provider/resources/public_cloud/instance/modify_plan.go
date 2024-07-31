@@ -47,7 +47,7 @@ func (i *instanceResource) validateRegion(
 	regionResponse := validator.StringResponse{}
 
 	regionValidator := instanceValidator.NewRegionValidator(
-		i.client.PublicCloudHandler.DoesRegionExist,
+		i.client.PublicCloudFacade.DoesRegionExist,
 	)
 	regionValidator.ValidateString(ctx, request, &regionResponse)
 
@@ -67,8 +67,8 @@ func (i *instanceResource) validateInstanceType(
 	instanceResponse := validator.StringResponse{}
 
 	instanceTypeValidator := instanceValidator.NewInstanceTypeValidator(
-		i.client.PublicCloudHandler.IsInstanceTypeAvailableForRegion,
-		i.client.PublicCloudHandler.CanInstanceTypeBeUsedWithInstance,
+		i.client.PublicCloudFacade.IsInstanceTypeAvailableForRegion,
+		i.client.PublicCloudFacade.CanInstanceTypeBeUsedWithInstance,
 		instanceId,
 		region,
 	)

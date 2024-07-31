@@ -7,7 +7,7 @@ import (
 	validator2 "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/handlers/shared"
+	"terraform-provider-leaseweb/internal/facades/shared"
 )
 
 func TestRegionValidator_ValidateString(t *testing.T) {
@@ -22,7 +22,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 			func(
 				region string,
 				ctx context.Context,
-			) (bool, []string, *shared.HandlerError) {
+			) (bool, []string, *shared.FacadeError) {
 				return true, nil, nil
 			},
 		)
@@ -42,7 +42,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 			func(
 				region string,
 				ctx context.Context,
-			) (bool, []string, *shared.HandlerError) {
+			) (bool, []string, *shared.FacadeError) {
 				assert.Equal(t, "region", region)
 				return true, nil, nil
 			},
@@ -93,7 +93,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 			func(
 				region string,
 				ctx context.Context,
-			) (bool, []string, *shared.HandlerError) {
+			) (bool, []string, *shared.FacadeError) {
 				return false, []string{"tralala"}, nil
 			},
 		)

@@ -2,13 +2,13 @@ package client
 
 import (
 	publiccloudservice "terraform-provider-leaseweb/internal/core/services/public_cloud"
-	"terraform-provider-leaseweb/internal/handlers/public_cloud"
+	"terraform-provider-leaseweb/internal/facades/public_cloud"
 	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
 )
 
-// The Client handles instantiation of the handlers.
+// The Client handles instantiation of the facades.
 type Client struct {
-	PublicCloudHandler public_cloud.PublicCloudHandler
+	PublicCloudFacade public_cloud.PublicCloudFacade
 }
 
 type Optional struct {
@@ -27,6 +27,6 @@ func NewClient(token string, optional Optional) Client {
 	publicCloudService := publiccloudservice.New(publicCloudRepository)
 
 	return Client{
-		PublicCloudHandler: public_cloud.NewPublicCloudHandler(publicCloudService),
+		PublicCloudFacade: public_cloud.NewPublicCloudFacade(publicCloudService),
 	}
 }

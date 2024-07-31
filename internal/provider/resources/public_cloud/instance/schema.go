@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-leaseweb/internal/handlers/public_cloud"
+	"terraform-provider-leaseweb/internal/facades/public_cloud"
 	customValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
 
@@ -22,8 +22,7 @@ func (i *instanceResource) Schema(
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-
-	handler := public_cloud.PublicCloudHandler{}
+	facade := public_cloud.PublicCloudFacade{}
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -91,7 +90,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Image ID",
 						Validators: []validator.String{
-							stringvalidator.OneOf(handler.GetImageIds()...),
+							stringvalidator.OneOf(facade.GetImageIds()...),
 						},
 					},
 					"name": schema.StringAttribute{
@@ -150,7 +149,7 @@ func (i *instanceResource) Schema(
 				Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(handler.GetSshKeyRegularExpression()),
+						regexp.MustCompile(facade.GetSshKeyRegularExpression()),
 						"Invalid ssh key",
 					),
 				},
@@ -161,8 +160,8 @@ func (i *instanceResource) Schema(
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
 				Validators: []validator.Int64{
 					int64validator.Between(
-						handler.GetMinimumRootDiskSize(),
-						handler.GetMaximumRootDiskSize(),
+						facade.GetMinimumRootDiskSize(),
+						facade.GetMaximumRootDiskSize(),
 					),
 				},
 			},
@@ -170,7 +169,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type",
 				Validators: []validator.String{
-					stringvalidator.OneOf(handler.GetRootDiskStorageTypes()...),
+					stringvalidator.OneOf(facade.GetRootDiskStorageTypes()...),
 				},
 			},
 			"ips": schema.ListNestedAttribute{
@@ -209,20 +208,20 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "The billing frequency (in months) of the instance.",
 						Validators: []validator.Int64{
-							int64validator.OneOf(handler.GetBillingFrequencies()...),
+							int64validator.OneOf(facade.GetBillingFrequencies()...),
 						},
 					},
 					"term": schema.Int64Attribute{
 						Required:    true,
 						Description: "Contract term (in months). Used only when contract type is MONTHLY",
 						Validators: []validator.Int64{
-							int64validator.OneOf(handler.GetContractTerms()...),
+							int64validator.OneOf(facade.GetContractTerms()...),
 						},
 					},
 					"type": schema.StringAttribute{
 						Required: true,
 						Validators: []validator.String{
-							stringvalidator.OneOf(handler.GetContractTypes()...),
+							stringvalidator.OneOf(facade.GetContractTypes()...),
 						},
 						Description: "Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage",
 					},

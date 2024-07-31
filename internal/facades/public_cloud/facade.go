@@ -10,10 +10,10 @@ import (
 	"terraform-provider-leaseweb/internal/core/ports"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/handlers/public_cloud/data_adapters/to_data_source_model"
-	"terraform-provider-leaseweb/internal/handlers/public_cloud/data_adapters/to_instance"
-	"terraform-provider-leaseweb/internal/handlers/public_cloud/data_adapters/to_resource_model"
-	"terraform-provider-leaseweb/internal/handlers/shared"
+	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_data_source_model"
+	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_instance"
+	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_resource_model"
+	"terraform-provider-leaseweb/internal/facades/shared"
 	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
@@ -21,8 +21,8 @@ import (
 var ErrContractTermCannotBeZero = domain.ErrContractTermCannotBeZero
 var ErrContractTermMustBeZero = domain.ErrContractTermMustBeZero
 
-// PublicCloudHandler handles all communication between provider & the core.
-type PublicCloudHandler struct {
+// PublicCloudFacade handles all communication between provider & the core.
+type PublicCloudFacade struct {
 	publicCloudService           ports.PublicCloudService
 	adaptInstanceToResourceModel func(
 		instance domain.Instance,
@@ -44,9 +44,9 @@ type PublicCloudHandler struct {
 }
 
 // GetAllInstances retrieve all instances.
-func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
+func (h PublicCloudFacade) GetAllInstances(ctx context.Context) (
 	*dataSourceModel.Instances,
-	*shared.HandlerError,
+	*shared.FacadeError,
 ) {
 	instances, err := h.publicCloudService.GetAllInstances(ctx)
 	if err != nil {
@@ -59,10 +59,10 @@ func (h PublicCloudHandler) GetAllInstances(ctx context.Context) (
 }
 
 // CreateInstance creates an instance.
-func (h PublicCloudHandler) CreateInstance(
+func (h PublicCloudFacade) CreateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
-) (*resourceModel.Instance, *shared.HandlerError) {
+) (*resourceModel.Instance, *shared.FacadeError) {
 
 	availableInstanceTypes, serviceError := h.publicCloudService.GetAvailableInstanceTypesForRegion(
 		plan.Region.ValueString(),
@@ -98,10 +98,10 @@ func (h PublicCloudHandler) CreateInstance(
 }
 
 // DeleteInstance deletes an instance.
-func (h PublicCloudHandler) DeleteInstance(
+func (h PublicCloudFacade) DeleteInstance(
 	id string,
 	ctx context.Context,
-) *shared.HandlerError {
+) *shared.FacadeError {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
 		return shared.NewError("DeleteInstance", err)
@@ -116,10 +116,10 @@ func (h PublicCloudHandler) DeleteInstance(
 }
 
 // GetInstance returns instance details.
-func (h PublicCloudHandler) GetInstance(
+func (h PublicCloudFacade) GetInstance(
 	id string,
 	ctx context.Context,
-) (*resourceModel.Instance, *shared.HandlerError) {
+) (*resourceModel.Instance, *shared.FacadeError) {
 	instanceId, err := value_object.NewUuid(id)
 	if err != nil {
 		return nil, shared.NewError("GetInstance", err)
@@ -139,10 +139,10 @@ func (h PublicCloudHandler) GetInstance(
 }
 
 // UpdateInstance updates an instance.
-func (h PublicCloudHandler) UpdateInstance(
+func (h PublicCloudFacade) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
-) (*resourceModel.Instance, *shared.HandlerError) {
+) (*resourceModel.Instance, *shared.FacadeError) {
 	id, err := value_object.NewUuid(plan.Id.ValueString())
 	if err != nil {
 		return nil, shared.NewError("UpdateInstance", err)
@@ -188,51 +188,51 @@ func (h PublicCloudHandler) UpdateInstance(
 }
 
 // GetImageIds returns a list of valid image ids.
-func (h PublicCloudHandler) GetImageIds() []string {
+func (h PublicCloudFacade) GetImageIds() []string {
 	return enum.Debian1064Bit.Values()
 }
 
 // GetSshKeyRegularExpression returns regular expression used to validate ssh keys.
-func (h PublicCloudHandler) GetSshKeyRegularExpression() string {
+func (h PublicCloudFacade) GetSshKeyRegularExpression() string {
 	return value_object.SshRegexp
 }
 
 // GetMinimumRootDiskSize returns the minimal valid rootDiskSize.
-func (h PublicCloudHandler) GetMinimumRootDiskSize() int64 {
+func (h PublicCloudFacade) GetMinimumRootDiskSize() int64 {
 	return int64(value_object.MinRootDiskSize)
 }
 
 // GetMaximumRootDiskSize returns the maximum valid rootDiskSize.
-func (h PublicCloudHandler) GetMaximumRootDiskSize() int64 {
+func (h PublicCloudFacade) GetMaximumRootDiskSize() int64 {
 	return int64(value_object.MaxRootDiskSize)
 }
 
 // GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
-func (h PublicCloudHandler) GetRootDiskStorageTypes() []string {
+func (h PublicCloudFacade) GetRootDiskStorageTypes() []string {
 	return enum.RootDiskStorageTypeCentral.Values()
 }
 
 // GetBillingFrequencies returns a list of valid billing frequencies.
-func (h PublicCloudHandler) GetBillingFrequencies() []int64 {
+func (h PublicCloudFacade) GetBillingFrequencies() []int64 {
 	return shared.AdaptIntArrayToInt64Array(
 		enum.ContractBillingFrequencyThree.Values(),
 	)
 }
 
 // GetContractTerms returns a list of valid contract terms.
-func (h PublicCloudHandler) GetContractTerms() []int64 {
+func (h PublicCloudFacade) GetContractTerms() []int64 {
 	return shared.AdaptIntArrayToInt64Array(
 		enum.ContractTermThree.Values(),
 	)
 }
 
 // GetContractTypes returns a list of valid contract types.
-func (h PublicCloudHandler) GetContractTypes() []string {
+func (h PublicCloudFacade) GetContractTypes() []string {
 	return enum.ContractTypeHourly.Values()
 }
 
 // ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
-func (h PublicCloudHandler) ValidateContractTerm(
+func (h PublicCloudFacade) ValidateContractTerm(
 	contractTerm int64,
 	contractType string,
 ) error {
@@ -271,10 +271,10 @@ func (h PublicCloudHandler) ValidateContractTerm(
 }
 
 // DoesRegionExist checks if the region exists.
-func (h PublicCloudHandler) DoesRegionExist(
+func (h PublicCloudFacade) DoesRegionExist(
 	region string,
 	ctx context.Context,
-) (bool, []string, *shared.HandlerError) {
+) (bool, []string, *shared.FacadeError) {
 	regions, err := h.publicCloudService.GetRegions(ctx)
 	if err != nil {
 		return false, nil, shared.NewFromServicesError(
@@ -291,7 +291,7 @@ func (h PublicCloudHandler) DoesRegionExist(
 }
 
 // IsInstanceTypeAvailableForRegion checks if the instanceType is available for the region.
-func (h PublicCloudHandler) IsInstanceTypeAvailableForRegion(
+func (h PublicCloudFacade) IsInstanceTypeAvailableForRegion(
 	instanceType string,
 	region string,
 	ctx context.Context,
@@ -312,7 +312,7 @@ func (h PublicCloudHandler) IsInstanceTypeAvailableForRegion(
 
 // CanInstanceTypeBeUsedWithInstance checks
 // if the passed instanceType can be used with the passed instance.
-func (h PublicCloudHandler) CanInstanceTypeBeUsedWithInstance(
+func (h PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 	instanceId string,
 	instanceType string,
 	ctx context.Context,
@@ -339,8 +339,8 @@ func (h PublicCloudHandler) CanInstanceTypeBeUsedWithInstance(
 	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
 }
 
-func NewPublicCloudHandler(publicCloudService ports.PublicCloudService) PublicCloudHandler {
-	return PublicCloudHandler{
+func NewPublicCloudFacade(publicCloudService ports.PublicCloudService) PublicCloudFacade {
+	return PublicCloudFacade{
 		publicCloudService:              publicCloudService,
 		adaptInstanceToResourceModel:    to_resource_model.AdaptInstance,
 		adaptInstancesToDataSourceModel: to_data_source_model.AdaptInstances,

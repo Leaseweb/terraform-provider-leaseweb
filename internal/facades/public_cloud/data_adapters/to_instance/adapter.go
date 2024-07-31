@@ -9,7 +9,7 @@ import (
 	"terraform-provider-leaseweb/internal/core/domain"
 	"terraform-provider-leaseweb/internal/core/shared/enum"
 	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/handlers/shared"
+	"terraform-provider-leaseweb/internal/facades/shared"
 	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
