@@ -237,7 +237,6 @@ Read-Only:
 
 Read-Only:
 
-- `architecture` (String)
 - `family` (String)
 - `flavour` (String)
 - `id` (String) Image ID

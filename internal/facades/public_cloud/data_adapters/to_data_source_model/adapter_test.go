@@ -260,7 +260,6 @@ func Test_adaptImage(t *testing.T) {
 		"version",
 		"family",
 		"flavour",
-		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -296,12 +295,6 @@ func Test_adaptImage(t *testing.T) {
 		"flavour",
 		got.Flavour.ValueString(),
 		"flavour should be set",
-	)
-	assert.Equal(
-		t,
-		"architecture",
-		got.Architecture.ValueString(),
-		"architecture should be set",
 	)
 	assert.Equal(
 		t,
@@ -663,7 +656,6 @@ func generateDomainInstance() domain.Instance {
 		"version",
 		"family",
 		"flavour",
-		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)

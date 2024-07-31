@@ -105,9 +105,6 @@ func (i *instanceResource) Schema(
 					"flavour": schema.StringAttribute{
 						Computed: true,
 					},
-					"architecture": schema.StringAttribute{
-						Computed: true,
-					},
 					"market_apps": schema.ListAttribute{
 						Computed:    true,
 						ElementType: types.StringType,

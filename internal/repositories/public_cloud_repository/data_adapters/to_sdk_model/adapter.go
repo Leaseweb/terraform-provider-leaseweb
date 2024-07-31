@@ -217,7 +217,7 @@ func adaptImageDetails(sdkImage publicCloud.ImageDetails) (
 	*domain.Image,
 	error,
 ) {
-	imageId, err := enum.NewImageId(string(sdkImage.GetId()))
+	imageId, err := enum.NewImageId(sdkImage.GetId())
 	if err != nil {
 		return nil, fmt.Errorf("adaptImageDetails: %w", err)
 	}
@@ -228,7 +228,6 @@ func adaptImageDetails(sdkImage publicCloud.ImageDetails) (
 		sdkImage.GetVersion(),
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
-		sdkImage.GetArchitecture(),
 		sdkImage.GetMarketApps(),
 		sdkImage.GetStorageTypes(),
 	)
@@ -237,7 +236,7 @@ func adaptImageDetails(sdkImage publicCloud.ImageDetails) (
 }
 
 func adaptImage(sdkImage publicCloud.Image) (*domain.Image, error) {
-	imageId, err := enum.NewImageId(string(sdkImage.GetId()))
+	imageId, err := enum.NewImageId(sdkImage.GetId())
 	if err != nil {
 		return nil, fmt.Errorf("adaptImage: %w", err)
 	}
@@ -248,7 +247,6 @@ func adaptImage(sdkImage publicCloud.Image) (*domain.Image, error) {
 		sdkImage.GetVersion(),
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
-		sdkImage.GetArchitecture(),
 		[]string{},
 		[]string{},
 	)

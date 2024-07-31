@@ -25,11 +25,6 @@ func AdaptToLaunchInstanceOpts(instance domain.Instance) (
 		return nil, fmt.Errorf("AdaptToLaunchInstanceOpts: %w", err)
 	}
 
-	imageId, err := publicCloud.NewImageIdFromValue(instance.Image.Id.String())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptToLaunchInstanceOpts: %w", err)
-	}
-
 	contractType, err := publicCloud.NewContractTypeFromValue(
 		instance.Contract.Type.String(),
 	)
@@ -54,7 +49,7 @@ func AdaptToLaunchInstanceOpts(instance domain.Instance) (
 	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
 		instance.Region,
 		*instanceTypeName,
-		*imageId,
+		instance.Image.Id.String(),
 		*contractType,
 		*contractTerm,
 		*billingFrequency,

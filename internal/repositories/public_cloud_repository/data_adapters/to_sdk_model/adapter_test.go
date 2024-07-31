@@ -17,12 +17,11 @@ var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
 func Test_adaptImageDetails(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		sdkImage := publicCloud.NewImageDetails(
-			publicCloud.IMAGEID_UBUNTU_24_04_64_BIT,
+			"UBUNTU_24_04_64BIT",
 			"name",
 			"version",
 			"family",
 			"flavour",
-			"architecture",
 			[]string{"marketApp"},
 			[]string{"storageType"},
 		)
@@ -35,7 +34,6 @@ func Test_adaptImageDetails(t *testing.T) {
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
 		assert.Equal(t, "flavour", got.Flavour)
-		assert.Equal(t, "architecture", got.Architecture)
 		assert.Equal(t, []string{"marketApp"}, got.MarketApps)
 		assert.Equal(t, []string{"storageType"}, got.StorageTypes)
 	})
@@ -854,12 +852,11 @@ func TestAdaptInstance(t *testing.T) {
 func Test_adaptImage(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		sdkImage := publicCloud.NewImage(
-			publicCloud.IMAGEID_UBUNTU_24_04_64_BIT,
+			"UBUNTU_24_04_64BIT",
 			"name",
 			"version",
 			"family",
 			"flavour",
-			"architecture",
 		)
 
 		got, err := adaptImage(*sdkImage)
@@ -870,7 +867,6 @@ func Test_adaptImage(t *testing.T) {
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
 		assert.Equal(t, "flavour", got.Flavour)
-		assert.Equal(t, "architecture", got.Architecture)
 	})
 
 	t.Run("invalid imageId returns error", func(t *testing.T) {
@@ -1154,7 +1150,7 @@ func generateInstanceDetails(
 		*publicCloud.NewNullablePrivateNetwork(
 			&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
 		),
-		publicCloud.ImageDetails{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
+		publicCloud.ImageDetails{Id: "CENTOS_7_64BIT"},
 		[]publicCloud.IpDetails{
 			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
 		},
@@ -1194,7 +1190,7 @@ func generateInstance(
 			Type:             publicCloud.CONTRACTTYPE_HOURLY,
 			State:            publicCloud.CONTRACTSTATE_ACTIVE,
 		},
-		publicCloud.Image{Id: publicCloud.IMAGEID_CENTOS_7_64_BIT},
+		publicCloud.Image{Id: "CENTOS_7_64BIT"},
 		[]publicCloud.Ip{
 			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
 		},

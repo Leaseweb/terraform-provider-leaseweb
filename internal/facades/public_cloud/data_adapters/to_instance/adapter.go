@@ -303,7 +303,6 @@ func generateInstanceModel(
 			Version:      basetypes.NewStringUnknown(),
 			Family:       basetypes.NewStringUnknown(),
 			Flavour:      basetypes.NewStringUnknown(),
-			Architecture: basetypes.NewStringUnknown(),
 			MarketApps:   basetypes.NewListUnknown(types.StringType),
 			StorageTypes: basetypes.NewListUnknown(types.StringType),
 		},

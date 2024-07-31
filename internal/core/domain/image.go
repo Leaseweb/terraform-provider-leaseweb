@@ -10,7 +10,6 @@ type Image struct {
 	Version      string
 	Family       string
 	Flavour      string
-	Architecture string
 	MarketApps   []string
 	StorageTypes []string
 }
@@ -21,7 +20,6 @@ func NewImage(
 	version string,
 	family string,
 	flavour string,
-	architecture string,
 	marketApps []string,
 	storageTypes []string,
 ) Image {
@@ -31,7 +29,6 @@ func NewImage(
 		Version:      version,
 		Family:       family,
 		Flavour:      flavour,
-		Architecture: architecture,
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}

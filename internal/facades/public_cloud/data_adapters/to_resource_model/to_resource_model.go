@@ -155,7 +155,6 @@ func adaptImage(
 	plan.Version = basetypes.NewStringValue(image.Version)
 	plan.Family = basetypes.NewStringValue(image.Family)
 	plan.Flavour = basetypes.NewStringValue(image.Flavour)
-	plan.Architecture = basetypes.NewStringValue(image.Architecture)
 	plan.MarketApps = marketApps
 	plan.StorageTypes = storageTypes
 

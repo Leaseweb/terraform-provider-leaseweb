@@ -88,7 +88,6 @@ Required:
 
 Read-Only:
 
-- `architecture` (String)
 - `family` (String)
 - `flavour` (String)
 - `market_apps` (List of String)

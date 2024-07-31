@@ -10,7 +10,6 @@ type Image struct {
 	Version      types.String   `tfsdk:"version"`
 	Family       types.String   `tfsdk:"family"`
 	Flavour      types.String   `tfsdk:"flavour"`
-	Architecture types.String   `tfsdk:"architecture"`
 	MarketApps   []types.String `tfsdk:"market_apps"`
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }

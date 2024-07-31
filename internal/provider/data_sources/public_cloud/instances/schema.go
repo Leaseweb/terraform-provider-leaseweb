@@ -80,9 +80,6 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 								"flavour": schema.StringAttribute{
 									Computed: true,
 								},
-								"architecture": schema.StringAttribute{
-									Computed: true,
-								},
 								"market_apps": schema.ListAttribute{
 									Computed:    true,
 									ElementType: types.StringType,

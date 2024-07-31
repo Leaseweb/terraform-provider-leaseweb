@@ -175,6 +175,8 @@ github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240725141635-88104ddf1f
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240725141635-88104ddf1f20/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240729083515-9c61b3c51b3f h1:QIBXFcPkLdmnneMoiAWW2cwjTQeGB+TZZ7Xu9Bm1rTk=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240729083515-9c61b3c51b3f/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
+github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240731070615-fe56b73b13c5 h1:Fod0z3GWBB9Wml/rTLZaG/MwRhOZkvIZQNK8sbcO9Oc=
+github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240731070615-fe56b73b13c5/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/mattn/go-colorable v0.1.9/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb520KVy5xxl4=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
@@ -323,6 +325,8 @@ google.golang.org/genproto/googleapis/rpc v0.0.0-20240723171418-e6d459c13d2a h1:
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240723171418-e6d459c13d2a/go.mod h1:Ue6ibwXGpU+dqIcODieyLOcgj7z8+IcskoNIgZxtrFY=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240725223205-93522f1f2a9f h1:RARaIm8pxYuxyNPbBQf5igT7XdOyCNtat1qAT2ZxjU4=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240725223205-93522f1f2a9f/go.mod h1:Ue6ibwXGpU+dqIcODieyLOcgj7z8+IcskoNIgZxtrFY=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240730163845-b1a4ccb954bf h1:liao9UHurZLtiEwBgT9LMOnKYsHze6eA6w1KQCMVN2Q=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240730163845-b1a4ccb954bf/go.mod h1:Ue6ibwXGpU+dqIcODieyLOcgj7z8+IcskoNIgZxtrFY=
 google.golang.org/grpc v1.65.0 h1:bs/cUb4lp1G5iImFFd3u5ixQzweKizoZJAwBNLR42lc=
 google.golang.org/grpc v1.65.0/go.mod h1:WgYC2ypjlB0EiQi6wdKixMqukr6lBc0Vo+oOgjrM5ZQ=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=

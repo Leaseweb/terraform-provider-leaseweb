@@ -32,15 +32,6 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 		assert.ErrorContains(t, err, "tralala")
 	})
 
-	t.Run("invalid imageId returns error", func(t *testing.T) {
-		instance := generateDomainInstance()
-		instance.Image.Id = "tralala"
-
-		_, err := AdaptToLaunchInstanceOpts(instance)
-
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("invalid contractType returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
 		instance.Contract.Type = "tralala"
@@ -99,7 +90,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 			publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
 			got.RootDiskStorageType,
 		)
-		assert.Equal(t, publicCloud.IMAGEID_ALMALINUX_8_64_BIT, got.ImageId)
+		assert.Equal(t, "ALMALINUX_8_64BIT", got.ImageId)
 		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.ContractType)
 		assert.Equal(t, publicCloud.CONTRACTTERM__6, got.ContractTerm)
 		assert.Equal(t, publicCloud.BILLINGFREQUENCY__3, got.BillingFrequency)
@@ -243,7 +234,6 @@ func generateDomainInstance() domain.Instance {
 		"version",
 		"family",
 		"flavour",
-		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)
