@@ -23,7 +23,10 @@ provider "leaseweb" {
 )
 
 var (
-	testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+	testAccProtoV6ProviderFactories = map[string]func() (
+		tfprotov6.ProviderServer,
+		error,
+	){
 		"leaseweb": providerserver.NewProtocol6WithError(NewProvider("test")()),
 	}
 )
@@ -40,17 +43,38 @@ func TestLeasewebProvider_Metadata(t *testing.T) {
 	want := "dev"
 	got := metadataResponse.Version
 
-	assert.Equal(t, want, got, "version should be passed to provider")
+	assert.Equal(
+		t,
+		want,
+		got,
+		"version should be passed to provider",
+	)
 }
 
 func TestLeasewebProvider_Schema(t *testing.T) {
 	leasewebProvider := NewProvider("dev")
 	schemaResponse := provider.SchemaResponse{}
-	leasewebProvider().Schema(context.TODO(), provider.SchemaRequest{}, &schemaResponse)
+	leasewebProvider().Schema(
+		context.TODO(),
+		provider.SchemaRequest{},
+		&schemaResponse,
+	)
 
-	assert.True(t, schemaResponse.Schema.Attributes["host"].IsOptional(), "host is optional")
-	assert.True(t, schemaResponse.Schema.Attributes["scheme"].IsOptional(), "scheme is optional")
-	assert.True(t, schemaResponse.Schema.Attributes["token"].IsSensitive(), "token is sensitive")
+	assert.True(
+		t,
+		schemaResponse.Schema.Attributes["host"].IsOptional(),
+		"host is optional",
+	)
+	assert.True(
+		t,
+		schemaResponse.Schema.Attributes["scheme"].IsOptional(),
+		"scheme is optional",
+	)
+	assert.True(
+		t,
+		schemaResponse.Schema.Attributes["token"].IsSensitive(),
+		"token is sensitive",
+	)
 }
 
 func TestLeasewebProvider_DataSources(t *testing.T) {
@@ -79,7 +103,10 @@ func TestLeasewebProvider_Resources(t *testing.T) {
 	)
 }
 
-func implementsDataSource(dataSources []func() datasource.DataSource, expectedTypeName string) bool {
+func implementsDataSource(
+	dataSources []func() datasource.DataSource,
+	expectedTypeName string,
+) bool {
 	for _, dataSource := range dataSources {
 		resp := datasource.MetadataResponse{}
 		dataSource().Metadata(context.TODO(), datasource.MetadataRequest{}, &resp)
@@ -92,7 +119,10 @@ func implementsDataSource(dataSources []func() datasource.DataSource, expectedTy
 	return false
 }
 
-func implementsResource(resources []func() resource.Resource, expectedTypeName string) bool {
+func implementsResource(
+	resources []func() resource.Resource,
+	expectedTypeName string,
+) bool {
 	for _, element := range resources {
 		resp := resource.MetadataResponse{}
 		element().Metadata(context.TODO(), resource.MetadataRequest{}, &resp)
