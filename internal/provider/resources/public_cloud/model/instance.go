@@ -25,4 +25,5 @@ type Instance struct {
 	Iso                 types.Object `tfsdk:"iso"`
 	PrivateNetwork      types.Object `tfsdk:"private_network"`
 	SshKey              types.String `tfsdk:"ssh_key"`
+	Volume              types.Object `tfsdk:"volume"`
 }

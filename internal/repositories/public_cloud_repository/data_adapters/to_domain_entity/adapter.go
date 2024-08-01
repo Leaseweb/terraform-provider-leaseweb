@@ -155,12 +155,18 @@ func AdaptInstanceDetails(
 		)
 		optionalValues.PrivateNetwork = &privateNetwork
 	}
+	if sdkInstanceDetails.Volume.Get() != nil {
+		volume := adaptVolume(
+			*sdkInstanceDetails.Volume.Get(),
+		)
+		optionalValues.Volume = &volume
+	}
 
 	instance := domain.NewInstance(
 		*instanceId,
 		sdkInstanceDetails.GetRegion(),
 		adaptResources(sdkInstanceDetails.GetResources()),
-		adaptImageDetails(sdkInstanceDetails.GetImage()),
+		adaptInstanceDetailsImage(sdkInstanceDetails.GetImage()),
 		state,
 		sdkInstanceDetails.GetProductType(),
 		sdkInstanceDetails.GetHasPublicIpV4(),
@@ -204,13 +210,14 @@ func adaptNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) domain.NetworkS
 	)
 }
 
-func adaptImageDetails(sdkImage publicCloud.ImageDetails) domain.Image {
+func adaptInstanceDetailsImage(sdkImage publicCloud.InstanceDetailsImage) domain.Image {
 	return domain.NewImage(
 		sdkImage.GetId(),
 		sdkImage.GetName(),
 		sdkImage.GetVersion(),
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
+		sdkImage.GetArchitecture(),
 		sdkImage.GetMarketApps(),
 		sdkImage.GetStorageTypes(),
 	)
@@ -223,6 +230,7 @@ func adaptImage(sdkImage publicCloud.Image) domain.Image {
 		sdkImage.GetVersion(),
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
+		sdkImage.GetArchitecture(),
 		[]string{},
 		[]string{},
 	)
@@ -712,4 +720,8 @@ func adaptAutoScalingGroup(
 	)
 
 	return &autoScalingGroup, nil
+}
+
+func adaptVolume(sdkVolume publicCloud.Volume) domain.Volume {
+	return domain.NewVolume(float64(sdkVolume.GetSize()), sdkVolume.GetUnit())
 }

@@ -117,6 +117,17 @@ func AdaptInstance(
 	}
 	plan.Ips = ips
 
+	volume, err := shared.AdaptNullableDomainEntityToResourceObject(
+		instance.Volume,
+		model.Volume{}.AttributeTypes(),
+		ctx,
+		adaptVolume,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptInstance: %w", err)
+	}
+	plan.Volume = volume
+
 	return &plan, nil
 }
 
@@ -155,6 +166,7 @@ func adaptImage(
 	plan.Version = basetypes.NewStringValue(image.Version)
 	plan.Family = basetypes.NewStringValue(image.Family)
 	plan.Flavour = basetypes.NewStringValue(image.Flavour)
+	plan.Architecture = basetypes.NewStringValue(image.Architecture)
 	plan.MarketApps = marketApps
 	plan.StorageTypes = storageTypes
 
@@ -503,13 +515,19 @@ func adaptIp(
 	}, nil
 }
 
-func adaptDdos(
-	ctx context.Context,
-	ddos domain.Ddos,
-) (*model.Ddos, error) {
-
+func adaptDdos(ctx context.Context, ddos domain.Ddos) (*model.Ddos, error) {
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
+	}, nil
+}
+
+func adaptVolume(
+	ctx context.Context,
+	volume domain.Volume,
+) (*model.Volume, error) {
+	return &model.Volume{
+		Size: basetypes.NewFloat64Value(volume.Size),
+		Unit: basetypes.NewStringValue(volume.Unit),
 	}, nil
 }
