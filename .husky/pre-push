@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+set -e
+
+pnpm run prettier:lint .
+pnpm run markdown:lint .
+
+docker-compose run --rm -T hadolint hadolint docker/golang/Dockerfile
+docker-compose run --rm -T hadolint hadolint docker/node/Dockerfile
+
+docker-compose run --rm -T shellcheck -x ./.husky/pre-commit
+docker-compose run --rm -T shellcheck -x ./.husky/pre-push
+docker-compose run --rm -T shellcheck -x ./.husky/commit-msg
+
+terraform fmt -recursive -check .
+
+go mod download && go build -v
+golangci-lint run
+TF_ACC=1 go test -v -cover ./internal/provider/

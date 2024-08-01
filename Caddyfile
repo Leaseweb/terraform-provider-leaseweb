@@ -1,0 +1,6 @@
+http://localhost
+
+route /publicCloud/v1/* {
+	uri strip_prefix /publicCloud/v1
+	reverse_proxy prism_publicCloud:4010
+}

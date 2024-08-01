@@ -1,14 +1,5 @@
-terraform {
-  required_providers {
-    leaseweb = {
-      version = "0.3.3"
-      source  = "leaseweb/leaseweb"
-    }
-  }
-}
-
-provider "leaseweb" {}
-
-resource "leaseweb_dedicated_server" "web" {
-  reference = "web"
+# Configuration-based authentication
+provider "leaseweb" {
+  host  = "127.0.0.1:4010"
+  token = "super-secret-token-value"
 }

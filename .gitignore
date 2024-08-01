@@ -1,1 +1,16 @@
-dist
+example.tf
+terraform.tfplan
+terraform.tfstate
+terraform.tfstate.*.backup
+terraform.tfstate.backup
+*.log
+*.iml
+*.test
+
+# Test exclusions
+!command/test-fixtures/**/*.tfstate
+!command/test-fixtures/**/.terraform/
+
+terraform-provider-leaseweb
+
+.env
