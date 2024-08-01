@@ -107,7 +107,7 @@ Read-Only:
 
 Read-Only:
 
-- `ddos` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--ddos))
+- `ddos` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--ips--ddos))
 - `ip` (String)
 - `main_ip` (Boolean)
 - `network_type` (String)
@@ -116,8 +116,8 @@ Read-Only:
 - `reverse_lookup` (String)
 - `version` (Number)
 
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--ddos"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.ddos`
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--ips--ddos"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.ips.ddos`
 
 Read-Only:
 
@@ -132,14 +132,14 @@ Read-Only:
 Read-Only:
 
 - `balance` (String)
-- `health_check` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--health_check))
+- `health_check` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--load_balancer_configuration--health_check))
 - `idle_timeout` (Number)
-- `sticky_session` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--sticky_session))
+- `sticky_session` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--load_balancer_configuration--sticky_session))
 - `target_port` (Number)
 - `x_forwarded_for` (Boolean)
 
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--health_check"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.health_check`
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--load_balancer_configuration--health_check"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.load_balancer_configuration.health_check`
 
 Read-Only:
 
@@ -149,8 +149,8 @@ Read-Only:
 - `uri` (String)
 
 
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--sticky_session"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.sticky_session`
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--load_balancer_configuration--sticky_session"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.load_balancer_configuration.sticky_session`
 
 Read-Only:
 
@@ -174,22 +174,13 @@ Read-Only:
 
 Read-Only:
 
-- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--cpu))
-- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--memory))
-- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--private_network_speed))
-- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--type--public_network_speed))
+- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--resources--cpu))
+- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--resources--memory))
+- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--resources--private_network_speed))
+- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--resources--public_network_speed))
 
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--cpu"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.cpu`
-
-Read-Only:
-
-- `unit` (String)
-- `value` (Number)
-
-
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--memory"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.memory`
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--resources--cpu"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.resources.cpu`
 
 Read-Only:
 
@@ -197,8 +188,8 @@ Read-Only:
 - `value` (Number)
 
 
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--private_network_speed"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.private_network_speed`
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--resources--memory"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.resources.memory`
 
 Read-Only:
 
@@ -206,8 +197,17 @@ Read-Only:
 - `value` (Number)
 
 
-<a id="nestedatt--instances--auto_scaling_group--load_balancer--type--public_network_speed"></a>
-### Nested Schema for `instances.auto_scaling_group.load_balancer.type.public_network_speed`
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--resources--private_network_speed"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.resources.private_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--resources--public_network_speed"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.resources.public_network_speed`
 
 Read-Only:
 
