@@ -17,6 +17,16 @@ import (
 var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 func Test_adaptImage(t *testing.T) {
+	var marketApps []string
+	var storageTypes []string
+
+	state := "state"
+	stateReason := "stateReason"
+	region := "region"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+	custom := false
+
 	image := domain.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
@@ -24,6 +34,12 @@ func Test_adaptImage(t *testing.T) {
 		"family",
 		"flavour",
 		"architecture",
+		&state,
+		&stateReason,
+		&region,
+		&createdAt,
+		&updatedAt,
+		&custom,
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -32,62 +48,27 @@ func Test_adaptImage(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(
-		t,
-		"UBUNTU_20_04_64BIT",
-		got.Id.ValueString(),
-		"id should be set",
-	)
-	assert.Equal(
-		t,
-		"name",
-		got.Name.ValueString(),
-		"name should be set",
-	)
-	assert.Equal(
-		t,
-		"version",
-		got.Version.ValueString(),
-		"version should be set",
-	)
-	assert.Equal(
-		t,
-		"family",
-		got.Family.ValueString(),
-		"family should be set",
-	)
-	assert.Equal(
-		t,
-		"flavour",
-		got.Flavour.ValueString(),
-		"flavour should be set",
-	)
-	assert.Equal(
-		t,
-		"architecture",
-		got.Architecture.ValueString(),
-		"architecture should be set",
-	)
-
-	var marketApps []string
 	got.MarketApps.ElementsAs(context.TODO(), &marketApps, false)
-	assert.Len(t, marketApps, 1)
-	assert.Equal(
-		t,
-		"one",
-		marketApps[0],
-		"marketApps should be set",
-	)
-
-	var storageTypes []string
 	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
+
+	assert.Equal(t, "UBUNTU_20_04_64BIT", got.Id.ValueString())
+	assert.Equal(t, "name", got.Name.ValueString())
+	assert.Equal(t, "version", got.Version.ValueString())
+	assert.Equal(t, "family", got.Family.ValueString())
+	assert.Equal(t, "flavour", got.Flavour.ValueString())
+	assert.Equal(t, "architecture", got.Architecture.ValueString())
+	assert.Equal(t, "state", got.State.ValueString())
+	assert.Equal(t, "stateReason", got.StateReason.ValueString())
+	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, createdAt.String(), got.CreatedAt.ValueString())
+	assert.Equal(t, updatedAt.String(), got.UpdatedAt.ValueString())
+	assert.False(t, got.Custom.ValueBool())
+
+	assert.Len(t, marketApps, 1)
+	assert.Equal(t, "one", marketApps[0])
+
 	assert.Len(t, storageTypes, 1)
-	assert.Equal(
-		t,
-		"storageType",
-		storageTypes[0],
-		"storageTypes should be set",
-	)
+	assert.Equal(t, "storageType", storageTypes[0])
 }
 
 func Test_AdaptContract(t *testing.T) {
@@ -117,48 +98,13 @@ func Test_AdaptContract(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(
-		t,
-		int64(6),
-		got.BillingFrequency.ValueInt64(),
-		"billingFrequency should be set",
-	)
-	assert.Equal(
-		t,
-		int64(3),
-		got.Term.ValueInt64(),
-		"term should be set",
-	)
-	assert.Equal(
-		t,
-		"MONTHLY",
-		got.Type.ValueString(),
-		"type should be set",
-	)
-	assert.Equal(
-		t,
-		"2023-12-14 17:09:47 +0000 UTC",
-		got.EndsAt.ValueString(),
-		"endsAt should be set",
-	)
-	assert.Equal(
-		t,
-		"2022-12-14 17:09:47 +0000 UTC",
-		got.RenewalsAt.ValueString(),
-		"renewalsAt should be set",
-	)
-	assert.Equal(
-		t,
-		"2021-12-14 17:09:47 +0000 UTC",
-		got.CreatedAt.ValueString(),
-		"createdAt should be set",
-	)
-	assert.Equal(
-		t,
-		"ACTIVE",
-		got.State.ValueString(),
-		"state should be set",
-	)
+	assert.Equal(t, int64(6), got.BillingFrequency.ValueInt64())
+	assert.Equal(t, int64(3), got.Term.ValueInt64())
+	assert.Equal(t, "MONTHLY", got.Type.ValueString())
+	assert.Equal(t, "2023-12-14 17:09:47 +0000 UTC", got.EndsAt.ValueString())
+	assert.Equal(t, "2022-12-14 17:09:47 +0000 UTC", got.RenewalsAt.ValueString())
+	assert.Equal(t, "2021-12-14 17:09:47 +0000 UTC", got.CreatedAt.ValueString())
+	assert.Equal(t, "ACTIVE", got.State.ValueString())
 }
 
 func Test_adaptPrivateNetwork(t *testing.T) {
@@ -168,31 +114,13 @@ func Test_adaptPrivateNetwork(t *testing.T) {
 		"subnet",
 	)
 
-	got, err := adaptPrivateNetwork(
-		context.TODO(),
-		privateNetwork,
-	)
+	got, err := adaptPrivateNetwork(context.TODO(), privateNetwork)
 
 	assert.NoError(t, err)
 
-	assert.Equal(
-		t,
-		"id",
-		got.Id.ValueString(),
-		"id should be set",
-	)
-	assert.Equal(
-		t,
-		"status",
-		got.Status.ValueString(),
-		"status should be set",
-	)
-	assert.Equal(
-		t,
-		"subnet",
-		got.Subnet.ValueString(),
-		"subnet should be set",
-	)
+	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "status", got.Status.ValueString())
+	assert.Equal(t, "subnet", got.Subnet.ValueString())
 }
 
 func Test_adaptCpu(t *testing.T) {
@@ -200,18 +128,8 @@ func Test_adaptCpu(t *testing.T) {
 	got, err := adaptCpu(context.TODO(), entityCpu)
 
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		int64(1),
-		got.Value.ValueInt64(),
-		"value should be set",
-	)
-	assert.Equal(
-		t,
-		"unit",
-		got.Unit.ValueString(),
-		"unit should be set",
-	)
+	assert.Equal(t, int64(1), got.Value.ValueInt64())
+	assert.Equal(t, "unit", got.Unit.ValueString())
 }
 
 func Test_adaptMemory(t *testing.T) {
@@ -220,18 +138,8 @@ func Test_adaptMemory(t *testing.T) {
 	got, err := adaptMemory(context.TODO(), memory)
 
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		float64(1),
-		got.Value.ValueFloat64(),
-		"value should be set",
-	)
-	assert.Equal(
-		t,
-		"unit",
-		got.Unit.ValueString(),
-		"unit should be set",
-	)
+	assert.Equal(t, float64(1), got.Value.ValueFloat64())
+	assert.Equal(t, "unit", got.Unit.ValueString())
 }
 
 func Test_adaptNetworkSpeed(t *testing.T) {
@@ -240,18 +148,8 @@ func Test_adaptNetworkSpeed(t *testing.T) {
 	got, err := adaptNetworkSpeed(context.TODO(), networkSpeed)
 
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		int64(1),
-		got.Value.ValueInt64(),
-		"value should be set",
-	)
-	assert.Equal(
-		t,
-		"unit",
-		got.Unit.ValueString(),
-		"unit should be set",
-	)
+	assert.Equal(t, int64(1), got.Value.ValueInt64())
+	assert.Equal(t, "unit", got.Unit.ValueString())
 }
 
 func Test_adaptResources(t *testing.T) {
@@ -268,21 +166,11 @@ func Test_adaptResources(t *testing.T) {
 
 	cpu := model.Cpu{}
 	got.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
-	assert.Equal(
-		t,
-		"cpu",
-		cpu.Unit.ValueString(),
-		"cpu should be set",
-	)
+	assert.Equal(t, "cpu", cpu.Unit.ValueString())
 
 	memory := model.Memory{}
 	got.Memory.As(context.TODO(), &memory, basetypes.ObjectAsOptions{})
-	assert.Equal(
-		t,
-		"memory",
-		memory.Unit.ValueString(),
-		"memory should be set",
-	)
+	assert.Equal(t, "memory", memory.Unit.ValueString())
 
 	publicNetworkSpeed := model.NetworkSpeed{}
 	got.PublicNetworkSpeed.As(
@@ -290,12 +178,7 @@ func Test_adaptResources(t *testing.T) {
 		&publicNetworkSpeed,
 		basetypes.ObjectAsOptions{},
 	)
-	assert.Equal(
-		t,
-		"publicNetworkSpeed",
-		publicNetworkSpeed.Unit.ValueString(),
-		"publicNetworkSpeed should be set",
-	)
+	assert.Equal(t, "publicNetworkSpeed", publicNetworkSpeed.Unit.ValueString())
 
 	privateNetworkSpeed := model.NetworkSpeed{}
 	got.PrivateNetworkSpeed.As(
@@ -307,7 +190,6 @@ func Test_adaptResources(t *testing.T) {
 		t,
 		"privateNetworkSpeed",
 		privateNetworkSpeed.Unit.ValueString(),
-		"privateNetworkSpeed should be set",
 	)
 }
 
@@ -394,14 +276,8 @@ func Test_adaptDdos(t *testing.T) {
 		t,
 		"detectionProfile",
 		got.DetectionProfile.ValueString(),
-		"detectionProfile should be set",
 	)
-	assert.Equal(
-		t,
-		"protectionType",
-		got.ProtectionType.ValueString(),
-		"protectionType should be set",
-	)
+	assert.Equal(t, "protectionType", got.ProtectionType.ValueString())
 }
 
 func Test_adaptIp(t *testing.T) {
@@ -423,57 +299,17 @@ func Test_adaptIp(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(
-		t,
-		"1.2.3.4",
-		got.Ip.ValueString(),
-		"ip should be set",
-	)
-	assert.Equal(
-		t,
-		"prefix-length",
-		got.PrefixLength.ValueString(),
-		"prefix-length should be set",
-	)
-	assert.Equal(
-		t,
-		int64(46),
-		got.Version.ValueInt64(),
-		"version should be set",
-	)
-	assert.Equal(
-		t,
-		true,
-		got.NullRouted.ValueBool(),
-		"nullRouted should be set",
-	)
-	assert.Equal(
-		t,
-		false,
-		got.MainIp.ValueBool(),
-		"mainIp should be set",
-	)
-	assert.Equal(
-		t,
-		"tralala",
-		got.NetworkType.ValueString(),
-		"networkType should be set",
-	)
-	assert.Equal(
-		t,
-		"reverse-lookup",
-		got.ReverseLookup.ValueString(),
-		"reverseLookup should be set",
-	)
+	assert.Equal(t, "1.2.3.4", got.Ip.ValueString())
+	assert.Equal(t, "prefix-length", got.PrefixLength.ValueString())
+	assert.Equal(t, int64(46), got.Version.ValueInt64())
+	assert.Equal(t, true, got.NullRouted.ValueBool())
+	assert.Equal(t, false, got.MainIp.ValueBool())
+	assert.Equal(t, "tralala", got.NetworkType.ValueString())
+	assert.Equal(t, "reverse-lookup", got.ReverseLookup.ValueString())
 
 	ddos := model.Ddos{}
 	got.Ddos.As(context.TODO(), &ddos, basetypes.ObjectAsOptions{})
-	assert.Equal(
-		t,
-		"protection-type",
-		ddos.ProtectionType.ValueString(),
-		"ddos should be set",
-	)
+	assert.Equal(t, "protection-type", ddos.ProtectionType.ValueString())
 }
 
 func Test_adaptLoadBalancer(t *testing.T) {
@@ -593,107 +429,34 @@ func TestAdaptInstance(t *testing.T) {
 		got, err := AdaptInstance(instance, context.TODO())
 
 		assert.NoError(t, err)
-		assert.Equal(
-			t,
-			id.String(),
-			got.Id.ValueString(),
-			"id should be set",
-		)
-		assert.Equal(
-			t,
-			"region",
-			got.Region.ValueString(),
-			"region should be set",
-		)
-		assert.Equal(
-			t,
-			"CREATING",
-			got.State.ValueString(),
-			"state should be set",
-		)
-		assert.Equal(
-			t,
-			"productType",
-			got.ProductType.ValueString(),
-			"productType should be set",
-		)
-		assert.False(
-			t,
-			got.HasPublicIpv4.ValueBool(),
-			"hasPublicIpv should be set",
-		)
-		assert.True(
-			t,
-			got.HasPrivateNetwork.ValueBool(),
-			"hasPrivateNetwork should be set",
-		)
-		assert.Equal(
-			t,
-			"lsw.m5a.4xlarge",
-			got.Type.ValueString(),
-			"type should be set",
-		)
-		assert.Equal(
-			t,
-			int64(32),
-			got.RootDiskSize.ValueInt64(),
-			"rootDiskSize should be set",
-		)
-		assert.Equal(
-			t,
-			"CENTRAL",
-			got.RootDiskStorageType.ValueString(),
-			"rootDiskStorageType should be set",
-		)
+		assert.Equal(t, id.String(), got.Id.ValueString())
+		assert.Equal(t, "region", got.Region.ValueString())
+		assert.Equal(t, "CREATING", got.State.ValueString())
+		assert.Equal(t, "productType", got.ProductType.ValueString())
+		assert.False(t, got.HasPublicIpv4.ValueBool())
+		assert.True(t, got.HasPrivateNetwork.ValueBool())
+		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.ValueString())
+		assert.Equal(t, int64(32), got.RootDiskSize.ValueInt64())
+		assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
 		assert.Equal(
 			t,
 			"2019-09-08 00:00:00 +0000 UTC",
 			got.StartedAt.ValueString(),
-			"startedAt should be set",
 		)
-		assert.Equal(
-			t,
-			"marketAppId",
-			got.MarketAppId.ValueString(),
-			"marketAppId should be set",
-		)
-		assert.Equal(
-			t,
-			"reference",
-			got.Reference.ValueString(),
-			"reference should be set",
-		)
+		assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+		assert.Equal(t, "reference", got.Reference.ValueString())
 
 		image := model.Image{}
-		got.Image.As(
-			context.TODO(),
-			&image,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(
-			t,
-			"UBUNTU_20_04_64BIT",
-			image.Id.ValueString(),
-			"image should be set",
-		)
+		got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
+		assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
 		contract := model.Contract{}
 		got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
-		assert.Equal(
-			t,
-			"MONTHLY",
-			contract.Type.ValueString(),
-			"contract should be set",
-		)
+		assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
 		iso := model.Iso{}
 		got.Iso.As(context.TODO(), &iso, basetypes.ObjectAsOptions{})
-		assert.Equal(
-			t,
-			"isoId",
-			iso.Id.ValueString(),
-			"iso should be set",
-		)
+		assert.Equal(t, "isoId", iso.Id.ValueString())
 
 		privateNetwork := model.PrivateNetwork{}
 		got.PrivateNetwork.As(
@@ -705,7 +468,6 @@ func TestAdaptInstance(t *testing.T) {
 			t,
 			"privateNetworkId",
 			privateNetwork.Id.ValueString(),
-			"privateNetwork should be set",
 		)
 
 		autoScalingGroup := model.AutoScalingGroup{}
@@ -718,42 +480,22 @@ func TestAdaptInstance(t *testing.T) {
 			t,
 			autoScalingGroupId.String(),
 			autoScalingGroup.Id.ValueString(),
-			"autoScalingGroup should be set",
 		)
 
 		var ips []model.Ip
 		got.Ips.ElementsAs(context.TODO(), &ips, false)
 		assert.Len(t, ips, 1)
-		assert.Equal(
-			t,
-			"1.2.3.4",
-			ips[0].Ip.ValueString(),
-			"ip should be set",
-		)
+		assert.Equal(t, "1.2.3.4", ips[0].Ip.ValueString())
 
 		resources := model.Resources{}
 		cpu := model.Cpu{}
 		got.Resources.As(context.TODO(), &resources, basetypes.ObjectAsOptions{})
 		resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
-		assert.Equal(
-			t,
-			"cpu",
-			cpu.Unit.ValueString(),
-			"privateNetwork should be set",
-		)
+		assert.Equal(t, "cpu", cpu.Unit.ValueString())
 
 		volume := model.Volume{}
-		got.Volume.As(
-			context.TODO(),
-			&volume,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(
-			t,
-			"unit",
-			volume.Unit.ValueString(),
-			"volume should be set",
-		)
+		got.Volume.As(context.TODO(), &volume, basetypes.ObjectAsOptions{})
+		assert.Equal(t, "unit", volume.Unit.ValueString())
 
 		assert.Equal(t, sshKey, got.SshKey.ValueString())
 	})
@@ -865,6 +607,13 @@ func generateDomainInstance() domain.Instance {
 		privateNetworkSpeed,
 	)
 
+	state := "state"
+	stateReason := "stateReason"
+	region := "region"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+	custom := false
+
 	image := domain.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
@@ -872,6 +621,12 @@ func generateDomainInstance() domain.Instance {
 		"family",
 		"flavour",
 		"architecture",
+		&state,
+		&stateReason,
+		&region,
+		&createdAt,
+		&updatedAt,
+		&custom,
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -900,7 +655,7 @@ func generateDomainInstance() domain.Instance {
 		"2006-01-02 15:04:05",
 		"2022-12-14 17:09:47",
 	)
-	createdAt, _ := time.Parse(
+	contractCreatedAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2021-12-14 17:09:47",
 	)
@@ -909,7 +664,7 @@ func generateDomainInstance() domain.Instance {
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,
 		renewalsAt,
-		createdAt,
+		contractCreatedAt,
 		enum.ContractStateActive,
 		&endsAt,
 	)
@@ -962,7 +717,9 @@ func generateDomainInstance() domain.Instance {
 		},
 	)
 
-	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference("reference")
+	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
+		"reference",
+	)
 	autoScalingGroupCreatedAt := time.Now()
 	autoScalingGroupUpdatedAt := time.Now()
 	autoScalingGroupDesiredAmount := 1

@@ -1,5 +1,9 @@
 package domain
 
+import (
+	"time"
+)
+
 type Image struct {
 	Id           string
 	Name         string
@@ -7,6 +11,12 @@ type Image struct {
 	Family       string
 	Flavour      string
 	Architecture string
+	State        *string
+	StateReason  *string
+	Region       *string
+	CreatedAt    *time.Time
+	UpdatedAt    *time.Time
+	Custom       *bool
 	MarketApps   []string
 	StorageTypes []string
 }
@@ -18,6 +28,12 @@ func NewImage(
 	family string,
 	flavour string,
 	architecture string,
+	State *string,
+	stateReason *string,
+	region *string,
+	createdAt *time.Time,
+	updatedAt *time.Time,
+	custom *bool,
 	marketApps []string,
 	storageTypes []string,
 ) Image {
@@ -28,6 +44,12 @@ func NewImage(
 		Family:       family,
 		Flavour:      flavour,
 		Architecture: architecture,
+		State:        State,
+		StateReason:  stateReason,
+		Region:       region,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+		Custom:       custom,
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}

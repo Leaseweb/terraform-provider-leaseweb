@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// AdaptNullableIntToInt64Value converts a NullableInt toTerraform Int64Value.
+// AdaptNullableIntToInt64Value converts a nullable integer to a Terraform
+// Int64Value.
 func AdaptNullableIntToInt64Value(value *int) basetypes.Int64Value {
 	if value == nil {
 		return basetypes.NewInt64Null()
@@ -20,7 +21,8 @@ func AdaptNullableIntToInt64Value(value *int) basetypes.Int64Value {
 	return basetypes.NewInt64Value(int64(*value))
 }
 
-// AdaptNullableTimeToStringValue converts a NullableTime toTerraform StringValue.
+// AdaptNullableTimeToStringValue converts a nullable Time to a Terraform
+// StringValue.
 func AdaptNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
 	if value == nil {
 		return basetypes.NewStringNull()
@@ -29,7 +31,8 @@ func AdaptNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
 	return basetypes.NewStringValue(value.String())
 }
 
-// AdaptNullableStringToStringValue converts a NullableString toTerraform StringValue.
+// AdaptNullableStringToStringValue converts a nullable string to a Terraform
+// StringValue.
 func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
 	if value == nil {
 		return basetypes.NewStringNull()
@@ -38,7 +41,8 @@ func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
 	return basetypes.NewStringValue(*value)
 }
 
-// AdaptNullableDomainEntityToDatasourceModel converts a nullable domain entity to Terraform datasource model.
+// AdaptNullableDomainEntityToDatasourceModel converts a nullable domain entity
+// to a Terraform datasource model.
 func AdaptNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
 	entity *T,
 	generateModel func(entity T) *U,
@@ -50,7 +54,8 @@ func AdaptNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
 	return generateModel(*entity)
 }
 
-// AdaptNullableDomainEntityToResourceObject converts a nullable domain entity to a Terraform resource object.
+// AdaptNullableDomainEntityToResourceObject converts a nullable domain entity
+// to a Terraform resource object.
 func AdaptNullableDomainEntityToResourceObject[T any, U any](
 	entity *T,
 	attributeTypes map[string]attr.Type,
@@ -80,7 +85,8 @@ func AdaptNullableDomainEntityToResourceObject[T any, U any](
 	return resourceObject, nil
 }
 
-// AdaptDomainEntityToResourceObject converts a domain entity to Terraform resource object.
+// AdaptDomainEntityToResourceObject converts a domain entity to a Terraform
+// resource object.
 func AdaptDomainEntityToResourceObject[T any, U any](
 	entity T,
 	attributeTypes map[string]attr.Type,
@@ -117,7 +123,8 @@ func AdaptDomainEntityToResourceObject[T any, U any](
 	return objectValue, nil
 }
 
-// AdaptEntitiesToListValue converts a domain entities object to a Terraform list value.
+// AdaptEntitiesToListValue converts a domain entities array to a Terraform
+// ListValue.
 func AdaptEntitiesToListValue[T any, U any](
 	entities []T,
 	attributeTypes map[string]attr.Type,
@@ -132,10 +139,12 @@ func AdaptEntitiesToListValue[T any, U any](
 	for _, value := range entities {
 		resourceObject, err := generateModel(ctx, value)
 		if err != nil {
-			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
-				"unable to convert domain entity to resource: %w",
-				err,
-			)
+			return types.ListUnknown(
+					types.ObjectType{AttrTypes: attributeTypes}),
+				fmt.Errorf(
+					"unable to convert domain entity to resource: %w",
+					err,
+				)
 		}
 		listValues = append(listValues, *resourceObject)
 	}
@@ -148,18 +157,20 @@ func AdaptEntitiesToListValue[T any, U any](
 
 	if diags.HasError() {
 		for _, v := range diags {
-			return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
-				"unable to convert domain entity to resource: %q %q",
-				v.Summary(),
-				v.Detail(),
-			)
+			return types.ListUnknown(
+					types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
+					"unable to convert domain entity to resource: %q %q",
+					v.Summary(),
+					v.Detail(),
+				)
 		}
 	}
 
 	return listObject, nil
 }
 
-// AdaptStringPointerValueToNullableString converts a Terraform StringPointerValue to nullable string.
+// AdaptStringPointerValueToNullableString converts a Terraform
+// StringPointerValue to a nullable string.
 func AdaptStringPointerValueToNullableString(value types.String) *string {
 	if value.IsUnknown() {
 		return nil
@@ -168,7 +179,8 @@ func AdaptStringPointerValueToNullableString(value types.String) *string {
 	return value.ValueStringPointer()
 }
 
-// AdaptIntArrayToInt64Array converts an array of integers to an array of int64 values.
+// AdaptIntArrayToInt64Array converts an array of integers to an array of
+// int64 values.
 func AdaptIntArrayToInt64Array(items []int) []int64 {
 	var convertedItems []int64
 
@@ -182,6 +194,7 @@ func AdaptIntArrayToInt64Array(items []int) []int64 {
 	return convertedItems
 }
 
+// ReturnError returns the first diagnostics error as a golang Error.
 func ReturnError(functionName string, diags diag.Diagnostics) error {
 	for _, diagError := range diags {
 		return fmt.Errorf(
@@ -193,4 +206,14 @@ func ReturnError(functionName string, diags diag.Diagnostics) error {
 	}
 
 	return nil
+}
+
+// AdaptNullableBoolToBoolValue converts a nullable boolean to a Terraform
+// BoolValue.
+func AdaptNullableBoolToBoolValue(value *bool) basetypes.BoolValue {
+	if value == nil {
+		return basetypes.NewBoolNull()
+	}
+
+	return basetypes.NewBoolValue(*value)
 }

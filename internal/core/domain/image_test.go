@@ -2,27 +2,51 @@ package domain
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewImage(t *testing.T) {
-	image := NewImage(
+	state := "state"
+	stateReason := "stateReason"
+	region := "region"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+	custom := false
+
+	got := NewImage(
 		"UBUNTU_24_04_64BIT",
 		"name",
 		"version",
 		"family",
 		"flavour",
 		"architecture",
+		&state,
+		&stateReason,
+		&region,
+		&createdAt,
+		&updatedAt,
+		&custom,
 		[]string{"marketApp"},
-		[]string{"storageType"})
+		[]string{"storageType"},
+	)
+	want := Image{
+		Id:           "UBUNTU_24_04_64BIT",
+		Name:         "name",
+		Version:      "version",
+		Family:       "family",
+		Flavour:      "flavour",
+		Architecture: "architecture",
+		State:        &state,
+		StateReason:  &stateReason,
+		Region:       &region,
+		CreatedAt:    &createdAt,
+		UpdatedAt:    &updatedAt,
+		Custom:       &custom,
+		MarketApps:   []string{"marketApp"},
+		StorageTypes: []string{"storageType"},
+	}
 
-	assert.Equal(t, "UBUNTU_24_04_64BIT", image.Id)
-	assert.Equal(t, "name", image.Name)
-	assert.Equal(t, "version", image.Version)
-	assert.Equal(t, "family", image.Family)
-	assert.Equal(t, "flavour", image.Flavour)
-	assert.Equal(t, "architecture", image.Architecture)
-	assert.Equal(t, []string{"marketApp"}, image.MarketApps)
-	assert.Equal(t, []string{"storageType"}, image.StorageTypes)
+	assert.Equal(t, want, got)
 }

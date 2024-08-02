@@ -44,6 +44,7 @@ type PublicCloudRepository struct {
 		*domain.InstanceType,
 		error,
 	)
+	adaptImageDetails func(sdkImage publicCloud.ImageDetails) domain.Image
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -423,6 +424,51 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	return instanceTypes, nil
 }
 
+func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
+	domain.Images,
+	*shared.RepositoryError,
+) {
+	var images domain.Images
+
+	request := p.publicCLoudAPI.GetImageList(p.authContext(ctx))
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError("GetAllImages", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllImages", err, response)
+		}
+
+		for _, sdkImage := range result.Images {
+			image := p.adaptImageDetails(sdkImage)
+			images = append(images, image)
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllImages", err, response)
+		}
+	}
+
+	return images, nil
+}
+
 func NewPublicCloudRepository(
 	token string,
 	optional Optional,
@@ -447,6 +493,7 @@ func NewPublicCloudRepository(
 		adaptLoadBalancerDetails:     to_domain_entity.AdaptLoadBalancerDetails,
 		adaptInstanceType:            to_domain_entity.AdaptInstanceType,
 		adaptRegion:                  to_domain_entity.AdaptRegion,
+		adaptImageDetails:            to_domain_entity.AdaptImageDetails,
 		adaptToLaunchInstanceOpts:    to_sdk_model.AdaptToLaunchInstanceOpts,
 		adaptToUpdateInstanceOpts:    to_sdk_model.AdaptToUpdateInstanceOpts,
 	}

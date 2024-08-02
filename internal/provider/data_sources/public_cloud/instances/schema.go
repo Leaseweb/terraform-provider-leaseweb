@@ -83,6 +83,24 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 								"architecture": schema.StringAttribute{
 									Computed: true,
 								},
+								"state": schema.StringAttribute{
+									Computed: true,
+								},
+								"state_reason": schema.StringAttribute{
+									Computed: true,
+								},
+								"region": schema.StringAttribute{
+									Computed: true,
+								},
+								"created_at": schema.StringAttribute{
+									Computed: true,
+								},
+								"updated_at": schema.StringAttribute{
+									Computed: true,
+								},
+								"custom": schema.BoolAttribute{
+									Computed: true,
+								},
 								"market_apps": schema.ListAttribute{
 									Computed:    true,
 									ElementType: types.StringType,

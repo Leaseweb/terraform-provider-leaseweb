@@ -218,6 +218,12 @@ func adaptInstanceDetailsImage(sdkImage publicCloud.InstanceDetailsImage) domain
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
 		sdkImage.GetArchitecture(),
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 		sdkImage.GetMarketApps(),
 		sdkImage.GetStorageTypes(),
 	)
@@ -231,6 +237,12 @@ func adaptImage(sdkImage publicCloud.Image) domain.Image {
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
 		sdkImage.GetArchitecture(),
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 		[]string{},
 		[]string{},
 	)
@@ -724,4 +736,30 @@ func adaptAutoScalingGroup(
 
 func adaptVolume(sdkVolume publicCloud.Volume) domain.Volume {
 	return domain.NewVolume(float64(sdkVolume.GetSize()), sdkVolume.GetUnit())
+}
+
+func AdaptImageDetails(sdkImageDetails publicCloud.ImageDetails) domain.Image {
+	state, _ := sdkImageDetails.GetStateOk()
+	stateReason, _ := sdkImageDetails.GetStateReasonOk()
+	region, _ := sdkImageDetails.GetRegionOk()
+	createdAt, _ := sdkImageDetails.GetCreatedAtOk()
+	updatedAt, _ := sdkImageDetails.GetUpdatedAtOk()
+	custom, _ := sdkImageDetails.GetCustomOk()
+
+	return domain.NewImage(
+		sdkImageDetails.GetId(),
+		sdkImageDetails.GetName(),
+		sdkImageDetails.GetVersion(),
+		sdkImageDetails.GetFamily(),
+		sdkImageDetails.GetFlavour(),
+		sdkImageDetails.GetArchitecture(),
+		state,
+		stateReason,
+		region,
+		createdAt,
+		updatedAt,
+		custom,
+		sdkImageDetails.GetMarketApps(),
+		sdkImageDetails.GetStorageTypes(),
+	)
 }

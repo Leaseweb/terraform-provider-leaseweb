@@ -11,6 +11,12 @@ type Image struct {
 	Version      types.String `tfsdk:"version"`
 	Family       types.String `tfsdk:"family"`
 	Flavour      types.String `tfsdk:"flavour"`
+	State        types.String `tfsdk:"state"`
+	StateReason  types.String `tfsdk:"state_reason"`
+	Region       types.String `tfsdk:"region"`
+	CreatedAt    types.String `tfsdk:"created_at"`
+	UpdatedAt    types.String `tfsdk:"updated_at"`
+	Custom       types.Bool   `tfsdk:"custom"`
 	Architecture types.String `tfsdk:"architecture"`
 	MarketApps   types.List   `tfsdk:"market_apps"`
 	StorageTypes types.List   `tfsdk:"storage_types"`
@@ -24,6 +30,12 @@ func (i Image) AttributeTypes() map[string]attr.Type {
 		"family":        types.StringType,
 		"flavour":       types.StringType,
 		"architecture":  types.StringType,
+		"state":         types.StringType,
+		"state_reason":  types.StringType,
+		"region":        types.StringType,
+		"created_at":    types.StringType,
+		"updated_at":    types.StringType,
+		"custom":        types.BoolType,
 		"market_apps":   types.ListType{ElemType: types.StringType},
 		"storage_types": types.ListType{ElemType: types.StringType},
 	}
