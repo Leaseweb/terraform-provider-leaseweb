@@ -64,6 +64,10 @@ func adaptInstance(domainInstance domain.Instance) model.Instance {
 			domainInstance.PrivateNetwork,
 			adaptPrivateNetwork,
 		),
+		Volume: shared.AdaptNullableDomainEntityToDatasourceModel(
+			domainInstance.Volume,
+			adaptVolume,
+		),
 	}
 
 	for _, autoScalingGroupIp := range domainInstance.Ips {
@@ -110,11 +114,12 @@ func adaptNetworkSpeed(networkSpeed domain.NetworkSpeed) model.NetworkSpeed {
 
 func adaptImage(domainImage domain.Image) model.Image {
 	image := model.Image{
-		Id:      basetypes.NewStringValue(domainImage.Id),
-		Name:    basetypes.NewStringValue(domainImage.Name),
-		Version: basetypes.NewStringValue(domainImage.Version),
-		Family:  basetypes.NewStringValue(domainImage.Family),
-		Flavour: basetypes.NewStringValue(domainImage.Flavour),
+		Id:           basetypes.NewStringValue(domainImage.Id),
+		Name:         basetypes.NewStringValue(domainImage.Name),
+		Version:      basetypes.NewStringValue(domainImage.Version),
+		Family:       basetypes.NewStringValue(domainImage.Family),
+		Flavour:      basetypes.NewStringValue(domainImage.Flavour),
+		Architecture: basetypes.NewStringValue(domainImage.Architecture),
 	}
 
 	for _, marketApp := range domainImage.MarketApps {
@@ -287,5 +292,12 @@ func adaptDdos(ddos domain.Ddos) *model.Ddos {
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
+	}
+}
+
+func adaptVolume(volume domain.Volume) *model.Volume {
+	return &model.Volume{
+		Size: basetypes.NewFloat64Value(volume.Size),
+		Unit: basetypes.NewStringValue(volume.Unit),
 	}
 }

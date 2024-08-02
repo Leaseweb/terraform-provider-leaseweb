@@ -14,25 +14,27 @@ import (
 var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"
 var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
 
-func Test_adaptImageDetails(t *testing.T) {
+func Test_adaptInstanceDetailsImage(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		sdkImage := publicCloud.NewImageDetails(
+		sdkImage := publicCloud.NewInstanceDetailsImage(
 			"UBUNTU_24_04_64BIT",
 			"name",
 			"version",
 			"family",
 			"flavour",
+			"architecture",
 			[]string{"marketApp"},
 			[]string{"storageType"},
 		)
 
-		got := adaptImageDetails(*sdkImage)
+		got := adaptInstanceDetailsImage(*sdkImage)
 
 		assert.Equal(t, "UBUNTU_24_04_64BIT", got.Id)
 		assert.Equal(t, "name", got.Name)
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
 		assert.Equal(t, "flavour", got.Flavour)
+		assert.Equal(t, "architecture", got.Architecture)
 		assert.Equal(t, []string{"marketApp"}, got.MarketApps)
 		assert.Equal(t, []string{"storageType"}, got.StorageTypes)
 	})
@@ -113,6 +115,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id.String())
+		assert.Equal(t, "unit", got.Volume.Unit)
 	})
 
 	t.Run("invalid id returns error", func(t *testing.T) {
@@ -838,6 +841,7 @@ func Test_adaptImage(t *testing.T) {
 			"version",
 			"family",
 			"flavour",
+			"architecture",
 		)
 
 		got := adaptImage(*sdkImage)
@@ -847,6 +851,7 @@ func Test_adaptImage(t *testing.T) {
 		assert.Equal(t, "version", got.Version)
 		assert.Equal(t, "family", got.Family)
 		assert.Equal(t, "flavour", got.Flavour)
+		assert.Equal(t, "architecture", got.Architecture)
 	})
 }
 
@@ -1122,7 +1127,7 @@ func generateInstanceDetails(
 		*publicCloud.NewNullablePrivateNetwork(
 			&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
 		),
-		publicCloud.ImageDetails{Id: "CENTOS_7_64BIT"},
+		publicCloud.InstanceDetailsImage{Id: "CENTOS_7_64BIT"},
 		[]publicCloud.IpDetails{
 			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
 		},
@@ -1131,6 +1136,7 @@ func generateInstanceDetails(
 			Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
 			State: publicCloud.AUTOSCALINGGROUPSTATE_ACTIVE,
 		}),
+		*publicCloud.NewNullableVolume(&publicCloud.Volume{Size: 3, Unit: "unit"}),
 	)
 }
 
@@ -1217,4 +1223,12 @@ func generateLoadBalancer(startedAt *time.Time) publicCloud.LoadBalancer {
 		publicCloud.STATE_CREATING,
 		*publicCloud.NewNullableTime(startedAt),
 	)
+}
+
+func Test_adaptVolume(t *testing.T) {
+	sdkVolume := publicCloud.NewVolume(1, "unit")
+	got := adaptVolume(*sdkVolume)
+	want := domain.Volume{Size: 1, Unit: "unit"}
+
+	assert.Equal(t, want, got)
 }

@@ -80,6 +80,9 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 								"flavour": schema.StringAttribute{
 									Computed: true,
 								},
+								"architecture": schema.StringAttribute{
+									Computed: true,
+								},
 								"market_apps": schema.ListAttribute{
 									Computed:    true,
 									ElementType: types.StringType,
@@ -431,6 +434,18 @@ func (d *instancesDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 											},
 										},
 									},
+								},
+							},
+						},
+						"volume": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"size": schema.Float64Attribute{
+									Computed:    true,
+									Description: "The Volume Size",
+								},
+								"unit": schema.StringAttribute{
+									Computed: true,
 								},
 							},
 						},

@@ -62,6 +62,7 @@ func TestNewInstance(t *testing.T) {
 		assert.Nil(t, got.StartedAt)
 		assert.Nil(t, got.PrivateNetwork)
 		assert.Nil(t, got.AutoScalingGroup)
+		assert.Nil(t, got.Volume)
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
@@ -96,6 +97,7 @@ func TestNewInstance(t *testing.T) {
 				StartedAt:        &startedAt,
 				PrivateNetwork:   &PrivateNetwork{Id: "privateNetworkId"},
 				AutoScalingGroup: &AutoScalingGroup{Region: "autoScalingGroupRegion"},
+				Volume:           &Volume{Unit: "unit"},
 			},
 		)
 
@@ -114,6 +116,7 @@ func TestNewInstance(t *testing.T) {
 		)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "autoScalingGroupRegion", got.AutoScalingGroup.Region)
+		assert.Equal(t, "unit", got.Volume.Unit)
 	})
 }
 

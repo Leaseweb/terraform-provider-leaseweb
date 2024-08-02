@@ -23,6 +23,7 @@ func Test_adaptImage(t *testing.T) {
 		"version",
 		"family",
 		"flavour",
+		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -60,6 +61,12 @@ func Test_adaptImage(t *testing.T) {
 		"flavour",
 		got.Flavour.ValueString(),
 		"flavour should be set",
+	)
+	assert.Equal(
+		t,
+		"architecture",
+		got.Architecture.ValueString(),
+		"architecture should be set",
 	)
 
 	var marketApps []string
@@ -193,8 +200,18 @@ func Test_adaptCpu(t *testing.T) {
 	got, err := adaptCpu(context.TODO(), entityCpu)
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), got.Value.ValueInt64(), "value should be set")
-	assert.Equal(t, "unit", got.Unit.ValueString(), "unit should be set")
+	assert.Equal(
+		t,
+		int64(1),
+		got.Value.ValueInt64(),
+		"value should be set",
+	)
+	assert.Equal(
+		t,
+		"unit",
+		got.Unit.ValueString(),
+		"unit should be set",
+	)
 }
 
 func Test_adaptMemory(t *testing.T) {
@@ -203,8 +220,18 @@ func Test_adaptMemory(t *testing.T) {
 	got, err := adaptMemory(context.TODO(), memory)
 
 	assert.NoError(t, err)
-	assert.Equal(t, float64(1), got.Value.ValueFloat64(), "value should be set")
-	assert.Equal(t, "unit", got.Unit.ValueString(), "unit should be set")
+	assert.Equal(
+		t,
+		float64(1),
+		got.Value.ValueFloat64(),
+		"value should be set",
+	)
+	assert.Equal(
+		t,
+		"unit",
+		got.Unit.ValueString(),
+		"unit should be set",
+	)
 }
 
 func Test_adaptNetworkSpeed(t *testing.T) {
@@ -213,8 +240,18 @@ func Test_adaptNetworkSpeed(t *testing.T) {
 	got, err := adaptNetworkSpeed(context.TODO(), networkSpeed)
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), got.Value.ValueInt64(), "value should be set")
-	assert.Equal(t, "unit", got.Unit.ValueString(), "unit should be set")
+	assert.Equal(
+		t,
+		int64(1),
+		got.Value.ValueInt64(),
+		"value should be set",
+	)
+	assert.Equal(
+		t,
+		"unit",
+		got.Unit.ValueString(),
+		"unit should be set",
+	)
 }
 
 func Test_adaptResources(t *testing.T) {
@@ -344,7 +381,10 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 }
 
 func Test_adaptDdos(t *testing.T) {
-	ddos := domain.NewDdos("detectionProfile", "protectionType")
+	ddos := domain.NewDdos(
+		"detectionProfile",
+		"protectionType",
+	)
 
 	got, err := adaptDdos(context.TODO(), ddos)
 
@@ -702,6 +742,19 @@ func TestAdaptInstance(t *testing.T) {
 			"privateNetwork should be set",
 		)
 
+		volume := model.Volume{}
+		got.Volume.As(
+			context.TODO(),
+			&volume,
+			basetypes.ObjectAsOptions{},
+		)
+		assert.Equal(
+			t,
+			"unit",
+			volume.Unit.ValueString(),
+			"volume should be set",
+		)
+
 		assert.Equal(t, sshKey, got.SshKey.ValueString())
 	})
 }
@@ -818,6 +871,7 @@ func generateDomainInstance() domain.Instance {
 		"version",
 		"family",
 		"flavour",
+		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -939,6 +993,8 @@ func generateDomainInstance() domain.Instance {
 			LoadBalancer:  &loadBalancer,
 		})
 
+	volume := domain.NewVolume(1, "unit")
+
 	return domain.NewInstance(
 		value_object.NewGeneratedUuid(),
 		"region",
@@ -963,6 +1019,21 @@ func generateDomainInstance() domain.Instance {
 			StartedAt:        &startedAt,
 			PrivateNetwork:   &privateNetwork,
 			AutoScalingGroup: &autoScalingGroup,
+			Volume:           &volume,
 		},
 	)
+}
+
+func Test_adaptVolume(t *testing.T) {
+	got, err := adaptVolume(
+		context.TODO(),
+		domain.Volume{
+			Size: 2,
+			Unit: "unit",
+		},
+	)
+
+	assert.NoError(t, err)
+	assert.Equal(t, float64(2), got.Size.ValueFloat64())
+	assert.Equal(t, "unit", got.Unit.ValueString())
 }

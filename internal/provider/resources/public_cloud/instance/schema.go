@@ -102,6 +102,9 @@ func (i *instanceResource) Schema(
 					"flavour": schema.StringAttribute{
 						Computed: true,
 					},
+					"architecture": schema.StringAttribute{
+						Computed: true,
+					},
 					"market_apps": schema.ListAttribute{
 						Computed:    true,
 						ElementType: types.StringType,
@@ -332,28 +335,32 @@ func (i *instanceResource) Schema(
 										Attributes: map[string]schema.Attribute{
 											"value": schema.Int64Attribute{Computed: true},
 											"unit":  schema.StringAttribute{Computed: true},
-										}},
+										},
+									},
 									"memory": schema.SingleNestedAttribute{
 										Description: "Total memory in GiB",
 										Computed:    true,
 										Attributes: map[string]schema.Attribute{
 											"value": schema.Float64Attribute{Computed: true},
 											"unit":  schema.StringAttribute{Computed: true},
-										}},
+										},
+									},
 									"public_network_speed": schema.SingleNestedAttribute{
 										Description: "Public network speed in Gbps",
 										Computed:    true,
 										Attributes: map[string]schema.Attribute{
 											"value": schema.Int64Attribute{Computed: true},
 											"unit":  schema.StringAttribute{Computed: true},
-										}},
+										},
+									},
 									"private_network_speed": schema.SingleNestedAttribute{
 										Description: "Private network speed in Gbps",
 										Computed:    true,
 										Attributes: map[string]schema.Attribute{
 											"value": schema.Int64Attribute{Computed: true},
 											"unit":  schema.StringAttribute{Computed: true},
-										}},
+										},
+									},
 								},
 								Description: "Available resources",
 								Computed:    true,
@@ -490,6 +497,18 @@ func (i *instanceResource) Schema(
 								},
 							},
 						},
+					},
+				},
+			},
+			"volume": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"size": schema.Float64Attribute{
+						Computed:    true,
+						Description: "The Volume Size",
+					},
+					"unit": schema.StringAttribute{
+						Computed: true,
 					},
 				},
 			},

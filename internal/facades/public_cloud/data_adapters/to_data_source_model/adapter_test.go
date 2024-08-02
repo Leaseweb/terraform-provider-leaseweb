@@ -157,6 +157,12 @@ func Test_adaptInstance(t *testing.T) {
 		got.AutoScalingGroup.LoadBalancer.Id.ValueString(),
 		"loadBalancer should be set",
 	)
+	assert.Equal(
+		t,
+		"unit",
+		got.Volume.Unit.ValueString(),
+		"volume should be set",
+	)
 }
 
 func Test_adaptResources(t *testing.T) {
@@ -260,6 +266,7 @@ func Test_adaptImage(t *testing.T) {
 		"version",
 		"family",
 		"flavour",
+		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -295,6 +302,12 @@ func Test_adaptImage(t *testing.T) {
 		"flavour",
 		got.Flavour.ValueString(),
 		"flavour should be set",
+	)
+	assert.Equal(
+		t,
+		"architecture",
+		got.Architecture.ValueString(),
+		"architecture should be set",
 	)
 	assert.Equal(
 		t,
@@ -399,7 +412,9 @@ func Test_adaptLoadBalancer(t *testing.T) {
 			Reference:      &reference,
 			StartedAt:      &startedAt,
 			PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
-			Configuration:  &domain.LoadBalancerConfiguration{Balance: enum.BalanceSource},
+			Configuration: &domain.LoadBalancerConfiguration{
+				Balance: enum.BalanceSource,
+			},
 		},
 	)
 
@@ -613,7 +628,10 @@ func Test_adaptIp(t *testing.T) {
 }
 
 func Test_adaptDdos(t *testing.T) {
-	ddos := domain.NewDdos("detectionProfile", "protectionType")
+	ddos := domain.NewDdos(
+		"detectionProfile",
+		"protectionType",
+	)
 	got := adaptDdos(ddos)
 
 	assert.Equal(
@@ -656,6 +674,7 @@ func generateDomainInstance() domain.Instance {
 		"version",
 		"family",
 		"flavour",
+		"architecture",
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -746,7 +765,9 @@ func generateDomainInstance() domain.Instance {
 		},
 	)
 
-	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference("reference")
+	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
+		"reference",
+	)
 	autoScalingGroupCreatedAt := time.Now()
 	autoScalingGroupUpdatedAt := time.Now()
 	autoScalingGroupDesiredAmount := 1
@@ -777,6 +798,8 @@ func generateDomainInstance() domain.Instance {
 			LoadBalancer:  &loadBalancer,
 		})
 
+	volume := domain.NewVolume(1, "unit")
+
 	return domain.NewInstance(
 		value_object.NewGeneratedUuid(),
 		"region",
@@ -801,6 +824,16 @@ func generateDomainInstance() domain.Instance {
 			StartedAt:        &startedAt,
 			PrivateNetwork:   &privateNetwork,
 			AutoScalingGroup: &autoScalingGroup,
+			Volume:           &volume,
 		},
 	)
+}
+
+func Test_adaptVolume(t *testing.T) {
+	volume := domain.NewVolume(1, "unit")
+
+	got := adaptVolume(volume)
+
+	assert.Equal(t, float64(1), got.Size.ValueFloat64())
+	assert.Equal(t, "unit", got.Unit.ValueString())
 }

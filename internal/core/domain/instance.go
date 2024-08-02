@@ -28,6 +28,7 @@ type Instance struct {
 	PrivateNetwork      *PrivateNetwork
 	SshKey              *value_object.SshKey
 	AutoScalingGroup    *AutoScalingGroup
+	Volume              *Volume
 }
 
 // OptionalInstanceValues contains optional supported instance fields.
@@ -39,6 +40,7 @@ type OptionalInstanceValues struct {
 	StartedAt        *time.Time
 	PrivateNetwork   *PrivateNetwork
 	AutoScalingGroup *AutoScalingGroup
+	Volume           *Volume
 }
 
 // OptionalCreateInstanceValues contains optional supported fields for instance creation.
@@ -98,6 +100,7 @@ func NewInstance(
 	instance.StartedAt = optional.StartedAt
 	instance.PrivateNetwork = optional.PrivateNetwork
 	instance.AutoScalingGroup = optional.AutoScalingGroup
+	instance.Volume = optional.Volume
 
 	return instance
 }

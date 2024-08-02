@@ -13,6 +13,7 @@ func TestNewImage(t *testing.T) {
 		"version",
 		"family",
 		"flavour",
+		"architecture",
 		[]string{"marketApp"},
 		[]string{"storageType"})
 
@@ -21,6 +22,7 @@ func TestNewImage(t *testing.T) {
 	assert.Equal(t, "version", image.Version)
 	assert.Equal(t, "family", image.Family)
 	assert.Equal(t, "flavour", image.Flavour)
+	assert.Equal(t, "architecture", image.Architecture)
 	assert.Equal(t, []string{"marketApp"}, image.MarketApps)
 	assert.Equal(t, []string{"storageType"}, image.StorageTypes)
 }
