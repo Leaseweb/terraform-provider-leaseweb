@@ -627,3 +627,18 @@ func TestAdaptNullableBoolToBoolValue(t *testing.T) {
 		},
 	)
 }
+
+func ExampleAdaptNullableBoolToBoolValue() {
+	value := true
+	adaptedValue := AdaptNullableBoolToBoolValue(&value)
+
+	fmt.Println(adaptedValue)
+	// Output: true
+}
+
+func ExampleAdaptNullableBoolToBoolValue_second() {
+	adaptedValue := AdaptNullableBoolToBoolValue(nil)
+
+	fmt.Println(adaptedValue)
+	// Output: <null>
+}
