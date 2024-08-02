@@ -40,6 +40,7 @@ func Test_adaptImage(t *testing.T) {
 		&createdAt,
 		&updatedAt,
 		&custom,
+		&domain.StorageSize{Unit: "unit"},
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -69,6 +70,10 @@ func Test_adaptImage(t *testing.T) {
 
 	assert.Len(t, storageTypes, 1)
 	assert.Equal(t, "storageType", storageTypes[0])
+
+	storageSize := model.StorageSize{}
+	got.StorageSize.As(context.TODO(), &storageSize, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "unit", storageSize.Unit.ValueString())
 }
 
 func Test_AdaptContract(t *testing.T) {
@@ -614,6 +619,8 @@ func generateDomainInstance() domain.Instance {
 	updatedAt := time.Now()
 	custom := false
 
+	storageSize := domain.NewStorageSize(1, "unit")
+
 	image := domain.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
@@ -627,6 +634,7 @@ func generateDomainInstance() domain.Instance {
 		&createdAt,
 		&updatedAt,
 		&custom,
+		&storageSize,
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -785,6 +793,20 @@ func Test_adaptVolume(t *testing.T) {
 	got, err := adaptVolume(
 		context.TODO(),
 		domain.Volume{
+			Size: 2,
+			Unit: "unit",
+		},
+	)
+
+	assert.NoError(t, err)
+	assert.Equal(t, float64(2), got.Size.ValueFloat64())
+	assert.Equal(t, "unit", got.Unit.ValueString())
+}
+
+func Test_adaptStorageSize(t *testing.T) {
+	got, err := adaptStorageSize(
+		context.TODO(),
+		domain.StorageSize{
 			Size: 2,
 			Unit: "unit",
 		},

@@ -35,12 +35,6 @@ func Test_adaptInstanceDetailsImage(t *testing.T) {
 			Family:       "family",
 			Flavour:      "flavour",
 			Architecture: "architecture",
-			State:        nil,
-			StateReason:  nil,
-			Region:       nil,
-			CreatedAt:    nil,
-			UpdatedAt:    nil,
-			Custom:       nil,
 			MarketApps:   []string{"marketApp"},
 			StorageTypes: []string{"storageType"},
 		}
@@ -861,12 +855,6 @@ func Test_adaptImage(t *testing.T) {
 			Family:       "family",
 			Flavour:      "flavour",
 			Architecture: "architecture",
-			State:        nil,
-			StateReason:  nil,
-			Region:       nil,
-			CreatedAt:    nil,
-			UpdatedAt:    nil,
-			Custom:       nil,
 			MarketApps:   []string{},
 			StorageTypes: []string{},
 		}
@@ -1270,6 +1258,9 @@ func TestAdaptImageDetails(t *testing.T) {
 		"architecture",
 		[]string{"marketApp"},
 		[]string{"storageType"},
+		*publicCloud.NewNullableStorageSize(
+			publicCloud.NewStorageSize(float32(1), "unit"),
+		),
 		*publicCloud.NewNullableString(&state),
 		*publicCloud.NewNullableString(&stateReason),
 		*publicCloud.NewNullableString(&region),
@@ -1293,9 +1284,19 @@ func TestAdaptImageDetails(t *testing.T) {
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
 		Custom:       &custom,
+		StorageSize:  &domain.StorageSize{Size: 1, Unit: "unit"},
 		MarketApps:   []string{"marketApp"},
 		StorageTypes: []string{"storageType"},
 	}
+
+	assert.Equal(t, want, got)
+}
+
+func Test_adaptStorageSize(t *testing.T) {
+	sdkStorageSize := publicCloud.NewStorageSize(1, "unit")
+
+	got := adaptStorageSize(*sdkStorageSize)
+	want := domain.StorageSize{Size: 1, Unit: "unit"}
 
 	assert.Equal(t, want, got)
 }

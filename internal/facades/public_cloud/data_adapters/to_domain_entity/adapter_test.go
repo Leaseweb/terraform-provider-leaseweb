@@ -341,6 +341,14 @@ func generateInstanceModel(
 		instanceType = &defaultInstanceType
 	}
 
+	storageSize, _ := types.ObjectValueFrom(
+		context.TODO(),
+		model.StorageSize{}.AttributeTypes(),
+		model.StorageSize{
+			Size: basetypes.NewFloat64Value(123),
+		},
+	)
+
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
 		model.Image{}.AttributeTypes(),
@@ -352,6 +360,7 @@ func generateInstanceModel(
 			Flavour:      basetypes.NewStringUnknown(),
 			MarketApps:   basetypes.NewListUnknown(types.StringType),
 			StorageTypes: basetypes.NewListUnknown(types.StringType),
+			StorageSize:  storageSize,
 		},
 	)
 

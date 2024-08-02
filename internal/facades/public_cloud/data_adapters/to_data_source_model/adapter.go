@@ -126,6 +126,10 @@ func adaptImage(domainImage domain.Image) model.Image {
 		CreatedAt:    shared.AdaptNullableTimeToStringValue(domainImage.CreatedAt),
 		UpdatedAt:    shared.AdaptNullableTimeToStringValue(domainImage.UpdatedAt),
 		Custom:       shared.AdaptNullableBoolToBoolValue(domainImage.Custom),
+		StorageSize: shared.AdaptNullableDomainEntityToDatasourceModel(
+			domainImage.StorageSize,
+			adaptStorageSize,
+		),
 	}
 
 	for _, marketApp := range domainImage.MarketApps {
@@ -305,5 +309,12 @@ func adaptVolume(volume domain.Volume) *model.Volume {
 	return &model.Volume{
 		Size: basetypes.NewFloat64Value(volume.Size),
 		Unit: basetypes.NewStringValue(volume.Unit),
+	}
+}
+
+func adaptStorageSize(storageSize domain.StorageSize) *model.StorageSize {
+	return &model.StorageSize{
+		Size: basetypes.NewFloat64Value(storageSize.Size),
+		Unit: basetypes.NewStringValue(storageSize.Unit),
 	}
 }

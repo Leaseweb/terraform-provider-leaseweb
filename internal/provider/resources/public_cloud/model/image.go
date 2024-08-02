@@ -20,22 +20,26 @@ type Image struct {
 	Architecture types.String `tfsdk:"architecture"`
 	MarketApps   types.List   `tfsdk:"market_apps"`
 	StorageTypes types.List   `tfsdk:"storage_types"`
+	StorageSize  types.Object `tfsdk:"storage_size"`
 }
 
 func (i Image) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":            types.StringType,
-		"name":          types.StringType,
-		"version":       types.StringType,
-		"family":        types.StringType,
-		"flavour":       types.StringType,
-		"architecture":  types.StringType,
-		"state":         types.StringType,
-		"state_reason":  types.StringType,
-		"region":        types.StringType,
-		"created_at":    types.StringType,
-		"updated_at":    types.StringType,
-		"custom":        types.BoolType,
+		"id":           types.StringType,
+		"name":         types.StringType,
+		"version":      types.StringType,
+		"family":       types.StringType,
+		"flavour":      types.StringType,
+		"architecture": types.StringType,
+		"state":        types.StringType,
+		"state_reason": types.StringType,
+		"region":       types.StringType,
+		"created_at":   types.StringType,
+		"updated_at":   types.StringType,
+		"custom":       types.BoolType,
+		"storage_size": types.ObjectType{
+			AttrTypes: StorageSize{}.AttributeTypes(),
+		},
 		"market_apps":   types.ListType{ElemType: types.StringType},
 		"storage_types": types.ListType{ElemType: types.StringType},
 	}

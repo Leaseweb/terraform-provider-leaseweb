@@ -224,6 +224,7 @@ func adaptInstanceDetailsImage(sdkImage publicCloud.InstanceDetailsImage) domain
 		nil,
 		nil,
 		nil,
+		nil,
 		sdkImage.GetMarketApps(),
 		sdkImage.GetStorageTypes(),
 	)
@@ -237,6 +238,7 @@ func adaptImage(sdkImage publicCloud.Image) domain.Image {
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
 		sdkImage.GetArchitecture(),
+		nil,
 		nil,
 		nil,
 		nil,
@@ -745,6 +747,7 @@ func AdaptImageDetails(sdkImageDetails publicCloud.ImageDetails) domain.Image {
 	createdAt, _ := sdkImageDetails.GetCreatedAtOk()
 	updatedAt, _ := sdkImageDetails.GetUpdatedAtOk()
 	custom, _ := sdkImageDetails.GetCustomOk()
+	storageSize := adaptStorageSize(sdkImageDetails.GetStorageSize())
 
 	return domain.NewImage(
 		sdkImageDetails.GetId(),
@@ -759,7 +762,15 @@ func AdaptImageDetails(sdkImageDetails publicCloud.ImageDetails) domain.Image {
 		createdAt,
 		updatedAt,
 		custom,
+		&storageSize,
 		sdkImageDetails.GetMarketApps(),
 		sdkImageDetails.GetStorageTypes(),
+	)
+}
+
+func adaptStorageSize(sdkStorageSize publicCloud.StorageSize) domain.StorageSize {
+	return domain.NewStorageSize(
+		float64(sdkStorageSize.GetSize()),
+		sdkStorageSize.GetUnit(),
 	)
 }

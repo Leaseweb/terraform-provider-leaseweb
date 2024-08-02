@@ -14,6 +14,7 @@ func TestNewImage(t *testing.T) {
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	custom := false
+	storageSize := StorageSize{Unit: "unit"}
 
 	got := NewImage(
 		"UBUNTU_24_04_64BIT",
@@ -28,6 +29,7 @@ func TestNewImage(t *testing.T) {
 		&createdAt,
 		&updatedAt,
 		&custom,
+		&storageSize,
 		[]string{"marketApp"},
 		[]string{"storageType"},
 	)
@@ -44,6 +46,7 @@ func TestNewImage(t *testing.T) {
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
 		Custom:       &custom,
+		StorageSize:  &storageSize,
 		MarketApps:   []string{"marketApp"},
 		StorageTypes: []string{"storageType"},
 	}
