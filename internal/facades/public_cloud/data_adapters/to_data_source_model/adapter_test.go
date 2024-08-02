@@ -260,6 +260,13 @@ func Test_adaptMemory(t *testing.T) {
 }
 
 func Test_adaptImage(t *testing.T) {
+	state := "state"
+	stateReason := "stateReason"
+	region := "region"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+	custom := false
+
 	image := domain.NewImage(
 		"id",
 		"name",
@@ -267,59 +274,39 @@ func Test_adaptImage(t *testing.T) {
 		"family",
 		"flavour",
 		"architecture",
+		&state,
+		&stateReason,
+		&region,
+		&createdAt,
+		&updatedAt,
+		&custom,
 		[]string{"one"},
 		[]string{"storageType"},
 	)
 
 	got := adaptImage(image)
 
-	assert.Equal(
-		t,
-		"id",
-		got.Id.ValueString(),
-		"id should be set",
-	)
-	assert.Equal(
-		t,
-		"name",
-		got.Name.ValueString(),
-		"name should be set",
-	)
-	assert.Equal(
-		t,
-		"version",
-		got.Version.ValueString(),
-		"version should be set",
-	)
-	assert.Equal(
-		t,
-		"family",
-		got.Family.ValueString(),
-		"family should be set",
-	)
-	assert.Equal(
-		t,
-		"flavour",
-		got.Flavour.ValueString(),
-		"flavour should be set",
-	)
-	assert.Equal(
-		t,
-		"architecture",
-		got.Architecture.ValueString(),
-		"architecture should be set",
-	)
+	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "name", got.Name.ValueString())
+	assert.Equal(t, "version", got.Version.ValueString())
+	assert.Equal(t, "family", got.Family.ValueString())
+	assert.Equal(t, "flavour", got.Flavour.ValueString())
+	assert.Equal(t, "architecture", got.Architecture.ValueString())
+	assert.Equal(t, "state", got.State.ValueString())
+	assert.Equal(t, "stateReason", got.StateReason.ValueString())
+	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, createdAt.String(), got.CreatedAt.ValueString())
+	assert.Equal(t, updatedAt.String(), got.UpdatedAt.ValueString())
+	assert.False(t, got.Custom.ValueBool())
 	assert.Equal(
 		t,
 		[]types.String{basetypes.NewStringValue("one")},
 		got.MarketApps,
-		"marketApps should be set",
 	)
 	assert.Equal(
 		t,
 		[]types.String{basetypes.NewStringValue("storageType")},
 		got.StorageTypes,
-		"storageTypes should be set",
 	)
 }
 
@@ -668,6 +655,13 @@ func generateDomainInstance() domain.Instance {
 		privateNetworkSpeed,
 	)
 
+	state := "state"
+	stateReason := "stateReason"
+	region := "region"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+	custom := false
+
 	image := domain.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
@@ -675,6 +669,12 @@ func generateDomainInstance() domain.Instance {
 		"family",
 		"flavour",
 		"architecture",
+		&state,
+		&stateReason,
+		&region,
+		&createdAt,
+		&updatedAt,
+		&custom,
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -703,7 +703,7 @@ func generateDomainInstance() domain.Instance {
 		"2006-01-02 15:04:05",
 		"2022-12-14 17:09:47",
 	)
-	createdAt, _ := time.Parse(
+	contractCreatedAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2021-12-14 17:09:47",
 	)
@@ -712,7 +712,7 @@ func generateDomainInstance() domain.Instance {
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,
 		renewalsAt,
-		createdAt,
+		contractCreatedAt,
 		enum.ContractStateActive,
 		&endsAt,
 	)

@@ -90,11 +90,17 @@ Required:
 Read-Only:
 
 - `architecture` (String)
+- `created_at` (String)
+- `custom` (Boolean)
 - `family` (String)
 - `flavour` (String)
 - `market_apps` (List of String)
 - `name` (String)
+- `region` (String)
+- `state` (String)
+- `state_reason` (String)
 - `storage_types` (List of String) The supported storage types for the instance type
+- `updated_at` (String)
 - `version` (String)
 
 

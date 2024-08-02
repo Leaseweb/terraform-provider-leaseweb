@@ -120,6 +120,12 @@ func adaptImage(domainImage domain.Image) model.Image {
 		Family:       basetypes.NewStringValue(domainImage.Family),
 		Flavour:      basetypes.NewStringValue(domainImage.Flavour),
 		Architecture: basetypes.NewStringValue(domainImage.Architecture),
+		State:        shared.AdaptNullableStringToStringValue(domainImage.State),
+		StateReason:  shared.AdaptNullableStringToStringValue(domainImage.StateReason),
+		Region:       shared.AdaptNullableStringToStringValue(domainImage.Region),
+		CreatedAt:    shared.AdaptNullableTimeToStringValue(domainImage.CreatedAt),
+		UpdatedAt:    shared.AdaptNullableTimeToStringValue(domainImage.UpdatedAt),
+		Custom:       shared.AdaptNullableBoolToBoolValue(domainImage.Custom),
 	}
 
 	for _, marketApp := range domainImage.MarketApps {

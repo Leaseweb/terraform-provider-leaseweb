@@ -65,4 +65,7 @@ type PublicCloudRepository interface {
 		region string,
 		ctx context.Context,
 	) (domain.InstanceTypes, *shared.RepositoryError)
+
+	// GetAllImages gets all available images.
+	GetAllImages(ctx context.Context) (domain.Images, *shared.RepositoryError)
 }

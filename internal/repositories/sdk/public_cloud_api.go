@@ -45,4 +45,6 @@ type PublicCloudApi interface {
 	GetRegionList(ctx context.Context) publicCloud.ApiGetRegionListRequest
 
 	GetInstanceTypeList(ctx context.Context) publicCloud.ApiGetInstanceTypeListRequest
+
+	GetImageList(ctx context.Context) publicCloud.ApiGetImageListRequest
 }

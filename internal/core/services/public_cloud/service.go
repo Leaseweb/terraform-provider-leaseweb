@@ -138,41 +138,85 @@ func (srv Service) GetRegions(ctx context.Context) (
 	return regions, nil
 }
 
-// Populate instance with autoScalingGroupDetails & loadBalancerDetails.
-func (srv Service) populateMissingInstanceAttributes(
-	instance domain.Instance,
+// Get autoScalingGroupDetails.
+func (srv Service) getAutoScalingGroup(
+	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, *errors.ServiceError) {
-	// Get autoScalingGroupDetails.
-	if instance.AutoScalingGroup != nil {
-		autoScalingGroup, err := srv.publicCloudRepository.GetAutoScalingGroup(
-			instance.AutoScalingGroup.Id,
+) (*domain.AutoScalingGroup, *errors.ServiceError) {
+	autoScalingGroup, err := srv.publicCloudRepository.GetAutoScalingGroup(
+		id,
+		ctx,
+	)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"getAutoScalingGroup",
+			*err,
+		)
+	}
+
+	// Get loadBalancerDetails.
+	if autoScalingGroup.LoadBalancer != nil {
+		loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(
+			autoScalingGroup.LoadBalancer.Id,
 			ctx,
 		)
 		if err != nil {
 			return nil, errors.NewFromRepositoryError(
-				"populateMissingInstanceAttributes",
+				"getAutoScalingGroup",
 				*err,
 			)
 		}
+		autoScalingGroup.LoadBalancer = loadBalancer
+	}
 
-		// Get loadBalancerDetails.
-		if autoScalingGroup.LoadBalancer != nil {
-			loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(
-				autoScalingGroup.LoadBalancer.Id,
-				ctx,
-			)
-			if err != nil {
-				return nil, errors.NewFromRepositoryError(
-					"populateMissingInstanceAttributes",
-					*err,
-				)
-			}
-			autoScalingGroup.LoadBalancer = loadBalancer
+	return autoScalingGroup, nil
+}
+
+// Get imageDetails.
+func (srv Service) getImage(
+	id string,
+	ctx context.Context,
+) (*domain.Image, *errors.ServiceError) {
+	images, err := srv.publicCloudRepository.GetAllImages(ctx)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"getImage",
+			*err,
+		)
+	}
+
+	image, imageErr := images.FilterById(id)
+	if imageErr != nil {
+		return nil, errors.NewError(
+			"getImage",
+			imageErr,
+		)
+	}
+
+	return image, nil
+}
+
+// Populate instance with missing details.
+func (srv Service) populateMissingInstanceAttributes(
+	instance domain.Instance,
+	ctx context.Context,
+) (*domain.Instance, *errors.ServiceError) {
+	if instance.AutoScalingGroup != nil {
+		autoScalingGroup, err := srv.getAutoScalingGroup(
+			instance.AutoScalingGroup.Id,
+			ctx,
+		)
+		if err != nil {
+			return nil, err
 		}
-
 		instance.AutoScalingGroup = autoScalingGroup
 	}
+
+	image, err := srv.getImage(instance.Image.Id, ctx)
+	if err != nil {
+		return nil, err
+	}
+	instance.Image = *image
 
 	return &instance, nil
 }

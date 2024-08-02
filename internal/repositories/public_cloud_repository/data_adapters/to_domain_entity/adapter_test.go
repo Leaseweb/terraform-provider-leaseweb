@@ -28,15 +28,24 @@ func Test_adaptInstanceDetailsImage(t *testing.T) {
 		)
 
 		got := adaptInstanceDetailsImage(*sdkImage)
+		want := domain.Image{
+			Id:           "UBUNTU_24_04_64BIT",
+			Name:         "name",
+			Version:      "version",
+			Family:       "family",
+			Flavour:      "flavour",
+			Architecture: "architecture",
+			State:        nil,
+			StateReason:  nil,
+			Region:       nil,
+			CreatedAt:    nil,
+			UpdatedAt:    nil,
+			Custom:       nil,
+			MarketApps:   []string{"marketApp"},
+			StorageTypes: []string{"storageType"},
+		}
 
-		assert.Equal(t, "UBUNTU_24_04_64BIT", got.Id)
-		assert.Equal(t, "name", got.Name)
-		assert.Equal(t, "version", got.Version)
-		assert.Equal(t, "family", got.Family)
-		assert.Equal(t, "flavour", got.Flavour)
-		assert.Equal(t, "architecture", got.Architecture)
-		assert.Equal(t, []string{"marketApp"}, got.MarketApps)
-		assert.Equal(t, []string{"storageType"}, got.StorageTypes)
+		assert.Equal(t, want, got)
 	})
 }
 
@@ -845,13 +854,24 @@ func Test_adaptImage(t *testing.T) {
 		)
 
 		got := adaptImage(*sdkImage)
+		want := domain.Image{
+			Id:           "UBUNTU_24_04_64BIT",
+			Name:         "name",
+			Version:      "version",
+			Family:       "family",
+			Flavour:      "flavour",
+			Architecture: "architecture",
+			State:        nil,
+			StateReason:  nil,
+			Region:       nil,
+			CreatedAt:    nil,
+			UpdatedAt:    nil,
+			Custom:       nil,
+			MarketApps:   []string{},
+			StorageTypes: []string{},
+		}
 
-		assert.Equal(t, "UBUNTU_24_04_64BIT", got.Id)
-		assert.Equal(t, "name", got.Name)
-		assert.Equal(t, "version", got.Version)
-		assert.Equal(t, "family", got.Family)
-		assert.Equal(t, "flavour", got.Flavour)
-		assert.Equal(t, "architecture", got.Architecture)
+		assert.Equal(t, want, got)
 	})
 }
 
@@ -1229,6 +1249,53 @@ func Test_adaptVolume(t *testing.T) {
 	sdkVolume := publicCloud.NewVolume(1, "unit")
 	got := adaptVolume(*sdkVolume)
 	want := domain.Volume{Size: 1, Unit: "unit"}
+
+	assert.Equal(t, want, got)
+}
+
+func TestAdaptImageDetails(t *testing.T) {
+	state := "state"
+	stateReason := "stateReason"
+	region := "region"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+	custom := false
+
+	sdkImageDetails := publicCloud.NewImageDetails(
+		"id",
+		"name",
+		"version",
+		"family",
+		"flavour",
+		"architecture",
+		[]string{"marketApp"},
+		[]string{"storageType"},
+		*publicCloud.NewNullableString(&state),
+		*publicCloud.NewNullableString(&stateReason),
+		*publicCloud.NewNullableString(&region),
+		*publicCloud.NewNullableTime(&createdAt),
+		*publicCloud.NewNullableTime(&updatedAt),
+		*publicCloud.NewNullableBool(&custom),
+	)
+
+	got := AdaptImageDetails(*sdkImageDetails)
+
+	want := domain.Image{
+		Id:           "id",
+		Name:         "name",
+		Version:      "version",
+		Family:       "family",
+		Flavour:      "flavour",
+		Architecture: "architecture",
+		State:        &state,
+		StateReason:  &stateReason,
+		Region:       &region,
+		CreatedAt:    &createdAt,
+		UpdatedAt:    &updatedAt,
+		Custom:       &custom,
+		MarketApps:   []string{"marketApp"},
+		StorageTypes: []string{"storageType"},
+	}
 
 	assert.Equal(t, want, got)
 }

@@ -235,6 +235,12 @@ func generateDomainInstance() domain.Instance {
 		"family",
 		"flavour",
 		"architecture",
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 		[]string{"one"},
 		[]string{"storageType"},
 	)

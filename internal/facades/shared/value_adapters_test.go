@@ -605,3 +605,25 @@ func ExampleReturnError() {
 	fmt.Println(returnedErrors)
 	// Output:  functionName: "summary" "detail"
 }
+
+func TestAdaptNullableBoolToBoolValue(t *testing.T) {
+	t.Run(
+		"returns a boolean when the value is not nil",
+		func(t *testing.T) {
+			value := true
+			got := AdaptNullableBoolToBoolValue(&value)
+
+			assert.True(t, got.ValueBool())
+			assert.False(t, got.IsNull())
+		},
+	)
+
+	t.Run(
+		"returns null when the value is nil",
+		func(t *testing.T) {
+			got := AdaptNullableBoolToBoolValue(nil)
+
+			assert.True(t, got.IsNull())
+		},
+	)
+}
