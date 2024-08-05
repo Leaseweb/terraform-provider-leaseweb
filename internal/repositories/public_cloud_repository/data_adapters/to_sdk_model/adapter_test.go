@@ -241,6 +241,10 @@ func generateDomainInstance() domain.Instance {
 		nil,
 		nil,
 		nil,
+		&domain.StorageSize{
+			Size: 2,
+			Unit: "unit",
+		},
 		[]string{"one"},
 		[]string{"storageType"},
 	)

@@ -17,6 +17,7 @@ type Image struct {
 	UpdatedAt    types.String   `tfsdk:"updated_at"`
 	Custom       types.Bool     `tfsdk:"custom"`
 	Architecture types.String   `tfsdk:"architecture"`
+	StorageSize  *StorageSize   `tfsdk:"storage_size"`
 	MarketApps   []types.String `tfsdk:"market_apps"`
 	StorageTypes []types.String `tfsdk:"storage_types"`
 }

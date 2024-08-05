@@ -132,6 +132,19 @@ func (i *instanceResource) Schema(
 						ElementType: types.StringType,
 						Description: "The supported storage types for the instance type",
 					},
+					"storage_size": schema.SingleNestedAttribute{
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"size": schema.Float64Attribute{
+								Computed:    true,
+								Description: "The storage size",
+							},
+							"unit": schema.StringAttribute{
+								Computed:    true,
+								Description: "The storage size unit",
+							},
+						},
+					},
 				},
 			},
 			"state": schema.StringAttribute{

@@ -249,9 +249,19 @@ Read-Only:
 - `region` (String)
 - `state` (String)
 - `state_reason` (String)
+- `storage_size` (Attributes) (see [below for nested schema](#nestedatt--instances--image--storage_size))
 - `storage_types` (List of String) The supported storage types for the instance type
 - `updated_at` (String)
 - `version` (String)
+
+<a id="nestedatt--instances--image--storage_size"></a>
+### Nested Schema for `instances.image.storage_size`
+
+Read-Only:
+
+- `size` (Number) The storage size
+- `unit` (String) The storage size unit
+
 
 
 <a id="nestedatt--instances--ips"></a>

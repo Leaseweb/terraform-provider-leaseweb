@@ -17,6 +17,7 @@ type Image struct {
 	CreatedAt    *time.Time
 	UpdatedAt    *time.Time
 	Custom       *bool
+	StorageSize  *StorageSize
 	MarketApps   []string
 	StorageTypes []string
 }
@@ -34,6 +35,7 @@ func NewImage(
 	createdAt *time.Time,
 	updatedAt *time.Time,
 	custom *bool,
+	storageSize *StorageSize,
 	marketApps []string,
 	storageTypes []string,
 ) Image {
@@ -50,6 +52,7 @@ func NewImage(
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 		Custom:       custom,
+		StorageSize:  storageSize,
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 	}

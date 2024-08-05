@@ -161,6 +161,17 @@ func adaptImage(
 		)
 	}
 
+	storageSize, err := shared.AdaptNullableDomainEntityToResourceObject(
+		image.StorageSize,
+		model.StorageSize{}.AttributeTypes(),
+		ctx,
+		adaptStorageSize,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptInstance: %w", err)
+	}
+	plan.StorageSize = storageSize
+
 	plan.Id = basetypes.NewStringValue(image.Id)
 	plan.Name = basetypes.NewStringValue(image.Name)
 	plan.Version = basetypes.NewStringValue(image.Version)
@@ -536,5 +547,15 @@ func adaptVolume(
 	return &model.Volume{
 		Size: basetypes.NewFloat64Value(volume.Size),
 		Unit: basetypes.NewStringValue(volume.Unit),
+	}, nil
+}
+
+func adaptStorageSize(
+	ctx context.Context,
+	storageSize domain.StorageSize,
+) (*model.StorageSize, error) {
+	return &model.StorageSize{
+		Size: basetypes.NewFloat64Value(storageSize.Size),
+		Unit: basetypes.NewStringValue(storageSize.Unit),
 	}, nil
 }
