@@ -1,5 +1,7 @@
 # Terraform Leaseweb Provider
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/leaseweb/terraform-provider-leaseweb.svg)](https://pkg.go.dev/github.com/leaseweb/terraform-provider-leaseweb)
+
 A Terraform provider to manage Leaseweb resources.
 
 ## Requirements
