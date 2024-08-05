@@ -6,8 +6,8 @@ import (
 
 	validator2 "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/facades/shared"
 )
 
 func TestRegionValidator_ValidateString(t *testing.T) {

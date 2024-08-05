@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 func TestNewLoadBalancer(t *testing.T) {

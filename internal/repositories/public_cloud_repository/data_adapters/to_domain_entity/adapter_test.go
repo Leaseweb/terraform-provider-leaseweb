@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"

@@ -1,9 +1,9 @@
 package client
 
 import (
-	publiccloudservice "terraform-provider-leaseweb/internal/core/services/public_cloud"
-	"terraform-provider-leaseweb/internal/facades/public_cloud"
-	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
+	publiccloudservice "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
 )
 
 // The Client handles instantiation of the facades.

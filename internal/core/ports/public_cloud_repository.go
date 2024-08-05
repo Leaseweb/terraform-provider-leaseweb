@@ -3,9 +3,9 @@ package ports
 import (
 	"context"
 
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/repositories/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 // PublicCloudRepository is used to connect to public_cloud api.

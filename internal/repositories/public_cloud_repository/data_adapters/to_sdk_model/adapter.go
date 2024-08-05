@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
 )
 
 // AdaptToLaunchInstanceOpts adapts an instance domain entity to supported launch instance opts.

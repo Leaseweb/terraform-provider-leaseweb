@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	sharedService "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
-	sharedService "terraform-provider-leaseweb/internal/core/services/errors"
-	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 func TestNewFromServiceError(t *testing.T) {

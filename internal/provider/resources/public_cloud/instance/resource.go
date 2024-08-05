@@ -2,7 +2,7 @@ package instance
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
 
 var (

@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
