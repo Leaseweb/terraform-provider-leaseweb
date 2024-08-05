@@ -3,7 +3,7 @@ package errors
 import (
 	"fmt"
 
-	repository "terraform-provider-leaseweb/internal/repositories/shared"
+	repository "github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 type ServiceError struct {

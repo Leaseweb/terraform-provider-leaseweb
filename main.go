@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"terraform-provider-leaseweb/internal/provider"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider"
 )
 
 //go:generate terraform fmt -recursive ./examples/

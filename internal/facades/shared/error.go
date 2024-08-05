@@ -3,8 +3,8 @@ package shared
 import (
 	"fmt"
 
-	sharedService "terraform-provider-leaseweb/internal/core/services/errors"
-	"terraform-provider-leaseweb/internal/repositories/shared"
+	sharedService "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 type FacadeError struct {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"terraform-provider-leaseweb/internal/provider/logging"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/logging"
 )
 
 func (d *instancesDataSource) Read(

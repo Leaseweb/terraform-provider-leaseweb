@@ -1,7 +1,7 @@
 package enum
 
 import (
-	"terraform-provider-leaseweb/internal/core/shared/enum_utils"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum_utils"
 )
 
 type AutoScalingGroupState string

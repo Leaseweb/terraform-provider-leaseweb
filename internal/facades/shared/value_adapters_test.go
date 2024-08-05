@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
-	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 type mockDomainEntity struct {

@@ -3,8 +3,8 @@ package domain
 import (
 	"time"
 
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 type Instance struct {

@@ -3,9 +3,9 @@ package to_data_source_model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/facades/shared"
-	"terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 )
 
 func AdaptInstances(domainInstances domain.Instances) model.Instances {

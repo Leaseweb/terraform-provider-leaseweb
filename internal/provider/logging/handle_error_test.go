@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 func TestHandleError(t *testing.T) {

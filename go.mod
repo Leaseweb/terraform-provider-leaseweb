@@ -1,4 +1,4 @@
-module terraform-provider-leaseweb
+module github.com/leaseweb/terraform-provider-leaseweb
 
 go 1.22.3
 

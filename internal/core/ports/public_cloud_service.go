@@ -3,9 +3,9 @@ package ports
 import (
 	"context"
 
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/services/errors"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 // PublicCloudService gets data associated with public_cloud.

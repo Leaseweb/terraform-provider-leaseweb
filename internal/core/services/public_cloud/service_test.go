@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/ports"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 var (

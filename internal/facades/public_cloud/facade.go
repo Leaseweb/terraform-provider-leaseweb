@@ -6,16 +6,16 @@ import (
 	"log"
 	"time"
 
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/ports"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_data_source_model"
-	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_domain_entity"
-	"terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_resource_model"
-	"terraform-provider-leaseweb/internal/facades/shared"
-	dataSourceModel "terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
-	resourceModel "terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_data_source_model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_domain_entity"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_resource_model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
+	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 var ErrContractTermCannotBeZero = domain.ErrContractTermCannotBeZero

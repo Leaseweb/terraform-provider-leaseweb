@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"testing"
 
+	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
-	sharedRepository "terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 func TestNewFromRepositoryError(t *testing.T) {

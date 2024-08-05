@@ -3,8 +3,8 @@ package domain
 import (
 	"testing"
 
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/stretchr/testify/assert"
-	"terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 func TestNewLoadBalancerConfiguration(t *testing.T) {

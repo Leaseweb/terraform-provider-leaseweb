@@ -6,8 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	instanceValidator "terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
-	"terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	instanceValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 // ModifyPlan calls validators that require access to the handler.

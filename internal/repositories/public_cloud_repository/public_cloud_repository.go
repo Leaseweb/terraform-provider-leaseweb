@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"terraform-provider-leaseweb/internal/core/domain"
-	"terraform-provider-leaseweb/internal/core/shared/value_object"
-	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_domain_entity"
-	"terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
-	"terraform-provider-leaseweb/internal/repositories/sdk"
-	"terraform-provider-leaseweb/internal/repositories/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_domain_entity"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/sdk"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
 // Optional contains optional values that can be passed to NewPublicCloudRepository.

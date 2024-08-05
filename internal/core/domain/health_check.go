@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
 type HealthCheck struct {
