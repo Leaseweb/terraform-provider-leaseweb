@@ -283,10 +283,7 @@ func (srv Service) getInstanceType(
 
 	// Create cache of retrieved instanceTypes.
 	for _, i := range instanceTypes {
-		_, ok := srv.cachedInstanceTypes[region][name]
-		if !ok {
-			srv.cachedInstanceTypes[region][name] = i
-		}
+		srv.cachedInstanceTypes[region][name] = i
 	}
 
 	instanceType, err := instanceTypes.GetByName(name)
