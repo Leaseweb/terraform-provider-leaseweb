@@ -24,7 +24,6 @@ func AdaptInstance(
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
 	plan.HasPublicIpv4 = basetypes.NewBoolValue(instance.HasPublicIpv4)
 	plan.HasPrivateNetwork = basetypes.NewBoolValue(instance.HasPrivateNetwork)
-	plan.Type = basetypes.NewStringValue(instance.Type.String())
 	plan.RootDiskSize = basetypes.NewInt64Value(
 		int64(instance.RootDiskSize.Value),
 	)
@@ -127,6 +126,17 @@ func AdaptInstance(
 		return nil, fmt.Errorf("AdaptInstance: %w", err)
 	}
 	plan.Volume = volume
+
+	instanceType, err := shared.AdaptDomainEntityToResourceObject(
+		instance.Type,
+		model.InstanceType{}.AttributeTypes(),
+		ctx,
+		adaptInstanceType,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptInstance: %w", err)
+	}
+	plan.Type = instanceType
 
 	return &plan, nil
 }
@@ -393,6 +403,16 @@ func adaptLoadBalancer(
 		return nil, diags
 	}
 
+	instanceType, diags := shared.AdaptDomainEntityToResourceObject(
+		loadBalancer.Type,
+		model.InstanceType{}.AttributeTypes(),
+		ctx,
+		adaptInstanceType,
+	)
+	if diags != nil {
+		return nil, diags
+	}
+
 	configuration, diags := shared.AdaptNullableDomainEntityToResourceObject(
 		loadBalancer.Configuration,
 		model.LoadBalancerConfiguration{}.AttributeTypes(),
@@ -424,10 +444,8 @@ func adaptLoadBalancer(
 	}
 
 	return &model.LoadBalancer{
-		Id: basetypes.NewStringValue(loadBalancer.Id.String()),
-		Type: basetypes.NewStringValue(
-			loadBalancer.Type.String(),
-		),
+		Id:        basetypes.NewStringValue(loadBalancer.Id.String()),
+		Type:      instanceType,
 		Resources: resources,
 		Region:    basetypes.NewStringValue(loadBalancer.Region),
 		Reference: shared.AdaptNullableStringToStringValue(
@@ -557,5 +575,118 @@ func adaptStorageSize(
 	return &model.StorageSize{
 		Size: basetypes.NewFloat64Value(storageSize.Size),
 		Unit: basetypes.NewStringValue(storageSize.Unit),
+	}, nil
+}
+
+func adaptInstanceType(
+	ctx context.Context,
+	instanceType domain.InstanceType,
+) (*model.InstanceType, error) {
+	resources, err := shared.AdaptDomainEntityToResourceObject(
+		instanceType.Resources,
+		model.Resources{}.AttributeTypes(),
+		ctx,
+		adaptResources,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptInstanceType: %w", err)
+	}
+
+	prices, err := shared.AdaptDomainEntityToResourceObject(
+		instanceType.Prices,
+		model.Prices{}.AttributeTypes(),
+		ctx,
+		adaptPrices,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptInstanceType: %w", err)
+	}
+
+	storageTypes, storageTypesDiags := basetypes.NewListValueFrom(
+		ctx,
+		types.StringType,
+		instanceType.StorageTypes,
+	)
+	if storageTypesDiags != nil {
+		return nil, shared.ReturnError(
+			"adaptInstanceType",
+			storageTypesDiags,
+		)
+	}
+
+	return &model.InstanceType{
+		Name:         basetypes.NewStringValue(instanceType.Name),
+		Resources:    resources,
+		Prices:       prices,
+		StorageTypes: storageTypes,
+	}, nil
+}
+
+func adaptPrices(
+	ctx context.Context,
+	prices domain.Prices,
+) (*model.Prices, error) {
+	compute, err := shared.AdaptDomainEntityToResourceObject(
+		prices.Compute,
+		model.Price{}.AttributeTypes(),
+		ctx,
+		adaptPrice,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptPrices: %w", err)
+	}
+
+	storage, err := shared.AdaptDomainEntityToResourceObject(
+		prices.Storage,
+		model.Storage{}.AttributeTypes(),
+		ctx,
+		adaptStorage,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptPrices: %w", err)
+	}
+
+	return &model.Prices{
+		Currency:       basetypes.NewStringValue(prices.Currency),
+		CurrencySymbol: basetypes.NewStringValue(prices.CurrencySymbol),
+		Compute:        compute,
+		Storage:        storage,
+	}, nil
+}
+
+func adaptPrice(ctx context.Context, price domain.Price) (*model.Price, error) {
+	return &model.Price{
+		HourlyPrice:  basetypes.NewStringValue(price.HourlyPrice),
+		MonthlyPrice: basetypes.NewStringValue(price.MonthlyPrice),
+	}, nil
+}
+
+func adaptStorage(
+	ctx context.Context,
+	storage domain.Storage,
+) (*model.Storage, error) {
+	local, err := shared.AdaptDomainEntityToResourceObject(
+		storage.Local,
+		model.Price{}.AttributeTypes(),
+		ctx,
+		adaptPrice,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptStorage: %w", err)
+	}
+
+	central, err := shared.AdaptDomainEntityToResourceObject(
+		storage.Central,
+		model.Price{}.AttributeTypes(),
+		ctx,
+		adaptPrice,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptStorage: %w", err)
+	}
+
+	return &model.Storage{
+		Local:   local,
+		Central: central,
 	}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	instanceValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
@@ -21,6 +22,9 @@ func (i *instanceResource) ModifyPlan(
 	planInstance := model.Instance{}
 	request.Plan.Get(ctx, &planInstance)
 
+	instanceType := model.InstanceType{}
+	planInstance.Type.As(ctx, &instanceType, basetypes.ObjectAsOptions{})
+
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
@@ -30,7 +34,7 @@ func (i *instanceResource) ModifyPlan(
 	}
 
 	i.validateInstanceType(
-		planInstance.Type,
+		instanceType.Name,
 		stateInstance.Id,
 		planInstance.Region,
 		response,

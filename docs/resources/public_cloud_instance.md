@@ -26,7 +26,9 @@ resource "leaseweb_public_cloud_instance" "example" {
   reference              = "my webserver"
   region                 = "eu-west-3"
   root_disk_storage_type = "CENTRAL"
-  type                   = "lsw.m3.large"
+  type = {
+    name = "lsw.m3.large"
+  }
 }
 ```
 
@@ -39,7 +41,7 @@ resource "leaseweb_public_cloud_instance" "example" {
 - `image` (Attributes) (see [below for nested schema](#nestedatt--image))
 - `region` (String) Region to launch the instance into
 - `root_disk_storage_type` (String) The root disk's storage type
-- `type` (String) Instance type
+- `type` (Attributes) (see [below for nested schema](#nestedatt--type))
 
 ### Optional
 
@@ -68,8 +70,8 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 Required:
 
-- `billing_frequency` (Number) The billing frequency (in months) of the instance.
-- `term` (Number) Contract term (in months). Used only when contract type is MONTHLY
+- `billing_frequency` (Number) The billing frequency (in months)
+- `term` (Number) Contract term (in months). Used only when type is MONTHLY
 - `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
 
 Read-Only:
@@ -114,6 +116,114 @@ Read-Only:
 
 
 
+<a id="nestedatt--type"></a>
+### Nested Schema for `type`
+
+Required:
+
+- `name` (String) Type name
+
+Read-Only:
+
+- `prices` (Attributes) (see [below for nested schema](#nestedatt--type--prices))
+- `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--type--resources))
+- `storage_types` (List of String) The supported storage types
+
+<a id="nestedatt--type--prices"></a>
+### Nested Schema for `type.prices`
+
+Read-Only:
+
+- `compute` (Attributes) (see [below for nested schema](#nestedatt--type--prices--compute))
+- `currency` (String)
+- `currency_symbol` (String)
+- `storage` (Attributes) (see [below for nested schema](#nestedatt--type--prices--storage))
+
+<a id="nestedatt--type--prices--compute"></a>
+### Nested Schema for `type.prices.compute`
+
+Read-Only:
+
+- `hourly_price` (String)
+- `monthly_price` (String)
+
+
+<a id="nestedatt--type--prices--storage"></a>
+### Nested Schema for `type.prices.storage`
+
+Read-Only:
+
+- `central` (Attributes) (see [below for nested schema](#nestedatt--type--prices--storage--central))
+- `local` (Attributes) (see [below for nested schema](#nestedatt--type--prices--storage--local))
+
+<a id="nestedatt--type--prices--storage--central"></a>
+### Nested Schema for `type.prices.storage.central`
+
+Read-Only:
+
+- `hourly_price` (String)
+- `monthly_price` (String)
+
+
+<a id="nestedatt--type--prices--storage--local"></a>
+### Nested Schema for `type.prices.storage.local`
+
+Read-Only:
+
+- `hourly_price` (String)
+- `monthly_price` (String)
+
+
+
+
+<a id="nestedatt--type--resources"></a>
+### Nested Schema for `type.resources`
+
+Read-Only:
+
+- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--type--resources--cpu))
+- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--type--resources--memory))
+- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--type--resources--private_network_speed))
+- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--type--resources--public_network_speed))
+
+<a id="nestedatt--type--resources--cpu"></a>
+### Nested Schema for `type.resources.cpu`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--type--resources--memory"></a>
+### Nested Schema for `type.resources.memory`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--type--resources--private_network_speed"></a>
+### Nested Schema for `type.resources.private_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--type--resources--public_network_speed"></a>
+### Nested Schema for `type.resources.public_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+
+
 <a id="nestedatt--auto_scaling_group"></a>
 ### Nested Schema for `auto_scaling_group`
 
@@ -151,19 +261,19 @@ Read-Only:
 - `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources))
 - `started_at` (String) Date and time when the load balancer was started for the first time, right after launching it
 - `state` (String) The load balancers current state
-- `type` (String) Load balancer type
+- `type` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type))
 
 <a id="nestedatt--auto_scaling_group--load_balancer--contract"></a>
 ### Nested Schema for `auto_scaling_group.load_balancer.contract`
 
 Read-Only:
 
-- `billing_frequency` (Number) The billing frequency (in months) of the load balancer.
+- `billing_frequency` (Number) The billing frequency (in months)
 - `created_at` (String) Date when the contract was created
 - `ends_at` (String)
 - `renewals_at` (String) Date when the contract will be automatically renewed
 - `state` (String)
-- `term` (Number) Contract term (in months). Used only when contract type is MONTHLY
+- `term` (Number) Contract term (in months). Used only when type is MONTHLY
 - `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
 
 
@@ -278,6 +388,111 @@ Read-Only:
 
 - `unit` (String)
 - `value` (Number)
+
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type`
+
+Read-Only:
+
+- `name` (String) Type name
+- `prices` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--prices))
+- `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--resources))
+- `storage_types` (List of String) The supported storage types
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--prices"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.prices`
+
+Read-Only:
+
+- `compute` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--prices--compute))
+- `currency` (String)
+- `currency_symbol` (String)
+- `storage` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--prices--storage))
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--prices--compute"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.prices.compute`
+
+Read-Only:
+
+- `hourly_price` (String)
+- `monthly_price` (String)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--prices--storage"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.prices.storage`
+
+Read-Only:
+
+- `central` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--prices--storage--central))
+- `local` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--prices--storage--local))
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--prices--storage--central"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.prices.storage.central`
+
+Read-Only:
+
+- `hourly_price` (String)
+- `monthly_price` (String)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--prices--storage--local"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.prices.storage.local`
+
+Read-Only:
+
+- `hourly_price` (String)
+- `monthly_price` (String)
+
+
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--resources"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.resources`
+
+Read-Only:
+
+- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--resources--cpu))
+- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--resources--memory))
+- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--resources--private_network_speed))
+- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--type--resources--public_network_speed))
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--resources--cpu"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.resources.cpu`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--resources--memory"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.resources.memory`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--resources--private_network_speed"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.resources.private_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--type--resources--public_network_speed"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.type.resources.public_network_speed`
+
+Read-Only:
+
+- `unit` (String)
+- `value` (Number)
+
 
 
 

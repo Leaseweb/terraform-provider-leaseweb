@@ -44,7 +44,20 @@ func AdaptToCreateInstanceOpts(
 	if contractDiags != nil {
 		return nil, shared.ReturnError(
 			"AdaptToCreateInstanceOpts",
-			imageDiags,
+			contractDiags,
+		)
+	}
+
+	instanceType := model.InstanceType{}
+	instanceTypeDiags := instanceResourceModel.Type.As(
+		ctx,
+		&instanceType,
+		basetypes.ObjectAsOptions{},
+	)
+	if instanceTypeDiags != nil {
+		return nil, shared.ReturnError(
+			"AdaptToCreateInstanceOpts",
+			instanceTypeDiags,
 		)
 	}
 
@@ -101,27 +114,13 @@ func AdaptToCreateInstanceOpts(
 			int(instanceResourceModel.RootDiskSize.ValueInt64()),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToCreateInstanceOpts: %w",
-				err,
-			)
+			return nil, fmt.Errorf("AdaptToCreateInstanceOpts: %w", err)
 		}
 	}
 
-	instanceType, err := value_object.NewInstanceType(
-		instanceResourceModel.Type.ValueString(),
-		allowedInstancedTypes,
-	)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"AdaptToCreateInstanceOpts: %w",
-			err,
-		)
-	}
-
-	createInstanceOpts := domain.NewCreateInstance(
+	createInstanceOpts, err := domain.NewCreateInstance(
 		instanceResourceModel.Region.ValueString(),
-		*instanceType,
+		instanceType.Name.ValueString(),
 		rootDiskStorageType,
 		image.Id.ValueString(),
 		contractType,
@@ -137,9 +136,13 @@ func AdaptToCreateInstanceOpts(
 			SshKey:       sshKey,
 			RootDiskSize: rootDiskSize,
 		},
+		allowedInstancedTypes,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptToCreateInstanceOpts: %w", err)
+	}
 
-	return &createInstanceOpts, nil
+	return createInstanceOpts, nil
 }
 
 // AdaptToUpdateInstanceOpts transforms a resource model to an instance domain
@@ -152,10 +155,7 @@ func AdaptToUpdateInstanceOpts(
 
 	id, err := value_object.NewUuid(instanceResourceModel.Id.ValueString())
 	if err != nil {
-		return nil, fmt.Errorf(
-			"AdaptToUpdateInstanceOpts: %w",
-			err,
-		)
+		return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)
 	}
 
 	optionalValues := domain.OptionalUpdateInstanceValues{
@@ -169,10 +169,7 @@ func AdaptToUpdateInstanceOpts(
 			int(instanceResourceModel.RootDiskSize.ValueInt64()),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToUpdateInstanceOpts: %w",
-				err,
-			)
+			return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)
 		}
 		optionalValues.RootDiskSize = rootDiskSize
 	}
@@ -181,6 +178,19 @@ func AdaptToUpdateInstanceOpts(
 	diags := instanceResourceModel.Contract.As(
 		ctx,
 		&contract,
+		basetypes.ObjectAsOptions{},
+	)
+	if diags.HasError() {
+		return nil, shared.ReturnError(
+			"AdaptToUpdateInstanceOpts",
+			diags,
+		)
+	}
+
+	instanceType := model.InstanceType{}
+	diags = instanceResourceModel.Type.As(
+		ctx,
+		&instanceType,
 		basetypes.ObjectAsOptions{},
 	)
 	if diags.HasError() {
@@ -225,21 +235,19 @@ func AdaptToUpdateInstanceOpts(
 		optionalValues.BillingFrequency = &billingFrequency
 	}
 
-	if instanceResourceModel.Type.ValueString() != "" {
-		instanceType, err := value_object.NewInstanceType(
-			instanceResourceModel.Type.ValueString(),
-			allowedInstanceTypes,
-		)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToUpdateInstanceOpts: %w",
-				err,
-			)
-		}
-		optionalValues.Type = instanceType
+	if instanceType.Name.ValueString() != "" {
+		instanceTypeOpt := instanceType.Name.ValueString()
+		optionalValues.Type = &instanceTypeOpt
 	}
 
-	instance := domain.NewUpdateInstance(*id, optionalValues)
+	instance, err := domain.NewUpdateInstance(
+		*id,
+		optionalValues,
+		allowedInstanceTypes,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)
+	}
 
-	return &instance, nil
+	return instance, nil
 }

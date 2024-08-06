@@ -15,10 +15,7 @@ func TestNewInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instanceId := value_object.NewGeneratedUuid()
 		rootDiskSize, _ := value_object.NewRootDiskSize(5)
-		instanceType, _ := value_object.NewInstanceType(
-			"instanceType",
-			[]string{"instanceType"},
-		)
+		instanceType := InstanceType{Name: "instanceType"}
 
 		got := NewInstance(
 			instanceId,
@@ -30,7 +27,7 @@ func TestNewInstance(t *testing.T) {
 			false,
 			true,
 			*rootDiskSize,
-			*instanceType,
+			instanceType,
 			enum.RootDiskStorageTypeCentral,
 			Ips{{Ip: "1.2.3.4"}},
 			Contract{BillingFrequency: enum.ContractBillingFrequencyOne},
@@ -45,7 +42,7 @@ func TestNewInstance(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.False(t, got.HasPublicIpv4)
 		assert.True(t, got.HasPrivateNetwork)
-		assert.Equal(t, *instanceType, got.Type)
+		assert.Equal(t, instanceType, got.Type)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(
@@ -70,10 +67,6 @@ func TestNewInstance(t *testing.T) {
 		marketAppId := "marketAppId"
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 		startedAt := time.Now()
-		instanceType, _ := value_object.NewInstanceType(
-			"instanceType",
-			[]string{"instanceType"},
-		)
 
 		got := NewInstance(
 			value_object.NewGeneratedUuid(),
@@ -85,7 +78,7 @@ func TestNewInstance(t *testing.T) {
 			false,
 			true,
 			value_object.RootDiskSize{},
-			*instanceType,
+			InstanceType{},
 			enum.RootDiskStorageTypeCentral,
 			Ips{},
 			Contract{},
@@ -122,24 +115,22 @@ func TestNewInstance(t *testing.T) {
 
 func TestNewCreateInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		instanceType, _ := value_object.NewInstanceType(
-			"instanceType",
-			[]string{"instanceType"},
-		)
-
-		got := NewCreateInstance(
+		got, err := NewCreateInstance(
 			"region",
-			*instanceType,
+			"instanceType",
 			enum.RootDiskStorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
 			OptionalCreateInstanceValues{},
+			[]string{"instanceType"},
 		)
 
+		assert.NoError(t, err)
+
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, *instanceType, got.Type)
+		assert.Equal(t, "instanceType", got.Type.Name)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "ALMALINUX_8_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -161,14 +152,10 @@ func TestNewCreateInstance(t *testing.T) {
 		reference := "reference"
 		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 		rootDiskSize, _ := value_object.NewRootDiskSize(6)
-		instanceType, _ := value_object.NewInstanceType(
-			"instanceType",
-			[]string{"instanceType"},
-		)
 
-		got := NewCreateInstance(
+		got, err := NewCreateInstance(
 			"",
-			*instanceType,
+			"instanceType",
 			enum.RootDiskStorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
@@ -180,7 +167,10 @@ func TestNewCreateInstance(t *testing.T) {
 				SshKey:       sshKeyValueObject,
 				RootDiskSize: rootDiskSize,
 			},
+			[]string{"instanceType"},
 		)
+
+		assert.NoError(t, err)
 
 		assert.Equal(t, marketAppId, *got.MarketAppId)
 		assert.Equal(t, reference, *got.Reference)
@@ -188,16 +178,50 @@ func TestNewCreateInstance(t *testing.T) {
 		assert.Equal(t, *rootDiskSize, got.RootDiskSize)
 	})
 
+	t.Run(
+		"passing an invalid instance type returns an error",
+		func(t *testing.T) {
+			marketAppId := "marketAppId"
+			reference := "reference"
+			sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+			rootDiskSize, _ := value_object.NewRootDiskSize(6)
+
+			_, err := NewCreateInstance(
+				"",
+				"instanceType",
+				enum.RootDiskStorageTypeCentral,
+				"ALMALINUX_8_64BIT",
+				enum.ContractTypeMonthly,
+				enum.ContractTermSix,
+				enum.ContractBillingFrequencyThree,
+				OptionalCreateInstanceValues{
+					MarketAppId:  &marketAppId,
+					Reference:    &reference,
+					SshKey:       sshKeyValueObject,
+					RootDiskSize: rootDiskSize,
+				},
+				[]string{},
+			)
+
+			assert.Error(t, err)
+			assert.Error(t, err, ErrInvalidInstanceTypePassed{})
+		},
+	)
 }
 
 func TestNewUpdateInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		id := value_object.NewGeneratedUuid()
 
-		got := NewUpdateInstance(id, OptionalUpdateInstanceValues{})
+		got, err := NewUpdateInstance(
+			id,
+			OptionalUpdateInstanceValues{},
+			[]string{},
+		)
+
+		assert.NoError(t, err)
 
 		assert.Equal(t, id, got.Id)
-
 		assert.Empty(t, got.Type)
 		assert.Empty(t, got.Reference)
 		assert.Empty(t, got.Contract.Type)
@@ -207,29 +231,29 @@ func TestNewUpdateInstance(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		instanceType, _ := value_object.NewInstanceType(
-			"instanceType",
-			[]string{"instanceType"},
-		)
+		instanceType := "instanceType"
 		reference := "reference"
 		contractType := enum.ContractTypeMonthly
 		contractTerm := enum.ContractTermSix
 		billingFrequency := enum.ContractBillingFrequencyThree
 		rootDiskSize, _ := value_object.NewRootDiskSize(50)
 
-		got := NewUpdateInstance(
+		got, err := NewUpdateInstance(
 			value_object.NewGeneratedUuid(),
 			OptionalUpdateInstanceValues{
-				Type:             instanceType,
+				Type:             &instanceType,
 				Reference:        &reference,
 				ContractType:     &contractType,
 				Term:             &contractTerm,
 				BillingFrequency: &billingFrequency,
 				RootDiskSize:     rootDiskSize,
 			},
+			[]string{"instanceType"},
 		)
 
-		assert.Equal(t, *instanceType, got.Type)
+		assert.NoError(t, err)
+
+		assert.Equal(t, instanceType, got.Type.Name)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermSix, got.Contract.Term)
@@ -241,4 +265,20 @@ func TestNewUpdateInstance(t *testing.T) {
 		assert.Equal(t, 50, got.RootDiskSize.Value)
 	})
 
+	t.Run(
+		"passing an invalid instance type returns an error",
+		func(t *testing.T) {
+			id := value_object.NewGeneratedUuid()
+			instanceType := "instanceType"
+
+			_, err := NewUpdateInstance(
+				id,
+				OptionalUpdateInstanceValues{Type: &instanceType},
+				[]string{},
+			)
+
+			assert.Error(t, err)
+			assert.Error(t, err, ErrInvalidInstanceTypePassed{})
+		},
+	)
 }

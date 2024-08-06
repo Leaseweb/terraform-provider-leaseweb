@@ -36,7 +36,7 @@ func adaptInstance(domainInstance domain.Instance) model.Instance {
 		HasPrivateNetwork: basetypes.NewBoolValue(
 			domainInstance.HasPrivateNetwork,
 		),
-		Type: basetypes.NewStringValue(domainInstance.Type.String()),
+		Type: adaptInstanceType(domainInstance.Type),
 		RootDiskSize: basetypes.NewInt64Value(
 			int64(domainInstance.RootDiskSize.Value),
 		),
@@ -215,7 +215,7 @@ func adaptLoadBalancer(loadBalancer domain.LoadBalancer) *model.LoadBalancer {
 
 	return &model.LoadBalancer{
 		Id:        basetypes.NewStringValue(loadBalancer.Id.String()),
-		Type:      basetypes.NewStringValue(loadBalancer.Type.String()),
+		Type:      adaptInstanceType(loadBalancer.Type),
 		Resources: adaptResources(loadBalancer.Resources),
 		Region:    basetypes.NewStringValue(loadBalancer.Region),
 		Reference: shared.AdaptNullableStringToStringValue(loadBalancer.Reference),
@@ -316,5 +316,42 @@ func adaptStorageSize(storageSize domain.StorageSize) *model.StorageSize {
 	return &model.StorageSize{
 		Size: basetypes.NewFloat64Value(storageSize.Size),
 		Unit: basetypes.NewStringValue(storageSize.Unit),
+	}
+}
+
+func adaptInstanceType(domainInstanceType domain.InstanceType) model.InstanceType {
+	instanceType := model.InstanceType{
+		Name:      basetypes.NewStringValue(domainInstanceType.Name),
+		Resources: adaptResources(domainInstanceType.Resources),
+		Prices:    adaptPrices(domainInstanceType.Prices),
+	}
+
+	if domainInstanceType.StorageTypes != nil {
+		instanceType.StorageTypes = domainInstanceType.StorageTypes.ToArray()
+	}
+
+	return instanceType
+}
+
+func adaptPrices(prices domain.Prices) model.Prices {
+	return model.Prices{
+		Currency:       basetypes.NewStringValue(prices.Currency),
+		CurrencySymbol: basetypes.NewStringValue(prices.CurrencySymbol),
+		Compute:        adaptPrice(prices.Compute),
+		Storage:        adaptStorage(prices.Storage),
+	}
+}
+
+func adaptPrice(price domain.Price) model.Price {
+	return model.Price{
+		HourlyPrice:  basetypes.NewStringValue(price.HourlyPrice),
+		MonthlyPrice: basetypes.NewStringValue(price.MonthlyPrice),
+	}
+}
+
+func adaptStorage(storage domain.Storage) model.Storage {
+	return model.Storage{
+		Local:   adaptPrice(storage.Local),
+		Central: adaptPrice(storage.Central),
 	}
 }
