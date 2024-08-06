@@ -12,6 +12,9 @@ import (
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
 	publicCloudRepository ports.PublicCloudRepository
+
+	// Cache instanceTypes by region & name.
+	cachedInstanceTypes map[string]map[string]domain.InstanceType
 }
 
 func (srv Service) GetAllInstances(ctx context.Context) (
@@ -254,6 +257,19 @@ func (srv Service) getInstanceType(
 	region string,
 	ctx context.Context,
 ) (*domain.InstanceType, *errors.ServiceError) {
+
+	// Create region cache if it does not already exist.
+	_, ok := srv.cachedInstanceTypes[region]
+	if !ok {
+		srv.cachedInstanceTypes[region] = make(map[string]domain.InstanceType)
+	}
+
+	// If the cache instanceType already exists, return it.
+	cachedInstanceType, ok := srv.cachedInstanceTypes[region][name]
+	if ok {
+		return &cachedInstanceType, nil
+	}
+
 	instanceTypes, repositoryErr := srv.publicCloudRepository.GetInstanceTypesForRegion(
 		region,
 		ctx,
@@ -265,6 +281,14 @@ func (srv Service) getInstanceType(
 		)
 	}
 
+	// Create cache of retrieved instanceTypes.
+	for _, i := range instanceTypes {
+		_, ok := srv.cachedInstanceTypes[region][name]
+		if !ok {
+			srv.cachedInstanceTypes[region][name] = i
+		}
+	}
+
 	instanceType, err := instanceTypes.GetByName(name)
 	if err != nil {
 		return nil, errors.NewError("GetInstanceType", err)
@@ -274,5 +298,8 @@ func (srv Service) getInstanceType(
 }
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {
-	return Service{publicCloudRepository: publicCloudRepository}
+	return Service{
+		publicCloudRepository: publicCloudRepository,
+		cachedInstanceTypes:   make(map[string]map[string]domain.InstanceType),
+	}
 }
