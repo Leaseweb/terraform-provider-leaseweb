@@ -140,6 +140,9 @@ func newRepositorySpy() repositorySpy {
 		images: domain.Images{
 			domain.Image{Id: "imageId"},
 		},
+		instanceTypesForRegion: domain.InstanceTypes{
+			domain.InstanceType{Name: "instanceType"},
+		},
 	}
 }
 
@@ -161,6 +164,7 @@ func TestService_GetAllInstances(t *testing.T) {
 					Id:     id,
 					Region: "region",
 					Image:  domain.Image{Id: "imageId"},
+					Type:   domain.InstanceType{Name: "instanceType"},
 				},
 			}
 
@@ -801,14 +805,14 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 	t.Run("imageDetails errors bubble up", func(t *testing.T) {
 		instance := generateInstance()
 
-		spy := &repositorySpy{
-			images: domain.Images{domain.Image{Id: "tralala"}},
-			getAllImagesError: sharedRepository.NewGeneralError(
-				"",
-				errors.New("some error"),
-			),
-		}
-		service := New(spy)
+		spy := newRepositorySpy()
+		spy.images = domain.Images{domain.Image{Id: "tralala"}}
+		spy.getAllImagesError = sharedRepository.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+
+		service := New(&spy)
 
 		_, err := service.populateMissingInstanceAttributes(
 			instance,
@@ -818,8 +822,111 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
+
+	t.Run(
+		"instanceType repository errors bubble up",
+		func(t *testing.T) {
+			instance := generateInstance()
+
+			spy := newRepositorySpy()
+			spy.getInstanceTypesForRegionError = sharedRepository.NewGeneralError(
+				"",
+				errors.New("some error"),
+			)
+			service := New(&spy)
+
+			_, err := service.populateMissingInstanceAttributes(
+				instance,
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run("gets instanceType", func(t *testing.T) {
+		want := domain.InstanceType{Name: "tralala"}
+
+		instance := generateInstance()
+		instance.Type = domain.InstanceType{Name: "tralala"}
+
+		spy := newRepositorySpy()
+		spy.instanceTypesForRegion = domain.InstanceTypes{want}
+		service := New(&spy)
+
+		got, err := service.populateMissingInstanceAttributes(
+			instance,
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, want, got.Type)
+	})
 }
 
 func generateInstance() domain.Instance {
-	return domain.Instance{Image: domain.Image{Id: "imageId"}}
+	return domain.Instance{
+		Image: domain.Image{Id: "imageId"},
+		Type:  domain.InstanceType{Name: "instanceType"},
+	}
+}
+
+func TestService_getInstanceType(t *testing.T) {
+	t.Run("errors bubble up from the repository", func(t *testing.T) {
+		spy := newRepositorySpy()
+		spy.getInstanceTypesForRegionError = sharedRepository.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+		service := New(&spy)
+
+		_, err := service.getInstanceType("", "", context.TODO())
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("region is passed to repository", func(t *testing.T) {
+		spy := newRepositorySpy()
+		service := New(&spy)
+
+		_, _ = service.getInstanceType("", "region", context.TODO())
+
+		assert.Equal(t, "region", spy.passedGetInstanceTypesForRegionRegion)
+	})
+
+	t.Run(
+		"error is returned if instanceType is not found",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			service := New(&spy)
+
+			_, err := service.getInstanceType(
+				"tralala",
+				"",
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "tralala")
+		},
+	)
+
+	t.Run("instanceType is returned if found", func(t *testing.T) {
+		want := domain.InstanceType{Name: "tralala"}
+
+		spy := newRepositorySpy()
+		spy.instanceTypesForRegion = domain.InstanceTypes{want}
+		service := New(&spy)
+
+		got, err := service.getInstanceType(
+			"tralala",
+			"",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, want, *got)
+	})
 }

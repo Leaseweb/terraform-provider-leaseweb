@@ -1,11 +1,21 @@
 package domain
 
 import (
+	"fmt"
+	"slices"
 	"time"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 )
+
+type ErrInvalidInstanceTypePassed struct {
+	msg string
+}
+
+func (e ErrInvalidInstanceTypePassed) Error() string {
+	return e.msg
+}
 
 type Instance struct {
 	Id                  value_object.Uuid
@@ -18,7 +28,7 @@ type Instance struct {
 	ProductType         string
 	HasPublicIpv4       bool
 	HasPrivateNetwork   bool
-	Type                value_object.InstanceType
+	Type                InstanceType
 	RootDiskStorageType enum.RootDiskStorageType
 	RootDiskSize        value_object.RootDiskSize
 	Ips                 Ips
@@ -52,7 +62,7 @@ type OptionalCreateInstanceValues struct {
 }
 
 type OptionalUpdateInstanceValues struct {
-	Type             *value_object.InstanceType
+	Type             *string
 	Reference        *string
 	ContractType     *enum.ContractType
 	Term             *enum.ContractTerm
@@ -71,7 +81,7 @@ func NewInstance(
 	hasPublicIpv4 bool,
 	hasPrivateNetwork bool,
 	rootDiskSize value_object.RootDiskSize,
-	instanceType value_object.InstanceType,
+	instanceType InstanceType,
 	rootDiskStorageType enum.RootDiskStorageType,
 	ips Ips,
 	contract Contract,
@@ -108,17 +118,24 @@ func NewInstance(
 // NewCreateInstance creates a new instance with only all the supported fields for instance creation.
 func NewCreateInstance(
 	region string,
-	instanceType value_object.InstanceType,
+	instanceType string,
 	rootDiskStorageType enum.RootDiskStorageType,
 	imageId string,
 	contractType enum.ContractType,
 	contractTerm enum.ContractTerm,
 	billingFrequency enum.ContractBillingFrequency,
 	optional OptionalCreateInstanceValues,
-) Instance {
+	allowedInstanceTypes []string,
+) (*Instance, error) {
+	if !slices.Contains(allowedInstanceTypes, instanceType) {
+		return nil, ErrInvalidInstanceTypePassed{
+			msg: fmt.Sprintf("instance type %q is not allowed", instanceType),
+		}
+	}
+
 	instance := Instance{
 		Region:              region,
-		Type:                instanceType,
+		Type:                InstanceType{Name: instanceType},
 		RootDiskStorageType: rootDiskStorageType,
 		Image:               Image{Id: imageId},
 		Contract: Contract{
@@ -136,20 +153,26 @@ func NewCreateInstance(
 		instance.RootDiskSize = *optional.RootDiskSize
 	}
 
-	return instance
+	return &instance, nil
 }
 
 // NewUpdateInstance creates a new instance with only all the supported fields for instance updates.
 func NewUpdateInstance(
 	id value_object.Uuid,
 	options OptionalUpdateInstanceValues,
-) Instance {
+	allowedInstanceTypes []string,
+) (*Instance, error) {
 	instance := Instance{Id: id}
 
 	instance.Reference = options.Reference
 
 	if options.Type != nil {
-		instance.Type = *options.Type
+		if !slices.Contains(allowedInstanceTypes, *options.Type) {
+			return nil, ErrInvalidInstanceTypePassed{
+				msg: fmt.Sprintf("instance type %q is not allowed", *options.Type),
+			}
+		}
+		instance.Type = InstanceType{Name: *options.Type}
 	}
 
 	if options.ContractType != nil {
@@ -165,5 +188,5 @@ func NewUpdateInstance(
 		instance.RootDiskSize = *options.RootDiskSize
 	}
 
-	return instance
+	return &instance, nil
 }

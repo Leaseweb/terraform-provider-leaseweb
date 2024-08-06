@@ -35,7 +35,7 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, string(publicCloud.TYPENAME_M5A_4XLARGE), got.Type.String())
+		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.String())
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "UBUNTU_20_04_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -241,30 +241,50 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 			assert.ErrorContains(t, err, "1")
 		},
 	)
+
+	t.Run(
+		"returns error if Instance cannot be created",
+		func(t *testing.T) {
+			instanceType := "instanceType"
+			instance := generateInstanceModel(
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				&instanceType,
+			)
+
+			_, err := AdaptToCreateInstanceOpts(
+				instance,
+				[]string{},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "instanceType")
+		},
+	)
 }
 
 func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		id := value_object.NewGeneratedUuid()
-		contract, _ := types.ObjectValueFrom(
-			context.TODO(),
-			model.Contract{}.AttributeTypes(),
-			model.Contract{
-				Type:             basetypes.NewStringValue("MONTHLY"),
-				Term:             basetypes.NewInt64Value(3),
-				BillingFrequency: basetypes.NewInt64Value(3),
-			},
+		instance := generateInstanceModel(
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
 		)
-
-		instance := model.Instance{
-			Id:           basetypes.NewStringValue(id.String()),
-			Contract:     contract,
-			RootDiskSize: basetypes.NewInt64Value(65),
-		}
+		instance.Id = basetypes.NewStringValue(id.String())
 
 		got, diags := AdaptToUpdateInstanceOpts(
 			instance,
-			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
+			[]string{"lsw.m5a.4xlarge"},
 			context.TODO(),
 		)
 
@@ -301,6 +321,30 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, 55, got.RootDiskSize.Value)
 	})
+
+	t.Run(
+		"returns error if Instance cannot be created",
+		func(t *testing.T) {
+			instance := generateInstanceModel(
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+			)
+
+			_, err := AdaptToUpdateInstanceOpts(
+				instance,
+				[]string{},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "lsw.m5a.4xlarge")
+		},
+	)
 }
 
 func generateInstanceModel(
@@ -310,14 +354,14 @@ func generateInstanceModel(
 	billingFrequency *int,
 	sshKey *string,
 	rootDiskSize *int,
-	instanceType *string,
+	instanceTypeName *string,
 ) model.Instance {
 	defaultRootDiskStorageType := "CENTRAL"
 	defaultContractType := "MONTHLY"
 	defaultContractTerm := 3
 	defaultBillingFrequency := 1
 	defaultRootDiskSize := 55
-	defaultInstanceType := "lsw.m5a.4xlarge"
+	defaultInstanceTypeName := "lsw.m5a.4xlarge"
 
 	if rootDiskStorageType == nil {
 		rootDiskStorageType = &defaultRootDiskStorageType
@@ -337,8 +381,8 @@ func generateInstanceModel(
 	if sshKey == nil {
 		sshKey = &defaultSshKey
 	}
-	if instanceType == nil {
-		instanceType = &defaultInstanceType
+	if instanceTypeName == nil {
+		instanceTypeName = &defaultInstanceTypeName
 	}
 
 	storageSize, _ := types.ObjectValueFrom(
@@ -378,12 +422,25 @@ func generateInstanceModel(
 		},
 	)
 
+	instanceType, _ := types.ObjectValueFrom(
+		context.TODO(),
+		model.InstanceType{}.AttributeTypes(),
+		model.InstanceType{
+			Name: basetypes.NewStringValue(*instanceTypeName),
+			Resources: basetypes.NewObjectUnknown(
+				model.Resources{}.AttributeTypes(),
+			),
+			Prices:       basetypes.NewObjectUnknown(model.Prices{}.AttributeTypes()),
+			StorageTypes: basetypes.NewListUnknown(types.StringType),
+		},
+	)
+
 	instance := model.Instance{
 		Id: basetypes.NewStringValue(
 			value_object.NewGeneratedUuid().String(),
 		),
 		Region:              basetypes.NewStringValue("region"),
-		Type:                basetypes.NewStringValue(*instanceType),
+		Type:                instanceType,
 		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),
 		RootDiskSize:        basetypes.NewInt64Value(int64(*rootDiskSize)),
 		Image:               image,

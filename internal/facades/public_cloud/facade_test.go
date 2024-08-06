@@ -150,9 +150,16 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 			},
 		)
 
+		instanceType, _ := basetypes.NewObjectValue(
+			model.InstanceType{}.AttributeTypes(),
+			map[string]attr.Value{
+				"Name": basetypes.NewStringValue("lsw.m5a.4xlarge"),
+			},
+		)
+
 		instance := model.Instance{
 			Region:              basetypes.NewStringValue("region"),
-			Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
+			Type:                instanceType,
 			RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
 			Image:               image,
 			Contract:            contract,

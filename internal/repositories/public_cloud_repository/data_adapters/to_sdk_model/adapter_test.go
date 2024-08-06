@@ -2,7 +2,6 @@ package to_sdk_model
 
 import (
 	"testing"
-	"time"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
@@ -16,7 +15,7 @@ var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzY
 func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
-		instance.Type = value_object.InstanceType{Type: "tralala"}
+		instance.Type = domain.InstanceType{Name: "tralala"}
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -44,6 +43,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 	t.Run("invalid contractTerm returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
 		instance.Contract.Term = 55
+		instance.Contract.Type = enum.ContractTypeHourly
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -61,7 +61,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid type returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
-		instance.Type = value_object.InstanceType{Type: "tralala"}
+		instance.Type = domain.InstanceType{Name: "tralala"}
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -69,18 +69,19 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("required values are set", func(t *testing.T) {
-		instance := domain.NewCreateInstance(
+		instance, _ := domain.NewCreateInstance(
 			"region",
-			value_object.InstanceType{Type: string(publicCloud.TYPENAME_C3_4XLARGE)},
+			"lsw.c3.4xlarge",
 			enum.RootDiskStorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
 			domain.OptionalCreateInstanceValues{},
+			[]string{"lsw.c3.4xlarge"},
 		)
 
-		got, err := AdaptToLaunchInstanceOpts(instance)
+		got, err := AdaptToLaunchInstanceOpts(*instance)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "region", got.Region)
@@ -105,11 +106,9 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 		reference := "reference"
 		sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
 
-		instance := domain.NewCreateInstance(
+		instance, _ := domain.NewCreateInstance(
 			"",
-			value_object.NewUnvalidatedInstanceType(
-				string(publicCloud.TYPENAME_M3_LARGE),
-			),
+			"lsw.m3.large",
 			enum.RootDiskStorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
@@ -120,9 +119,10 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 				Reference:   &reference,
 				SshKey:      sshKeyValueObject,
 			},
+			[]string{"lsw.m3.large"},
 		)
 
-		got, err := AdaptToLaunchInstanceOpts(instance)
+		got, err := AdaptToLaunchInstanceOpts(*instance)
 
 		assert.NoError(t, err)
 		assert.Equal(t, marketAppId, *got.MarketAppId)
@@ -135,7 +135,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 
 		_, err := AdaptToUpdateInstanceOpts(
-			domain.Instance{Type: value_object.InstanceType{Type: "tralala"}},
+			domain.Instance{Type: domain.InstanceType{Name: "tralala"}},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -169,16 +169,14 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("values are set", func(t *testing.T) {
-		instanceType := value_object.InstanceType{
-			Type: string(publicCloud.TYPENAME_C3_LARGE),
-		}
+		instanceType := "lsw.c3.large"
 		reference := "reference"
 		contractType := enum.ContractTypeMonthly
 		contractTerm := enum.ContractTermThree
 		billingFrequency := enum.ContractBillingFrequencySix
 		rootDiskSize, _ := value_object.NewRootDiskSize(23)
 
-		instance := domain.NewUpdateInstance(
+		instance, _ := domain.NewUpdateInstance(
 			value_object.NewGeneratedUuid(),
 			domain.OptionalUpdateInstanceValues{
 				Type:             &instanceType,
@@ -187,9 +185,11 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 				Term:             &contractTerm,
 				BillingFrequency: &billingFrequency,
 				RootDiskSize:     rootDiskSize,
-			})
+			},
+			[]string{"lsw.c3.large"},
+		)
 
-		got, err := AdaptToUpdateInstanceOpts(instance)
+		got, err := AdaptToUpdateInstanceOpts(*instance)
 
 		assert.NoError(t, err)
 		assert.Equal(t, publicCloud.TYPENAME_C3_LARGE, got.GetType())
@@ -202,194 +202,22 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 }
 
 func generateDomainInstance() domain.Instance {
-	instanceType := value_object.NewUnvalidatedInstanceType(
-		string(publicCloud.TYPENAME_C3_LARGE),
-	)
-	loadBalancerType, _ := value_object.NewInstanceType(
-		"loadBalancerType",
-		[]string{"loadBalancerType"},
-	)
-
-	cpu := domain.NewCpu(1, "cpuUnit")
-	memory := domain.NewMemory(2, "memoryUnit")
-	publicNetworkSpeed := domain.NewNetworkSpeed(
-		3,
-		"publicNetworkSpeedUnit",
-	)
-	privateNetworkSpeed := domain.NewNetworkSpeed(
-		4,
-		"privateNetworkSpeedUnit",
-	)
-
-	resources := domain.NewResources(
-		cpu,
-		memory,
-		publicNetworkSpeed,
-		privateNetworkSpeed,
-	)
-
-	image := domain.NewImage(
-		"ALMALINUX_8_64BIT",
-		"name",
-		"version",
-		"family",
-		"flavour",
-		"architecture",
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		&domain.StorageSize{
-			Size: 2,
-			Unit: "unit",
-		},
-		[]string{"one"},
-		[]string{"storageType"},
-	)
-
-	rootDiskSize, _ := value_object.NewRootDiskSize(55)
-
-	reverseLookup := "reverseLookup"
-	ip := domain.NewIp(
-		"1.2.3.4",
-		"prefix-length",
-		46,
-		true,
-		false,
-		"tralala",
-		domain.OptionalIpValues{
-			Ddos:          &domain.Ddos{ProtectionType: "protection-type"},
-			ReverseLookup: &reverseLookup,
-		},
-	)
-
-	endsAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2023-12-14 17:09:47",
-	)
-	renewalsAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2022-12-14 17:09:47",
-	)
-	createdAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2021-12-14 17:09:47",
-	)
-	contract, _ := domain.NewContract(
-		enum.ContractBillingFrequencySix,
-		enum.ContractTermThree,
-		enum.ContractTypeMonthly,
-		renewalsAt,
-		createdAt,
-		enum.ContractStateActive,
-		&endsAt,
-	)
-
-	reference := "reference"
-	marketAppId := "marketAppId"
-	sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
-	startedAt := time.Now()
-
-	privateNetwork := domain.NewPrivateNetwork(
-		"id",
-		"status",
-		"subnet",
-	)
-
-	stickySession := domain.NewStickySession(true, 5)
-
-	host := "host"
-	healthCheck := domain.NewHealthCheck(
-		enum.MethodGet,
-		"uri",
-		22,
-		domain.OptionalHealthCheckValues{Host: &host},
-	)
-
-	loadBalancerConfiguration := domain.NewLoadBalancerConfiguration(
-		enum.BalanceSource,
-		false,
-		5,
-		6,
-		domain.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &stickySession,
-			HealthCheck:   &healthCheck,
-		},
-	)
-
-	loadBalancer := domain.NewLoadBalancer(
-		value_object.NewGeneratedUuid(),
-		*loadBalancerType,
-		resources,
-		"region",
-		enum.StateCreating,
-		*contract,
-		domain.Ips{ip},
-		domain.OptionalLoadBalancerValues{
-			Reference:      &reference,
-			StartedAt:      &startedAt,
-			PrivateNetwork: &privateNetwork,
-			Configuration:  &loadBalancerConfiguration,
-		},
-	)
-
-	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
-		"reference",
-	)
-	autoScalingGroupCreatedAt := time.Now()
-	autoScalingGroupUpdatedAt := time.Now()
-	autoScalingGroupDesiredAmount := 1
-	autoScalingGroupStartsAt := time.Now()
-	autoScalingGroupEndsAt := time.Now()
-	autoScalingMinimumAmount := 2
-	autoScalingMaximumAmount := 3
-	autoScalingCpuThreshold := 4
-	autoScalingWarmupTime := 5
-	autoScalingCooldownTime := 6
-	autoScalingGroup := domain.NewAutoScalingGroup(
-		value_object.NewGeneratedUuid(),
-		"type",
-		"state",
-		"region",
-		*autoScalingGroupReference,
-		autoScalingGroupCreatedAt,
-		autoScalingGroupUpdatedAt,
-		domain.AutoScalingGroupOptions{
-			DesiredAmount: &autoScalingGroupDesiredAmount,
-			StartsAt:      &autoScalingGroupStartsAt,
-			EndsAt:        &autoScalingGroupEndsAt,
-			MinimumAmount: &autoScalingMinimumAmount,
-			MaximumAmount: &autoScalingMaximumAmount,
-			CpuThreshold:  &autoScalingCpuThreshold,
-			WarmupTime:    &autoScalingWarmupTime,
-			CoolDownTime:  &autoScalingCooldownTime,
-			LoadBalancer:  &loadBalancer,
-		})
+	rootDiskSize, _ := value_object.NewRootDiskSize(5)
 
 	return domain.NewInstance(
 		value_object.NewGeneratedUuid(),
 		"region",
-		resources,
-		image,
+		domain.Resources{},
+		domain.Image{},
 		enum.StateCreating,
 		"productType",
 		false,
 		true,
 		*rootDiskSize,
-		instanceType,
+		domain.InstanceType{Name: "lsw.m3.xlarge"},
 		enum.RootDiskStorageTypeCentral,
-		domain.Ips{ip},
-		*contract,
-		domain.OptionalInstanceValues{
-			Reference:        &reference,
-			Iso:              &domain.Iso{Id: "isoId"},
-			MarketAppId:      &marketAppId,
-			SshKey:           sshKeyValueObject,
-			StartedAt:        &startedAt,
-			PrivateNetwork:   &privateNetwork,
-			AutoScalingGroup: &autoScalingGroup,
-		},
+		domain.Ips{},
+		domain.Contract{Type: enum.ContractTypeMonthly},
+		domain.OptionalInstanceValues{},
 	)
 }

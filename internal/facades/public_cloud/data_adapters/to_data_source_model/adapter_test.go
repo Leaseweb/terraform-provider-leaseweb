@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
@@ -51,7 +50,7 @@ func Test_adaptInstance(t *testing.T) {
 	assert.Equal(t, "productType", got.ProductType.ValueString())
 	assert.False(t, got.HasPublicIpv4.ValueBool())
 	assert.True(t, got.HasPrivateNetwork.ValueBool())
-	assert.Equal(t, "lsw.c3.large", got.Type.ValueString())
+	assert.Equal(t, "lsw.c3.large", got.Type.Name.ValueString())
 	assert.Equal(t, int64(55), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
 	assert.Equal(t, "2019-09-08 00:00:00 +0000 UTC", got.StartedAt.ValueString())
@@ -214,7 +213,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 	entityLoadBalancer := domain.NewLoadBalancer(
 		id,
-		value_object.NewUnvalidatedInstanceType("type"),
+		domain.InstanceType{Name: "type"},
 		domain.Resources{Cpu: domain.Cpu{Unit: "Resources"}},
 		"region",
 		enum.StateCreating,
@@ -233,7 +232,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 	got := adaptLoadBalancer(entityLoadBalancer)
 
 	assert.Equal(t, id.String(), got.Id.ValueString(), "id is set")
-	assert.Equal(t, "type", got.Type.ValueString())
+	assert.Equal(t, "type", got.Type.Name.ValueString())
 	assert.Equal(t, "Resources", got.Resources.Cpu.Unit.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
@@ -469,7 +468,7 @@ func generateDomainInstance() domain.Instance {
 
 	loadBalancer := domain.NewLoadBalancer(
 		value_object.NewGeneratedUuid(),
-		value_object.NewUnvalidatedInstanceType("type"),
+		domain.InstanceType{Name: "type"},
 		resources,
 		"region",
 		enum.StateCreating,
@@ -528,9 +527,7 @@ func generateDomainInstance() domain.Instance {
 		false,
 		true,
 		*rootDiskSize,
-		value_object.NewUnvalidatedInstanceType(
-			string(publicCloud.TYPENAME_C3_LARGE),
-		),
+		domain.InstanceType{Name: "lsw.c3.large"},
 		enum.RootDiskStorageTypeCentral,
 		domain.Ips{ip},
 		*contract,
@@ -563,4 +560,72 @@ func Test_adaptStorageSize(t *testing.T) {
 
 	assert.Equal(t, float64(1), got.Size.ValueFloat64())
 	assert.Equal(t, "unit", got.Unit.ValueString())
+}
+
+func Test_adaptPrice(t *testing.T) {
+	got := adaptPrice(domain.NewPrice("hourly", "monthly"))
+
+	assert.Equal(t, "hourly", got.HourlyPrice.ValueString())
+	assert.Equal(t, "monthly", got.MonthlyPrice.ValueString())
+}
+
+func Test_adaptStorage(t *testing.T) {
+	got := adaptStorage(
+		domain.NewStorage(
+			domain.Price{HourlyPrice: "hourlyLocal"},
+			domain.Price{HourlyPrice: "hourlyCentral"},
+		),
+	)
+
+	assert.Equal(t, "hourlyLocal", got.Local.HourlyPrice.ValueString())
+	assert.Equal(t, "hourlyCentral", got.Central.HourlyPrice.ValueString())
+}
+
+func Test_adaptPrices(t *testing.T) {
+	got := adaptPrices(
+		domain.NewPrices(
+			"currency",
+			"currencySymbol",
+			domain.Price{HourlyPrice: "computePrice"},
+			domain.Storage{Local: domain.Price{HourlyPrice: "storagePrice"}},
+		),
+	)
+
+	assert.Equal(t, "currency", got.Currency.ValueString())
+	assert.Equal(t, "currencySymbol", got.CurrencySymbol.ValueString())
+	assert.Equal(t, "computePrice", got.Compute.HourlyPrice.ValueString())
+	assert.Equal(t, "storagePrice", got.Storage.Local.HourlyPrice.ValueString())
+}
+
+func Test_adaptInstanceType(t *testing.T) {
+	t.Run("required values are adapted", func(t *testing.T) {
+		got := adaptInstanceType(
+			domain.NewInstanceType(
+				"name",
+				domain.Resources{Cpu: domain.Cpu{Unit: "cpuUnit"}},
+				domain.Prices{Currency: "currency"},
+				domain.OptionalInstanceTypeValues{},
+			),
+		)
+
+		assert.Equal(t, "name", got.Name.ValueString())
+		assert.Equal(t, "cpuUnit", got.Resources.Cpu.Unit.ValueString())
+		assert.Equal(t, "currency", got.Prices.Currency.ValueString())
+		assert.Nil(t, got.StorageTypes)
+	})
+
+	t.Run("optional values are adapted", func(t *testing.T) {
+		got := adaptInstanceType(
+			domain.NewInstanceType(
+				"",
+				domain.Resources{},
+				domain.Prices{},
+				domain.OptionalInstanceTypeValues{
+					StorageTypes: &domain.StorageTypes{enum.RootDiskStorageTypeLocal},
+				},
+			),
+		)
+
+		assert.Equal(t, []string{"LOCAL"}, got.StorageTypes)
+	})
 }

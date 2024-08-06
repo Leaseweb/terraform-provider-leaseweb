@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
@@ -325,7 +324,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 		loadBalancer := domain.NewLoadBalancer(
 			id,
-			value_object.InstanceType{Type: "type"},
+			domain.InstanceType{Name: "instanceType"},
 			domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
 			"region",
 			enum.StateCreating,
@@ -349,7 +348,6 @@ func Test_adaptLoadBalancer(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, id.String(), got.Id.ValueString())
-		assert.Equal(t, "type", got.Type.ValueString())
 		assert.Equal(
 			t,
 			"{\"unit\":\"cpu\",\"value\":0}",
@@ -372,11 +370,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 		)
 
 		var ips []model.Ip
-		got.Ips.ElementsAs(
-			context.TODO(),
-			&ips,
-			false,
-		)
+		got.Ips.ElementsAs(context.TODO(), &ips, false)
 		assert.Equal(t, "1.2.3.4", ips[0].Ip.ValueString())
 
 		loadBalancerConfiguration := model.LoadBalancerConfiguration{}
@@ -385,11 +379,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 			&loadBalancerConfiguration,
 			basetypes.ObjectAsOptions{},
 		)
-		assert.Equal(
-			t,
-			"source",
-			loadBalancerConfiguration.Balance.ValueString(),
-		)
+		assert.Equal(t, "source", loadBalancerConfiguration.Balance.ValueString())
 
 		privateNetwork := model.PrivateNetwork{}
 		got.PrivateNetwork.As(
@@ -397,113 +387,116 @@ func Test_adaptLoadBalancer(t *testing.T) {
 			&privateNetwork,
 			basetypes.ObjectAsOptions{},
 		)
-		assert.Equal(
-			t,
-			"privateNetworkId",
-			privateNetwork.Id.ValueString(),
+		assert.Equal(t, "privateNetworkId", privateNetwork.Id.ValueString())
+
+		instanceType := model.InstanceType{}
+		got.Type.As(
+			context.TODO(),
+			&instanceType,
+			basetypes.ObjectAsOptions{},
 		)
+		assert.Equal(t, "instanceType", instanceType.Name.ValueString())
 	})
 }
 
 func TestAdaptInstance(t *testing.T) {
 	var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
-	t.Run("instance is adapted correctly", func(t *testing.T) {
-		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-		marketAppId := "marketAppId"
-		reference := "reference"
-		id := value_object.NewGeneratedUuid()
-		rootDiskSize, _ := value_object.NewRootDiskSize(32)
-		autoScalingGroupId := value_object.NewGeneratedUuid()
-		sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
+	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
+	marketAppId := "marketAppId"
+	reference := "reference"
+	id := value_object.NewGeneratedUuid()
+	rootDiskSize, _ := value_object.NewRootDiskSize(32)
+	autoScalingGroupId := value_object.NewGeneratedUuid()
+	sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 
-		instance := generateDomainInstance()
-		instance.Id = id
-		instance.Type = value_object.NewUnvalidatedInstanceType(
-			string(publicCloud.TYPENAME_M5A_4XLARGE),
-		)
-		instance.RootDiskSize = *rootDiskSize
-		instance.StartedAt = &startedAt
-		instance.MarketAppId = &marketAppId
-		instance.Reference = &reference
-		instance.SshKey = sshKeyValueObject
-		instance.PrivateNetwork.Id = "privateNetworkId"
-		instance.AutoScalingGroup.Id = autoScalingGroupId
-		instance.Resources.Cpu.Unit = "cpu"
+	instance := generateDomainInstance()
+	instance.Id = id
+	instance.RootDiskSize = *rootDiskSize
+	instance.StartedAt = &startedAt
+	instance.MarketAppId = &marketAppId
+	instance.Reference = &reference
+	instance.SshKey = sshKeyValueObject
+	instance.PrivateNetwork.Id = "privateNetworkId"
+	instance.AutoScalingGroup.Id = autoScalingGroupId
+	instance.Resources.Cpu.Unit = "cpu"
+	instance.Type.Name = "instanceType"
 
-		got, err := AdaptInstance(instance, context.TODO())
+	got, err := AdaptInstance(instance, context.TODO())
 
-		assert.NoError(t, err)
-		assert.Equal(t, id.String(), got.Id.ValueString())
-		assert.Equal(t, "region", got.Region.ValueString())
-		assert.Equal(t, "CREATING", got.State.ValueString())
-		assert.Equal(t, "productType", got.ProductType.ValueString())
-		assert.False(t, got.HasPublicIpv4.ValueBool())
-		assert.True(t, got.HasPrivateNetwork.ValueBool())
-		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.ValueString())
-		assert.Equal(t, int64(32), got.RootDiskSize.ValueInt64())
-		assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-		assert.Equal(
-			t,
-			"2019-09-08 00:00:00 +0000 UTC",
-			got.StartedAt.ValueString(),
-		)
-		assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
-		assert.Equal(t, "reference", got.Reference.ValueString())
+	assert.NoError(t, err)
+	assert.Equal(t, id.String(), got.Id.ValueString())
+	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "CREATING", got.State.ValueString())
+	assert.Equal(t, "productType", got.ProductType.ValueString())
+	assert.False(t, got.HasPublicIpv4.ValueBool())
+	assert.True(t, got.HasPrivateNetwork.ValueBool())
+	assert.Equal(t, int64(32), got.RootDiskSize.ValueInt64())
+	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
+	assert.Equal(
+		t,
+		"2019-09-08 00:00:00 +0000 UTC",
+		got.StartedAt.ValueString(),
+	)
+	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "reference", got.Reference.ValueString())
 
-		image := model.Image{}
-		got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
-		assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
+	image := model.Image{}
+	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-		contract := model.Contract{}
-		got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
-		assert.Equal(t, "MONTHLY", contract.Type.ValueString())
+	contract := model.Contract{}
+	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-		iso := model.Iso{}
-		got.Iso.As(context.TODO(), &iso, basetypes.ObjectAsOptions{})
-		assert.Equal(t, "isoId", iso.Id.ValueString())
+	iso := model.Iso{}
+	got.Iso.As(context.TODO(), &iso, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "isoId", iso.Id.ValueString())
 
-		privateNetwork := model.PrivateNetwork{}
-		got.PrivateNetwork.As(
-			context.TODO(),
-			&privateNetwork,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(
-			t,
-			"privateNetworkId",
-			privateNetwork.Id.ValueString(),
-		)
+	privateNetwork := model.PrivateNetwork{}
+	got.PrivateNetwork.As(
+		context.TODO(),
+		&privateNetwork,
+		basetypes.ObjectAsOptions{},
+	)
+	assert.Equal(
+		t,
+		"privateNetworkId",
+		privateNetwork.Id.ValueString(),
+	)
 
-		autoScalingGroup := model.AutoScalingGroup{}
-		got.AutoScalingGroup.As(
-			context.TODO(),
-			&autoScalingGroup,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(
-			t,
-			autoScalingGroupId.String(),
-			autoScalingGroup.Id.ValueString(),
-		)
+	autoScalingGroup := model.AutoScalingGroup{}
+	got.AutoScalingGroup.As(
+		context.TODO(),
+		&autoScalingGroup,
+		basetypes.ObjectAsOptions{},
+	)
+	assert.Equal(
+		t,
+		autoScalingGroupId.String(),
+		autoScalingGroup.Id.ValueString(),
+	)
 
-		var ips []model.Ip
-		got.Ips.ElementsAs(context.TODO(), &ips, false)
-		assert.Len(t, ips, 1)
-		assert.Equal(t, "1.2.3.4", ips[0].Ip.ValueString())
+	var ips []model.Ip
+	got.Ips.ElementsAs(context.TODO(), &ips, false)
+	assert.Len(t, ips, 1)
+	assert.Equal(t, "1.2.3.4", ips[0].Ip.ValueString())
 
-		resources := model.Resources{}
-		cpu := model.Cpu{}
-		got.Resources.As(context.TODO(), &resources, basetypes.ObjectAsOptions{})
-		resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
-		assert.Equal(t, "cpu", cpu.Unit.ValueString())
+	resources := model.Resources{}
+	cpu := model.Cpu{}
+	got.Resources.As(context.TODO(), &resources, basetypes.ObjectAsOptions{})
+	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "cpu", cpu.Unit.ValueString())
 
-		volume := model.Volume{}
-		got.Volume.As(context.TODO(), &volume, basetypes.ObjectAsOptions{})
-		assert.Equal(t, "unit", volume.Unit.ValueString())
+	volume := model.Volume{}
+	got.Volume.As(context.TODO(), &volume, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "unit", volume.Unit.ValueString())
 
-		assert.Equal(t, sshKey, got.SshKey.ValueString())
-	})
+	instanceType := model.InstanceType{}
+	got.Type.As(context.TODO(), &instanceType, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "instanceType", instanceType.Name.ValueString())
+
+	assert.Equal(t, sshKey, got.SshKey.ValueString())
 }
 
 func Test_adaptAutoScalingGroup(t *testing.T) {
@@ -709,9 +702,52 @@ func generateDomainInstance() domain.Instance {
 		},
 	)
 
+	loadBalancerCpu := domain.NewCpu(45, "loadBalancerCpuUnit")
+	loadBalancerMemory := domain.NewMemory(2, "loadBalancerMemoryUnit")
+	loadBalancerPrivateNetworkSpeed := domain.NewNetworkSpeed(
+		55,
+		"loadBalancerPrivateNetworkSpeedUnit",
+	)
+	loadBalancerPublicNetworkSpeed := domain.NewNetworkSpeed(
+		56,
+		"loadBalancerPublicNetworkSpeedUnit",
+	)
+	instanceTypeResources := domain.NewResources(
+		loadBalancerCpu,
+		loadBalancerMemory,
+		loadBalancerPrivateNetworkSpeed,
+		loadBalancerPublicNetworkSpeed,
+	)
+	instanceTypePricesCompute := domain.NewPrice("5", "6")
+	instanceTypePricesStorageLocal := domain.NewPrice(
+		"7",
+		"8",
+	)
+	instanceTypePricesStorageCenral := domain.NewPrice(
+		"23",
+		"4",
+	)
+	instanceTypePricesStorage := domain.NewStorage(
+		instanceTypePricesStorageLocal,
+		instanceTypePricesStorageCenral,
+	)
+	instanceTypePrices := domain.NewPrices(
+		"currency",
+		"currencySymbol",
+		instanceTypePricesCompute,
+		instanceTypePricesStorage,
+	)
+	instanceTypeStorageTypes := domain.StorageTypes{"storageType"}
+	instanceType := domain.NewInstanceType(
+		"instanceType",
+		instanceTypeResources,
+		instanceTypePrices,
+		domain.OptionalInstanceTypeValues{StorageTypes: &instanceTypeStorageTypes},
+	)
+
 	loadBalancer := domain.NewLoadBalancer(
 		value_object.NewGeneratedUuid(),
-		value_object.NewUnvalidatedInstanceType("type"),
+		instanceType,
 		resources,
 		"region",
 		enum.StateCreating,
@@ -770,9 +806,7 @@ func generateDomainInstance() domain.Instance {
 		false,
 		true,
 		*rootDiskSize,
-		value_object.NewUnvalidatedInstanceType(
-			string(publicCloud.TYPENAME_C3_LARGE),
-		),
+		instanceType,
 		enum.RootDiskStorageTypeCentral,
 		domain.Ips{ip},
 		*contract,
@@ -815,4 +849,92 @@ func Test_adaptStorageSize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, float64(2), got.Size.ValueFloat64())
 	assert.Equal(t, "unit", got.Unit.ValueString())
+}
+
+func Test_adaptPrice(t *testing.T) {
+	price := domain.NewPrice("1", "2")
+	got, err := adaptPrice(context.TODO(), price)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "1", got.HourlyPrice.ValueString())
+	assert.Equal(t, "2", got.MonthlyPrice.ValueString())
+}
+
+func Test_adaptStorage(t *testing.T) {
+	storage := domain.NewStorage(
+		domain.Price{HourlyPrice: "1"},
+		domain.Price{HourlyPrice: "3"},
+	)
+	got, err := adaptStorage(context.TODO(), storage)
+
+	assert.NoError(t, err)
+
+	local := model.Price{}
+	got.Local.As(context.TODO(), &local, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "1", local.HourlyPrice.ValueString())
+
+	central := model.Price{}
+	got.Central.As(context.TODO(), &central, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "3", central.HourlyPrice.ValueString())
+}
+
+func Test_adaptPrices(t *testing.T) {
+	prices := domain.NewPrices(
+		"currency",
+		"currencySymbol",
+		domain.Price{HourlyPrice: "1"},
+		domain.Storage{Central: domain.Price{HourlyPrice: "3"}},
+	)
+	got, err := adaptPrices(context.TODO(), prices)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "currency", got.Currency.ValueString())
+	assert.Equal(t, "currencySymbol", got.CurrencySymbol.ValueString())
+
+	compute := model.Price{}
+	got.Compute.As(context.TODO(), &compute, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "1", compute.HourlyPrice.ValueString())
+
+	storage := model.Storage{}
+	got.Storage.As(context.TODO(), &storage, basetypes.ObjectAsOptions{})
+	storageCentral := model.Price{}
+	storage.Central.As(
+		context.TODO(),
+		&storageCentral,
+		basetypes.ObjectAsOptions{},
+	)
+	assert.Equal(t, "3", storageCentral.HourlyPrice.ValueString())
+}
+
+func Test_adaptInstanceType(t *testing.T) {
+	var storageTypes []string
+
+	instanceType := domain.NewInstanceType(
+		"name",
+		domain.Resources{Cpu: domain.Cpu{Unit: "unit"}},
+		domain.Prices{Currency: "currency"},
+		domain.OptionalInstanceTypeValues{
+			StorageTypes: &domain.StorageTypes{"storageType"},
+		},
+	)
+
+	got, err := adaptInstanceType(context.TODO(), instanceType)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "name", got.Name.ValueString())
+
+	resources := model.Resources{}
+	got.Resources.As(context.TODO(), &resources, basetypes.ObjectAsOptions{})
+	cpu := model.Cpu{}
+	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "unit", cpu.Unit.ValueString())
+
+	prices := model.Prices{}
+	got.Prices.As(context.TODO(), &prices, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "currency", prices.Currency.ValueString())
+
+	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
+	assert.Equal(t, []string{"storageType"}, storageTypes)
 }

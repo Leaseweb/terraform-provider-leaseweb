@@ -78,7 +78,7 @@ func AdaptInstance(
 		sdkInstance.GetHasPublicIpV4(),
 		sdkInstance.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		value_object.NewUnvalidatedInstanceType(string(sdkInstance.GetType())),
+		domain.InstanceType{Name: string(sdkInstance.GetType())},
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -172,9 +172,7 @@ func AdaptInstanceDetails(
 		sdkInstanceDetails.GetHasPublicIpV4(),
 		sdkInstanceDetails.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		value_object.NewUnvalidatedInstanceType(
-			string(sdkInstanceDetails.GetType()),
-		),
+		domain.InstanceType{Name: string(sdkInstanceDetails.GetType())},
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -504,7 +502,7 @@ func AdaptLoadBalancerDetails(
 
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		value_object.NewUnvalidatedInstanceType(string(sdkLoadBalancer.GetType())),
+		domain.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
 		sdkLoadBalancer.GetRegion(),
 		state,
@@ -537,7 +535,7 @@ func adaptLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 
 	loadBalancer := domain.NewLoadBalancer(
 		*loadBalancerId,
-		value_object.NewUnvalidatedInstanceType(string(sdkLoadBalancer.GetType())),
+		domain.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
 		"",
 		state,

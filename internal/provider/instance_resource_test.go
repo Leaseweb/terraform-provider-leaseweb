@@ -18,7 +18,9 @@ func TestAccInstanceResource(t *testing.T) {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.large"
+  type      = {
+    name = "lsw.m3.large"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -43,7 +45,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"type",
+							"type.name",
 							"lsw.m3.large",
 						),
 						resource.TestCheckResourceAttr(
@@ -89,7 +91,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.large"
+  type      = {
+    name = "lsw.m3.large"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -114,7 +118,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"type",
+							"type.name",
 							"lsw.m3.large",
 						),
 						resource.TestCheckResourceAttr(
@@ -154,15 +158,19 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("term must be 0 when contract type is HOURLY", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
+	t.Run(
+		"term must be 0 when contract type is HOURLY",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.large"
+  type      = {
+    name = "lsw.m3.large"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -174,11 +182,14 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 3"),
+						ExpectError: regexp.MustCompile(
+							"Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 3",
+						),
+					},
 				},
-			},
-		})
-	})
+			})
+		},
+	)
 
 	t.Run("term must not be 0 when contract type is MONTHLY", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
@@ -188,7 +199,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.large"
+  type      = {
+    name = "lsw.m3.large"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -200,7 +213,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "MONTHLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0"),
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0",
+					),
 				},
 			},
 		})
@@ -213,7 +228,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "tralala"
+  type      = {
+    name = "tralala"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -225,7 +242,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
+					ExpectError: regexp.MustCompile(
+						"Attribute type value must be one of:",
+					),
 				},
 			},
 		})
@@ -239,7 +258,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.4xlarge"
+  type      = {
+    name = "lsw.m4.4xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -266,7 +287,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.4xlarge"
+  type      = {
+    name = "lsw.m4.4xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -279,7 +302,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+					ExpectError: regexp.MustCompile(
+						"Attribute root_disk_size value must be between",
+					),
 				},
 			},
 		})
@@ -293,7 +318,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.4xlarge"
+  type      = {
+    name = "lsw.m4.4xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -306,7 +333,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute root_disk_size value must be between"),
+					ExpectError: regexp.MustCompile(
+						"Attribute root_disk_size value must be between",
+					),
 				},
 			},
 		})
@@ -320,7 +349,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.2xlarge"
+  type      = {
+    name = "lsw.m4.2xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -332,7 +363,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute root_disk_storage_type value must be one of"),
+					ExpectError: regexp.MustCompile(
+						"Attribute root_disk_storage_type value must be one of",
+					),
 				},
 			},
 		})
@@ -346,7 +379,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "tralala"
-  type      = "lsw.m4.2xlarge"
+  type      = {
+    name = "lsw.m4.2xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -372,7 +407,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.2xlarge"
+  type      = {
+    name = "lsw.m3.2xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -384,7 +421,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute contract.billing_frequency value must be one of"),
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.billing_frequency value must be one of",
+					),
 				},
 			},
 		})
@@ -398,7 +437,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.2xlarge"
+  type      = {
+    name = "lsw.m3.2xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -410,7 +451,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "MONTHLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute contract.term value must be one of"),
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.term value must be one of",
+					),
 				},
 			},
 		})
@@ -424,7 +467,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.2xlarge"
+  type      = {
+    name = "lsw.m3.2xlarge"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -436,7 +481,9 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "tralala"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute contract.type value must be one of"),
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.type value must be one of",
+					),
 				},
 			},
 		})
@@ -463,7 +510,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			),
 		},
 		{
-			requiredField: "type",
+			requiredField: "type.name",
 			expectedError: fmt.Sprintf(
 				"The argument %q is required, but no definition was found.",
 				"type",
@@ -495,15 +542,19 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	}
 
-	t.Run("upgrading to invalid instanceType is not allowed", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
+	t.Run(
+		"upgrading to invalid instanceType is not allowed",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m3.large"
+  type      = {
+    name = "lsw.m3.large"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -515,12 +566,14 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-				},
-				{
-					Config: providerConfig + `
+					},
+					{
+						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
   region    = "eu-west-3"
-  type      = "lsw.m4.large"
+  type      = {
+    name = "lsw.m4.large"
+  }
   reference = "my webserver"
   image = {
     id = "UBUNTU_22_04_64BIT"
@@ -532,9 +585,12 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Attribute type value must be one of:"),
+						ExpectError: regexp.MustCompile(
+							"Attribute type value must be one of:",
+						),
+					},
 				},
-			},
-		})
-	})
+			})
+		},
+	)
 }

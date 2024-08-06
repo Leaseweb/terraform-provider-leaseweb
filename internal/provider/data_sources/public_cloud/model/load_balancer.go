@@ -6,7 +6,7 @@ import (
 
 type LoadBalancer struct {
 	Id                        types.String               `tfsdk:"id"`
-	Type                      types.String               `tfsdk:"type"`
+	Type                      InstanceType               `tfsdk:"type"`
 	Resources                 Resources                  `tfsdk:"resources"`
 	Region                    types.String               `tfsdk:"region"`
 	Reference                 types.String               `tfsdk:"reference"`

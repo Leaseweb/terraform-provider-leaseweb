@@ -218,6 +218,16 @@ func (srv Service) populateMissingInstanceAttributes(
 	}
 	instance.Image = *image
 
+	instanceType, err := srv.getInstanceType(
+		instance.Type.Name,
+		instance.Region,
+		ctx,
+	)
+	if err != nil {
+		return nil, err
+	}
+	instance.Type = *instanceType
+
 	return &instance, nil
 }
 
@@ -237,6 +247,30 @@ func (srv Service) GetAvailableInstanceTypesForRegion(
 	}
 
 	return instanceTypes, nil
+}
+
+func (srv Service) getInstanceType(
+	name string,
+	region string,
+	ctx context.Context,
+) (*domain.InstanceType, *errors.ServiceError) {
+	instanceTypes, repositoryErr := srv.publicCloudRepository.GetInstanceTypesForRegion(
+		region,
+		ctx,
+	)
+	if repositoryErr != nil {
+		return nil, errors.NewFromRepositoryError(
+			"GetInstanceType",
+			*repositoryErr,
+		)
+	}
+
+	instanceType, err := instanceTypes.GetByName(name)
+	if err != nil {
+		return nil, errors.NewError("GetInstanceType", err)
+	}
+
+	return instanceType, nil
 }
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {
