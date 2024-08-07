@@ -18,6 +18,7 @@ type Service struct {
 	cachedImages            synced_map.SyncedMap[string, domain.Image]
 	cachedRegions           synced_map.SyncedMap[string, domain.Regions]
 	cachedAutoScalingGroups synced_map.SyncedMap[string, domain.AutoScalingGroup]
+	cachedLoadBalancers     synced_map.SyncedMap[string, domain.LoadBalancer]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
@@ -174,15 +175,12 @@ func (srv *Service) getAutoScalingGroup(
 
 	// Get loadBalancerDetails.
 	if autoScalingGroup.LoadBalancer != nil {
-		loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(
+		loadBalancer, err := srv.getLoadBalancer(
 			autoScalingGroup.LoadBalancer.Id,
 			ctx,
 		)
 		if err != nil {
-			return nil, errors.NewFromRepositoryError(
-				"getAutoScalingGroup",
-				*err,
-			)
+			return nil, errors.NewError("getAutoScalingGroup", *err)
 		}
 		autoScalingGroup.LoadBalancer = loadBalancer
 	}
@@ -190,6 +188,28 @@ func (srv *Service) getAutoScalingGroup(
 	srv.cachedAutoScalingGroups.Set(id.String(), *autoScalingGroup)
 
 	return autoScalingGroup, nil
+}
+
+func (srv *Service) getLoadBalancer(
+	id value_object.Uuid,
+	ctx context.Context,
+) (*domain.LoadBalancer, *errors.ServiceError) {
+	cachedLoadBalancer, ok := srv.cachedLoadBalancers.Get(id.String())
+	if ok {
+		return &cachedLoadBalancer, nil
+	}
+
+	loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(id, ctx)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"getLoadBalancer",
+			*err,
+		)
+	}
+
+	srv.cachedLoadBalancers.Set(id.String(), *loadBalancer)
+
+	return loadBalancer, nil
 }
 
 // Get imageDetails.
@@ -314,5 +334,6 @@ func New(publicCloudRepository ports.PublicCloudRepository) Service {
 		cachedImages:            synced_map.NewSyncedMap[string, domain.Image](),
 		cachedRegions:           synced_map.NewSyncedMap[string, domain.Regions](),
 		cachedAutoScalingGroups: synced_map.NewSyncedMap[string, domain.AutoScalingGroup](),
+		cachedLoadBalancers:     synced_map.NewSyncedMap[string, domain.LoadBalancer](),
 	}
 }
