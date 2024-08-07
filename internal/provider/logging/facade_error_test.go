@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandleError(t *testing.T) {
+func TestFacadeError(t *testing.T) {
 	t.Run("response is set", func(t *testing.T) {
 
 		diags := diag.Diagnostics{}
 
-		HandleError(
+		FacadeError(
 			context.TODO(),
 			&shared.ErrorResponse{},
 			&diags,
@@ -41,7 +41,7 @@ func TestHandleError(t *testing.T) {
 		summary := "summary"
 		detail := "detail"
 
-		HandleError(context.TODO(), nil, &diags, summary, detail)
+		FacadeError(context.TODO(), nil, &diags, summary, detail)
 
 		assert.Equal(
 			t,

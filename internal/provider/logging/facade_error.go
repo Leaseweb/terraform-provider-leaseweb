@@ -8,8 +8,8 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
-// HandleError prints the passed errorResponse as a Terraform error log.
-func HandleError(
+// FacadeError prints the passed errorResponse as a Terraform error log.
+func FacadeError(
 	ctx context.Context,
 	errorResponse *shared.ErrorResponse,
 	diags *diag.Diagnostics,

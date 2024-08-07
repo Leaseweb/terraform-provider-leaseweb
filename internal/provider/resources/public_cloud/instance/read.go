@@ -33,7 +33,7 @@ func (i *instanceResource) Read(
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading Instance", err.Error())
 
-		logging.HandleError(
+		logging.FacadeError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,

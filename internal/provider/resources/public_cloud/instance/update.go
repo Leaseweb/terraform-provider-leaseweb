@@ -31,7 +31,7 @@ func (i *instanceResource) Update(
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating instance", err.Error())
 
-		logging.HandleError(
+		logging.FacadeError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
