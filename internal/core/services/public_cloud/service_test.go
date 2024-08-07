@@ -47,14 +47,19 @@ type repositorySpy struct {
 	getAllImagesError                       *sharedRepository.RepositoryError
 
 	getInstanceTypesForRegionSleep time.Duration
-	// How many times has getInstanceTypesForRegion been called.
+	getAllImagesSleep              time.Duration
+
 	getInstanceTypesForRegionCount int
+	getAllImagesCount              int
 }
 
 func (r *repositorySpy) GetAllImages(ctx context.Context) (
 	domain.Images,
 	*sharedRepository.RepositoryError,
 ) {
+	time.Sleep(r.getAllImagesSleep)
+	r.getAllImagesCount++
+
 	return r.images, r.getAllImagesError
 }
 
@@ -738,12 +743,23 @@ func TestService_getImage(t *testing.T) {
 		spy := &repositorySpy{
 			images: domain.Images{domain.Image{Id: "tralala"}},
 		}
-
 		service := New(spy)
 		_, err := service.getImage("blaat", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "blaat")
+	})
+
+	t.Run("image is cached properly", func(t *testing.T) {
+		spy := &repositorySpy{
+			images: domain.Images{domain.Image{Id: "tralala"}},
+		}
+		service := New(spy)
+
+		_, _ = service.getImage("tralala", context.TODO())
+		_, _ = service.getImage("tralala", context.TODO())
+
+		assert.Equal(t, 1, spy.getAllImagesCount)
 	})
 }
 
@@ -972,11 +988,20 @@ func Benchmark_getInstanceType(b *testing.B) {
 	service := New(&spy)
 
 	for i := 0; i < b.N; i++ {
+		_, _ = service.getInstanceType("tralala", "", context.TODO())
+	}
+}
 
-		_, _ = service.getInstanceType(
-			"tralala",
-			"",
-			context.TODO(),
-		)
+func Benchmark_getImage(b *testing.B) {
+	spy := newRepositorySpy()
+	spy.images = domain.Images{
+		domain.Image{Id: "tralala"},
+	}
+	spy.getAllImagesSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = service.getImage("tralala", context.TODO())
 	}
 }

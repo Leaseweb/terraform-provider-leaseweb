@@ -16,6 +16,9 @@ type Service struct {
 
 	// Cache instanceTypes by region & name.
 	cachedInstanceTypes synced_map.SyncedMap[string, domain.InstanceTypes]
+
+	// Cache images by id.
+	cachedImages synced_map.SyncedMap[string, domain.Image]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
@@ -181,12 +184,21 @@ func (srv *Service) getImage(
 	id string,
 	ctx context.Context,
 ) (*domain.Image, *errors.ServiceError) {
+	cachedImage, ok := srv.cachedImages.Get(id)
+	if ok {
+		return &cachedImage, nil
+	}
+
 	images, err := srv.publicCloudRepository.GetAllImages(ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError(
 			"getImage",
 			*err,
 		)
+	}
+
+	for _, image := range images {
+		srv.cachedImages.Set(id, image)
 	}
 
 	image, imageErr := images.FilterById(id)
@@ -286,5 +298,6 @@ func New(publicCloudRepository ports.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository: publicCloudRepository,
 		cachedInstanceTypes:   synced_map.NewSyncedMap[string, domain.InstanceTypes](),
+		cachedImages:          synced_map.NewSyncedMap[string, domain.Image](),
 	}
 }
