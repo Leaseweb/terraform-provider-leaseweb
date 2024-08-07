@@ -177,7 +177,7 @@ func (p PublicCloudRepository) GetLoadBalancer(
 	).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(
-			fmt.Sprintf("GetLoadBalancer %q", id),
+			fmt.Sprintf("getLoadBalancer %q", id),
 			err,
 			response,
 		)
@@ -186,7 +186,7 @@ func (p PublicCloudRepository) GetLoadBalancer(
 	loadBalancer, err = p.adaptLoadBalancerDetails(*sdkLoadBalancerDetails)
 	if err != nil {
 		return nil, shared.NewGeneralError(
-			fmt.Sprintf("GetLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
+			fmt.Sprintf("getLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
 			err,
 		)
 	}

@@ -47,14 +47,25 @@ type repositorySpy struct {
 	getAllImagesError                       *sharedRepository.RepositoryError
 
 	getInstanceTypesForRegionSleep time.Duration
-	// How many times has getInstanceTypesForRegion been called.
+	getAllImagesSleep              time.Duration
+	getRegionsSleep                time.Duration
+	getAutoScalingGroupSleep       time.Duration
+	getLoadBalancerSleep           time.Duration
+
 	getInstanceTypesForRegionCount int
+	getAllImagesCount              int
+	getRegionsCount                int
+	getAutoScalingGroupCount       int
+	getLoadBalancerCount           int
 }
 
 func (r *repositorySpy) GetAllImages(ctx context.Context) (
 	domain.Images,
 	*sharedRepository.RepositoryError,
 ) {
+	time.Sleep(r.getAllImagesSleep)
+	r.getAllImagesCount++
+
 	return r.images, r.getAllImagesError
 }
 
@@ -73,6 +84,9 @@ func (r *repositorySpy) GetRegions(ctx context.Context) (
 	domain.Regions,
 	*sharedRepository.RepositoryError,
 ) {
+	time.Sleep(r.getRegionsSleep)
+	r.getRegionsCount++
+
 	return r.regions, r.getRegionsError
 }
 
@@ -89,7 +103,10 @@ func (r *repositorySpy) GetAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.AutoScalingGroup, *sharedRepository.RepositoryError) {
+	time.Sleep(r.getAutoScalingGroupSleep)
+
 	r.passedGetAutoScalingGroupId = id
+	r.getAutoScalingGroupCount++
 
 	return r.autoScalingGroup, r.getAutoScalingGroupError
 }
@@ -98,7 +115,10 @@ func (r *repositorySpy) GetLoadBalancer(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.LoadBalancer, *sharedRepository.RepositoryError) {
+	time.Sleep(r.getLoadBalancerSleep)
+
 	r.passedGetLoadBalancerId = id
+	r.getLoadBalancerCount++
 
 	return r.loadBalancer, r.getLoadBalancerError
 }
@@ -496,6 +516,19 @@ func TestService_GetRegions(t *testing.T) {
 
 		assert.ErrorContains(t, err, "some error")
 	})
+
+	t.Run(
+		"does not query repository if a local cache exists",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			service := New(&spy)
+
+			_, _ = service.GetRegions(context.TODO())
+			_, _ = service.GetRegions(context.TODO())
+
+			assert.Equal(t, 1, spy.getRegionsCount)
+		},
+	)
 }
 
 func TestService_getAutoScalingGroup(t *testing.T) {
@@ -517,7 +550,6 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 	})
 
 	t.Run("autoScalingGroupId is passed to repository", func(t *testing.T) {
-
 		spy := &repositorySpy{
 			getAutoScalingGroupError: sharedRepository.NewGeneralError(
 				"",
@@ -563,28 +595,6 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, want, got)
 	})
 
-	t.Run("loadBalancerId is passed to repository", func(t *testing.T) {
-		want := value_object.NewGeneratedUuid()
-
-		spy := &repositorySpy{
-			autoScalingGroup: &domain.AutoScalingGroup{
-				LoadBalancer: &domain.LoadBalancer{Id: want},
-			},
-			getLoadBalancerError: sharedRepository.NewGeneralError(
-				"",
-				errors.New(""),
-			),
-		}
-		service := New(spy)
-
-		_, _ = service.getAutoScalingGroup(
-			value_object.NewGeneratedUuid(),
-			context.TODO(),
-		)
-
-		assert.Equal(t, want, spy.passedGetLoadBalancerId)
-	})
-
 	t.Run(
 		"bubbles up getAutoScalingGroup error from repository",
 		func(t *testing.T) {
@@ -608,7 +618,7 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 	)
 
 	t.Run(
-		"bubbles up getLoadBalancer error from repository",
+		"loadBalancer errors bubble up",
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
@@ -632,6 +642,22 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"does not query repository if a local cache exists",
+		func(t *testing.T) {
+			autoScalingGroupId := value_object.NewGeneratedUuid()
+
+			spy := newRepositorySpy()
+			spy.autoScalingGroup = &domain.AutoScalingGroup{}
+			service := New(&spy)
+
+			_, _ = service.getAutoScalingGroup(autoScalingGroupId, context.TODO())
+			_, _ = service.getAutoScalingGroup(autoScalingGroupId, context.TODO())
+
+			assert.Equal(t, 1, spy.getAutoScalingGroupCount)
 		},
 	)
 }
@@ -682,6 +708,27 @@ func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
+
+	t.Run(
+		"does not query repository if a local cached instanceType exists",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.instanceTypesForRegion = domain.InstanceTypes{
+				domain.InstanceType{Name: "tralala"},
+			}
+			service := New(&spy)
+			_, _ = service.GetAvailableInstanceTypesForRegion(
+				"region",
+				context.TODO(),
+			)
+			_, _ = service.GetAvailableInstanceTypesForRegion(
+				"region",
+				context.TODO(),
+			)
+
+			assert.Equal(t, 1, spy.getInstanceTypesForRegionCount)
+		},
+	)
 }
 
 func TestService_getImage(t *testing.T) {
@@ -716,12 +763,23 @@ func TestService_getImage(t *testing.T) {
 		spy := &repositorySpy{
 			images: domain.Images{domain.Image{Id: "tralala"}},
 		}
-
 		service := New(spy)
 		_, err := service.getImage("blaat", context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "blaat")
+	})
+
+	t.Run("image is cached properly", func(t *testing.T) {
+		spy := &repositorySpy{
+			images: domain.Images{domain.Image{Id: "tralala"}},
+		}
+		service := New(spy)
+
+		_, _ = service.getImage("tralala", context.TODO())
+		_, _ = service.getImage("tralala", context.TODO())
+
+		assert.Equal(t, 1, spy.getAllImagesCount)
 	})
 }
 
@@ -938,24 +996,6 @@ func TestService_getInstanceType(t *testing.T) {
 		assert.Equal(t, want, *got)
 	})
 
-	t.Run(
-		"does not query repository if a local cached instanceType exists",
-		func(t *testing.T) {
-			spy := newRepositorySpy()
-			spy.instanceTypesForRegion = domain.InstanceTypes{
-				domain.InstanceType{Name: "tralala"},
-			}
-			service := New(&spy)
-			_, _ = service.getInstanceType(
-				"name",
-				"region",
-				context.TODO(),
-			)
-			_, _ = service.getInstanceType("name", "region", context.TODO())
-
-			assert.Equal(t, 1, spy.getInstanceTypesForRegionCount)
-		},
-	)
 }
 
 func Benchmark_getInstanceType(b *testing.B) {
@@ -968,11 +1008,106 @@ func Benchmark_getInstanceType(b *testing.B) {
 	service := New(&spy)
 
 	for i := 0; i < b.N; i++ {
-
-		_, _ = service.getInstanceType(
-			"tralala",
-			"",
-			context.TODO(),
-		)
+		_, _ = service.getInstanceType("tralala", "", context.TODO())
 	}
+}
+
+func Benchmark_getImage(b *testing.B) {
+	spy := newRepositorySpy()
+	spy.images = domain.Images{
+		domain.Image{Id: "tralala"},
+	}
+	spy.getAllImagesSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = service.getImage("tralala", context.TODO())
+	}
+}
+
+func BenchmarkService_GetRegions(b *testing.B) {
+	spy := newRepositorySpy()
+	spy.getRegionsSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = service.GetRegions(context.TODO())
+	}
+}
+
+func BenchmarkService_getAutoScalingGroup(b *testing.B) {
+	id := value_object.NewGeneratedUuid()
+
+	spy := newRepositorySpy()
+	spy.autoScalingGroup = &domain.AutoScalingGroup{}
+	spy.getAutoScalingGroupSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = service.getAutoScalingGroup(id, context.TODO())
+	}
+}
+
+func BenchmarkService_getLoadBalancer(b *testing.B) {
+	id := value_object.NewGeneratedUuid()
+
+	spy := newRepositorySpy()
+	spy.loadBalancer = &domain.LoadBalancer{}
+	spy.getLoadBalancerSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = service.getLoadBalancer(id, context.TODO())
+	}
+}
+
+func TestService_getLoadBalancer(t *testing.T) {
+	t.Run("loadBalancerId is passed to repository", func(t *testing.T) {
+		want := value_object.NewGeneratedUuid()
+
+		spy := &repositorySpy{
+			getLoadBalancerError: sharedRepository.NewGeneralError(
+				"",
+				errors.New(""),
+			),
+		}
+		service := New(spy)
+
+		_, _ = service.getLoadBalancer(want, context.TODO())
+
+		assert.Equal(t, want, spy.passedGetLoadBalancerId)
+	})
+
+	t.Run("returns loadBalancer from repository", func(t *testing.T) {
+		id := value_object.NewGeneratedUuid()
+		returnedLoadBalancer := domain.LoadBalancer{Id: id}
+		service := New(&repositorySpy{
+			loadBalancer: &returnedLoadBalancer,
+		})
+
+		want := &domain.LoadBalancer{Id: id}
+		got, err := service.getLoadBalancer(id, context.TODO())
+
+		assert.Nil(t, err)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run(
+		"does not query repository if a local cache exists",
+		func(t *testing.T) {
+			id := value_object.NewGeneratedUuid()
+			spy := newRepositorySpy()
+			spy.loadBalancer = &domain.LoadBalancer{}
+			service := New(&spy)
+
+			_, _ = service.getLoadBalancer(id, context.TODO())
+			_, _ = service.getLoadBalancer(id, context.TODO())
+
+			assert.Equal(t, 1, spy.getLoadBalancerCount)
+		},
+	)
 }
