@@ -14,14 +14,10 @@ import (
 type Service struct {
 	publicCloudRepository ports.PublicCloudRepository
 
-	// Cache instanceTypes by region & name.
-	cachedInstanceTypes synced_map.SyncedMap[string, domain.InstanceTypes]
-
-	// Cache images by id.
-	cachedImages synced_map.SyncedMap[string, domain.Image]
-
-	// Regions are all mapped under one key.
-	cachedRegions synced_map.SyncedMap[string, domain.Regions]
+	cachedInstanceTypes     synced_map.SyncedMap[string, domain.InstanceTypes]
+	cachedImages            synced_map.SyncedMap[string, domain.Image]
+	cachedRegions           synced_map.SyncedMap[string, domain.Regions]
+	cachedAutoScalingGroups synced_map.SyncedMap[string, domain.AutoScalingGroup]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
@@ -160,6 +156,11 @@ func (srv *Service) getAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
 ) (*domain.AutoScalingGroup, *errors.ServiceError) {
+	cachedAutoScalingGroup, ok := srv.cachedAutoScalingGroups.Get(id.String())
+	if ok {
+		return &cachedAutoScalingGroup, nil
+	}
+
 	autoScalingGroup, err := srv.publicCloudRepository.GetAutoScalingGroup(
 		id,
 		ctx,
@@ -185,6 +186,8 @@ func (srv *Service) getAutoScalingGroup(
 		}
 		autoScalingGroup.LoadBalancer = loadBalancer
 	}
+
+	srv.cachedAutoScalingGroups.Set(id.String(), *autoScalingGroup)
 
 	return autoScalingGroup, nil
 }
@@ -306,9 +309,10 @@ func (srv *Service) getInstanceType(
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {
 	return Service{
-		publicCloudRepository: publicCloudRepository,
-		cachedInstanceTypes:   synced_map.NewSyncedMap[string, domain.InstanceTypes](),
-		cachedImages:          synced_map.NewSyncedMap[string, domain.Image](),
-		cachedRegions:         synced_map.NewSyncedMap[string, domain.Regions](),
+		publicCloudRepository:   publicCloudRepository,
+		cachedInstanceTypes:     synced_map.NewSyncedMap[string, domain.InstanceTypes](),
+		cachedImages:            synced_map.NewSyncedMap[string, domain.Image](),
+		cachedRegions:           synced_map.NewSyncedMap[string, domain.Regions](),
+		cachedAutoScalingGroups: synced_map.NewSyncedMap[string, domain.AutoScalingGroup](),
 	}
 }
