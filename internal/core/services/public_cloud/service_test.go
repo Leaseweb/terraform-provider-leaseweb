@@ -48,9 +48,11 @@ type repositorySpy struct {
 
 	getInstanceTypesForRegionSleep time.Duration
 	getAllImagesSleep              time.Duration
+	getRegionsSleep                time.Duration
 
 	getInstanceTypesForRegionCount int
 	getAllImagesCount              int
+	getRegionsCount                int
 }
 
 func (r *repositorySpy) GetAllImages(ctx context.Context) (
@@ -78,6 +80,9 @@ func (r *repositorySpy) GetRegions(ctx context.Context) (
 	domain.Regions,
 	*sharedRepository.RepositoryError,
 ) {
+	time.Sleep(r.getRegionsSleep)
+	r.getRegionsCount++
+
 	return r.regions, r.getRegionsError
 }
 
@@ -501,6 +506,19 @@ func TestService_GetRegions(t *testing.T) {
 
 		assert.ErrorContains(t, err, "some error")
 	})
+
+	t.Run(
+		"does not query repository if a local cache exists",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			service := New(&spy)
+
+			_, _ = service.GetRegions(context.TODO())
+			_, _ = service.GetRegions(context.TODO())
+
+			assert.Equal(t, 1, spy.getRegionsCount)
+		},
+	)
 }
 
 func TestService_getAutoScalingGroup(t *testing.T) {
@@ -700,8 +718,7 @@ func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
 				"region",
 				context.TODO(),
 			)
-			_, _ = service.getInstanceType(
-				"name",
+			_, _ = service.GetAvailableInstanceTypesForRegion(
 				"region",
 				context.TODO(),
 			)
@@ -1003,5 +1020,16 @@ func Benchmark_getImage(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		_, _ = service.getImage("tralala", context.TODO())
+	}
+}
+
+func BenchmarkService_GetRegions(b *testing.B) {
+	spy := newRepositorySpy()
+	spy.getRegionsSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = service.GetRegions(context.TODO())
 	}
 }

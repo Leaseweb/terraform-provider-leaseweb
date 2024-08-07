@@ -19,6 +19,9 @@ type Service struct {
 
 	// Cache images by id.
 	cachedImages synced_map.SyncedMap[string, domain.Image]
+
+	// Regions are all mapped under one key.
+	cachedRegions synced_map.SyncedMap[string, domain.Regions]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
@@ -137,10 +140,17 @@ func (srv *Service) GetRegions(ctx context.Context) (
 	domain.Regions,
 	*errors.ServiceError,
 ) {
+	regions, ok := srv.cachedRegions.Get("all")
+	if ok {
+		return regions, nil
+	}
+
 	regions, err := srv.publicCloudRepository.GetRegions(ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError("GetRegions", *err)
 	}
+
+	srv.cachedRegions.Set("all", regions)
 
 	return regions, nil
 }
@@ -299,5 +309,6 @@ func New(publicCloudRepository ports.PublicCloudRepository) Service {
 		publicCloudRepository: publicCloudRepository,
 		cachedInstanceTypes:   synced_map.NewSyncedMap[string, domain.InstanceTypes](),
 		cachedImages:          synced_map.NewSyncedMap[string, domain.Image](),
+		cachedRegions:         synced_map.NewSyncedMap[string, domain.Regions](),
 	}
 }
