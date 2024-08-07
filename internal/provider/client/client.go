@@ -27,6 +27,6 @@ func NewClient(token string, optional Optional) Client {
 	publicCloudService := publiccloudservice.New(publicCloudRepository)
 
 	return Client{
-		PublicCloudFacade: public_cloud.NewPublicCloudFacade(publicCloudService),
+		PublicCloudFacade: public_cloud.NewPublicCloudFacade(&publicCloudService),
 	}
 }

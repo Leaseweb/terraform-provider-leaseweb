@@ -682,6 +682,28 @@ func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
+
+	t.Run(
+		"does not query repository if a local cached instanceType exists",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.instanceTypesForRegion = domain.InstanceTypes{
+				domain.InstanceType{Name: "tralala"},
+			}
+			service := New(&spy)
+			_, _ = service.GetAvailableInstanceTypesForRegion(
+				"region",
+				context.TODO(),
+			)
+			_, _ = service.getInstanceType(
+				"name",
+				"region",
+				context.TODO(),
+			)
+
+			assert.Equal(t, 1, spy.getInstanceTypesForRegionCount)
+		},
+	)
 }
 
 func TestService_getImage(t *testing.T) {
@@ -938,24 +960,6 @@ func TestService_getInstanceType(t *testing.T) {
 		assert.Equal(t, want, *got)
 	})
 
-	t.Run(
-		"does not query repository if a local cached instanceType exists",
-		func(t *testing.T) {
-			spy := newRepositorySpy()
-			spy.instanceTypesForRegion = domain.InstanceTypes{
-				domain.InstanceType{Name: "tralala"},
-			}
-			service := New(&spy)
-			_, _ = service.getInstanceType(
-				"name",
-				"region",
-				context.TODO(),
-			)
-			_, _ = service.getInstanceType("name", "region", context.TODO())
-
-			assert.Equal(t, 1, spy.getInstanceTypesForRegionCount)
-		},
-	)
 }
 
 func Benchmark_getInstanceType(b *testing.B) {
