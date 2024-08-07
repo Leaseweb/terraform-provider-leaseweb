@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
@@ -44,6 +45,10 @@ type repositorySpy struct {
 	getRegionsError                         *sharedRepository.RepositoryError
 	getInstanceTypesForRegionError          *sharedRepository.RepositoryError
 	getAllImagesError                       *sharedRepository.RepositoryError
+
+	getInstanceTypesForRegionSleep time.Duration
+	// How many times has getInstanceTypesForRegion been called.
+	getInstanceTypesForRegionCount int
 }
 
 func (r *repositorySpy) GetAllImages(ctx context.Context) (
@@ -57,7 +62,9 @@ func (r *repositorySpy) GetInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
 ) (domain.InstanceTypes, *sharedRepository.RepositoryError) {
+	time.Sleep(r.getInstanceTypesForRegionSleep)
 	r.passedGetInstanceTypesForRegionRegion = region
+	r.getInstanceTypesForRegionCount++
 
 	return r.instanceTypesForRegion, r.getInstanceTypesForRegionError
 }
@@ -143,6 +150,7 @@ func newRepositorySpy() repositorySpy {
 		instanceTypesForRegion: domain.InstanceTypes{
 			domain.InstanceType{Name: "instanceType"},
 		},
+		getInstanceTypesForRegionSleep: 0,
 	}
 }
 
@@ -929,4 +937,42 @@ func TestService_getInstanceType(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
 	})
+
+	t.Run(
+		"does not query repository if a local cached instanceType exists",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.instanceTypesForRegion = domain.InstanceTypes{
+				domain.InstanceType{Name: "tralala"},
+			}
+			service := New(&spy)
+			_, _ = service.getInstanceType(
+				"name",
+				"region",
+				context.TODO(),
+			)
+			_, _ = service.getInstanceType("name", "region", context.TODO())
+
+			assert.Equal(t, 1, spy.getInstanceTypesForRegionCount)
+		},
+	)
+}
+
+func Benchmark_getInstanceType(b *testing.B) {
+	spy := newRepositorySpy()
+	spy.instanceTypesForRegion = domain.InstanceTypes{
+		domain.InstanceType{Name: "tralala"},
+	}
+	spy.getInstanceTypesForRegionSleep = 200 * time.Millisecond
+
+	service := New(&spy)
+
+	for i := 0; i < b.N; i++ {
+
+		_, _ = service.getInstanceType(
+			"tralala",
+			"",
+			context.TODO(),
+		)
+	}
 }
