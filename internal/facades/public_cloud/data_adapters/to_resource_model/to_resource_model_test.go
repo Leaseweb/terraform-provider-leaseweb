@@ -321,7 +321,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 	t.Run("loadBalancer Conversion works", func(t *testing.T) {
 		reference := "reference"
 		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-		id := value_object.NewGeneratedUuid()
+		id := "id"
 
 		loadBalancer := public_cloud.NewLoadBalancer(
 			id,
@@ -348,7 +348,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		assert.Equal(t, id.String(), got.Id.ValueString())
+		assert.Equal(t, id, got.Id.ValueString())
 		assert.Equal(
 			t,
 			"{\"unit\":\"cpu\",\"value\":0}",
@@ -406,9 +406,9 @@ func TestAdaptInstance(t *testing.T) {
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	marketAppId := "marketAppId"
 	reference := "reference"
-	id := value_object.NewGeneratedUuid()
+	id := "id"
 	rootDiskSize, _ := value_object.NewRootDiskSize(32)
-	autoScalingGroupId := value_object.NewGeneratedUuid()
+	autoScalingGroupId := "autoScalingGroupId"
 	sshKeyValueObject, _ := value_object.NewSshKey(sshKey)
 
 	instance := generateDomainInstance()
@@ -426,7 +426,7 @@ func TestAdaptInstance(t *testing.T) {
 	got, err := AdaptInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
-	assert.Equal(t, id.String(), got.Id.ValueString())
+	assert.Equal(t, id, got.Id.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "productType", got.ProductType.ValueString())
@@ -474,7 +474,7 @@ func TestAdaptInstance(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		autoScalingGroupId.String(),
+		autoScalingGroupId,
 		autoScalingGroup.Id.ValueString(),
 	)
 
@@ -511,9 +511,9 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 	cpuThreshold := 4
 	warmupTime := 5
 	cooldownTime := 6
-	id := value_object.NewGeneratedUuid()
+	id := "id"
 	reference, _ := value_object.NewAutoScalingGroupReference("reference")
-	loadBalancerId := value_object.NewGeneratedUuid()
+	loadBalancerId := "loadBalancerId"
 
 	autoScalingGroup := public_cloud.NewAutoScalingGroup(
 		id,
@@ -546,7 +546,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(t, id.String(), got.Id.ValueString())
+	assert.Equal(t, id, got.Id.ValueString())
 	assert.Equal(t, "type", got.Type.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
 	assert.Equal(t, int64(1), got.DesiredAmount.ValueInt64())
@@ -584,7 +584,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 		&loadBalancer,
 		basetypes.ObjectAsOptions{},
 	)
-	assert.Equal(t, loadBalancerId.String(), loadBalancer.Id.ValueString())
+	assert.Equal(t, loadBalancerId, loadBalancer.Id.ValueString())
 }
 
 func generateDomainInstance() public_cloud.Instance {
@@ -748,7 +748,7 @@ func generateDomainInstance() public_cloud.Instance {
 	)
 
 	loadBalancer := public_cloud.NewLoadBalancer(
-		value_object.NewGeneratedUuid(),
+		"",
 		instanceType,
 		resources,
 		"region",
@@ -777,7 +777,7 @@ func generateDomainInstance() public_cloud.Instance {
 	autoScalingWarmupTime := 5
 	autoScalingCooldownTime := 6
 	autoScalingGroup := public_cloud.NewAutoScalingGroup(
-		value_object.NewGeneratedUuid(),
+		"",
 		"type",
 		"state",
 		"region",
@@ -799,7 +799,7 @@ func generateDomainInstance() public_cloud.Instance {
 	volume := public_cloud.NewVolume(1, "unit")
 
 	return public_cloud.NewInstance(
-		value_object.NewGeneratedUuid(),
+		"",
 		"region",
 		resources,
 		image,

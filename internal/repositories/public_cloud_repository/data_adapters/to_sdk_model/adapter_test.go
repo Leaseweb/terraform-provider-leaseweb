@@ -177,7 +177,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 		rootDiskSize, _ := value_object.NewRootDiskSize(23)
 
 		instance, _ := public_cloud.NewUpdateInstance(
-			value_object.NewGeneratedUuid(),
+			"",
 			public_cloud.OptionalUpdateInstanceValues{
 				Type:             &instanceType,
 				Reference:        &reference,
@@ -206,7 +206,7 @@ func generateDomainInstance() public_cloud.Instance {
 	rootDiskSize, _ := value_object.NewRootDiskSize(5)
 
 	return public_cloud.NewInstance(
-		value_object.NewGeneratedUuid(),
+		"",
 		"region",
 		public_cloud.Resources{},
 		public_cloud.Image{},

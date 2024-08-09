@@ -11,13 +11,12 @@ import (
 
 func TestNewAutoScalingGroup(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
 		createdAt := time.Now()
 		updatedAt := time.Now()
 		reference, _ := value_object.NewAutoScalingGroupReference("reference")
 
 		got := NewAutoScalingGroup(
-			id,
+			"id",
 			enum.AutoScalingGroupTypeCpuBased,
 			enum.AutoScalingGroupStateScaling,
 			"region",
@@ -26,7 +25,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 			updatedAt,
 			AutoScalingGroupOptions{})
 
-		assert.Equal(t, id, got.Id)
+		assert.Equal(t, "id", got.Id)
 		assert.Equal(t, enum.AutoScalingGroupTypeCpuBased, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, "region", got.Region)
@@ -58,7 +57,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		CoolDownTime := 10
 
 		got := NewAutoScalingGroup(
-			value_object.NewGeneratedUuid(),
+			"",
 			enum.AutoScalingGroupTypeCpuBased,
 			enum.AutoScalingGroupStateScaling,
 			"region",

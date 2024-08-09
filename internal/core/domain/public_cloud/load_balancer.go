@@ -4,11 +4,10 @@ import (
 	"time"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 type LoadBalancer struct {
-	Id             value_object.Uuid
+	Id             string
 	Type           InstanceType
 	Resources      Resources
 	Region         string
@@ -29,7 +28,7 @@ type OptionalLoadBalancerValues struct {
 }
 
 func NewLoadBalancer(
-	id value_object.Uuid,
+	id string,
 	loadBalancerType InstanceType,
 	resources Resources,
 	region string,

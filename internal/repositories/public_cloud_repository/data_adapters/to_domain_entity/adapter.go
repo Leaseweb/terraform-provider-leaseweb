@@ -19,11 +19,6 @@ func AdaptInstance(
 ) {
 	var autoScalingGroup *public_cloud.AutoScalingGroup
 
-	instanceId, err := value_object.NewUuid(sdkInstance.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstance: %w", err)
-	}
-
 	state, err := enum.NewState(string(sdkInstance.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf("AdaptInstance: %w", err)
@@ -69,7 +64,7 @@ func AdaptInstance(
 	}
 
 	instance := public_cloud.NewInstance(
-		*instanceId,
+		sdkInstance.GetId(),
 		sdkInstance.GetRegion(),
 		adaptResources(sdkInstance.GetResources()),
 		adaptImage(sdkInstance.GetImage()),
@@ -92,11 +87,6 @@ func AdaptInstanceDetails(
 	sdkInstanceDetails publicCloud.InstanceDetails,
 ) (*public_cloud.Instance, error) {
 	var autoScalingGroup *public_cloud.AutoScalingGroup
-
-	instanceId, err := value_object.NewUuid(sdkInstanceDetails.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstanceDetails: %w", err)
-	}
 
 	state, err := enum.NewState(string(sdkInstanceDetails.GetState()))
 	if err != nil {
@@ -163,7 +153,7 @@ func AdaptInstanceDetails(
 	}
 
 	instance := public_cloud.NewInstance(
-		*instanceId,
+		sdkInstanceDetails.GetId(),
 		sdkInstanceDetails.GetRegion(),
 		adaptResources(sdkInstanceDetails.GetResources()),
 		adaptImage(sdkInstanceDetails.GetImage()),
@@ -376,11 +366,6 @@ func AdaptAutoScalingGroupDetails(
 ) {
 	var loadBalancer *public_cloud.LoadBalancer
 
-	autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("adaptAutoScalingGroupDetails: %w", err)
-	}
-
 	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
 		string(sdkAutoScalingGroup.GetType()),
 	)
@@ -423,7 +408,7 @@ func AdaptAutoScalingGroupDetails(
 	}
 
 	autoScalingGroup := public_cloud.NewAutoScalingGroup(
-		*autoScalingGroupId,
+		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
 		sdkAutoScalingGroup.GetRegion(),
@@ -442,11 +427,6 @@ func AdaptLoadBalancerDetails(
 	*public_cloud.LoadBalancer,
 	error,
 ) {
-	loadBalancerId, err := value_object.NewUuid(sdkLoadBalancer.Id)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptLoadBalancerDetails: %w", err)
-	}
-
 	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf("AdaptLoadBalancerDetails: %w", err)
@@ -481,7 +461,7 @@ func AdaptLoadBalancerDetails(
 	}
 
 	loadBalancer := public_cloud.NewLoadBalancer(
-		*loadBalancerId,
+		sdkLoadBalancer.GetId(),
 		public_cloud.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
 		sdkLoadBalancer.GetRegion(),
@@ -498,11 +478,6 @@ func adaptLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 	*public_cloud.LoadBalancer,
 	error,
 ) {
-	loadBalancerId, err := value_object.NewUuid(sdkLoadBalancer.Id)
-	if err != nil {
-		return nil, fmt.Errorf("adaptLoadBalancer: %w", err)
-	}
-
 	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
 	if err != nil {
 		return nil, fmt.Errorf("adaptLoadBalancer: %w", err)
@@ -514,7 +489,7 @@ func adaptLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 	}
 
 	loadBalancer := public_cloud.NewLoadBalancer(
-		*loadBalancerId,
+		sdkLoadBalancer.GetId(),
 		public_cloud.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
 		"",
@@ -666,11 +641,6 @@ func adaptAutoScalingGroup(
 	*public_cloud.AutoScalingGroup,
 	error,
 ) {
-	autoScalingGroupId, err := value_object.NewUuid(sdkAutoScalingGroup.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("adaptAutoScalingGroup: %w", err)
-	}
-
 	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
 		string(sdkAutoScalingGroup.GetType()),
 	)
@@ -701,7 +671,7 @@ func adaptAutoScalingGroup(
 	}
 
 	autoScalingGroup := public_cloud.NewAutoScalingGroup(
-		*autoScalingGroupId,
+		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
 		sdkAutoScalingGroup.GetRegion(),

@@ -5,17 +5,15 @@ import (
 	"time"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewLoadBalancer(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
 		instanceType := InstanceType{Name: "instanceType"}
 
 		got := NewLoadBalancer(
-			id,
+			"id",
 			instanceType,
 			Resources{Cpu: Cpu{Unit: "cpu"}},
 			"region",
@@ -25,7 +23,7 @@ func TestNewLoadBalancer(t *testing.T) {
 			OptionalLoadBalancerValues{},
 		)
 
-		assert.Equal(t, id, got.Id)
+		assert.Equal(t, "id", got.Id)
 		assert.Equal(t, instanceType, got.Type)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
@@ -44,7 +42,7 @@ func TestNewLoadBalancer(t *testing.T) {
 		startedAt := time.Now()
 
 		got := NewLoadBalancer(
-			value_object.NewGeneratedUuid(),
+			"",
 			InstanceType{},
 			Resources{},
 			"",

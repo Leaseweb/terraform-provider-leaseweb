@@ -7,7 +7,6 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,7 +64,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.Equal(
 			t,
 			"5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
-			got.Id.String(),
+			got.Id,
 		)
 		assert.Equal(t, string(publicCloud.TYPENAME_M3_LARGE), got.Type.String())
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
@@ -88,18 +87,8 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
 		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id.String())
+		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id)
 		assert.Equal(t, "unit", got.Volume.Unit)
-	})
-
-	t.Run("invalid id returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
-		sdkInstance.Id = "tralala"
-
-		_, err := AdaptInstanceDetails(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
@@ -149,16 +138,6 @@ func TestAdaptInstanceDetails(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "55")
-	})
-
-	t.Run("invalid autoScalingGroup returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
-		sdkInstance.AutoScalingGroup.Get().Id = "tralala"
-
-		_, err := AdaptInstanceDetails(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
@@ -373,7 +352,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		warmupTime := int32(4)
 		cooldownTime := int32(5)
 		desiredAmount := int32(6)
-		loadBalancerId := value_object.NewGeneratedUuid()
+		loadBalancerId := "loadBalancerId"
 
 		sdkAutoScalingGroup := publicCloud.NewAutoScalingGroupDetails(
 			instanceId,
@@ -392,7 +371,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 			*publicCloud.NewNullableInt32(&warmupTime),
 			*publicCloud.NewNullableInt32(&cooldownTime),
 			*publicCloud.NewNullableLoadBalancer(&publicCloud.LoadBalancer{
-				Id:    loadBalancerId.String(),
+				Id:    loadBalancerId,
 				State: publicCloud.STATE_CREATING,
 				Type:  publicCloud.TYPENAME_M3_LARGE,
 			}),
@@ -401,7 +380,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		got, err := AdaptAutoScalingGroupDetails(*sdkAutoScalingGroup)
 
 		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id.String())
+		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, 6, *got.DesiredAmount)
@@ -417,15 +396,6 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		assert.Equal(t, 4, *got.WarmupTime)
 		assert.Equal(t, 5, *got.CooldownTime)
 		assert.Equal(t, loadBalancerId, got.LoadBalancer.Id)
-	})
-
-	t.Run("invalid id returns error", func(t *testing.T) {
-		_, err := AdaptAutoScalingGroupDetails(
-			publicCloud.AutoScalingGroupDetails{Id: "tralala"},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid type returns error", func(t *testing.T) {
@@ -472,7 +442,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 				State:     "SCALING",
 				Reference: "reference",
 				LoadBalancer: *publicCloud.NewNullableLoadBalancer(
-					&publicCloud.LoadBalancer{Id: "tralala"},
+					&publicCloud.LoadBalancer{State: "tralala"},
 				),
 			},
 		)
@@ -571,7 +541,7 @@ func TestAdaptLoadBalancerDetails(t *testing.T) {
 		got, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
 
 		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id.String())
+		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, string(publicCloud.TYPENAME_M3_LARGE), got.Type.String())
 		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
@@ -584,16 +554,6 @@ func TestAdaptLoadBalancerDetails(t *testing.T) {
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(t, 22, got.Configuration.TargetPort)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
-	})
-
-	t.Run("invalid id returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancerDetails(nil)
-		sdkLoadBalancer.Id = "tralala"
-
-		_, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
@@ -700,11 +660,7 @@ func TestAdaptInstance(t *testing.T) {
 		got, err := AdaptInstance(sdkInstance)
 
 		assert.NoError(t, err)
-		assert.Equal(
-			t,
-			instanceId,
-			got.Id.String(),
-		)
+		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, "lsw.m3.large", got.Type.String())
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
@@ -724,27 +680,7 @@ func TestAdaptInstance(t *testing.T) {
 		)
 		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id.String())
-	})
-
-	t.Run("invalid id returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
-		sdkInstance.Id = "tralala"
-
-		_, err := AdaptInstance(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid Image returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
-		sdkInstance.Id = "tralala"
-
-		_, err := AdaptInstance(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
+		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id)
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
@@ -798,7 +734,7 @@ func TestAdaptInstance(t *testing.T) {
 
 	t.Run("invalid autoScalingGroup returns error", func(t *testing.T) {
 		sdkInstance := generateInstance(t, nil)
-		sdkInstance.AutoScalingGroup.Get().Id = "tralala"
+		sdkInstance.AutoScalingGroup.Get().Type = "tralala"
 
 		_, err := AdaptInstance(sdkInstance)
 
@@ -900,7 +836,7 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 		got, err := adaptAutoScalingGroup(*sdkAutoScalingGroup)
 
 		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id.String())
+		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, 6, *got.DesiredAmount)
@@ -915,15 +851,6 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, 3, *got.CpuThreshold)
 		assert.Equal(t, 4, *got.WarmupTime)
 		assert.Equal(t, 5, *got.CooldownTime)
-	})
-
-	t.Run("invalid id returns error", func(t *testing.T) {
-		_, err := adaptAutoScalingGroup(
-			publicCloud.AutoScalingGroup{Id: "tralala"},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid type returns error", func(t *testing.T) {
@@ -971,20 +898,10 @@ func Test_adaptLoadBalancer(t *testing.T) {
 		got, err := adaptLoadBalancer(sdkLoadBalancer)
 
 		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id.String())
+		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, string(publicCloud.TYPENAME_M3_LARGE), got.Type.String())
 		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
 		assert.Equal(t, enum.StateCreating, got.State)
-	})
-
-	t.Run("invalid id returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancer(nil)
-		sdkLoadBalancer.Id = "tralala"
-
-		_, err := adaptLoadBalancer(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {

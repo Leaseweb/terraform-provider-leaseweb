@@ -17,7 +17,7 @@ func AdaptInstance(
 ) (*model.Instance, error) {
 	plan := model.Instance{}
 
-	plan.Id = basetypes.NewStringValue(instance.Id.String())
+	plan.Id = basetypes.NewStringValue(instance.Id)
 	plan.Region = basetypes.NewStringValue(instance.Region)
 	plan.Reference = shared.AdaptNullableStringToStringValue(instance.Reference)
 	plan.State = basetypes.NewStringValue(string(instance.State))
@@ -337,7 +337,7 @@ func adaptAutoScalingGroup(
 		return nil, loadBalancerDiags
 	}
 	return &model.AutoScalingGroup{
-		Id:    basetypes.NewStringValue(autoScalingGroup.Id.String()),
+		Id:    basetypes.NewStringValue(autoScalingGroup.Id),
 		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
 		State: basetypes.NewStringValue(string(autoScalingGroup.State)),
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
@@ -444,7 +444,7 @@ func adaptLoadBalancer(
 	}
 
 	return &model.LoadBalancer{
-		Id:        basetypes.NewStringValue(loadBalancer.Id.String()),
+		Id:        basetypes.NewStringValue(loadBalancer.Id),
 		Type:      instanceType,
 		Resources: resources,
 		Region:    basetypes.NewStringValue(loadBalancer.Region),

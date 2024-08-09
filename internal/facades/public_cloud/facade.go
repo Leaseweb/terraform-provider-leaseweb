@@ -103,12 +103,7 @@ func (h PublicCloudFacade) DeleteInstance(
 	id string,
 	ctx context.Context,
 ) *shared.FacadeError {
-	instanceId, err := value_object.NewUuid(id)
-	if err != nil {
-		return shared.NewError("DeleteInstance", err)
-	}
-
-	serviceErr := h.publicCloudService.DeleteInstance(*instanceId, ctx)
+	serviceErr := h.publicCloudService.DeleteInstance(id, ctx)
 	if serviceErr != nil {
 		return shared.NewFromServicesError("DeleteInstance", serviceErr)
 	}
@@ -121,12 +116,7 @@ func (h PublicCloudFacade) GetInstance(
 	id string,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	instanceId, err := value_object.NewUuid(id)
-	if err != nil {
-		return nil, shared.NewError("GetInstance", err)
-	}
-
-	instance, serviceErr := h.publicCloudService.GetInstance(*instanceId, ctx)
+	instance, serviceErr := h.publicCloudService.GetInstance(id, ctx)
 	if serviceErr != nil {
 		return nil, shared.NewFromServicesError("GetInstance", serviceErr)
 	}
@@ -144,20 +134,18 @@ func (h PublicCloudFacade) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	id, err := value_object.NewUuid(plan.Id.ValueString())
-	if err != nil {
-		return nil, shared.NewError("UpdateInstance", err)
-	}
-
 	availableInstanceTypes, repositoryErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
-		*id,
+		plan.Id.ValueString(),
 		ctx,
 	)
 	if repositoryErr != nil {
 		return nil, shared.NewError("UpdateInstance", repositoryErr)
 	}
 
-	instance, repositoryErr := h.publicCloudService.GetInstance(*id, ctx)
+	instance, repositoryErr := h.publicCloudService.GetInstance(
+		plan.Id.ValueString(),
+		ctx,
+	)
 	if repositoryErr != nil {
 		return nil, shared.NewError("UpdateInstance", repositoryErr)
 	}
@@ -319,16 +307,8 @@ func (h PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 	instanceType string,
 	ctx context.Context,
 ) (bool, []string, error) {
-	uuid, err := value_object.NewUuid(instanceId)
-	if err != nil {
-		return false, nil, shared.NewError(
-			"CanInstanceTypeBeUsedWithInstance",
-			err,
-		)
-	}
-
 	instanceTypes, serviceErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
-		*uuid,
+		instanceId,
 		ctx,
 	)
 	if serviceErr != nil {

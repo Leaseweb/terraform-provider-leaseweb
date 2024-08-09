@@ -8,7 +8,7 @@ import (
 )
 
 type AutoScalingGroup struct {
-	Id            value_object.Uuid
+	Id            string
 	Type          enum.AutoScalingGroupType
 	State         enum.AutoScalingGroupState
 	Region        string
@@ -39,7 +39,7 @@ type AutoScalingGroupOptions struct {
 }
 
 func NewAutoScalingGroup(
-	id value_object.Uuid,
+	id string,
 	autoScalingGroupType enum.AutoScalingGroupType,
 	state enum.AutoScalingGroupState,
 	region string,

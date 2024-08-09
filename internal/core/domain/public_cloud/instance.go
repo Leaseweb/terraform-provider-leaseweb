@@ -18,7 +18,7 @@ func (e ErrInvalidInstanceTypePassed) Error() string {
 }
 
 type Instance struct {
-	Id                  value_object.Uuid
+	Id                  string
 	Region              string
 	Reference           *string
 	StartedAt           *time.Time
@@ -72,7 +72,7 @@ type OptionalUpdateInstanceValues struct {
 
 // NewInstance creates a new instance with all supported options.
 func NewInstance(
-	id value_object.Uuid,
+	id string,
 	region string,
 	resources Resources,
 	image Image,
@@ -158,7 +158,7 @@ func NewCreateInstance(
 
 // NewUpdateInstance creates a new instance with only all the supported fields for instance updates.
 func NewUpdateInstance(
-	id value_object.Uuid,
+	id string,
 	options OptionalUpdateInstanceValues,
 	allowedInstanceTypes []string,
 	currentInstanceType string,

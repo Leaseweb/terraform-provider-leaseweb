@@ -21,7 +21,7 @@ func AdaptInstances(domainInstances public_cloud.Instances) model.Instances {
 
 func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 	instance := model.Instance{
-		Id:     basetypes.NewStringValue(domainInstance.Id.String()),
+		Id:     basetypes.NewStringValue(domainInstance.Id),
 		Region: basetypes.NewStringValue(domainInstance.Region),
 		Reference: shared.AdaptNullableStringToStringValue(
 			domainInstance.Reference,
@@ -163,7 +163,7 @@ func adaptContract(contract public_cloud.Contract) model.Contract {
 
 func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *model.AutoScalingGroup {
 	return &model.AutoScalingGroup{
-		Id:    basetypes.NewStringValue(autoScalingGroup.Id.String()),
+		Id:    basetypes.NewStringValue(autoScalingGroup.Id),
 		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
 		State: basetypes.NewStringValue(string(autoScalingGroup.State)),
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
@@ -214,7 +214,7 @@ func adaptLoadBalancer(loadBalancer public_cloud.LoadBalancer) *model.LoadBalanc
 	}
 
 	return &model.LoadBalancer{
-		Id:        basetypes.NewStringValue(loadBalancer.Id.String()),
+		Id:        basetypes.NewStringValue(loadBalancer.Id),
 		Type:      adaptInstanceType(loadBalancer.Type),
 		Resources: adaptResources(loadBalancer.Resources),
 		Region:    basetypes.NewStringValue(loadBalancer.Region),

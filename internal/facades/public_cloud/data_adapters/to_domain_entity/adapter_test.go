@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -270,7 +269,7 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 
 func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
+		id := "id"
 		instance := generateInstanceModel(
 			nil,
 			nil,
@@ -280,7 +279,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 		)
-		instance.Id = basetypes.NewStringValue(id.String())
+		instance.Id = basetypes.NewStringValue(id)
 
 		got, diags := AdaptToUpdateInstanceOpts(
 			instance,
@@ -439,9 +438,7 @@ func generateInstanceModel(
 	)
 
 	instance := model.Instance{
-		Id: basetypes.NewStringValue(
-			value_object.NewGeneratedUuid().String(),
-		),
+		Id:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("region"),
 		Type:                instanceType,
 		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),

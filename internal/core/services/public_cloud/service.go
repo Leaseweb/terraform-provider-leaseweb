@@ -7,7 +7,6 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 )
 
 // Service fulfills the contract for ports.PublicCloudService.
@@ -38,7 +37,7 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 	}
 
 	for _, instance := range instances {
-		go func(id value_object.Uuid) {
+		go func(id string) {
 			detailedInstance, err := srv.GetInstance(id, ctx)
 			if err != nil {
 				errorChan <- err
@@ -61,7 +60,7 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 }
 
 func (srv *Service) GetInstance(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (*public_cloud.Instance, *errors.ServiceError) {
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
@@ -104,7 +103,7 @@ func (srv *Service) UpdateInstance(
 }
 
 func (srv *Service) DeleteInstance(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) *errors.ServiceError {
 	err := srv.publicCloudRepository.DeleteInstance(id, ctx)
@@ -116,7 +115,7 @@ func (srv *Service) DeleteInstance(
 }
 
 func (srv *Service) GetAvailableInstanceTypesForUpdate(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (public_cloud.InstanceTypes, *errors.ServiceError) {
 	instanceTypes, err := srv.publicCloudRepository.GetAvailableInstanceTypesForUpdate(
@@ -154,10 +153,10 @@ func (srv *Service) GetRegions(ctx context.Context) (
 
 // Get autoScalingGroupDetails.
 func (srv *Service) getAutoScalingGroup(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (*public_cloud.AutoScalingGroup, *errors.ServiceError) {
-	cachedAutoScalingGroup, ok := srv.cachedAutoScalingGroups.Get(id.String())
+	cachedAutoScalingGroup, ok := srv.cachedAutoScalingGroups.Get(id)
 	if ok {
 		return &cachedAutoScalingGroup, nil
 	}
@@ -185,16 +184,16 @@ func (srv *Service) getAutoScalingGroup(
 		autoScalingGroup.LoadBalancer = loadBalancer
 	}
 
-	srv.cachedAutoScalingGroups.Set(id.String(), *autoScalingGroup)
+	srv.cachedAutoScalingGroups.Set(id, *autoScalingGroup)
 
 	return autoScalingGroup, nil
 }
 
 func (srv *Service) getLoadBalancer(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (*public_cloud.LoadBalancer, *errors.ServiceError) {
-	cachedLoadBalancer, ok := srv.cachedLoadBalancers.Get(id.String())
+	cachedLoadBalancer, ok := srv.cachedLoadBalancers.Get(id)
 	if ok {
 		return &cachedLoadBalancer, nil
 	}
@@ -207,7 +206,7 @@ func (srv *Service) getLoadBalancer(
 		)
 	}
 
-	srv.cachedLoadBalancers.Set(id.String(), *loadBalancer)
+	srv.cachedLoadBalancers.Set(id, *loadBalancer)
 
 	return loadBalancer, nil
 }
