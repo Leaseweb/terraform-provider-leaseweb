@@ -186,7 +186,8 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 				BillingFrequency: &billingFrequency,
 				RootDiskSize:     rootDiskSize,
 			},
-			[]string{"lsw.c3.large"},
+			[]string{},
+			"lsw.c3.large",
 		)
 
 		got, err := AdaptToUpdateInstanceOpts(*instance)

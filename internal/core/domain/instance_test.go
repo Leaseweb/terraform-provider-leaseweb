@@ -217,6 +217,7 @@ func TestNewUpdateInstance(t *testing.T) {
 			id,
 			OptionalUpdateInstanceValues{},
 			[]string{},
+			"",
 		)
 
 		assert.NoError(t, err)
@@ -248,7 +249,8 @@ func TestNewUpdateInstance(t *testing.T) {
 				BillingFrequency: &billingFrequency,
 				RootDiskSize:     rootDiskSize,
 			},
-			[]string{"instanceType"},
+			[]string{},
+			"instanceType",
 		)
 
 		assert.NoError(t, err)
@@ -275,10 +277,39 @@ func TestNewUpdateInstance(t *testing.T) {
 				id,
 				OptionalUpdateInstanceValues{Type: &instanceType},
 				[]string{},
+				"",
 			)
 
 			assert.Error(t, err)
 			assert.Error(t, err, ErrInvalidInstanceTypePassed{})
 		},
 	)
+
+	t.Run("currentInstanceType is respected", func(t *testing.T) {
+		id := value_object.NewGeneratedUuid()
+		instanceType := "instanceType"
+
+		_, err := NewUpdateInstance(
+			id,
+			OptionalUpdateInstanceValues{Type: &instanceType},
+			[]string{},
+			"instanceType",
+		)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("allowedInstanceTypes is respected", func(t *testing.T) {
+		id := value_object.NewGeneratedUuid()
+		instanceType := "instanceType"
+
+		_, err := NewUpdateInstance(
+			id,
+			OptionalUpdateInstanceValues{Type: &instanceType},
+			[]string{"instanceType"},
+			"",
+		)
+
+		assert.NoError(t, err)
+	})
 }

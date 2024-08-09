@@ -41,13 +41,8 @@ func (i InstanceTypeValidator) ValidateString(
 	response *validator.StringResponse,
 ) {
 
-	// If the instanceType is unknown, there is nothing to validate.
-	if request.ConfigValue.IsUnknown() {
-		return
-	}
-
-	// Do nothing if instanceType does not change.
-	if request.ConfigValue.IsNull() {
+	// Nothing to validate here.
+	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
 		return
 	}
 

@@ -161,11 +161,13 @@ func NewUpdateInstance(
 	id value_object.Uuid,
 	options OptionalUpdateInstanceValues,
 	allowedInstanceTypes []string,
+	currentInstanceType string,
 ) (*Instance, error) {
 	instance := Instance{Id: id}
 
 	instance.Reference = options.Reference
 
+	allowedInstanceTypes = append(allowedInstanceTypes, currentInstanceType)
 	if options.Type != nil {
 		if !slices.Contains(allowedInstanceTypes, *options.Type) {
 			return nil, ErrInvalidInstanceTypePassed{
