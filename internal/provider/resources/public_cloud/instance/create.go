@@ -27,7 +27,7 @@ func (i *instanceResource) Create(
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Instance", err.Error())
 
-		logging.HandleError(
+		logging.FacadeError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,

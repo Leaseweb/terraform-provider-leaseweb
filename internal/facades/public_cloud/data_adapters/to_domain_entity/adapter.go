@@ -150,6 +150,7 @@ func AdaptToCreateInstanceOpts(
 func AdaptToUpdateInstanceOpts(
 	instanceResourceModel model.Instance,
 	allowedInstanceTypes []string,
+	currentInstanceType string,
 	ctx context.Context,
 ) (*domain.Instance, error) {
 
@@ -244,6 +245,7 @@ func AdaptToUpdateInstanceOpts(
 		*id,
 		optionalValues,
 		allowedInstanceTypes,
+		currentInstanceType,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)

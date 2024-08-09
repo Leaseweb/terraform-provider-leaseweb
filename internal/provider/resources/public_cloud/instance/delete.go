@@ -37,7 +37,7 @@ func (i *instanceResource) Delete(
 			),
 		)
 
-		logging.HandleError(
+		logging.FacadeError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,

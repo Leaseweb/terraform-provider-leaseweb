@@ -39,6 +39,7 @@ type PublicCloudFacade struct {
 	adaptToUpdateInstanceOpts func(
 		instance resourceModel.Instance,
 		allowedInstanceTypes []string,
+		currentInstanceType string,
 		ctx context.Context,
 	) (*domain.Instance, error)
 }
@@ -156,9 +157,15 @@ func (h PublicCloudFacade) UpdateInstance(
 		return nil, shared.NewError("UpdateInstance", repositoryErr)
 	}
 
+	instance, repositoryErr := h.publicCloudService.GetInstance(*id, ctx)
+	if repositoryErr != nil {
+		return nil, shared.NewError("UpdateInstance", repositoryErr)
+	}
+
 	updateInstanceOpts, conversionError := h.adaptToUpdateInstanceOpts(
 		plan,
 		availableInstanceTypes.ToArray(),
+		instance.Type.Name,
 		ctx,
 	)
 	if conversionError != nil {

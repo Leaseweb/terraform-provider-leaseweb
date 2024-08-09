@@ -19,7 +19,7 @@ func (d *instancesDataSource) Read(
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
-		logging.HandleError(
+		logging.FacadeError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,

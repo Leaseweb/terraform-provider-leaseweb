@@ -284,7 +284,8 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 
 		got, diags := AdaptToUpdateInstanceOpts(
 			instance,
-			[]string{"lsw.m5a.4xlarge"},
+			[]string{},
+			"lsw.m5a.4xlarge",
 			context.TODO(),
 		)
 
@@ -305,7 +306,8 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 
 		got, diags := AdaptToUpdateInstanceOpts(
 			instance,
-			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
+			[]string{},
+			"lsw.m5a.4xlarge",
 			context.TODO(),
 		)
 
@@ -338,6 +340,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 			_, err := AdaptToUpdateInstanceOpts(
 				instance,
 				[]string{},
+				"",
 				context.TODO(),
 			)
 

@@ -525,14 +525,23 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 		want := model.Instance{Id: basetypes.NewStringValue("tralala")}
 
 		instanceOpts := domain.Instance{}
-		updatedInstance := domain.Instance{Id: value_object.NewGeneratedUuid()}
+		updatedInstance := domain.Instance{
+			Id: value_object.NewGeneratedUuid(),
+		}
+		currentInstance := domain.Instance{
+			Type: domain.InstanceType{Name: "instanceTypeName"},
+		}
 
-		spy := serviceSpy{updatedInstance: &updatedInstance}
+		spy := serviceSpy{
+			updatedInstance: &updatedInstance,
+			getInstance:     &currentInstance,
+		}
 		facade := PublicCloudFacade{
 			publicCloudService: &spy,
 			adaptToUpdateInstanceOpts: func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
+				currentInstanceType string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				assert.Equal(
@@ -567,11 +576,16 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 	t.Run(
 		"error is returned if updatedInstancePassedInstance fails",
 		func(t *testing.T) {
-			spy := serviceSpy{}
+			spy := serviceSpy{
+				getInstance: &domain.Instance{
+					Type: domain.InstanceType{Name: "instanceTypeName"},
+				},
+			}
 			facade := NewPublicCloudFacade(&spy)
 			facade.adaptToUpdateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
+				currentInstanceType string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, errors.New("some error")
@@ -597,11 +611,15 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 					"",
 					errors.New("some error"),
 				),
+				getInstance: &domain.Instance{
+					Type: domain.InstanceType{Name: "instanceTypeName"},
+				},
 			}
 			facade := NewPublicCloudFacade(&spy)
 			facade.adaptToUpdateInstanceOpts = func(
 				instance model.Instance,
 				allowedInstanceTypes []string,
+				currentInstanceType string,
 				ctx context.Context,
 			) (*domain.Instance, error) {
 				return &domain.Instance{}, nil
@@ -622,12 +640,18 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 	t.Run(
 		"error is returned if adaptInstanceToResourceModel fails",
 		func(t *testing.T) {
-			spy := serviceSpy{updatedInstance: &domain.Instance{}}
+			spy := serviceSpy{
+				updatedInstance: &domain.Instance{},
+				getInstance: &domain.Instance{
+					Type: domain.InstanceType{Name: "instanceTypeName"},
+				},
+			}
 			facade := PublicCloudFacade{
 				publicCloudService: &spy,
 				adaptToUpdateInstanceOpts: func(
 					instance model.Instance,
 					allowedInstanceTypes []string,
+					currentInstanceType string,
 					ctx context.Context,
 				) (*domain.Instance, error) {
 
@@ -667,6 +691,31 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 			_, err := facade.UpdateInstance(
 				model.Instance{
 					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
+				},
+				context.TODO(),
+			)
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+
+	t.Run(
+		"error is returned if GetInstance fails",
+		func(t *testing.T) {
+			spy := serviceSpy{
+				getInstanceError: serviceErrors.NewError(
+					"",
+					errors.New("some error"),
+				),
+			}
+			facade := NewPublicCloudFacade(&spy)
+
+			_, err := facade.UpdateInstance(
+				model.Instance{
+					Id: basetypes.NewStringValue(
+						"5072e822-485a-429a-878f-cfc42f81aca4",
+					),
 				},
 				context.TODO(),
 			)
