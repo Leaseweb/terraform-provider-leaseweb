@@ -3,7 +3,7 @@ package public_cloud
 import (
 	"context"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
@@ -14,24 +14,24 @@ import (
 type Service struct {
 	publicCloudRepository ports.PublicCloudRepository
 
-	cachedInstanceTypes     synced_map.SyncedMap[string, domain.InstanceTypes]
-	cachedImages            synced_map.SyncedMap[string, domain.Image]
-	cachedRegions           synced_map.SyncedMap[string, domain.Regions]
-	cachedAutoScalingGroups synced_map.SyncedMap[string, domain.AutoScalingGroup]
-	cachedLoadBalancers     synced_map.SyncedMap[string, domain.LoadBalancer]
+	cachedInstanceTypes     synced_map.SyncedMap[string, public_cloud.InstanceTypes]
+	cachedImages            synced_map.SyncedMap[string, public_cloud.Image]
+	cachedRegions           synced_map.SyncedMap[string, public_cloud.Regions]
+	cachedAutoScalingGroups synced_map.SyncedMap[string, public_cloud.AutoScalingGroup]
+	cachedLoadBalancers     synced_map.SyncedMap[string, public_cloud.LoadBalancer]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
-	domain.Instances,
+	public_cloud.Instances,
 	*errors.ServiceError,
 ) {
-	var detailedInstances domain.Instances
-	resultChan := make(chan domain.Instance)
+	var detailedInstances public_cloud.Instances
+	resultChan := make(chan public_cloud.Instance)
 	errorChan := make(chan *errors.ServiceError)
 
 	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
-		return domain.Instances{}, errors.NewFromRepositoryError(
+		return public_cloud.Instances{}, errors.NewFromRepositoryError(
 			"GetAllInstances",
 			*err,
 		)
@@ -51,7 +51,7 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 	for i := 0; i < len(instances); i++ {
 		select {
 		case err := <-errorChan:
-			return domain.Instances{}, err
+			return public_cloud.Instances{}, err
 		case res := <-resultChan:
 			detailedInstances = append(detailedInstances, res)
 		}
@@ -63,7 +63,7 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 func (srv *Service) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, *errors.ServiceError) {
+) (*public_cloud.Instance, *errors.ServiceError) {
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError("GetInstance", *err)
@@ -73,9 +73,9 @@ func (srv *Service) GetInstance(
 }
 
 func (srv *Service) CreateInstance(
-	instance domain.Instance,
+	instance public_cloud.Instance,
 	ctx context.Context,
-) (*domain.Instance, *errors.ServiceError) {
+) (*public_cloud.Instance, *errors.ServiceError) {
 	createdInstance, err := srv.publicCloudRepository.CreateInstance(
 		instance,
 		ctx,
@@ -89,9 +89,9 @@ func (srv *Service) CreateInstance(
 }
 
 func (srv *Service) UpdateInstance(
-	instance domain.Instance,
+	instance public_cloud.Instance,
 	ctx context.Context,
-) (*domain.Instance, *errors.ServiceError) {
+) (*public_cloud.Instance, *errors.ServiceError) {
 	updatedInstance, err := srv.publicCloudRepository.UpdateInstance(
 		instance,
 		ctx,
@@ -118,7 +118,7 @@ func (srv *Service) DeleteInstance(
 func (srv *Service) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (domain.InstanceTypes, *errors.ServiceError) {
+) (public_cloud.InstanceTypes, *errors.ServiceError) {
 	instanceTypes, err := srv.publicCloudRepository.GetAvailableInstanceTypesForUpdate(
 		id,
 		ctx,
@@ -134,7 +134,7 @@ func (srv *Service) GetAvailableInstanceTypesForUpdate(
 }
 
 func (srv *Service) GetRegions(ctx context.Context) (
-	domain.Regions,
+	public_cloud.Regions,
 	*errors.ServiceError,
 ) {
 	regions, ok := srv.cachedRegions.Get("all")
@@ -156,7 +156,7 @@ func (srv *Service) GetRegions(ctx context.Context) (
 func (srv *Service) getAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.AutoScalingGroup, *errors.ServiceError) {
+) (*public_cloud.AutoScalingGroup, *errors.ServiceError) {
 	cachedAutoScalingGroup, ok := srv.cachedAutoScalingGroups.Get(id.String())
 	if ok {
 		return &cachedAutoScalingGroup, nil
@@ -193,7 +193,7 @@ func (srv *Service) getAutoScalingGroup(
 func (srv *Service) getLoadBalancer(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.LoadBalancer, *errors.ServiceError) {
+) (*public_cloud.LoadBalancer, *errors.ServiceError) {
 	cachedLoadBalancer, ok := srv.cachedLoadBalancers.Get(id.String())
 	if ok {
 		return &cachedLoadBalancer, nil
@@ -216,7 +216,7 @@ func (srv *Service) getLoadBalancer(
 func (srv *Service) getImage(
 	id string,
 	ctx context.Context,
-) (*domain.Image, *errors.ServiceError) {
+) (*public_cloud.Image, *errors.ServiceError) {
 	cachedImage, ok := srv.cachedImages.Get(id)
 	if ok {
 		return &cachedImage, nil
@@ -247,9 +247,9 @@ func (srv *Service) getImage(
 
 // Populate instance with missing details.
 func (srv *Service) populateMissingInstanceAttributes(
-	instance domain.Instance,
+	instance public_cloud.Instance,
 	ctx context.Context,
-) (*domain.Instance, *errors.ServiceError) {
+) (*public_cloud.Instance, *errors.ServiceError) {
 	if instance.AutoScalingGroup != nil {
 		autoScalingGroup, err := srv.getAutoScalingGroup(
 			instance.AutoScalingGroup.Id,
@@ -283,7 +283,7 @@ func (srv *Service) populateMissingInstanceAttributes(
 func (srv *Service) GetAvailableInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
-) (domain.InstanceTypes, *errors.ServiceError) {
+) (public_cloud.InstanceTypes, *errors.ServiceError) {
 	cachedInstanceTypes, ok := srv.cachedInstanceTypes.Get(region)
 	if ok {
 		return cachedInstanceTypes, nil
@@ -309,7 +309,7 @@ func (srv *Service) getInstanceType(
 	name string,
 	region string,
 	ctx context.Context,
-) (*domain.InstanceType, *errors.ServiceError) {
+) (*public_cloud.InstanceType, *errors.ServiceError) {
 
 	instanceTypes, serviceErr := srv.GetAvailableInstanceTypesForRegion(
 		region,
@@ -330,10 +330,10 @@ func (srv *Service) getInstanceType(
 func New(publicCloudRepository ports.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository:   publicCloudRepository,
-		cachedInstanceTypes:     synced_map.NewSyncedMap[string, domain.InstanceTypes](),
-		cachedImages:            synced_map.NewSyncedMap[string, domain.Image](),
-		cachedRegions:           synced_map.NewSyncedMap[string, domain.Regions](),
-		cachedAutoScalingGroups: synced_map.NewSyncedMap[string, domain.AutoScalingGroup](),
-		cachedLoadBalancers:     synced_map.NewSyncedMap[string, domain.LoadBalancer](),
+		cachedInstanceTypes:     synced_map.NewSyncedMap[string, public_cloud.InstanceTypes](),
+		cachedImages:            synced_map.NewSyncedMap[string, public_cloud.Image](),
+		cachedRegions:           synced_map.NewSyncedMap[string, public_cloud.Regions](),
+		cachedAutoScalingGroups: synced_map.NewSyncedMap[string, public_cloud.AutoScalingGroup](),
+		cachedLoadBalancers:     synced_map.NewSyncedMap[string, public_cloud.LoadBalancer](),
 	}
 }

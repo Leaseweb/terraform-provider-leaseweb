@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
@@ -18,7 +18,7 @@ func AdaptToCreateInstanceOpts(
 	instanceResourceModel model.Instance,
 	allowedInstancedTypes []string,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*public_cloud.Instance, error) {
 	var sshKey *value_object.SshKey
 	var rootDiskSize *value_object.RootDiskSize
 
@@ -118,7 +118,7 @@ func AdaptToCreateInstanceOpts(
 		}
 	}
 
-	createInstanceOpts, err := domain.NewCreateInstance(
+	createInstanceOpts, err := public_cloud.NewCreateInstance(
 		instanceResourceModel.Region.ValueString(),
 		instanceType.Name.ValueString(),
 		rootDiskStorageType,
@@ -126,7 +126,7 @@ func AdaptToCreateInstanceOpts(
 		contractType,
 		contractTerm,
 		billingFrequency,
-		domain.OptionalCreateInstanceValues{
+		public_cloud.OptionalCreateInstanceValues{
 			MarketAppId: shared.AdaptStringPointerValueToNullableString(
 				instanceResourceModel.MarketAppId,
 			),
@@ -152,14 +152,14 @@ func AdaptToUpdateInstanceOpts(
 	allowedInstanceTypes []string,
 	currentInstanceType string,
 	ctx context.Context,
-) (*domain.Instance, error) {
+) (*public_cloud.Instance, error) {
 
 	id, err := value_object.NewUuid(instanceResourceModel.Id.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)
 	}
 
-	optionalValues := domain.OptionalUpdateInstanceValues{
+	optionalValues := public_cloud.OptionalUpdateInstanceValues{
 		Reference: shared.AdaptStringPointerValueToNullableString(
 			instanceResourceModel.Reference,
 		),
@@ -241,7 +241,7 @@ func AdaptToUpdateInstanceOpts(
 		optionalValues.Type = &instanceTypeOpt
 	}
 
-	instance, err := domain.NewUpdateInstance(
+	instance, err := public_cloud.NewUpdateInstance(
 		*id,
 		optionalValues,
 		allowedInstanceTypes,

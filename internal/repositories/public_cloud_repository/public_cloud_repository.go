@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_domain_entity"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
@@ -25,26 +25,26 @@ type PublicCloudRepository struct {
 	token                string
 	adaptInstanceDetails func(
 		sdkInstance publicCloud.InstanceDetails,
-	) (*domain.Instance, error)
+	) (*public_cloud.Instance, error)
 	adaptInstance func(
 		sdkInstance publicCloud.Instance,
-	) (*domain.Instance, error)
+	) (*public_cloud.Instance, error)
 	adaptAutoScalingGroupDetails func(
 		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-	) (*domain.AutoScalingGroup, error)
+	) (*public_cloud.AutoScalingGroup, error)
 	adaptLoadBalancerDetails func(
 		sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
-	) (*domain.LoadBalancer, error)
-	adaptToLaunchInstanceOpts func(instance domain.Instance) (
+	) (*public_cloud.LoadBalancer, error)
+	adaptToLaunchInstanceOpts func(instance public_cloud.Instance) (
 		*publicCloud.LaunchInstanceOpts, error)
-	adaptToUpdateInstanceOpts func(instance domain.Instance) (
+	adaptToUpdateInstanceOpts func(instance public_cloud.Instance) (
 		*publicCloud.UpdateInstanceOpts, error)
-	adaptRegion       func(sdkRegion publicCloud.Region) domain.Region
+	adaptRegion       func(sdkRegion publicCloud.Region) public_cloud.Region
 	adaptInstanceType func(sdkInstanceType publicCloud.InstanceType) (
-		*domain.InstanceType,
+		*public_cloud.InstanceType,
 		error,
 	)
-	adaptImageDetails func(sdkImage publicCloud.ImageDetails) domain.Image
+	adaptImageDetails func(sdkImage publicCloud.ImageDetails) public_cloud.Image
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -59,10 +59,10 @@ func (p PublicCloudRepository) authContext(ctx context.Context) context.Context 
 }
 
 func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
-	domain.Instances,
+	public_cloud.Instances,
 	*shared.RepositoryError,
 ) {
-	var instances domain.Instances
+	var instances public_cloud.Instances
 
 	request := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx))
 
@@ -110,7 +110,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 func (p PublicCloudRepository) GetInstance(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.Instance, *shared.RepositoryError) {
+) (*public_cloud.Instance, *shared.RepositoryError) {
 	sdkInstance, response, err := p.publicCLoudAPI.GetInstance(
 		p.authContext(ctx),
 		id.String(),
@@ -139,7 +139,7 @@ func (p PublicCloudRepository) GetInstance(
 func (p PublicCloudRepository) GetAutoScalingGroup(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.AutoScalingGroup, *shared.RepositoryError) {
+) (*public_cloud.AutoScalingGroup, *shared.RepositoryError) {
 	sdkAutoScalingGroupDetails, response, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
 		id.String(),
@@ -168,8 +168,8 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 func (p PublicCloudRepository) GetLoadBalancer(
 	id value_object.Uuid,
 	ctx context.Context,
-) (*domain.LoadBalancer, *shared.RepositoryError) {
-	var loadBalancer *domain.LoadBalancer
+) (*public_cloud.LoadBalancer, *shared.RepositoryError) {
+	var loadBalancer *public_cloud.LoadBalancer
 
 	sdkLoadBalancerDetails, response, err := p.publicCLoudAPI.GetLoadBalancer(
 		p.authContext(ctx),
@@ -195,9 +195,9 @@ func (p PublicCloudRepository) GetLoadBalancer(
 }
 
 func (p PublicCloudRepository) CreateInstance(
-	instance domain.Instance,
+	instance public_cloud.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.RepositoryError) {
+) (*public_cloud.Instance, *shared.RepositoryError) {
 
 	launchInstanceOpts, err := p.adaptToLaunchInstanceOpts(instance)
 	if err != nil {
@@ -229,9 +229,9 @@ func (p PublicCloudRepository) CreateInstance(
 }
 
 func (p PublicCloudRepository) UpdateInstance(
-	instance domain.Instance,
+	instance public_cloud.Instance,
 	ctx context.Context,
-) (*domain.Instance, *shared.RepositoryError) {
+) (*public_cloud.Instance, *shared.RepositoryError) {
 
 	updateInstanceOpts, err := p.adaptToUpdateInstanceOpts(instance)
 	if err != nil {
@@ -286,8 +286,8 @@ func (p PublicCloudRepository) DeleteInstance(
 func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	id value_object.Uuid,
 	ctx context.Context,
-) (domain.InstanceTypes, *shared.RepositoryError) {
-	var instanceTypes domain.InstanceTypes
+) (public_cloud.InstanceTypes, *shared.RepositoryError) {
+	var instanceTypes public_cloud.InstanceTypes
 
 	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(
 		p.authContext(ctx),
@@ -317,10 +317,10 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 }
 
 func (p PublicCloudRepository) GetRegions(ctx context.Context) (
-	domain.Regions,
+	public_cloud.Regions,
 	*shared.RepositoryError,
 ) {
-	var regions domain.Regions
+	var regions public_cloud.Regions
 
 	request := p.publicCLoudAPI.GetRegionList(p.authContext(ctx))
 
@@ -365,8 +365,8 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
-) (domain.InstanceTypes, *shared.RepositoryError) {
-	var instanceTypes domain.InstanceTypes
+) (public_cloud.InstanceTypes, *shared.RepositoryError) {
+	var instanceTypes public_cloud.InstanceTypes
 
 	request := p.publicCLoudAPI.GetInstanceTypeList(p.authContext(ctx)).
 		Region(region)
@@ -425,10 +425,10 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 }
 
 func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
-	domain.Images,
+	public_cloud.Images,
 	*shared.RepositoryError,
 ) {
-	var images domain.Images
+	var images public_cloud.Images
 
 	request := p.publicCLoudAPI.GetImageList(p.authContext(ctx))
 
