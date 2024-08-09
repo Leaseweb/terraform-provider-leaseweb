@@ -38,6 +38,15 @@ services:
       - path: .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  prism_dedicatedServer:
+    image: stoplight/prism:5.8.1@sha256:ac53a76c2237c418502244b3a82061bb817be63d061806834e837abfb7a60951
+    command: >
+      mock -p 4010 --host 0.0.0.0
+      ${DEDICATED_SERVER_API_SPEC_URL}
+    env_file:
+      - path: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   prism-proxy:
     image: caddy:2.8-alpine@sha256:f8660fb5414bac933e55401955e14133539f48ecff9df4741ea45505eb005bb1
     volumes:

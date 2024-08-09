@@ -4,3 +4,8 @@ route /publicCloud/v1/* {
 	uri strip_prefix /publicCloud/v1
 	reverse_proxy prism_publicCloud:4010
 }
+
+route /dedicatedServer/v1/* {
+	uri strip_prefix /dedicatedServer/v1
+	reverse_proxy prism_dedicatedServer:4010
+}
