@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
@@ -18,30 +18,30 @@ import (
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
-var ErrContractTermCannotBeZero = domain.ErrContractTermCannotBeZero
-var ErrContractTermMustBeZero = domain.ErrContractTermMustBeZero
+var ErrContractTermCannotBeZero = public_cloud.ErrContractTermCannotBeZero
+var ErrContractTermMustBeZero = public_cloud.ErrContractTermMustBeZero
 
 // PublicCloudFacade handles all communication between provider & the core.
 type PublicCloudFacade struct {
 	publicCloudService           ports.PublicCloudService
 	adaptInstanceToResourceModel func(
-		instance domain.Instance,
+		instance public_cloud.Instance,
 		ctx context.Context,
 	) (*resourceModel.Instance, error)
 	adaptInstancesToDataSourceModel func(
-		instances domain.Instances,
+		instances public_cloud.Instances,
 	) dataSourceModel.Instances
 	adaptToCreateInstanceOpts func(
 		instance resourceModel.Instance,
 		allowedInstanceTypes []string,
 		ctx context.Context,
-	) (*domain.Instance, error)
+	) (*public_cloud.Instance, error)
 	adaptToUpdateInstanceOpts func(
 		instance resourceModel.Instance,
 		allowedInstanceTypes []string,
 		currentInstanceType string,
 		ctx context.Context,
-	) (*domain.Instance, error)
+	) (*public_cloud.Instance, error)
 }
 
 // GetAllInstances retrieve all instances.
@@ -248,7 +248,7 @@ func (h PublicCloudFacade) ValidateContractTerm(
 		return shared.NewError("ValidateContractType", err)
 	}
 
-	_, err = domain.NewContract(
+	_, err = public_cloud.NewContract(
 		enum.ContractBillingFrequencySix,
 		contractTermEnum,
 		contractTypeEnum,
@@ -260,9 +260,9 @@ func (h PublicCloudFacade) ValidateContractTerm(
 
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrContractTermMustBeZero):
+		case errors.Is(err, public_cloud.ErrContractTermMustBeZero):
 			return ErrContractTermMustBeZero
-		case errors.Is(err, domain.ErrContractTermCannotBeZero):
+		case errors.Is(err, public_cloud.ErrContractTermCannotBeZero):
 			return ErrContractTermCannotBeZero
 		default:
 			log.Fatal(err)

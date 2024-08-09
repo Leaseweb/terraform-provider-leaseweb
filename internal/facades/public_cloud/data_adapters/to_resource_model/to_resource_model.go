@@ -1,18 +1,18 @@
 package to_resource_model
 
 import (
-	"context"
-	"fmt"
+  "context"
+  "fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+  "github.com/hashicorp/terraform-plugin-framework/types"
+  "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 func AdaptInstance(
-	instance domain.Instance,
+	instance public_cloud.Instance,
 	ctx context.Context,
 ) (*model.Instance, error) {
 	plan := model.Instance{}
@@ -143,7 +143,7 @@ func AdaptInstance(
 
 func adaptImage(
 	ctx context.Context,
-	image domain.Image,
+	image public_cloud.Image,
 ) (*model.Image, error) {
 	plan := &model.Image{}
 
@@ -203,7 +203,7 @@ func adaptImage(
 
 func adaptContract(
 	ctx context.Context,
-	contract domain.Contract,
+	contract public_cloud.Contract,
 ) (*model.Contract, error) {
 
 	return &model.Contract{
@@ -219,7 +219,7 @@ func adaptContract(
 
 func adaptIso(
 	ctx context.Context,
-	iso domain.Iso,
+	iso public_cloud.Iso,
 ) (*model.Iso, error) {
 	return &model.Iso{
 		Id:   basetypes.NewStringValue(iso.Id),
@@ -229,7 +229,7 @@ func adaptIso(
 
 func adaptPrivateNetwork(
 	ctx context.Context,
-	privateNetwork domain.PrivateNetwork,
+	privateNetwork public_cloud.PrivateNetwork,
 ) (*model.PrivateNetwork, error) {
 	return &model.PrivateNetwork{
 		Id:     basetypes.NewStringValue(privateNetwork.Id),
@@ -240,7 +240,7 @@ func adaptPrivateNetwork(
 
 func adaptResources(
 	ctx context.Context,
-	domainResources domain.Resources,
+	domainResources public_cloud.Resources,
 ) (*model.Resources, error) {
 	var resources model.Resources
 
@@ -293,7 +293,7 @@ func adaptResources(
 
 func adaptCpu(
 	ctx context.Context,
-	cpu domain.Cpu,
+	cpu public_cloud.Cpu,
 ) (*model.Cpu, error) {
 	return &model.Cpu{
 		Value: basetypes.NewInt64Value(int64(cpu.Value)),
@@ -303,7 +303,7 @@ func adaptCpu(
 
 func adaptMemory(
 	ctx context.Context,
-	memory domain.Memory,
+	memory public_cloud.Memory,
 ) (*model.Memory, error) {
 	return &model.Memory{
 		Value: basetypes.NewFloat64Value(memory.Value),
@@ -313,7 +313,7 @@ func adaptMemory(
 
 func adaptNetworkSpeed(
 	ctx context.Context,
-	networkSpeed domain.NetworkSpeed,
+	networkSpeed public_cloud.NetworkSpeed,
 ) (*model.NetworkSpeed, error) {
 
 	return &model.NetworkSpeed{
@@ -324,7 +324,7 @@ func adaptNetworkSpeed(
 
 func adaptAutoScalingGroup(
 	ctx context.Context,
-	autoScalingGroup domain.AutoScalingGroup,
+	autoScalingGroup public_cloud.AutoScalingGroup,
 ) (*model.AutoScalingGroup, error) {
 
 	loadBalancer, loadBalancerDiags := shared.AdaptNullableDomainEntityToResourceObject(
@@ -380,7 +380,7 @@ func adaptAutoScalingGroup(
 
 func adaptLoadBalancer(
 	ctx context.Context,
-	loadBalancer domain.LoadBalancer,
+	loadBalancer public_cloud.LoadBalancer,
 ) (*model.LoadBalancer, error) {
 
 	resources, diags := shared.AdaptDomainEntityToResourceObject(
@@ -466,7 +466,7 @@ func adaptLoadBalancer(
 
 func adaptLoadBalancerConfiguration(
 	ctx context.Context,
-	configuration domain.LoadBalancerConfiguration,
+	configuration public_cloud.LoadBalancerConfiguration,
 ) (*model.LoadBalancerConfiguration, error) {
 
 	healthCheckObject, diags := shared.AdaptNullableDomainEntityToResourceObject(
@@ -501,7 +501,7 @@ func adaptLoadBalancerConfiguration(
 
 func adaptHealthCheck(
 	ctx context.Context,
-	healthCheck domain.HealthCheck,
+	healthCheck public_cloud.HealthCheck,
 ) (*model.HealthCheck, error) {
 
 	return &model.HealthCheck{
@@ -514,7 +514,7 @@ func adaptHealthCheck(
 
 func adaptStickySession(
 	ctx context.Context,
-	stickySession domain.StickySession,
+	stickySession public_cloud.StickySession,
 ) (*model.StickySession, error) {
 
 	return &model.StickySession{
@@ -525,7 +525,7 @@ func adaptStickySession(
 
 func adaptIp(
 	ctx context.Context,
-	ip domain.Ip,
+	ip public_cloud.Ip,
 ) (*model.Ip, error) {
 
 	ddos, diags := shared.AdaptNullableDomainEntityToResourceObject(
@@ -551,7 +551,7 @@ func adaptIp(
 	}, nil
 }
 
-func adaptDdos(ctx context.Context, ddos domain.Ddos) (*model.Ddos, error) {
+func adaptDdos(ctx context.Context, ddos public_cloud.Ddos) (*model.Ddos, error) {
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
@@ -560,7 +560,7 @@ func adaptDdos(ctx context.Context, ddos domain.Ddos) (*model.Ddos, error) {
 
 func adaptVolume(
 	ctx context.Context,
-	volume domain.Volume,
+	volume public_cloud.Volume,
 ) (*model.Volume, error) {
 	return &model.Volume{
 		Size: basetypes.NewFloat64Value(volume.Size),
@@ -570,7 +570,7 @@ func adaptVolume(
 
 func adaptStorageSize(
 	ctx context.Context,
-	storageSize domain.StorageSize,
+	storageSize public_cloud.StorageSize,
 ) (*model.StorageSize, error) {
 	return &model.StorageSize{
 		Size: basetypes.NewFloat64Value(storageSize.Size),
@@ -580,7 +580,7 @@ func adaptStorageSize(
 
 func adaptInstanceType(
 	ctx context.Context,
-	instanceType domain.InstanceType,
+	instanceType public_cloud.InstanceType,
 ) (*model.InstanceType, error) {
 	resources, err := shared.AdaptDomainEntityToResourceObject(
 		instanceType.Resources,
@@ -624,7 +624,7 @@ func adaptInstanceType(
 
 func adaptPrices(
 	ctx context.Context,
-	prices domain.Prices,
+	prices public_cloud.Prices,
 ) (*model.Prices, error) {
 	compute, err := shared.AdaptDomainEntityToResourceObject(
 		prices.Compute,
@@ -654,7 +654,7 @@ func adaptPrices(
 	}, nil
 }
 
-func adaptPrice(ctx context.Context, price domain.Price) (*model.Price, error) {
+func adaptPrice(ctx context.Context, price public_cloud.Price) (*model.Price, error) {
 	return &model.Price{
 		HourlyPrice:  basetypes.NewStringValue(price.HourlyPrice),
 		MonthlyPrice: basetypes.NewStringValue(price.MonthlyPrice),
@@ -663,7 +663,7 @@ func adaptPrice(ctx context.Context, price domain.Price) (*model.Price, error) {
 
 func adaptStorage(
 	ctx context.Context,
-	storage domain.Storage,
+	storage public_cloud.Storage,
 ) (*model.Storage, error) {
 	local, err := shared.AdaptDomainEntityToResourceObject(
 		storage.Local,

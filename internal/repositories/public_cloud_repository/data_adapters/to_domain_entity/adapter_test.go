@@ -1,14 +1,14 @@
 package to_domain_entity
 
 import (
-	"testing"
-	"time"
+  "testing"
+  "time"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
-	"github.com/stretchr/testify/assert"
+  "github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+  "github.com/stretchr/testify/assert"
 )
 
 var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"
@@ -646,10 +646,10 @@ func TestAdaptInstanceType(t *testing.T) {
 				Prices:    publicCloud.Prices{Currency: "currency"},
 			},
 		)
-		want := domain.InstanceType{
+		want := public_cloud.InstanceType{
 			Name:      "name",
-			Resources: domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
-			Prices:    domain.Prices{Currency: "currency"},
+			Resources: public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "cpu"}},
+			Prices:    public_cloud.Prices{Currency: "currency"},
 		}
 
 		assert.NoError(t, err)
@@ -664,8 +664,8 @@ func TestAdaptInstanceType(t *testing.T) {
 				},
 			},
 		)
-		want := domain.InstanceType{
-			StorageTypes: &domain.StorageTypes{enum.RootDiskStorageTypeCentral},
+		want := public_cloud.InstanceType{
+			StorageTypes: &public_cloud.StorageTypes{enum.RootDiskStorageTypeCentral},
 		}
 
 		assert.NoError(t, err)
@@ -686,7 +686,7 @@ func TestAdaptInstanceType(t *testing.T) {
 
 func TestAdaptRegion(t *testing.T) {
 	got := AdaptRegion(publicCloud.Region{Name: "name", Location: "location"})
-	want := domain.Region{Name: "name", Location: "location"}
+	want := public_cloud.Region{Name: "name", Location: "location"}
 
 	assert.Equal(t, want, got)
 }
@@ -818,7 +818,7 @@ func Test_adaptImage(t *testing.T) {
 		)
 
 		got := adaptImage(*sdkImage)
-		want := domain.Image{
+		want := public_cloud.Image{
 			Id:           "UBUNTU_24_04_64BIT",
 			Name:         "name",
 			Family:       "family",
@@ -1005,7 +1005,7 @@ func Test_adaptStorageTypes(t *testing.T) {
 			publicCloud.ROOTDISKSTORAGETYPE_LOCAL,
 		}
 		got, err := adaptStorageTypes(sdkStorageTypes)
-		want := domain.StorageTypes{
+		want := public_cloud.StorageTypes{
 			enum.RootDiskStorageTypeCentral, enum.RootDiskStorageTypeLocal,
 		}
 
@@ -1030,7 +1030,7 @@ func Test_adaptPrice(t *testing.T) {
 	sdkPrice := publicCloud.NewPrice("1", "2")
 	got := adaptPrice(*sdkPrice)
 
-	want := domain.Price{
+	want := public_cloud.Price{
 		HourlyPrice:  "1",
 		MonthlyPrice: "2",
 	}
@@ -1045,9 +1045,9 @@ func Test_adaptStorage(t *testing.T) {
 	)
 	got := adaptStorage(*sdkStorage)
 
-	want := domain.Storage{
-		Local:   domain.Price{HourlyPrice: "1"},
-		Central: domain.Price{HourlyPrice: "2"},
+	want := public_cloud.Storage{
+		Local:   public_cloud.Price{HourlyPrice: "1"},
+		Central: public_cloud.Price{HourlyPrice: "2"},
 	}
 
 	assert.Equal(t, want, got)
@@ -1062,11 +1062,11 @@ func Test_adaptPrices(t *testing.T) {
 	)
 	got := adaptPrices(*sdkPrices)
 
-	want := domain.Prices{
+	want := public_cloud.Prices{
 		Currency:       "currency",
 		CurrencySymbol: "symbol",
-		Compute:        domain.Price{HourlyPrice: "1"},
-		Storage:        domain.Storage{Central: domain.Price{HourlyPrice: "2"}},
+		Compute:        public_cloud.Price{HourlyPrice: "1"},
+		Storage:        public_cloud.Storage{Central: public_cloud.Price{HourlyPrice: "2"}},
 	}
 
 	assert.Equal(t, want, got)
@@ -1205,7 +1205,7 @@ func generateLoadBalancer(startedAt *time.Time) publicCloud.LoadBalancer {
 func Test_adaptVolume(t *testing.T) {
 	sdkVolume := publicCloud.NewVolume(1, "unit")
 	got := adaptVolume(*sdkVolume)
-	want := domain.Volume{Size: 1, Unit: "unit"}
+	want := public_cloud.Volume{Size: 1, Unit: "unit"}
 
 	assert.Equal(t, want, got)
 }
@@ -1241,7 +1241,7 @@ func TestAdaptImageDetails(t *testing.T) {
 
 	got := AdaptImageDetails(*sdkImageDetails)
 
-	want := domain.Image{
+	want := public_cloud.Image{
 		Id:           "id",
 		Name:         "name",
 		Version:      &version,
@@ -1254,7 +1254,7 @@ func TestAdaptImageDetails(t *testing.T) {
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
 		Custom:       false,
-		StorageSize:  &domain.StorageSize{Size: 1, Unit: "unit"},
+		StorageSize:  &public_cloud.StorageSize{Size: 1, Unit: "unit"},
 		MarketApps:   []string{"marketApp"},
 		StorageTypes: []string{"storageType"},
 	}
@@ -1266,7 +1266,7 @@ func Test_adaptStorageSize(t *testing.T) {
 	sdkStorageSize := publicCloud.NewStorageSize(1, "unit")
 
 	got := adaptStorageSize(*sdkStorageSize)
-	want := domain.StorageSize{Size: 1, Unit: "unit"}
+	want := public_cloud.StorageSize{Size: 1, Unit: "unit"}
 
 	assert.Equal(t, want, got)
 }

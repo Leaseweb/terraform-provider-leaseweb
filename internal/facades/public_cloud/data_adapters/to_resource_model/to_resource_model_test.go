@@ -1,16 +1,16 @@
 package to_resource_model
 
 import (
-	"context"
-	"testing"
-	"time"
+  "context"
+  "testing"
+  "time"
 
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
-	"github.com/stretchr/testify/assert"
+  "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+  "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+  "github.com/stretchr/testify/assert"
 )
 
 var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
@@ -27,7 +27,7 @@ func Test_adaptImage(t *testing.T) {
 	version := "version"
 	architecture := "architecture"
 
-	image := domain.NewImage(
+	image := public_cloud.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
 		&version,
@@ -40,7 +40,7 @@ func Test_adaptImage(t *testing.T) {
 		&createdAt,
 		&updatedAt,
 		false,
-		&domain.StorageSize{Unit: "unit"},
+		&public_cloud.StorageSize{Unit: "unit"},
 		[]string{"one"},
 		[]string{"storageType"},
 	)
@@ -90,7 +90,7 @@ func Test_AdaptContract(t *testing.T) {
 		"2021-12-14 17:09:47",
 	)
 
-	contract, _ := domain.NewContract(
+	contract, _ := public_cloud.NewContract(
 		enum.ContractBillingFrequencySix,
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,
@@ -113,7 +113,7 @@ func Test_AdaptContract(t *testing.T) {
 }
 
 func Test_adaptPrivateNetwork(t *testing.T) {
-	privateNetwork := domain.NewPrivateNetwork(
+	privateNetwork := public_cloud.NewPrivateNetwork(
 		"id",
 		"status",
 		"subnet",
@@ -129,7 +129,7 @@ func Test_adaptPrivateNetwork(t *testing.T) {
 }
 
 func Test_adaptCpu(t *testing.T) {
-	entityCpu := domain.NewCpu(1, "unit")
+	entityCpu := public_cloud.NewCpu(1, "unit")
 	got, err := adaptCpu(context.TODO(), entityCpu)
 
 	assert.NoError(t, err)
@@ -138,7 +138,7 @@ func Test_adaptCpu(t *testing.T) {
 }
 
 func Test_adaptMemory(t *testing.T) {
-	memory := domain.NewMemory(1, "unit")
+	memory := public_cloud.NewMemory(1, "unit")
 
 	got, err := adaptMemory(context.TODO(), memory)
 
@@ -148,7 +148,7 @@ func Test_adaptMemory(t *testing.T) {
 }
 
 func Test_adaptNetworkSpeed(t *testing.T) {
-	networkSpeed := domain.NewNetworkSpeed(1, "unit")
+	networkSpeed := public_cloud.NewNetworkSpeed(1, "unit")
 
 	got, err := adaptNetworkSpeed(context.TODO(), networkSpeed)
 
@@ -158,11 +158,11 @@ func Test_adaptNetworkSpeed(t *testing.T) {
 }
 
 func Test_adaptResources(t *testing.T) {
-	resources := domain.NewResources(
-		domain.Cpu{Unit: "cpu"},
-		domain.Memory{Unit: "memory"},
-		domain.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		domain.NetworkSpeed{Unit: "privateNetworkSpeed"},
+	resources := public_cloud.NewResources(
+		public_cloud.Cpu{Unit: "cpu"},
+		public_cloud.Memory{Unit: "memory"},
+		public_cloud.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		public_cloud.NetworkSpeed{Unit: "privateNetworkSpeed"},
 	)
 
 	got, err := adaptResources(context.TODO(), resources)
@@ -200,11 +200,11 @@ func Test_adaptResources(t *testing.T) {
 
 func Test_adaptHealthCheck(t *testing.T) {
 	host := "host"
-	healthCheck := domain.NewHealthCheck(
+	healthCheck := public_cloud.NewHealthCheck(
 		enum.MethodGet,
 		"uri",
 		22,
-		domain.OptionalHealthCheckValues{Host: &host},
+		public_cloud.OptionalHealthCheckValues{Host: &host},
 	)
 
 	got, err := adaptHealthCheck(context.TODO(), healthCheck)
@@ -217,7 +217,7 @@ func Test_adaptHealthCheck(t *testing.T) {
 }
 
 func Test_adaptStickySession(t *testing.T) {
-	stickySession := domain.NewStickySession(false, 1)
+	stickySession := public_cloud.NewStickySession(false, 1)
 
 	got, err := adaptStickySession(context.TODO(), stickySession)
 
@@ -228,14 +228,14 @@ func Test_adaptStickySession(t *testing.T) {
 
 func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 
-	loadBalancerConfiguration := domain.NewLoadBalancerConfiguration(
+	loadBalancerConfiguration := public_cloud.NewLoadBalancerConfiguration(
 		enum.BalanceSource,
 		false,
 		5,
 		6,
-		domain.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &domain.StickySession{MaxLifeTime: 5},
-			HealthCheck:   &domain.HealthCheck{Method: enum.MethodHead},
+		public_cloud.OptionalLoadBalancerConfigurationOptions{
+			StickySession: &public_cloud.StickySession{MaxLifeTime: 5},
+			HealthCheck:   &public_cloud.HealthCheck{Method: enum.MethodHead},
 		},
 	)
 
@@ -268,7 +268,7 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 }
 
 func Test_adaptDdos(t *testing.T) {
-	ddos := domain.NewDdos(
+	ddos := public_cloud.NewDdos(
 		"detectionProfile",
 		"protectionType",
 	)
@@ -288,15 +288,15 @@ func Test_adaptDdos(t *testing.T) {
 func Test_adaptIp(t *testing.T) {
 	reverseLookup := "reverse-lookup"
 
-	ip := domain.NewIp(
+	ip := public_cloud.NewIp(
 		"1.2.3.4",
 		"prefix-length",
 		46,
 		true,
 		false,
 		"tralala",
-		domain.OptionalIpValues{
-			Ddos:          &domain.Ddos{ProtectionType: "protection-type"},
+		public_cloud.OptionalIpValues{
+			Ddos:          &public_cloud.Ddos{ProtectionType: "protection-type"},
 			ReverseLookup: &reverseLookup,
 		},
 	)
@@ -323,19 +323,19 @@ func Test_adaptLoadBalancer(t *testing.T) {
 		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 		id := value_object.NewGeneratedUuid()
 
-		loadBalancer := domain.NewLoadBalancer(
+		loadBalancer := public_cloud.NewLoadBalancer(
 			id,
-			domain.InstanceType{Name: "instanceType"},
-			domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
+			public_cloud.InstanceType{Name: "instanceType"},
+			public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "cpu"}},
 			"region",
 			enum.StateCreating,
-			domain.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
-			domain.Ips{{Ip: "1.2.3.4"}},
-			domain.OptionalLoadBalancerValues{
+			public_cloud.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
+			public_cloud.Ips{{Ip: "1.2.3.4"}},
+			public_cloud.OptionalLoadBalancerValues{
 				Reference:      &reference,
 				StartedAt:      &startedAt,
-				PrivateNetwork: &domain.PrivateNetwork{Id: "privateNetworkId"},
-				Configuration: &domain.LoadBalancerConfiguration{
+				PrivateNetwork: &public_cloud.PrivateNetwork{Id: "privateNetworkId"},
+				Configuration: &public_cloud.LoadBalancerConfiguration{
 					Balance: enum.BalanceSource,
 				},
 			},
@@ -515,7 +515,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 	reference, _ := value_object.NewAutoScalingGroupReference("reference")
 	loadBalancerId := value_object.NewGeneratedUuid()
 
-	autoScalingGroup := domain.NewAutoScalingGroup(
+	autoScalingGroup := public_cloud.NewAutoScalingGroup(
 		id,
 		"type",
 		"state",
@@ -523,7 +523,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 		*reference,
 		createdAt,
 		updatedAt,
-		domain.AutoScalingGroupOptions{
+		public_cloud.AutoScalingGroupOptions{
 			DesiredAmount: &desiredAmount,
 			StartsAt:      &startsAt,
 			EndsAt:        &endsAt,
@@ -532,7 +532,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 			CpuThreshold:  &cpuThreshold,
 			WarmupTime:    &warmupTime,
 			CoolDownTime:  &cooldownTime,
-			LoadBalancer: &domain.LoadBalancer{
+			LoadBalancer: &public_cloud.LoadBalancer{
 				Id:        loadBalancerId,
 				StartedAt: &time.Time{},
 			},
@@ -587,19 +587,19 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 	assert.Equal(t, loadBalancerId.String(), loadBalancer.Id.ValueString())
 }
 
-func generateDomainInstance() domain.Instance {
-	cpu := domain.NewCpu(1, "cpuUnit")
-	memory := domain.NewMemory(2, "memoryUnit")
-	publicNetworkSpeed := domain.NewNetworkSpeed(
+func generateDomainInstance() public_cloud.Instance {
+	cpu := public_cloud.NewCpu(1, "cpuUnit")
+	memory := public_cloud.NewMemory(2, "memoryUnit")
+	publicNetworkSpeed := public_cloud.NewNetworkSpeed(
 		3,
 		"publicNetworkSpeedUnit",
 	)
-	privateNetworkSpeed := domain.NewNetworkSpeed(
+	privateNetworkSpeed := public_cloud.NewNetworkSpeed(
 		4,
 		"privateNetworkSpeedUnit",
 	)
 
-	resources := domain.NewResources(
+	resources := public_cloud.NewResources(
 		cpu,
 		memory,
 		publicNetworkSpeed,
@@ -614,9 +614,9 @@ func generateDomainInstance() domain.Instance {
 	version := "version"
 	architecture := "architecture"
 
-	storageSize := domain.NewStorageSize(1, "unit")
+	storageSize := public_cloud.NewStorageSize(1, "unit")
 
-	image := domain.NewImage(
+	image := public_cloud.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
 		&version,
@@ -637,15 +637,15 @@ func generateDomainInstance() domain.Instance {
 	rootDiskSize, _ := value_object.NewRootDiskSize(55)
 
 	reverseLookup := "reverseLookup"
-	ip := domain.NewIp(
+	ip := public_cloud.NewIp(
 		"1.2.3.4",
 		"prefix-length",
 		46,
 		true,
 		false,
 		"tralala",
-		domain.OptionalIpValues{
-			Ddos:          &domain.Ddos{ProtectionType: "protection-type"},
+		public_cloud.OptionalIpValues{
+			Ddos:          &public_cloud.Ddos{ProtectionType: "protection-type"},
 			ReverseLookup: &reverseLookup,
 		},
 	)
@@ -662,7 +662,7 @@ func generateDomainInstance() domain.Instance {
 		"2006-01-02 15:04:05",
 		"2021-12-14 17:09:47",
 	)
-	contract, _ := domain.NewContract(
+	contract, _ := public_cloud.NewContract(
 		enum.ContractBillingFrequencySix,
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,
@@ -677,85 +677,85 @@ func generateDomainInstance() domain.Instance {
 	sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
 	startedAt := time.Now()
 
-	privateNetwork := domain.NewPrivateNetwork(
+	privateNetwork := public_cloud.NewPrivateNetwork(
 		"id",
 		"status",
 		"subnet",
 	)
 
-	stickySession := domain.NewStickySession(true, 5)
+	stickySession := public_cloud.NewStickySession(true, 5)
 
 	host := "host"
-	healthCheck := domain.NewHealthCheck(
+	healthCheck := public_cloud.NewHealthCheck(
 		enum.MethodGet,
 		"uri",
 		22,
-		domain.OptionalHealthCheckValues{Host: &host},
+		public_cloud.OptionalHealthCheckValues{Host: &host},
 	)
 
-	loadBalancerConfiguration := domain.NewLoadBalancerConfiguration(
+	loadBalancerConfiguration := public_cloud.NewLoadBalancerConfiguration(
 		enum.BalanceSource,
 		false,
 		5,
 		6,
-		domain.OptionalLoadBalancerConfigurationOptions{
+		public_cloud.OptionalLoadBalancerConfigurationOptions{
 			StickySession: &stickySession,
 			HealthCheck:   &healthCheck,
 		},
 	)
 
-	loadBalancerCpu := domain.NewCpu(45, "loadBalancerCpuUnit")
-	loadBalancerMemory := domain.NewMemory(2, "loadBalancerMemoryUnit")
-	loadBalancerPrivateNetworkSpeed := domain.NewNetworkSpeed(
+	loadBalancerCpu := public_cloud.NewCpu(45, "loadBalancerCpuUnit")
+	loadBalancerMemory := public_cloud.NewMemory(2, "loadBalancerMemoryUnit")
+	loadBalancerPrivateNetworkSpeed := public_cloud.NewNetworkSpeed(
 		55,
 		"loadBalancerPrivateNetworkSpeedUnit",
 	)
-	loadBalancerPublicNetworkSpeed := domain.NewNetworkSpeed(
+	loadBalancerPublicNetworkSpeed := public_cloud.NewNetworkSpeed(
 		56,
 		"loadBalancerPublicNetworkSpeedUnit",
 	)
-	instanceTypeResources := domain.NewResources(
+	instanceTypeResources := public_cloud.NewResources(
 		loadBalancerCpu,
 		loadBalancerMemory,
 		loadBalancerPrivateNetworkSpeed,
 		loadBalancerPublicNetworkSpeed,
 	)
-	instanceTypePricesCompute := domain.NewPrice("5", "6")
-	instanceTypePricesStorageLocal := domain.NewPrice(
+	instanceTypePricesCompute := public_cloud.NewPrice("5", "6")
+	instanceTypePricesStorageLocal := public_cloud.NewPrice(
 		"7",
 		"8",
 	)
-	instanceTypePricesStorageCenral := domain.NewPrice(
+	instanceTypePricesStorageCenral := public_cloud.NewPrice(
 		"23",
 		"4",
 	)
-	instanceTypePricesStorage := domain.NewStorage(
+	instanceTypePricesStorage := public_cloud.NewStorage(
 		instanceTypePricesStorageLocal,
 		instanceTypePricesStorageCenral,
 	)
-	instanceTypePrices := domain.NewPrices(
+	instanceTypePrices := public_cloud.NewPrices(
 		"currency",
 		"currencySymbol",
 		instanceTypePricesCompute,
 		instanceTypePricesStorage,
 	)
-	instanceTypeStorageTypes := domain.StorageTypes{"storageType"}
-	instanceType := domain.NewInstanceType(
+	instanceTypeStorageTypes := public_cloud.StorageTypes{"storageType"}
+	instanceType := public_cloud.NewInstanceType(
 		"instanceType",
 		instanceTypeResources,
 		instanceTypePrices,
-		domain.OptionalInstanceTypeValues{StorageTypes: &instanceTypeStorageTypes},
+		public_cloud.OptionalInstanceTypeValues{StorageTypes: &instanceTypeStorageTypes},
 	)
 
-	loadBalancer := domain.NewLoadBalancer(
+	loadBalancer := public_cloud.NewLoadBalancer(
 		value_object.NewGeneratedUuid(),
 		instanceType,
 		resources,
 		"region",
 		enum.StateCreating,
 		*contract,
-		domain.Ips{ip},
-		domain.OptionalLoadBalancerValues{
+		public_cloud.Ips{ip},
+		public_cloud.OptionalLoadBalancerValues{
 			Reference:      &reference,
 			StartedAt:      &startedAt,
 			PrivateNetwork: &privateNetwork,
@@ -776,7 +776,7 @@ func generateDomainInstance() domain.Instance {
 	autoScalingCpuThreshold := 4
 	autoScalingWarmupTime := 5
 	autoScalingCooldownTime := 6
-	autoScalingGroup := domain.NewAutoScalingGroup(
+	autoScalingGroup := public_cloud.NewAutoScalingGroup(
 		value_object.NewGeneratedUuid(),
 		"type",
 		"state",
@@ -784,7 +784,7 @@ func generateDomainInstance() domain.Instance {
 		*autoScalingGroupReference,
 		autoScalingGroupCreatedAt,
 		autoScalingGroupUpdatedAt,
-		domain.AutoScalingGroupOptions{
+		public_cloud.AutoScalingGroupOptions{
 			DesiredAmount: &autoScalingGroupDesiredAmount,
 			StartsAt:      &autoScalingGroupStartsAt,
 			EndsAt:        &autoScalingGroupEndsAt,
@@ -796,9 +796,9 @@ func generateDomainInstance() domain.Instance {
 			LoadBalancer:  &loadBalancer,
 		})
 
-	volume := domain.NewVolume(1, "unit")
+	volume := public_cloud.NewVolume(1, "unit")
 
-	return domain.NewInstance(
+	return public_cloud.NewInstance(
 		value_object.NewGeneratedUuid(),
 		"region",
 		resources,
@@ -810,11 +810,11 @@ func generateDomainInstance() domain.Instance {
 		*rootDiskSize,
 		instanceType,
 		enum.RootDiskStorageTypeCentral,
-		domain.Ips{ip},
+		public_cloud.Ips{ip},
 		*contract,
-		domain.OptionalInstanceValues{
+		public_cloud.OptionalInstanceValues{
 			Reference:        &reference,
-			Iso:              &domain.Iso{Id: "isoId"},
+			Iso:              &public_cloud.Iso{Id: "isoId"},
 			MarketAppId:      &marketAppId,
 			SshKey:           sshKeyValueObject,
 			StartedAt:        &startedAt,
@@ -828,7 +828,7 @@ func generateDomainInstance() domain.Instance {
 func Test_adaptVolume(t *testing.T) {
 	got, err := adaptVolume(
 		context.TODO(),
-		domain.Volume{
+		public_cloud.Volume{
 			Size: 2,
 			Unit: "unit",
 		},
@@ -842,7 +842,7 @@ func Test_adaptVolume(t *testing.T) {
 func Test_adaptStorageSize(t *testing.T) {
 	got, err := adaptStorageSize(
 		context.TODO(),
-		domain.StorageSize{
+		public_cloud.StorageSize{
 			Size: 2,
 			Unit: "unit",
 		},
@@ -854,7 +854,7 @@ func Test_adaptStorageSize(t *testing.T) {
 }
 
 func Test_adaptPrice(t *testing.T) {
-	price := domain.NewPrice("1", "2")
+	price := public_cloud.NewPrice("1", "2")
 	got, err := adaptPrice(context.TODO(), price)
 
 	assert.NoError(t, err)
@@ -863,9 +863,9 @@ func Test_adaptPrice(t *testing.T) {
 }
 
 func Test_adaptStorage(t *testing.T) {
-	storage := domain.NewStorage(
-		domain.Price{HourlyPrice: "1"},
-		domain.Price{HourlyPrice: "3"},
+	storage := public_cloud.NewStorage(
+		public_cloud.Price{HourlyPrice: "1"},
+		public_cloud.Price{HourlyPrice: "3"},
 	)
 	got, err := adaptStorage(context.TODO(), storage)
 
@@ -881,11 +881,11 @@ func Test_adaptStorage(t *testing.T) {
 }
 
 func Test_adaptPrices(t *testing.T) {
-	prices := domain.NewPrices(
+	prices := public_cloud.NewPrices(
 		"currency",
 		"currencySymbol",
-		domain.Price{HourlyPrice: "1"},
-		domain.Storage{Central: domain.Price{HourlyPrice: "3"}},
+		public_cloud.Price{HourlyPrice: "1"},
+		public_cloud.Storage{Central: public_cloud.Price{HourlyPrice: "3"}},
 	)
 	got, err := adaptPrices(context.TODO(), prices)
 
@@ -912,12 +912,12 @@ func Test_adaptPrices(t *testing.T) {
 func Test_adaptInstanceType(t *testing.T) {
 	var storageTypes []string
 
-	instanceType := domain.NewInstanceType(
+	instanceType := public_cloud.NewInstanceType(
 		"name",
-		domain.Resources{Cpu: domain.Cpu{Unit: "unit"}},
-		domain.Prices{Currency: "currency"},
-		domain.OptionalInstanceTypeValues{
-			StorageTypes: &domain.StorageTypes{"storageType"},
+		public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "unit"}},
+		public_cloud.Prices{Currency: "currency"},
+		public_cloud.OptionalInstanceTypeValues{
+			StorageTypes: &public_cloud.StorageTypes{"storageType"},
 		},
 	)
 
