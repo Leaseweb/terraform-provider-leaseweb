@@ -1,42 +1,42 @@
 package public_cloud
 
 import (
-  "testing"
+	"testing"
 
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-  "github.com/stretchr/testify/assert"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewInstanceType(t *testing.T) {
-  t.Run("required values are set", func(t *testing.T) {
-    resources := Resources{Cpu: Cpu{Unit: "unit"}}
-    prices := Prices{Compute: Price{HourlyPrice: "11"}}
+	t.Run("required values are set", func(t *testing.T) {
+		resources := Resources{Cpu: Cpu{Unit: "unit"}}
+		prices := Prices{Compute: Price{HourlyPrice: "11"}}
 
-    optional := OptionalInstanceTypeValues{}
+		optional := OptionalInstanceTypeValues{}
 
-    got := NewInstanceType("name", resources, prices, optional)
+		got := NewInstanceType("name", resources, prices, optional)
 
-    assert.Equal(t, "name", got.Name)
-    assert.Equal(t, resources, got.Resources)
-    assert.Equal(t, prices, got.Prices)
+		assert.Equal(t, "name", got.Name)
+		assert.Equal(t, resources, got.Resources)
+		assert.Equal(t, prices, got.Prices)
 
-    assert.Nil(t, got.StorageTypes)
-  })
+		assert.Nil(t, got.StorageTypes)
+	})
 
-  t.Run("optional values are set", func(t *testing.T) {
-    storageTypes := StorageTypes{enum.RootDiskStorageTypeCentral}
-    optional := OptionalInstanceTypeValues{StorageTypes: &storageTypes}
+	t.Run("optional values are set", func(t *testing.T) {
+		storageTypes := StorageTypes{enum.RootDiskStorageTypeCentral}
+		optional := OptionalInstanceTypeValues{StorageTypes: &storageTypes}
 
-    got := NewInstanceType("name", Resources{}, Prices{}, optional)
+		got := NewInstanceType("name", Resources{}, Prices{}, optional)
 
-    assert.Equal(t, storageTypes, *got.StorageTypes)
-  })
+		assert.Equal(t, storageTypes, *got.StorageTypes)
+	})
 }
 
 func TestInstanceType_String(t *testing.T) {
-  instanceType := InstanceType{Name: "tralala"}
-  got := instanceType.String()
-  want := "tralala"
+	instanceType := InstanceType{Name: "tralala"}
+	got := instanceType.String()
+	want := "tralala"
 
-  assert.Equal(t, want, got)
+	assert.Equal(t, want, got)
 }

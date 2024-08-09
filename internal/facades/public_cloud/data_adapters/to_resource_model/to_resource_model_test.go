@@ -1,16 +1,16 @@
 package to_resource_model
 
 import (
-  "context"
-  "testing"
-  "time"
+	"context"
+	"testing"
+	"time"
 
-  "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
-  "github.com/stretchr/testify/assert"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/stretchr/testify/assert"
 )
 
 var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="

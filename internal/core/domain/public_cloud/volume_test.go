@@ -1,14 +1,14 @@
 package public_cloud
 
 import (
-  "testing"
+	"testing"
 
-  "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewVolume(t *testing.T) {
-  got := NewVolume(1.2, "unit")
-  want := Volume{Size: 1.2, Unit: "unit"}
+	got := NewVolume(1.2, "unit")
+	want := Volume{Size: 1.2, Unit: "unit"}
 
-  assert.Equal(t, want, got)
+	assert.Equal(t, want, got)
 }

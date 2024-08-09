@@ -1,14 +1,14 @@
 package public_cloud
 
 import (
-  "testing"
+	"testing"
 
-  "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewDdos(t *testing.T) {
-  ddos := NewDdos("detectionProfile", "protectionType")
+	ddos := NewDdos("detectionProfile", "protectionType")
 
-  assert.Equal(t, "detectionProfile", ddos.DetectionProfile)
-  assert.Equal(t, "protectionType", ddos.ProtectionType)
+	assert.Equal(t, "detectionProfile", ddos.DetectionProfile)
+	assert.Equal(t, "protectionType", ddos.ProtectionType)
 }

@@ -1,21 +1,21 @@
 package shared
 
 import (
-  "context"
-  "errors"
-  "fmt"
-  "testing"
-  "time"
+	"context"
+	"errors"
+	"fmt"
+	"testing"
+	"time"
 
-  "github.com/hashicorp/terraform-plugin-framework/attr"
-  "github.com/hashicorp/terraform-plugin-framework/diag"
-  "github.com/hashicorp/terraform-plugin-framework/types"
-  "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-  dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
-  "github.com/stretchr/testify/assert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/stretchr/testify/assert"
 )
 
 type mockDomainEntity struct {

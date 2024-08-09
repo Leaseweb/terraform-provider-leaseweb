@@ -1,14 +1,14 @@
 package to_domain_entity
 
 import (
-  "testing"
-  "time"
+	"testing"
+	"time"
 
-  "github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
-  "github.com/stretchr/testify/assert"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/stretchr/testify/assert"
 )
 
 var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"

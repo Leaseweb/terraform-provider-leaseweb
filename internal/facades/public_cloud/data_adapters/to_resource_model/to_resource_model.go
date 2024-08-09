@@ -1,14 +1,14 @@
 package to_resource_model
 
 import (
-  "context"
-  "fmt"
+	"context"
+	"fmt"
 
-  "github.com/hashicorp/terraform-plugin-framework/types"
-  "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 func AdaptInstance(

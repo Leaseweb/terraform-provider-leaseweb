@@ -1,10 +1,10 @@
 package public_cloud
 
 type Iso struct {
-  Id   string
-  Name string
+	Id   string
+	Name string
 }
 
 func NewIso(id string, name string) Iso {
-  return Iso{Id: id, Name: name}
+	return Iso{Id: id, Name: name}
 }

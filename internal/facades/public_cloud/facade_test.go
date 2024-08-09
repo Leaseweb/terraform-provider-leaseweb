@@ -1,20 +1,20 @@
 package public_cloud
 
 import (
-  "context"
-  "errors"
-  "testing"
+	"context"
+	"errors"
+	"testing"
 
-  "github.com/hashicorp/terraform-plugin-framework/attr"
-  "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
-  serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
-  dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
-  "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
-  "github.com/stretchr/testify/assert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
+	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -29,8 +29,8 @@ type serviceSpy struct {
 	getRegions      public_cloud.Regions
 	getRegionsError *serviceErrors.ServiceError
 
-	instanceTypesForUpdate      public_cloud.InstanceTypes
-	instanceTypesForUpdateError *serviceErrors.ServiceError
+	instanceTypesForUpdate                  public_cloud.InstanceTypes
+	instanceTypesForUpdateError             *serviceErrors.ServiceError
 	availableInstanceTypesForUpdatePassedId value_object.Uuid
 
 	deleteInstancePassedId value_object.Uuid
@@ -47,8 +47,8 @@ type serviceSpy struct {
 	getInstance         *public_cloud.Instance
 	getInstanceError    *serviceErrors.ServiceError
 
-	getAvailableInstanceTypesForRegion      public_cloud.InstanceTypes
-	getAvailableInstanceTypesForRegionError *serviceErrors.ServiceError
+	getAvailableInstanceTypesForRegion             public_cloud.InstanceTypes
+	getAvailableInstanceTypesForRegionError        *serviceErrors.ServiceError
 	getAvailableInstanceTypesForRegionPassedRegion string
 }
 
@@ -62,7 +62,7 @@ func (s *serviceSpy) GetAvailableInstanceTypesForRegion(
 }
 
 func (s *serviceSpy) GetAllInstances(ctx context.Context) (
-  public_cloud.Instances,
+	public_cloud.Instances,
 	*serviceErrors.ServiceError,
 ) {
 	return s.getInstances, s.getInstancesError
@@ -114,7 +114,7 @@ func (s *serviceSpy) GetAvailableInstanceTypesForUpdate(
 }
 
 func (s *serviceSpy) GetRegions(ctx context.Context) (
-  public_cloud.Regions,
+	public_cloud.Regions,
 	*serviceErrors.ServiceError,
 ) {
 	return s.getRegions, s.getRegionsError
@@ -852,7 +852,7 @@ func TestPublicCloudFacade_IsInstanceTypeAvailableForRegion(t *testing.T) {
 		"return true when instanceType is available for region",
 		func(t *testing.T) {
 			spy := serviceSpy{getAvailableInstanceTypesForRegion: public_cloud.InstanceTypes{
-        public_cloud.InstanceType{Name: "tralala"}},
+				public_cloud.InstanceType{Name: "tralala"}},
 			}
 			facade := NewPublicCloudFacade(&spy)
 
@@ -872,7 +872,7 @@ func TestPublicCloudFacade_IsInstanceTypeAvailableForRegion(t *testing.T) {
 		"return true when instanceType is not available for region",
 		func(t *testing.T) {
 			spy := serviceSpy{getAvailableInstanceTypesForRegion: public_cloud.InstanceTypes{
-        public_cloud.InstanceType{Name: "piet"}},
+				public_cloud.InstanceType{Name: "piet"}},
 			}
 			facade := NewPublicCloudFacade(&spy)
 
