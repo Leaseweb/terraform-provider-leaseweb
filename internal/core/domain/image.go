@@ -7,16 +7,16 @@ import (
 type Image struct {
 	Id           string
 	Name         string
-	Version      string
+	Version      *string
 	Family       string
 	Flavour      string
-	Architecture string
+	Architecture *string
 	State        *string
 	StateReason  *string
 	Region       *string
 	CreatedAt    *time.Time
 	UpdatedAt    *time.Time
-	Custom       *bool
+	Custom       bool
 	StorageSize  *StorageSize
 	MarketApps   []string
 	StorageTypes []string
@@ -25,16 +25,16 @@ type Image struct {
 func NewImage(
 	id string,
 	name string,
-	version string,
+	version *string,
 	family string,
 	flavour string,
-	architecture string,
+	architecture *string,
 	State *string,
 	stateReason *string,
 	region *string,
 	createdAt *time.Time,
 	updatedAt *time.Time,
-	custom *bool,
+	custom bool,
 	storageSize *StorageSize,
 	marketApps []string,
 	storageTypes []string,

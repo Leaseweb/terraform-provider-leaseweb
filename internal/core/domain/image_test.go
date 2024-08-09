@@ -13,22 +13,23 @@ func TestNewImage(t *testing.T) {
 	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
-	custom := false
 	storageSize := StorageSize{Unit: "unit"}
+	version := "version"
+	architecture := "architecture"
 
 	got := NewImage(
 		"UBUNTU_24_04_64BIT",
 		"name",
-		"version",
+		&version,
 		"family",
 		"flavour",
-		"architecture",
+		&architecture,
 		&state,
 		&stateReason,
 		&region,
 		&createdAt,
 		&updatedAt,
-		&custom,
+		false,
 		&storageSize,
 		[]string{"marketApp"},
 		[]string{"storageType"},
@@ -36,16 +37,16 @@ func TestNewImage(t *testing.T) {
 	want := Image{
 		Id:           "UBUNTU_24_04_64BIT",
 		Name:         "name",
-		Version:      "version",
+		Version:      &version,
 		Family:       "family",
 		Flavour:      "flavour",
-		Architecture: "architecture",
+		Architecture: &architecture,
 		State:        &state,
 		StateReason:  &stateReason,
 		Region:       &region,
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
-		Custom:       &custom,
+		Custom:       false,
 		StorageSize:  &storageSize,
 		MarketApps:   []string{"marketApp"},
 		StorageTypes: []string{"storageType"},
