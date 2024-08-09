@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
@@ -18,7 +17,7 @@ type PublicCloudRepository interface {
 
 	// GetInstance retrieves instance details from the public cloud api.
 	GetInstance(
-		id value_object.Uuid,
+		id string,
 		ctx context.Context,
 	) (*public_cloud.Instance, *shared.RepositoryError)
 
@@ -35,23 +34,23 @@ type PublicCloudRepository interface {
 	) (*public_cloud.Instance, *shared.RepositoryError)
 
 	// DeleteInstance deletes an instance in the public cloud api.
-	DeleteInstance(id value_object.Uuid, ctx context.Context) *shared.RepositoryError
+	DeleteInstance(id string, ctx context.Context) *shared.RepositoryError
 
 	// GetAutoScalingGroup Get autoScalingGroup details from the public cloud api.
 	GetAutoScalingGroup(
-		id value_object.Uuid,
+		id string,
 		ctx context.Context,
 	) (*public_cloud.AutoScalingGroup, *shared.RepositoryError)
 
 	// GetLoadBalancer gets load balancer details from the public cloud api.
 	GetLoadBalancer(
-		id value_object.Uuid,
+		id string,
 		ctx context.Context,
 	) (*public_cloud.LoadBalancer, *shared.RepositoryError)
 
 	// GetAvailableInstanceTypesForUpdate gets all possible instances types an instance is allowed to upgrade to from the public cloud api.
 	GetAvailableInstanceTypesForUpdate(
-		id value_object.Uuid,
+		id string,
 		ctx context.Context,
 	) (public_cloud.InstanceTypes, *shared.RepositoryError)
 

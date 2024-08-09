@@ -13,12 +13,11 @@ var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS
 
 func TestNewInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		instanceId := value_object.NewGeneratedUuid()
 		rootDiskSize, _ := value_object.NewRootDiskSize(5)
 		instanceType := InstanceType{Name: "instanceType"}
 
 		got := NewInstance(
-			instanceId,
+			"id",
 			"region",
 			Resources{Cpu: Cpu{Unit: "cpu"}},
 			Image{Name: "image"},
@@ -34,7 +33,7 @@ func TestNewInstance(t *testing.T) {
 			OptionalInstanceValues{},
 		)
 
-		assert.Equal(t, instanceId, got.Id)
+		assert.Equal(t, "id", got.Id)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "image", got.Image.Name)
@@ -69,7 +68,7 @@ func TestNewInstance(t *testing.T) {
 		startedAt := time.Now()
 
 		got := NewInstance(
-			value_object.NewGeneratedUuid(),
+			"",
 			"",
 			Resources{},
 			Image{},
@@ -211,10 +210,8 @@ func TestNewCreateInstance(t *testing.T) {
 
 func TestNewUpdateInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
-
 		got, err := NewUpdateInstance(
-			id,
+			"id",
 			OptionalUpdateInstanceValues{},
 			[]string{},
 			"",
@@ -222,7 +219,7 @@ func TestNewUpdateInstance(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		assert.Equal(t, id, got.Id)
+		assert.Equal(t, "id", got.Id)
 		assert.Empty(t, got.Type)
 		assert.Empty(t, got.Reference)
 		assert.Empty(t, got.Contract.Type)
@@ -240,7 +237,7 @@ func TestNewUpdateInstance(t *testing.T) {
 		rootDiskSize, _ := value_object.NewRootDiskSize(50)
 
 		got, err := NewUpdateInstance(
-			value_object.NewGeneratedUuid(),
+			"",
 			OptionalUpdateInstanceValues{
 				Type:             &instanceType,
 				Reference:        &reference,
@@ -270,11 +267,10 @@ func TestNewUpdateInstance(t *testing.T) {
 	t.Run(
 		"passing an invalid instance type returns an error",
 		func(t *testing.T) {
-			id := value_object.NewGeneratedUuid()
 			instanceType := "instanceType"
 
 			_, err := NewUpdateInstance(
-				id,
+				"",
 				OptionalUpdateInstanceValues{Type: &instanceType},
 				[]string{},
 				"",
@@ -286,11 +282,10 @@ func TestNewUpdateInstance(t *testing.T) {
 	)
 
 	t.Run("currentInstanceType is respected", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
 		instanceType := "instanceType"
 
 		_, err := NewUpdateInstance(
-			id,
+			"",
 			OptionalUpdateInstanceValues{Type: &instanceType},
 			[]string{},
 			"instanceType",
@@ -300,11 +295,10 @@ func TestNewUpdateInstance(t *testing.T) {
 	})
 
 	t.Run("allowedInstanceTypes is respected", func(t *testing.T) {
-		id := value_object.NewGeneratedUuid()
 		instanceType := "instanceType"
 
 		_, err := NewUpdateInstance(
-			id,
+			"",
 			OptionalUpdateInstanceValues{Type: &instanceType},
 			[]string{"instanceType"},
 			"",
