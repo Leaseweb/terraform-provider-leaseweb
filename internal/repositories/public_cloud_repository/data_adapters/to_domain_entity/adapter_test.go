@@ -14,35 +14,6 @@ import (
 var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"
 var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
 
-func Test_adaptInstanceDetailsImage(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		sdkImage := publicCloud.NewInstanceDetailsImage(
-			"UBUNTU_24_04_64BIT",
-			"name",
-			"version",
-			"family",
-			"flavour",
-			"architecture",
-			[]string{"marketApp"},
-			[]string{"storageType"},
-		)
-
-		got := adaptInstanceDetailsImage(*sdkImage)
-		want := domain.Image{
-			Id:           "UBUNTU_24_04_64BIT",
-			Name:         "name",
-			Version:      "version",
-			Family:       "family",
-			Flavour:      "flavour",
-			Architecture: "architecture",
-			MarketApps:   []string{"marketApp"},
-			StorageTypes: []string{"storageType"},
-		}
-
-		assert.Equal(t, want, got)
-	})
-}
-
 func Test_adaptNetworkSpeed(t *testing.T) {
 	sdkNetworkSpeed := publicCloud.NewNetworkSpeed(1, "unit")
 	got := adaptNetworkSpeed(*sdkNetworkSpeed)
@@ -841,20 +812,18 @@ func Test_adaptImage(t *testing.T) {
 		sdkImage := publicCloud.NewImage(
 			"UBUNTU_24_04_64BIT",
 			"name",
-			"version",
 			"family",
 			"flavour",
-			"architecture",
+			false,
 		)
 
 		got := adaptImage(*sdkImage)
 		want := domain.Image{
 			Id:           "UBUNTU_24_04_64BIT",
 			Name:         "name",
-			Version:      "version",
 			Family:       "family",
 			Flavour:      "flavour",
-			Architecture: "architecture",
+			Custom:       false,
 			MarketApps:   []string{},
 			StorageTypes: []string{},
 		}
@@ -1131,19 +1100,19 @@ func generateInstanceDetails(
 			Type:             publicCloud.CONTRACTTYPE_HOURLY,
 			State:            publicCloud.CONTRACTSTATE_ACTIVE,
 		},
-		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
-		*publicCloud.NewNullablePrivateNetwork(
-			&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
-		),
-		publicCloud.InstanceDetailsImage{Id: "CENTOS_7_64BIT"},
-		[]publicCloud.IpDetails{
-			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
-		},
 		*publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
 			Id:    autoScalingGroupId,
 			Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
 			State: publicCloud.AUTOSCALINGGROUPSTATE_ACTIVE,
 		}),
+		publicCloud.Image{Id: "CENTOS_7_64BIT"},
+		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
+		*publicCloud.NewNullablePrivateNetwork(
+			&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
+		),
+		[]publicCloud.IpDetails{
+			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
+		},
 		*publicCloud.NewNullableVolume(&publicCloud.Volume{Size: 3, Unit: "unit"}),
 	)
 }
@@ -1176,15 +1145,15 @@ func generateInstance(
 			Type:             publicCloud.CONTRACTTYPE_HOURLY,
 			State:            publicCloud.CONTRACTSTATE_ACTIVE,
 		},
-		publicCloud.Image{Id: "CENTOS_7_64BIT"},
-		[]publicCloud.Ip{
-			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
-		},
 		*publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
 			Id:    autoScalingGroupId,
 			Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
 			State: publicCloud.AUTOSCALINGGROUPSTATE_ACTIVE,
 		}),
+		publicCloud.Image{Id: "CENTOS_7_64BIT"},
+		[]publicCloud.Ip{
+			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
+		},
 	)
 }
 
@@ -1247,17 +1216,15 @@ func TestAdaptImageDetails(t *testing.T) {
 	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
-	custom := false
+	version := "version"
+	architecture := "architecture"
 
 	sdkImageDetails := publicCloud.NewImageDetails(
 		"id",
 		"name",
-		"version",
 		"family",
 		"flavour",
-		"architecture",
-		[]string{"marketApp"},
-		[]string{"storageType"},
+		false,
 		*publicCloud.NewNullableStorageSize(
 			publicCloud.NewStorageSize(float32(1), "unit"),
 		),
@@ -1266,7 +1233,10 @@ func TestAdaptImageDetails(t *testing.T) {
 		*publicCloud.NewNullableString(&region),
 		*publicCloud.NewNullableTime(&createdAt),
 		*publicCloud.NewNullableTime(&updatedAt),
-		*publicCloud.NewNullableBool(&custom),
+		"version",
+		"architecture",
+		[]string{"marketApp"},
+		[]string{"storageType"},
 	)
 
 	got := AdaptImageDetails(*sdkImageDetails)
@@ -1274,16 +1244,16 @@ func TestAdaptImageDetails(t *testing.T) {
 	want := domain.Image{
 		Id:           "id",
 		Name:         "name",
-		Version:      "version",
+		Version:      &version,
 		Family:       "family",
 		Flavour:      "flavour",
-		Architecture: "architecture",
+		Architecture: &architecture,
 		State:        &state,
 		StateReason:  &stateReason,
 		Region:       &region,
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
-		Custom:       &custom,
+		Custom:       false,
 		StorageSize:  &domain.StorageSize{Size: 1, Unit: "unit"},
 		MarketApps:   []string{"marketApp"},
 		StorageTypes: []string{"storageType"},

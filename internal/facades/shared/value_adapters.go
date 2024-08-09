@@ -215,5 +215,10 @@ func AdaptNullableBoolToBoolValue(value *bool) basetypes.BoolValue {
 		return basetypes.NewBoolNull()
 	}
 
-	return basetypes.NewBoolValue(*value)
+	return AdaptBoolToBoolValue(*value)
+}
+
+// AdaptBoolToBoolValue converts a boolean to a Terraform BoolValue.
+func AdaptBoolToBoolValue(value bool) basetypes.BoolValue {
+	return basetypes.NewBoolValue(value)
 }

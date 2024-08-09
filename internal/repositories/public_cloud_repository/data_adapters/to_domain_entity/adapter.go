@@ -166,7 +166,7 @@ func AdaptInstanceDetails(
 		*instanceId,
 		sdkInstanceDetails.GetRegion(),
 		adaptResources(sdkInstanceDetails.GetResources()),
-		adaptInstanceDetailsImage(sdkInstanceDetails.GetImage()),
+		adaptImage(sdkInstanceDetails.GetImage()),
 		state,
 		sdkInstanceDetails.GetProductType(),
 		sdkInstanceDetails.GetHasPublicIpV4(),
@@ -208,40 +208,20 @@ func adaptNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) domain.NetworkS
 	)
 }
 
-func adaptInstanceDetailsImage(sdkImage publicCloud.InstanceDetailsImage) domain.Image {
-	return domain.NewImage(
-		sdkImage.GetId(),
-		sdkImage.GetName(),
-		sdkImage.GetVersion(),
-		sdkImage.GetFamily(),
-		sdkImage.GetFlavour(),
-		sdkImage.GetArchitecture(),
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		sdkImage.GetMarketApps(),
-		sdkImage.GetStorageTypes(),
-	)
-}
-
 func adaptImage(sdkImage publicCloud.Image) domain.Image {
 	return domain.NewImage(
 		sdkImage.GetId(),
 		sdkImage.GetName(),
-		sdkImage.GetVersion(),
+		nil,
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
-		sdkImage.GetArchitecture(),
 		nil,
 		nil,
 		nil,
 		nil,
 		nil,
 		nil,
+		sdkImage.GetCustom(),
 		nil,
 		[]string{},
 		[]string{},
@@ -744,22 +724,23 @@ func AdaptImageDetails(sdkImageDetails publicCloud.ImageDetails) domain.Image {
 	region, _ := sdkImageDetails.GetRegionOk()
 	createdAt, _ := sdkImageDetails.GetCreatedAtOk()
 	updatedAt, _ := sdkImageDetails.GetUpdatedAtOk()
-	custom, _ := sdkImageDetails.GetCustomOk()
 	storageSize := adaptStorageSize(sdkImageDetails.GetStorageSize())
+	version, _ := sdkImageDetails.GetVersionOk()
+	architecture, _ := sdkImageDetails.GetArchitectureOk()
 
 	return domain.NewImage(
 		sdkImageDetails.GetId(),
 		sdkImageDetails.GetName(),
-		sdkImageDetails.GetVersion(),
+		version,
 		sdkImageDetails.GetFamily(),
 		sdkImageDetails.GetFlavour(),
-		sdkImageDetails.GetArchitecture(),
+		architecture,
 		state,
 		stateReason,
 		region,
 		createdAt,
 		updatedAt,
-		custom,
+		sdkImageDetails.GetCustom(),
 		&storageSize,
 		sdkImageDetails.GetMarketApps(),
 		sdkImageDetails.GetStorageTypes(),

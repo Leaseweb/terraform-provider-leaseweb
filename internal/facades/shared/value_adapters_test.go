@@ -642,3 +642,24 @@ func ExampleAdaptNullableBoolToBoolValue_second() {
 	fmt.Println(adaptedValue)
 	// Output: <null>
 }
+
+func TestAdaptBoolToBoolValue(t *testing.T) {
+	t.Run("works with false", func(t *testing.T) {
+		got := AdaptBoolToBoolValue(false)
+
+		assert.False(t, got.ValueBool())
+	})
+
+	t.Run("works with true", func(t *testing.T) {
+		got := AdaptBoolToBoolValue(true)
+
+		assert.True(t, got.ValueBool())
+	})
+}
+
+func ExampleAdaptBoolToBoolValue() {
+	adaptedValue := AdaptBoolToBoolValue(true)
+
+	fmt.Println(adaptedValue)
+	// Output: true
+}

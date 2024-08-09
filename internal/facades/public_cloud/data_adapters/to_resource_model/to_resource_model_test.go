@@ -24,21 +24,22 @@ func Test_adaptImage(t *testing.T) {
 	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
-	custom := false
+	version := "version"
+	architecture := "architecture"
 
 	image := domain.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
-		"version",
+		&version,
 		"family",
 		"flavour",
-		"architecture",
+		&architecture,
 		&state,
 		&stateReason,
 		&region,
 		&createdAt,
 		&updatedAt,
-		&custom,
+		false,
 		&domain.StorageSize{Unit: "unit"},
 		[]string{"one"},
 		[]string{"storageType"},
@@ -610,23 +611,24 @@ func generateDomainInstance() domain.Instance {
 	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
-	custom := false
+	version := "version"
+	architecture := "architecture"
 
 	storageSize := domain.NewStorageSize(1, "unit")
 
 	image := domain.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
-		"version",
+		&version,
 		"family",
 		"flavour",
-		"architecture",
+		&architecture,
 		&state,
 		&stateReason,
 		&region,
 		&createdAt,
 		&updatedAt,
-		&custom,
+		false,
 		&storageSize,
 		[]string{"one"},
 		[]string{"storageType"},

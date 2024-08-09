@@ -184,16 +184,16 @@ func adaptImage(
 
 	plan.Id = basetypes.NewStringValue(image.Id)
 	plan.Name = basetypes.NewStringValue(image.Name)
-	plan.Version = basetypes.NewStringValue(image.Version)
+	plan.Version = shared.AdaptNullableStringToStringValue(image.Version)
 	plan.Family = basetypes.NewStringValue(image.Family)
 	plan.Flavour = basetypes.NewStringValue(image.Flavour)
-	plan.Architecture = basetypes.NewStringValue(image.Architecture)
+	plan.Architecture = shared.AdaptNullableStringToStringValue(image.Architecture)
 	plan.State = shared.AdaptNullableStringToStringValue(image.State)
 	plan.StateReason = shared.AdaptNullableStringToStringValue(image.StateReason)
 	plan.Region = shared.AdaptNullableStringToStringValue(image.Region)
 	plan.CreatedAt = shared.AdaptNullableTimeToStringValue(image.CreatedAt)
 	plan.UpdatedAt = shared.AdaptNullableTimeToStringValue(image.UpdatedAt)
-	plan.Custom = shared.AdaptNullableBoolToBoolValue(image.Custom)
+	plan.Custom = shared.AdaptBoolToBoolValue(image.Custom)
 
 	plan.MarketApps = marketApps
 	plan.StorageTypes = storageTypes

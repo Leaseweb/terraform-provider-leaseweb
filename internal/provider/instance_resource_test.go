@@ -23,7 +23,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -56,7 +56,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
 							"image.id",
-							"UBUNTU_22_04_64BIT",
+							"UBUNTU_20_04_64BIT",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
@@ -96,7 +96,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -129,7 +129,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
 							"image.id",
-							"UBUNTU_22_04_64BIT",
+							"UBUNTU_20_04_64BIT",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
@@ -173,7 +173,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -204,7 +204,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -233,7 +233,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -263,7 +263,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -292,7 +292,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   root_disk_size = 1
@@ -323,7 +323,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   root_disk_size = 1001
@@ -354,7 +354,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "tralala"
   contract = {
@@ -384,7 +384,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -412,7 +412,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -442,7 +442,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -472,7 +472,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -557,7 +557,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
@@ -576,7 +576,7 @@ resource "leaseweb_public_cloud_instance" "test" {
   }
   reference = "my webserver"
   image = {
-    id = "UBUNTU_22_04_64BIT"
+    id = "UBUNTU_20_04_64BIT"
   }
   root_disk_storage_type = "CENTRAL"
   contract = {
