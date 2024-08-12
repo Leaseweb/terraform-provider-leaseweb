@@ -15,23 +15,23 @@ import (
 var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 func TestAdaptInstances(t *testing.T) {
-	id := value_object.NewGeneratedUuid()
+	id := "id"
 	instances := public_cloud.Instances{{Id: id}}
 
 	got := AdaptInstances(instances)
 
 	assert.Len(t, got.Instances, 1)
-	assert.Equal(t, id.String(), got.Instances[0].Id.ValueString())
+	assert.Equal(t, id, got.Instances[0].Id.ValueString())
 }
 
 func Test_adaptInstance(t *testing.T) {
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	marketAppId := "marketAppId"
 	reference := "reference"
-	id := value_object.NewGeneratedUuid()
+	id := "id"
 	sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
-	autoScalingGroupId := value_object.NewGeneratedUuid()
-	loadBalancerId := value_object.NewGeneratedUuid()
+	autoScalingGroupId := "autoScalingGroupId"
+	loadBalancerId := "loadBalancerId"
 
 	instance := generateDomainInstance()
 	instance.Id = id
@@ -44,7 +44,7 @@ func Test_adaptInstance(t *testing.T) {
 
 	got := adaptInstance(instance)
 
-	assert.Equal(t, id.String(), got.Id.ValueString())
+	assert.Equal(t, id, got.Id.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "productType", got.ProductType.ValueString())
@@ -61,14 +61,14 @@ func Test_adaptInstance(t *testing.T) {
 	assert.Equal(t, "cpuUnit", got.Resources.Cpu.Unit.ValueString())
 	assert.Equal(
 		t,
-		autoScalingGroupId.String(),
+		autoScalingGroupId,
 		got.AutoScalingGroup.Id.ValueString(),
 	)
 	assert.Equal(t, "isoId", got.Iso.Id.ValueString())
 	assert.Equal(t, "id", got.PrivateNetwork.Id.ValueString())
 	assert.Equal(
 		t,
-		loadBalancerId.String(),
+		loadBalancerId,
 		got.AutoScalingGroup.LoadBalancer.Id.ValueString(),
 	)
 	assert.Equal(t, "unit", got.Volume.Unit.ValueString())
@@ -210,7 +210,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 	reference := "reference"
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-	id := value_object.NewGeneratedUuid()
+	id := "id"
 
 	entityLoadBalancer := public_cloud.NewLoadBalancer(
 		id,
@@ -232,7 +232,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 	got := adaptLoadBalancer(entityLoadBalancer)
 
-	assert.Equal(t, id.String(), got.Id.ValueString(), "id is set")
+	assert.Equal(t, id, got.Id.ValueString(), "id is set")
 	assert.Equal(t, "type", got.Type.Name.ValueString())
 	assert.Equal(t, "Resources", got.Resources.Cpu.Unit.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
@@ -469,7 +469,7 @@ func generateDomainInstance() public_cloud.Instance {
 	)
 
 	loadBalancer := public_cloud.NewLoadBalancer(
-		value_object.NewGeneratedUuid(),
+		"",
 		public_cloud.InstanceType{Name: "type"},
 		resources,
 		"region",
@@ -498,7 +498,7 @@ func generateDomainInstance() public_cloud.Instance {
 	autoScalingWarmupTime := 5
 	autoScalingCooldownTime := 6
 	autoScalingGroup := public_cloud.NewAutoScalingGroup(
-		value_object.NewGeneratedUuid(),
+		"",
 		"type",
 		"state",
 		"region",
@@ -520,7 +520,7 @@ func generateDomainInstance() public_cloud.Instance {
 	volume := public_cloud.NewVolume(1, "unit")
 
 	return public_cloud.NewInstance(
-		value_object.NewGeneratedUuid(),
+		"",
 		"region",
 		resources,
 		image,
