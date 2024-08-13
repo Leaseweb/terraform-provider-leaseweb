@@ -290,7 +290,7 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 	)
 
 	t.Run(
-		"instanceType & id are passed to canInstanceTypeBeUsedWithInstance",
+		"instanceType & stateValue are passed to canInstanceTypeBeUsedWithInstance",
 		func(t *testing.T) {
 			validator := InstanceTypeValidator{
 				canInstanceTypeBeUsedWithInstance: func(

@@ -28,7 +28,7 @@ func (i *instanceResource) ModifyPlan(
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
-	i.validateRegion(planInstance.Region, response, ctx)
+	i.validateRegion(stateInstance.Region, planInstance.Region, response, ctx)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -43,18 +43,25 @@ func (i *instanceResource) ModifyPlan(
 }
 
 func (i *instanceResource) validateRegion(
-	region types.String,
+	stateValue types.String,
+	plannedValue types.String,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,
 ) {
-	request := validator.StringRequest{ConfigValue: region}
+	request := validator.StringRequest{ConfigValue: plannedValue}
 	regionResponse := validator.StringResponse{}
+
+	nonUpdatableStringValidator := instanceValidator.NewNonUpdatableStringValidator(stateValue)
+	nonUpdatableStringValidator.ValidateString(ctx, request, &regionResponse)
+	if regionResponse.Diagnostics.HasError() {
+		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
+		return
+	}
 
 	regionValidator := instanceValidator.NewRegionValidator(
 		i.client.PublicCloudFacade.DoesRegionExist,
 	)
 	regionValidator.ValidateString(ctx, request, &regionResponse)
-
 	if regionResponse.Diagnostics.HasError() {
 		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
 	}

@@ -593,4 +593,56 @@ resource "leaseweb_public_cloud_instance" "test" {
 			})
 		},
 	)
+
+	t.Run(
+		"changing the region is not allowed",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					},
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-2"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+						ExpectError: regexp.MustCompile(
+							"Attribute value is not allowed to change",
+						),
+					},
+				},
+			})
+		},
+	)
 }
