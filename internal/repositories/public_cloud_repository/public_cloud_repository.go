@@ -6,7 +6,6 @@ import (
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_domain_entity"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/sdk"
@@ -108,12 +107,12 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 }
 
 func (p PublicCloudRepository) GetInstance(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (*public_cloud.Instance, *shared.RepositoryError) {
 	sdkInstance, response, err := p.publicCLoudAPI.GetInstance(
 		p.authContext(ctx),
-		id.String(),
+		id,
 	).Execute()
 
 	if err != nil {
@@ -137,12 +136,12 @@ func (p PublicCloudRepository) GetInstance(
 }
 
 func (p PublicCloudRepository) GetAutoScalingGroup(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (*public_cloud.AutoScalingGroup, *shared.RepositoryError) {
 	sdkAutoScalingGroupDetails, response, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
-		id.String(),
+		id,
 	).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(
@@ -166,14 +165,14 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 }
 
 func (p PublicCloudRepository) GetLoadBalancer(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (*public_cloud.LoadBalancer, *shared.RepositoryError) {
 	var loadBalancer *public_cloud.LoadBalancer
 
 	sdkLoadBalancerDetails, response, err := p.publicCLoudAPI.GetLoadBalancer(
 		p.authContext(ctx),
-		id.String(),
+		id,
 	).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(
@@ -243,7 +242,7 @@ func (p PublicCloudRepository) UpdateInstance(
 
 	sdkUpdatedInstance, response, err := p.publicCLoudAPI.UpdateInstance(
 		p.authContext(ctx),
-		instance.Id.String(),
+		instance.Id,
 	).UpdateInstanceOpts(*updateInstanceOpts).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(
@@ -265,12 +264,12 @@ func (p PublicCloudRepository) UpdateInstance(
 }
 
 func (p PublicCloudRepository) DeleteInstance(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) *shared.RepositoryError {
 	response, err := p.publicCLoudAPI.TerminateInstance(
 		p.authContext(ctx),
-		id.String(),
+		id,
 	).Execute()
 	if err != nil {
 		return shared.NewSdkError(
@@ -284,14 +283,14 @@ func (p PublicCloudRepository) DeleteInstance(
 }
 
 func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
-	id value_object.Uuid,
+	id string,
 	ctx context.Context,
 ) (public_cloud.InstanceTypes, *shared.RepositoryError) {
 	var instanceTypes public_cloud.InstanceTypes
 
 	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(
 		p.authContext(ctx),
-		id.String(),
+		id,
 	).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(

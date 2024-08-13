@@ -153,12 +153,6 @@ func AdaptToUpdateInstanceOpts(
 	currentInstanceType string,
 	ctx context.Context,
 ) (*public_cloud.Instance, error) {
-
-	id, err := value_object.NewUuid(instanceResourceModel.Id.ValueString())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)
-	}
-
 	optionalValues := public_cloud.OptionalUpdateInstanceValues{
 		Reference: shared.AdaptStringPointerValueToNullableString(
 			instanceResourceModel.Reference,
@@ -242,7 +236,7 @@ func AdaptToUpdateInstanceOpts(
 	}
 
 	instance, err := public_cloud.NewUpdateInstance(
-		*id,
+		instanceResourceModel.Id.ValueString(),
 		optionalValues,
 		allowedInstanceTypes,
 		currentInstanceType,
