@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	instanceValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared_validators"
 )
 
 type immutableString struct {
@@ -93,7 +94,7 @@ func (i *instanceResource) validateImmutableString(
 		request := validator.StringRequest{ConfigValue: immutableString.plannedValue}
 		validatorResponse := validator.StringResponse{}
 
-		immutableStringValidator := instanceValidator.NewImmutableStringValidator(
+		immutableStringValidator := shared_validators.NewImmutableStringValidator(
 			stateIdValue,
 			immutableString.stateValue,
 		)

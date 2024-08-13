@@ -1,4 +1,4 @@
-package validator
+package shared_validators
 
 import (
 	"context"
