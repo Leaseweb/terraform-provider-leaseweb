@@ -8,22 +8,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ validator.String = NonUpdatableStringValidator{}
+var _ validator.String = ImmutableStringValidator{}
 
-// NonUpdatableStringValidator makes sure that a stringValue cannot be changed on update.
-type NonUpdatableStringValidator struct {
-	stateValue types.String
+// ImmutableStringValidator makes sure that a stringValue cannot be changed on update.
+type ImmutableStringValidator struct {
+	stateIdValue types.String
+	stateValue   types.String
 }
 
-func (n NonUpdatableStringValidator) Description(ctx context.Context) string {
+func (n ImmutableStringValidator) Description(ctx context.Context) string {
 	return "Makes sure that a stringValue cannot be changed on update."
 }
 
-func (n NonUpdatableStringValidator) MarkdownDescription(ctx context.Context) string {
+func (n ImmutableStringValidator) MarkdownDescription(ctx context.Context) string {
 	return n.Description(ctx)
 }
 
-func (n NonUpdatableStringValidator) ValidateString(
+func (n ImmutableStringValidator) ValidateString(
 	ctx context.Context,
 	request validator.StringRequest,
 	response *validator.StringResponse,
@@ -34,7 +35,7 @@ func (n NonUpdatableStringValidator) ValidateString(
 	}
 
 	// On create the value can be anything
-	if n.stateValue.IsUnknown() || n.stateValue.IsNull() {
+	if n.stateIdValue.IsUnknown() || n.stateIdValue.IsNull() {
 		return
 	}
 
@@ -51,6 +52,12 @@ func (n NonUpdatableStringValidator) ValidateString(
 	}
 }
 
-func NewNonUpdatableStringValidator(stateValue types.String) NonUpdatableStringValidator {
-	return NonUpdatableStringValidator{stateValue: stateValue}
+func NewImmutableStringValidator(
+	stateIdValue types.String,
+	stateValue types.String,
+) ImmutableStringValidator {
+	return ImmutableStringValidator{
+		stateIdValue: stateIdValue,
+		stateValue:   stateValue,
+	}
 }

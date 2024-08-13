@@ -11,6 +11,13 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
+type immutableString struct {
+	stateValue   types.String
+	plannedValue types.String
+}
+
+type immutableStrings []immutableString
+
 // ModifyPlan calls validators that require access to the handler.
 // This needs to be done here as client.Client isn't properly initialized when
 // the schema is called.
@@ -34,7 +41,7 @@ func (i *instanceResource) ModifyPlan(
 	stateImage := model.Image{}
 	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
 
-	i.validateRegion(stateInstance.Region, planInstance.Region, response, ctx)
+	i.validateRegion(planInstance.Region, response, ctx)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -50,41 +57,61 @@ func (i *instanceResource) ModifyPlan(
 		return
 	}
 
-	i.validateImageId(stateImage.Id, planImage.Id, response, ctx)
+	immutableStrings := immutableStrings{
+		immutableString{
+			stateValue:   stateInstance.Region,
+			plannedValue: planInstance.Region,
+		},
+		immutableString{
+			stateValue:   stateImage.Id,
+			plannedValue: planImage.Id,
+		},
+		immutableString{
+			stateValue:   stateInstance.MarketAppId,
+			plannedValue: planInstance.MarketAppId,
+		},
+		immutableString{
+			stateValue:   stateInstance.RootDiskStorageType,
+			plannedValue: planInstance.RootDiskStorageType,
+		},
+		immutableString{
+			stateValue:   stateInstance.SshKey,
+			plannedValue: planInstance.SshKey,
+		},
+	}
+
+	i.validateImmutableString(stateInstance.Id, immutableStrings, response, ctx)
 }
 
-func (i *instanceResource) validateImageId(
-	stateValue types.String,
-	plannedValue types.String,
+func (i *instanceResource) validateImmutableString(
+	stateIdValue types.String,
+	immutableStrings immutableStrings,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,
 ) {
-	request := validator.StringRequest{ConfigValue: plannedValue}
-	imageIdResponse := validator.StringResponse{}
+	for _, immutableString := range immutableStrings {
+		request := validator.StringRequest{ConfigValue: immutableString.plannedValue}
+		validatorResponse := validator.StringResponse{}
 
-	nonUpdatableStringValidator := instanceValidator.NewNonUpdatableStringValidator(stateValue)
-	nonUpdatableStringValidator.ValidateString(ctx, request, &imageIdResponse)
-	if imageIdResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(imageIdResponse.Diagnostics.Errors()...)
-		return
+		immutableStringValidator := instanceValidator.NewImmutableStringValidator(
+			stateIdValue,
+			immutableString.stateValue,
+		)
+		immutableStringValidator.ValidateString(ctx, request, &validatorResponse)
+		if validatorResponse.Diagnostics.HasError() {
+			response.Diagnostics.Append(validatorResponse.Diagnostics.Errors()...)
+			return
+		}
 	}
 }
 
 func (i *instanceResource) validateRegion(
-	stateValue types.String,
 	plannedValue types.String,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,
 ) {
 	request := validator.StringRequest{ConfigValue: plannedValue}
 	regionResponse := validator.StringResponse{}
-
-	nonUpdatableStringValidator := instanceValidator.NewNonUpdatableStringValidator(stateValue)
-	nonUpdatableStringValidator.ValidateString(ctx, request, &regionResponse)
-	if regionResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
-		return
-	}
 
 	regionValidator := instanceValidator.NewRegionValidator(
 		i.client.PublicCloudFacade.DoesRegionExist,

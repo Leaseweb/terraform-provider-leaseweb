@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNonUpdatableStringValidator_ValidateString(t *testing.T) {
+func TestImmutableStringValidator_ValidateString(t *testing.T) {
 	t.Run(
 		"does not set an error if current value is unknown",
 		func(t *testing.T) {
@@ -18,8 +18,9 @@ func TestNonUpdatableStringValidator_ValidateString(t *testing.T) {
 			}
 			response := validator2.StringResponse{}
 			stateValue := basetypes.NewStringValue("oldValue")
+			stateIdValue := basetypes.NewStringValue("id")
 
-			validator := NewNonUpdatableStringValidator(stateValue)
+			validator := NewImmutableStringValidator(stateIdValue, stateValue)
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -33,23 +34,25 @@ func TestNonUpdatableStringValidator_ValidateString(t *testing.T) {
 			}
 			response := validator2.StringResponse{}
 			stateValue := basetypes.NewStringValue("oldValue")
+			stateIdValue := basetypes.NewStringValue("id")
 
-			validator := NewNonUpdatableStringValidator(stateValue)
+			validator := NewImmutableStringValidator(stateIdValue, stateValue)
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
 		})
 
 	t.Run(
-		"does not set an error if state value is unknown",
+		"does not set an error if state id value is unknown",
 		func(t *testing.T) {
 			request := validator2.StringRequest{
 				ConfigValue: basetypes.NewStringValue("tralala"),
 			}
 			response := validator2.StringResponse{}
-			stateValue := basetypes.NewStringUnknown()
+			stateValue := basetypes.NewStringValue("")
+			stateIdValue := basetypes.NewStringUnknown()
 
-			validator := NewNonUpdatableStringValidator(stateValue)
+			validator := NewImmutableStringValidator(stateIdValue, stateValue)
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -57,14 +60,15 @@ func TestNonUpdatableStringValidator_ValidateString(t *testing.T) {
 	)
 
 	t.Run(
-		"does not set an error if state value is null", func(t *testing.T) {
+		"does not set an error if state id value is null", func(t *testing.T) {
 			request := validator2.StringRequest{
 				ConfigValue: basetypes.NewStringValue("tralala"),
 			}
 			response := validator2.StringResponse{}
-			stateValue := basetypes.NewStringNull()
+			stateValue := basetypes.NewStringValue("")
+			stateIdValue := basetypes.NewStringNull()
 
-			validator := NewNonUpdatableStringValidator(stateValue)
+			validator := NewImmutableStringValidator(stateIdValue, stateValue)
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -78,8 +82,9 @@ func TestNonUpdatableStringValidator_ValidateString(t *testing.T) {
 			}
 			response := validator2.StringResponse{}
 			stateValue := basetypes.NewStringValue("tralala")
+			stateIdValue := basetypes.NewStringValue("id")
 
-			validator := NewNonUpdatableStringValidator(stateValue)
+			validator := NewImmutableStringValidator(stateIdValue, stateValue)
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -87,18 +92,17 @@ func TestNonUpdatableStringValidator_ValidateString(t *testing.T) {
 	)
 
 	t.Run(
-		"does not set an error if value does change on update",
-		func(t *testing.T) {
+		"does set an error if value changes on update", func(t *testing.T) {
 			request := validator2.StringRequest{
 				ConfigValue: basetypes.NewStringValue("oldValue"),
 			}
 			response := validator2.StringResponse{}
 			stateValue := basetypes.NewStringValue("newValue")
+			stateIdValue := basetypes.NewStringValue("id")
 
-			validator := NewNonUpdatableStringValidator(stateValue)
+			validator := NewImmutableStringValidator(stateIdValue, stateValue)
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 1)
-		},
-	)
+		})
 }
