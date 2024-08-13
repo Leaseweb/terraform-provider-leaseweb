@@ -24,7 +24,7 @@ func (h DedicatedServerFacade) GetAllDedicatedServers(ctx context.Context) (
 		return nil, shared.NewFromServicesError("GetAllDedicatedServers", err)
 	}
 
-	dataSourceDedicatedServers := to_data_source_model.AdaptDedicatedServers(dedicatedServers)
+	dataSourceDedicatedServers := to_data_source_model.AdaptDedicatedServers(*dedicatedServers)
 
 	return &dataSourceDedicatedServers, nil
 }

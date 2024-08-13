@@ -10,8 +10,8 @@ func AdaptDedicatedServers(domainDedicatedServers domain.DedicatedServers) model
 	var dedicatedServers model.DedicatedServers
 
 	for _, domainDedicatedServer := range domainDedicatedServers {
-		dedicated_server := adaptDedicatedServer(domainDedicatedServer)
-		dedicatedServers.DedicatedServers = append(dedicatedServers.DedicatedServers, dedicated_server)
+		dedicatedServer := adaptDedicatedServer(domainDedicatedServer)
+		dedicatedServers.DedicatedServers = append(dedicatedServers.DedicatedServers, dedicatedServer)
 	}
 
 	return dedicatedServers

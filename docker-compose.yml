@@ -55,6 +55,7 @@ services:
       - "8080:80"
     depends_on:
       - prism_publicCloud
+      - prism_dedicatedServer
 
 volumes:
   golang:

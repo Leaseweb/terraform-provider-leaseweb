@@ -15,7 +15,7 @@ func (d *dedicatedServerDataSource) Read(
 ) {
 
 	tflog.Info(ctx, "Read dedicated servers")
-	dedicatedSeervers, err := d.client.DedicatedServerFacade.GetAllDedicatedServers(ctx)
+	dedicatedServers, err := d.client.DedicatedServerFacade.GetAllDedicatedServers(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read dedicated servers", err.Error())
@@ -30,7 +30,7 @@ func (d *dedicatedServerDataSource) Read(
 		return
 	}
 
-	state := dedicatedSeervers
+	state := dedicatedServers
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

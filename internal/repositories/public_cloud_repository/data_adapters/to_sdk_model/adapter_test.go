@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzY
 func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
-		instance.Type = domain.InstanceType{Name: "tralala"}
+		instance.Type = public_cloud.InstanceType{Name: "tralala"}
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -61,7 +61,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid type returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
-		instance.Type = domain.InstanceType{Name: "tralala"}
+		instance.Type = public_cloud.InstanceType{Name: "tralala"}
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -69,7 +69,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("required values are set", func(t *testing.T) {
-		instance, _ := domain.NewCreateInstance(
+		instance, _ := public_cloud.NewCreateInstance(
 			"region",
 			"lsw.c3.4xlarge",
 			enum.RootDiskStorageTypeCentral,
@@ -77,7 +77,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
-			domain.OptionalCreateInstanceValues{},
+			public_cloud.OptionalCreateInstanceValues{},
 			[]string{"lsw.c3.4xlarge"},
 		)
 
@@ -106,7 +106,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 		reference := "reference"
 		sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
 
-		instance, _ := domain.NewCreateInstance(
+		instance, _ := public_cloud.NewCreateInstance(
 			"",
 			"lsw.m3.large",
 			enum.RootDiskStorageTypeCentral,
@@ -114,7 +114,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
 			enum.ContractBillingFrequencyThree,
-			domain.OptionalCreateInstanceValues{
+			public_cloud.OptionalCreateInstanceValues{
 				MarketAppId: &marketAppId,
 				Reference:   &reference,
 				SshKey:      sshKeyValueObject,
@@ -135,7 +135,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 
 		_, err := AdaptToUpdateInstanceOpts(
-			domain.Instance{Type: domain.InstanceType{Name: "tralala"}},
+			public_cloud.Instance{Type: public_cloud.InstanceType{Name: "tralala"}},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -144,7 +144,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid contractType returns error", func(t *testing.T) {
 
 		_, err := AdaptToUpdateInstanceOpts(
-			domain.Instance{Contract: domain.Contract{Type: "tralala"}},
+			public_cloud.Instance{Contract: public_cloud.Contract{Type: "tralala"}},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -153,7 +153,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid contractTerm returns error", func(t *testing.T) {
 
 		_, err := AdaptToUpdateInstanceOpts(
-			domain.Instance{Contract: domain.Contract{Term: 55}},
+			public_cloud.Instance{Contract: public_cloud.Contract{Term: 55}},
 		)
 
 		assert.ErrorContains(t, err, "55")
@@ -162,7 +162,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid billingFrequency returns error", func(t *testing.T) {
 
 		_, err := AdaptToUpdateInstanceOpts(
-			domain.Instance{Contract: domain.Contract{BillingFrequency: 55}},
+			public_cloud.Instance{Contract: public_cloud.Contract{BillingFrequency: 55}},
 		)
 
 		assert.ErrorContains(t, err, "55")
@@ -176,9 +176,9 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 		billingFrequency := enum.ContractBillingFrequencySix
 		rootDiskSize, _ := value_object.NewRootDiskSize(23)
 
-		instance, _ := domain.NewUpdateInstance(
+		instance, _ := public_cloud.NewUpdateInstance(
 			value_object.NewGeneratedUuid(),
-			domain.OptionalUpdateInstanceValues{
+			public_cloud.OptionalUpdateInstanceValues{
 				Type:             &instanceType,
 				Reference:        &reference,
 				ContractType:     &contractType,
@@ -202,23 +202,23 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	})
 }
 
-func generateDomainInstance() domain.Instance {
+func generateDomainInstance() public_cloud.Instance {
 	rootDiskSize, _ := value_object.NewRootDiskSize(5)
 
-	return domain.NewInstance(
+	return public_cloud.NewInstance(
 		value_object.NewGeneratedUuid(),
 		"region",
-		domain.Resources{},
-		domain.Image{},
+		public_cloud.Resources{},
+		public_cloud.Image{},
 		enum.StateCreating,
 		"productType",
 		false,
 		true,
 		*rootDiskSize,
-		domain.InstanceType{Name: "lsw.m3.xlarge"},
+		public_cloud.InstanceType{Name: "lsw.m3.xlarge"},
 		enum.RootDiskStorageTypeCentral,
-		domain.Ips{},
-		domain.Contract{Type: enum.ContractTypeMonthly},
-		domain.OptionalInstanceValues{},
+		public_cloud.Ips{},
+		public_cloud.Contract{Type: enum.ContractTypeMonthly},
+		public_cloud.OptionalInstanceValues{},
 	)
 }

@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 )
 
 // AdaptToLaunchInstanceOpts adapts an instance domain entity to supported launch instance opts.
-func AdaptToLaunchInstanceOpts(instance domain.Instance) (
+func AdaptToLaunchInstanceOpts(instance public_cloud.Instance) (
 	*publicCloud.LaunchInstanceOpts,
 	error,
 ) {
@@ -68,7 +68,7 @@ func AdaptToLaunchInstanceOpts(instance domain.Instance) (
 }
 
 // AdaptToUpdateInstanceOpts adapts an instance domain entity to supported update instance opts.
-func AdaptToUpdateInstanceOpts(instance domain.Instance) (
+func AdaptToUpdateInstanceOpts(instance public_cloud.Instance) (
 	*publicCloud.UpdateInstanceOpts,
 	error,
 ) {

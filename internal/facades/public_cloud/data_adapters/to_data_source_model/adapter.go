@@ -3,12 +3,12 @@ package to_data_source_model
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 )
 
-func AdaptInstances(domainInstances domain.Instances) model.Instances {
+func AdaptInstances(domainInstances public_cloud.Instances) model.Instances {
 	var instances model.Instances
 
 	for _, domainInstance := range domainInstances {
@@ -19,7 +19,7 @@ func AdaptInstances(domainInstances domain.Instances) model.Instances {
 	return instances
 }
 
-func adaptInstance(domainInstance domain.Instance) model.Instance {
+func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 	instance := model.Instance{
 		Id:     basetypes.NewStringValue(domainInstance.Id.String()),
 		Region: basetypes.NewStringValue(domainInstance.Region),
@@ -78,7 +78,7 @@ func adaptInstance(domainInstance domain.Instance) model.Instance {
 	return instance
 }
 
-func adaptResources(resources domain.Resources) model.Resources {
+func adaptResources(resources public_cloud.Resources) model.Resources {
 	return model.Resources{
 		Cpu:    adaptCpu(resources.Cpu),
 		Memory: adaptMemory(resources.Memory),
@@ -91,28 +91,28 @@ func adaptResources(resources domain.Resources) model.Resources {
 	}
 }
 
-func adaptCpu(cpu domain.Cpu) model.Cpu {
+func adaptCpu(cpu public_cloud.Cpu) model.Cpu {
 	return model.Cpu{
 		Value: basetypes.NewInt64Value(int64(cpu.Value)),
 		Unit:  basetypes.NewStringValue(cpu.Unit),
 	}
 }
 
-func adaptMemory(memory domain.Memory) model.Memory {
+func adaptMemory(memory public_cloud.Memory) model.Memory {
 	return model.Memory{
 		Value: basetypes.NewFloat64Value(memory.Value),
 		Unit:  basetypes.NewStringValue(memory.Unit),
 	}
 }
 
-func adaptNetworkSpeed(networkSpeed domain.NetworkSpeed) model.NetworkSpeed {
+func adaptNetworkSpeed(networkSpeed public_cloud.NetworkSpeed) model.NetworkSpeed {
 	return model.NetworkSpeed{
 		Value: basetypes.NewInt64Value(int64(networkSpeed.Value)),
 		Unit:  basetypes.NewStringValue(networkSpeed.Unit),
 	}
 }
 
-func adaptImage(domainImage domain.Image) model.Image {
+func adaptImage(domainImage public_cloud.Image) model.Image {
 	image := model.Image{
 		Id:           basetypes.NewStringValue(domainImage.Id),
 		Name:         basetypes.NewStringValue(domainImage.Name),
@@ -147,7 +147,7 @@ func adaptImage(domainImage domain.Image) model.Image {
 	return image
 }
 
-func adaptContract(contract domain.Contract) model.Contract {
+func adaptContract(contract public_cloud.Contract) model.Contract {
 	return model.Contract{
 		BillingFrequency: basetypes.NewInt64Value(
 			int64(contract.BillingFrequency),
@@ -161,7 +161,7 @@ func adaptContract(contract domain.Contract) model.Contract {
 	}
 }
 
-func adaptAutoScalingGroup(autoScalingGroup domain.AutoScalingGroup) *model.AutoScalingGroup {
+func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *model.AutoScalingGroup {
 	return &model.AutoScalingGroup{
 		Id:    basetypes.NewStringValue(autoScalingGroup.Id.String()),
 		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
@@ -207,7 +207,7 @@ func adaptAutoScalingGroup(autoScalingGroup domain.AutoScalingGroup) *model.Auto
 	}
 }
 
-func adaptLoadBalancer(loadBalancer domain.LoadBalancer) *model.LoadBalancer {
+func adaptLoadBalancer(loadBalancer public_cloud.LoadBalancer) *model.LoadBalancer {
 	var ips []model.Ip
 	for _, ip := range loadBalancer.Ips {
 		ips = append(ips, adaptIp(ip))
@@ -234,7 +234,7 @@ func adaptLoadBalancer(loadBalancer domain.LoadBalancer) *model.LoadBalancer {
 	}
 }
 
-func adaptLoadBalancerConfiguration(configuration domain.LoadBalancerConfiguration) *model.LoadBalancerConfiguration {
+func adaptLoadBalancerConfiguration(configuration public_cloud.LoadBalancerConfiguration) *model.LoadBalancerConfiguration {
 	return &model.LoadBalancerConfiguration{
 		Balance: basetypes.NewStringValue(configuration.Balance.String()),
 		HealthCheck: shared.AdaptNullableDomainEntityToDatasourceModel(
@@ -251,7 +251,7 @@ func adaptLoadBalancerConfiguration(configuration domain.LoadBalancerConfigurati
 	}
 }
 
-func adaptHealthCheck(healthCheck domain.HealthCheck) *model.HealthCheck {
+func adaptHealthCheck(healthCheck public_cloud.HealthCheck) *model.HealthCheck {
 	return &model.HealthCheck{
 		Method: basetypes.NewStringValue(healthCheck.Method.String()),
 		Uri:    basetypes.NewStringValue(healthCheck.Uri),
@@ -260,14 +260,14 @@ func adaptHealthCheck(healthCheck domain.HealthCheck) *model.HealthCheck {
 	}
 }
 
-func adaptStickySession(stickySession domain.StickySession) *model.StickySession {
+func adaptStickySession(stickySession public_cloud.StickySession) *model.StickySession {
 	return &model.StickySession{
 		Enabled:     basetypes.NewBoolValue(stickySession.Enabled),
 		MaxLifeTime: basetypes.NewInt64Value(int64(stickySession.MaxLifeTime)),
 	}
 }
 
-func adaptPrivateNetwork(privateNetwork domain.PrivateNetwork) *model.PrivateNetwork {
+func adaptPrivateNetwork(privateNetwork public_cloud.PrivateNetwork) *model.PrivateNetwork {
 	return &model.PrivateNetwork{
 		Id:     basetypes.NewStringValue(privateNetwork.Id),
 		Status: basetypes.NewStringValue(privateNetwork.Status),
@@ -275,14 +275,14 @@ func adaptPrivateNetwork(privateNetwork domain.PrivateNetwork) *model.PrivateNet
 	}
 }
 
-func adaptIso(iso domain.Iso) *model.Iso {
+func adaptIso(iso public_cloud.Iso) *model.Iso {
 	return &model.Iso{
 		Id:   basetypes.NewStringValue(iso.Id),
 		Name: basetypes.NewStringValue(iso.Name),
 	}
 }
 
-func adaptIp(ip domain.Ip) model.Ip {
+func adaptIp(ip public_cloud.Ip) model.Ip {
 	return model.Ip{
 		Ip:            basetypes.NewStringValue(ip.Ip),
 		PrefixLength:  basetypes.NewStringValue(ip.PrefixLength),
@@ -298,28 +298,28 @@ func adaptIp(ip domain.Ip) model.Ip {
 	}
 }
 
-func adaptDdos(ddos domain.Ddos) *model.Ddos {
+func adaptDdos(ddos public_cloud.Ddos) *model.Ddos {
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
 	}
 }
 
-func adaptVolume(volume domain.Volume) *model.Volume {
+func adaptVolume(volume public_cloud.Volume) *model.Volume {
 	return &model.Volume{
 		Size: basetypes.NewFloat64Value(volume.Size),
 		Unit: basetypes.NewStringValue(volume.Unit),
 	}
 }
 
-func adaptStorageSize(storageSize domain.StorageSize) *model.StorageSize {
+func adaptStorageSize(storageSize public_cloud.StorageSize) *model.StorageSize {
 	return &model.StorageSize{
 		Size: basetypes.NewFloat64Value(storageSize.Size),
 		Unit: basetypes.NewStringValue(storageSize.Unit),
 	}
 }
 
-func adaptInstanceType(domainInstanceType domain.InstanceType) model.InstanceType {
+func adaptInstanceType(domainInstanceType public_cloud.InstanceType) model.InstanceType {
 	instanceType := model.InstanceType{
 		Name:      basetypes.NewStringValue(domainInstanceType.Name),
 		Resources: adaptResources(domainInstanceType.Resources),
@@ -333,7 +333,7 @@ func adaptInstanceType(domainInstanceType domain.InstanceType) model.InstanceTyp
 	return instanceType
 }
 
-func adaptPrices(prices domain.Prices) model.Prices {
+func adaptPrices(prices public_cloud.Prices) model.Prices {
 	return model.Prices{
 		Currency:       basetypes.NewStringValue(prices.Currency),
 		CurrencySymbol: basetypes.NewStringValue(prices.CurrencySymbol),
@@ -342,14 +342,14 @@ func adaptPrices(prices domain.Prices) model.Prices {
 	}
 }
 
-func adaptPrice(price domain.Price) model.Price {
+func adaptPrice(price public_cloud.Price) model.Price {
 	return model.Price{
 		HourlyPrice:  basetypes.NewStringValue(price.HourlyPrice),
 		MonthlyPrice: basetypes.NewStringValue(price.MonthlyPrice),
 	}
 }
 
-func adaptStorage(storage domain.Storage) model.Storage {
+func adaptStorage(storage public_cloud.Storage) model.Storage {
 	return model.Storage{
 		Local:   adaptPrice(storage.Local),
 		Central: adaptPrice(storage.Central),

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
@@ -396,11 +396,11 @@ func ExampleAdaptNullableStringToStringValue_second() {
 }
 
 func ExampleAdaptNullableDomainEntityToDatasourceModel() {
-	iso := domain.NewIso("id", "name")
+	iso := public_cloud.NewIso("id", "name")
 
 	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
 		&iso,
-		func(iso domain.Iso) *dataSourceModel.Iso {
+		func(iso public_cloud.Iso) *dataSourceModel.Iso {
 			return &dataSourceModel.Iso{
 				Id:   basetypes.NewStringValue(iso.Id),
 				Name: basetypes.NewStringValue(iso.Name),
@@ -415,7 +415,7 @@ func ExampleAdaptNullableDomainEntityToDatasourceModel() {
 func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
 	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
 		nil,
-		func(iso domain.Iso) *dataSourceModel.Iso {
+		func(iso public_cloud.Iso) *dataSourceModel.Iso {
 			return &dataSourceModel.Iso{
 				Id:   basetypes.NewStringValue(iso.Id),
 				Name: basetypes.NewStringValue(iso.Name),
@@ -428,7 +428,7 @@ func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
 }
 
 func ExampleAdaptNullableDomainEntityToResourceObject() {
-	iso := domain.NewIso("id", "name")
+	iso := public_cloud.NewIso("id", "name")
 
 	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
 		&iso,
@@ -437,7 +437,7 @@ func ExampleAdaptNullableDomainEntityToResourceObject() {
 			"name": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, iso domain.Iso) (*model.Iso, error) {
+		func(ctx context.Context, iso public_cloud.Iso) (*model.Iso, error) {
 			return &model.Iso{
 				Id:   basetypes.NewStringValue(iso.Id),
 				Name: basetypes.NewStringValue(iso.Name),
@@ -457,7 +457,7 @@ func ExampleAdaptNullableDomainEntityToResourceObject_second() {
 			"name": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, iso domain.Iso) (*model.Iso, error) {
+		func(ctx context.Context, iso public_cloud.Iso) (*model.Iso, error) {
 			return &model.Iso{
 				Id:   basetypes.NewStringValue(iso.Id),
 				Name: basetypes.NewStringValue(iso.Name),
@@ -472,13 +472,13 @@ func ExampleAdaptNullableDomainEntityToResourceObject_second() {
 func ExampleAdaptDomainEntityToResourceObject() {
 
 	datasourceModel, _ := AdaptDomainEntityToResourceObject(
-		domain.NewIso("id", "name"),
+		public_cloud.NewIso("id", "name"),
 		map[string]attr.Type{
 			"id":   types.StringType,
 			"name": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, iso domain.Iso) (*model.Iso, error) {
+		func(ctx context.Context, iso public_cloud.Iso) (*model.Iso, error) {
 			return &model.Iso{
 				Id:   basetypes.NewStringValue(iso.Id),
 				Name: basetypes.NewStringValue(iso.Name),
@@ -492,14 +492,14 @@ func ExampleAdaptDomainEntityToResourceObject() {
 
 func ExampleAdaptEntitiesToListValue() {
 	listValue, _ := AdaptEntitiesToListValue(
-		domain.Ips{domain.NewIp(
+		public_cloud.Ips{public_cloud.NewIp(
 			"1.2.3.4",
 			"prefixLength",
 			2,
 			false,
 			true,
 			enum.NetworkTypeInternal,
-			domain.OptionalIpValues{},
+			public_cloud.OptionalIpValues{},
 		)},
 		map[string]attr.Type{
 			"ip":             types.StringType,
@@ -512,12 +512,12 @@ func ExampleAdaptEntitiesToListValue() {
 			"ddos":           types.ObjectType{AttrTypes: model.Ddos{}.AttributeTypes()},
 		},
 		context.TODO(),
-		func(ctx context.Context, entity domain.Ip) (*model.Ip, error) {
+		func(ctx context.Context, entity public_cloud.Ip) (*model.Ip, error) {
 			ddos, _ := AdaptNullableDomainEntityToResourceObject(
 				entity.Ddos,
 				model.Ddos{}.AttributeTypes(),
 				ctx,
-				func(ctx context.Context, ddos domain.Ddos) (*model.Ddos, error) {
+				func(ctx context.Context, ddos public_cloud.Ddos) (*model.Ddos, error) {
 					return &model.Ddos{
 						DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 						ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),

@@ -14,19 +14,19 @@ type Service struct {
 }
 
 func (srv Service) GetAllDedicatedServers(ctx context.Context) (
-	domain.DedicatedServers,
+	*domain.DedicatedServers,
 	*errors.ServiceError,
 ) {
 
 	dedicatedServers, err := srv.dedicatedServerRepository.GetAllDedicatedServers(ctx)
 	if err != nil {
-		return domain.DedicatedServers{}, errors.NewFromRepositoryError(
+		return nil, errors.NewFromRepositoryError(
 			"GetAllDedicatedServers",
 			*err,
 		)
 	}
 
-	return dedicatedServers, nil
+	return &dedicatedServers, nil
 }
 
 func New(dedicatedServerRepository ports.DedicatedServerRepository) Service {

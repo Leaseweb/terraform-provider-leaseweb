@@ -53,7 +53,7 @@ func TestService_GetAllDedicatedServers(t *testing.T) {
 			got, err := service.GetAllDedicatedServers(context.TODO())
 
 			assert.Nil(t, err)
-			assert.Equal(t, want, got)
+			assert.Equal(t, want, *got)
 		},
 	)
 
