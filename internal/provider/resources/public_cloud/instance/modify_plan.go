@@ -22,11 +22,17 @@ func (i *instanceResource) ModifyPlan(
 	planInstance := model.Instance{}
 	request.Plan.Get(ctx, &planInstance)
 
-	instanceType := model.InstanceType{}
-	planInstance.Type.As(ctx, &instanceType, basetypes.ObjectAsOptions{})
+	planInstanceType := model.InstanceType{}
+	planInstance.Type.As(ctx, &planInstanceType, basetypes.ObjectAsOptions{})
+
+	planImage := model.Image{}
+	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
 
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
+
+	stateImage := model.Image{}
+	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
 
 	i.validateRegion(stateInstance.Region, planInstance.Region, response, ctx)
 	if response.Diagnostics.HasError() {
@@ -34,12 +40,34 @@ func (i *instanceResource) ModifyPlan(
 	}
 
 	i.validateInstanceType(
-		instanceType.Name,
+		planInstanceType.Name,
 		stateInstance.Id,
 		planInstance.Region,
 		response,
 		ctx,
 	)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	i.validateImageId(stateImage.Id, planImage.Id, response, ctx)
+}
+
+func (i *instanceResource) validateImageId(
+	stateValue types.String,
+	plannedValue types.String,
+	response *resource.ModifyPlanResponse,
+	ctx context.Context,
+) {
+	request := validator.StringRequest{ConfigValue: plannedValue}
+	imageIdResponse := validator.StringResponse{}
+
+	nonUpdatableStringValidator := instanceValidator.NewNonUpdatableStringValidator(stateValue)
+	nonUpdatableStringValidator.ValidateString(ctx, request, &imageIdResponse)
+	if imageIdResponse.Diagnostics.HasError() {
+		response.Diagnostics.Append(imageIdResponse.Diagnostics.Errors()...)
+		return
+	}
 }
 
 func (i *instanceResource) validateRegion(
