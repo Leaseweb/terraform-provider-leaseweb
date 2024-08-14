@@ -18,7 +18,9 @@ var (
 
 type repositorySpy struct {
 	instances                       public_cloud.Instances
-	instance                        *public_cloud.Instance
+	instanceDetails                 map[string]*public_cloud.Instance
+	createdInstance                 *public_cloud.Instance
+	updatedInstance                 *public_cloud.Instance
 	autoScalingGroup                *public_cloud.AutoScalingGroup
 	loadBalancer                    *public_cloud.LoadBalancer
 	availableInstanceTypesForUpdate public_cloud.InstanceTypes
@@ -135,21 +137,21 @@ func (r *repositorySpy) GetInstance(
 ) (*public_cloud.Instance, *sharedRepository.RepositoryError) {
 	r.passedGetInstanceId = id
 
-	return r.instance, r.getInstanceError
+	return r.instanceDetails[id], r.getInstanceError
 }
 
 func (r *repositorySpy) CreateInstance(
 	instance public_cloud.Instance,
 	ctx context.Context,
 ) (*public_cloud.Instance, *sharedRepository.RepositoryError) {
-	return r.instance, r.createInstanceError
+	return r.createdInstance, r.createInstanceError
 }
 
 func (r *repositorySpy) UpdateInstance(
 	instance public_cloud.Instance,
 	ctx context.Context,
 ) (*public_cloud.Instance, *sharedRepository.RepositoryError) {
-	return r.instance, r.updateInstanceError
+	return r.updatedInstance, r.updateInstanceError
 }
 
 func (r *repositorySpy) DeleteInstance(
@@ -179,11 +181,16 @@ func TestService_GetAllInstances(t *testing.T) {
 		func(t *testing.T) {
 			detailedInstance := generateInstance()
 			detailedInstance.Region = "region"
+			detailedInstance.Id = "instanceId"
 
-			returnedInstances := public_cloud.Instances{{}}
+			instance := make(map[string]*public_cloud.Instance)
+			instance[detailedInstance.Id] = &detailedInstance
+
+			returnedInstances := public_cloud.Instances{{Id: "instanceId"}}
 
 			want := public_cloud.Instances{
 				public_cloud.Instance{
+					Id:     "instanceId",
 					Region: "region",
 					Image:  public_cloud.Image{Id: "imageId"},
 					Type:   public_cloud.InstanceType{Name: "instanceType"},
@@ -192,7 +199,7 @@ func TestService_GetAllInstances(t *testing.T) {
 
 			spy := newRepositorySpy()
 			spy.instances = returnedInstances
-			spy.instance = &detailedInstance
+			spy.instanceDetails = instance
 
 			service := New(&spy)
 
@@ -240,14 +247,45 @@ func TestService_GetAllInstances(t *testing.T) {
 			assert.ErrorContains(t, err, "some error")
 		},
 	)
+
+	t.Run(
+		"instances are returned in a predictable order",
+		func(t *testing.T) {
+			detailedInstance1 := generateInstance()
+			detailedInstance1.Id = "b"
+			detailedInstance1.Region = "region"
+			detailedInstance2 := generateInstance()
+			detailedInstance2.Id = "a"
+			detailedInstance2.Region = "region"
+			instanceDetails := make(map[string]*public_cloud.Instance)
+			instanceDetails["b"] = &detailedInstance1
+			instanceDetails["a"] = &detailedInstance2
+
+			returnedInstances := public_cloud.Instances{{Id: "b"}, {Id: "a"}}
+
+			spy := newRepositorySpy()
+			spy.instances = returnedInstances
+			spy.instanceDetails = instanceDetails
+
+			service := New(&spy)
+
+			got, err := service.GetAllInstances(context.TODO())
+
+			assert.Nil(t, err)
+			assert.Equal(t, "a", got[0].Id)
+			assert.Equal(t, "b", got[1].Id)
+		},
+	)
 }
 
 func TestService_GetInstance(t *testing.T) {
 	t.Run("passes back instance from repository", func(t *testing.T) {
 		want := generateInstance()
+		instanceDetails := make(map[string]*public_cloud.Instance)
+		instanceDetails[want.Id] = &want
 
 		spy := newRepositorySpy()
-		spy.instance = &want
+		spy.instanceDetails = instanceDetails
 		service := New(&spy)
 
 		got, err := service.GetInstance("", context.TODO())
@@ -257,10 +295,16 @@ func TestService_GetInstance(t *testing.T) {
 	})
 
 	t.Run("id is passed to repository", func(t *testing.T) {
-		want := "id"
+		instance := generateInstance()
+		instance.Id = "id"
+		instanceDetails := make(map[string]*public_cloud.Instance)
+		instanceDetails[instance.Id] = &instance
 
-		spy := &repositorySpy{instance: &public_cloud.Instance{}}
-		service := New(spy)
+		spy := newRepositorySpy()
+		spy.instanceDetails = instanceDetails
+		service := New(&spy)
+
+		want := "id"
 
 		_, _ = service.GetInstance(want, context.TODO())
 
@@ -289,17 +333,19 @@ func TestService_GetInstance(t *testing.T) {
 	t.Run(
 		"bubbles up populateMissingInstanceAttributes error",
 		func(t *testing.T) {
-			service := New(
-				&repositorySpy{
-					getAutoScalingGroupError: sharedRepository.NewGeneralError(
-						"",
-						errors.New("some error"),
-					),
-					instance: &public_cloud.Instance{
-						AutoScalingGroup: &public_cloud.AutoScalingGroup{},
-					},
-				},
+			instance := generateInstance()
+			instance.AutoScalingGroup = &public_cloud.AutoScalingGroup{}
+
+			instanceDetails := make(map[string]*public_cloud.Instance)
+			instanceDetails[instance.Id] = &instance
+
+			spy := newRepositorySpy()
+			spy.getAutoScalingGroupError = sharedRepository.NewGeneralError(
+				"",
+				errors.New("some error"),
 			)
+			spy.instanceDetails = instanceDetails
+			service := New(&spy)
 
 			_, err := service.GetInstance("", context.TODO())
 
@@ -310,11 +356,19 @@ func TestService_GetInstance(t *testing.T) {
 }
 
 func TestService_CreateInstance(t *testing.T) {
-	t.Run("service passes back instance from repository", func(t *testing.T) {
+	t.Run("passes back instance from repository", func(t *testing.T) {
 		want := generateInstance()
+		want.Id = "instanceId"
+		instanceDetails := make(map[string]*public_cloud.Instance)
+		instanceDetails[want.Id] = &want
+
+		createdInstance := generateInstance()
+		createdInstance.Id = "instanceId"
+		createdInstance.Image.Id = "tralala"
 
 		spy := newRepositorySpy()
-		spy.instance = &want
+		spy.createdInstance = &createdInstance
+		spy.instanceDetails = instanceDetails
 
 		service := New(&spy)
 
@@ -324,7 +378,7 @@ func TestService_CreateInstance(t *testing.T) {
 		assert.Equal(t, want, *got)
 	})
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
+	t.Run("passes back error from repository", func(t *testing.T) {
 		instanceService := New(
 			&repositorySpy{
 				createInstanceError: sharedRepository.NewGeneralError(
@@ -342,11 +396,11 @@ func TestService_CreateInstance(t *testing.T) {
 }
 
 func TestService_UpdateInstance(t *testing.T) {
-	t.Run("service passes back instance from repository", func(t *testing.T) {
+	t.Run("passes back instance from repository", func(t *testing.T) {
 		want := generateInstance()
 
 		spy := newRepositorySpy()
-		spy.instance = &want
+		spy.updatedInstance = &want
 
 		service := New(&spy)
 
@@ -356,7 +410,7 @@ func TestService_UpdateInstance(t *testing.T) {
 		assert.Equal(t, &want, got)
 	})
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
+	t.Run("passes back error from repository", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
 				updateInstanceError: sharedRepository.NewGeneralError(
@@ -377,7 +431,7 @@ func TestService_UpdateInstance(t *testing.T) {
 }
 
 func TestService_DeleteInstance(t *testing.T) {
-	t.Run("service passes back nil from repository", func(t *testing.T) {
+	t.Run("passes back nil from repository", func(t *testing.T) {
 		service := New(&repositorySpy{})
 
 		err := service.DeleteInstance("", context.TODO())
@@ -385,7 +439,7 @@ func TestService_DeleteInstance(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
+	t.Run("passes back error from repository", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
 				deleteInstanceError: sharedRepository.NewGeneralError(
@@ -431,7 +485,7 @@ func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 		},
 	)
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
+	t.Run("passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
 			getAvailableInstanceTypesForUpdateError: sharedRepository.NewGeneralError(
 				"",
@@ -475,7 +529,7 @@ func TestService_GetRegions(t *testing.T) {
 		},
 	)
 
-	t.Run("service passes back error from repository", func(t *testing.T) {
+	t.Run("passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
 			getRegionsError: sharedRepository.NewGeneralError(
 				"",
@@ -507,7 +561,9 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 	t.Run("populates autoScalingGroup from repository", func(t *testing.T) {
 		autoScalingGroupId := "id"
 
-		returnedAutoScalingGroup := public_cloud.AutoScalingGroup{Id: autoScalingGroupId}
+		returnedAutoScalingGroup := public_cloud.AutoScalingGroup{
+			Id: autoScalingGroupId,
+		}
 		spy := newRepositorySpy()
 		spy.autoScalingGroup = &returnedAutoScalingGroup
 
@@ -842,27 +898,24 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 		assert.ErrorContains(t, err, "some error")
 	})
 
-	t.Run(
-		"instanceType repository errors bubble up",
-		func(t *testing.T) {
-			instance := generateInstance()
+	t.Run("instanceType repository errors bubble up", func(t *testing.T) {
+		instance := generateInstance()
 
-			spy := newRepositorySpy()
-			spy.getInstanceTypesForRegionError = sharedRepository.NewGeneralError(
-				"",
-				errors.New("some error"),
-			)
-			service := New(&spy)
+		spy := newRepositorySpy()
+		spy.getInstanceTypesForRegionError = sharedRepository.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+		service := New(&spy)
 
-			_, err := service.populateMissingInstanceAttributes(
-				instance,
-				context.TODO(),
-			)
+		_, err := service.populateMissingInstanceAttributes(
+			instance,
+			context.TODO(),
+		)
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
 
 	t.Run("gets instanceType", func(t *testing.T) {
 		want := public_cloud.InstanceType{Name: "tralala"}
@@ -882,13 +935,6 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, want, got.Type)
 	})
-}
-
-func generateInstance() public_cloud.Instance {
-	return public_cloud.Instance{
-		Image: public_cloud.Image{Id: "imageId"},
-		Type:  public_cloud.InstanceType{Name: "instanceType"},
-	}
 }
 
 func TestService_getInstanceType(t *testing.T) {
@@ -1058,4 +1104,11 @@ func TestService_getLoadBalancer(t *testing.T) {
 			assert.Equal(t, 1, spy.getLoadBalancerCount)
 		},
 	)
+}
+
+func generateInstance() public_cloud.Instance {
+	return public_cloud.Instance{
+		Image: public_cloud.Image{Id: "imageId"},
+		Type:  public_cloud.InstanceType{Name: "instanceType"},
+	}
 }

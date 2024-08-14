@@ -56,6 +56,8 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 		}
 	}
 
+	// Order the results as the channel result order is unpredictable.
+	detailedInstances.OrderById()
 	return detailedInstances, nil
 }
 
@@ -230,7 +232,7 @@ func (srv *Service) getImage(
 	}
 
 	for _, image := range images {
-		srv.cachedImages.Set(id, image)
+		srv.cachedImages.Set(image.Id, image)
 	}
 
 	image, imageErr := images.FilterById(id)
