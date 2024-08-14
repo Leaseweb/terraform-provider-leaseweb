@@ -56,6 +56,8 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 		}
 	}
 
+	// Order the results as the channel result order is unpredictable.
+	detailedInstances.OrderById()
 	return detailedInstances, nil
 }
 
@@ -83,7 +85,7 @@ func (srv *Service) CreateInstance(
 		return nil, errors.NewFromRepositoryError("CreateInstance", *err)
 	}
 
-	// call GetInstance as createdInstance is created from instance and not instanceDetails
+	// call GetInstance as createdInstance is created from instanceDetails and not instanceDetails
 	return srv.GetInstance(createdInstance.Id, ctx)
 }
 
@@ -230,7 +232,7 @@ func (srv *Service) getImage(
 	}
 
 	for _, image := range images {
-		srv.cachedImages.Set(id, image)
+		srv.cachedImages.Set(image.Id, image)
 	}
 
 	image, imageErr := images.FilterById(id)
@@ -244,7 +246,7 @@ func (srv *Service) getImage(
 	return image, nil
 }
 
-// Populate instance with missing details.
+// Populate instanceDetails with missing details.
 func (srv *Service) populateMissingInstanceAttributes(
 	instance public_cloud.Instance,
 	ctx context.Context,
