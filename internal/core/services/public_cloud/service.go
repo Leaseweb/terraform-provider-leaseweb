@@ -85,7 +85,7 @@ func (srv *Service) CreateInstance(
 		return nil, errors.NewFromRepositoryError("CreateInstance", *err)
 	}
 
-	// call GetInstance as createdInstance is created from instanceDetails and not instanceDetails
+	// call GetInstance as createdInstance is created from instance and not instanceDetails
 	return srv.GetInstance(createdInstance.Id, ctx)
 }
 
@@ -246,7 +246,7 @@ func (srv *Service) getImage(
 	return image, nil
 }
 
-// Populate instanceDetails with missing details.
+// Populate instance with missing details.
 func (srv *Service) populateMissingInstanceAttributes(
 	instance public_cloud.Instance,
 	ctx context.Context,
