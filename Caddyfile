@@ -5,7 +5,7 @@ route /publicCloud/v1/* {
 	reverse_proxy prism_publicCloud:4010
 }
 
-route /internal/dedicatedserverapi/v2/* {
-	uri strip_prefix /internal/dedicatedserverapi/v2
+route /bareMetals/v2/* {
+	uri strip_prefix /bareMetals/v2
 	reverse_proxy prism_dedicatedServer:4010
 }

@@ -20,9 +20,7 @@ type Optional struct {
 type DedicatedServerRepository struct {
 	dedicatedServerApi   sdk.DedicatedServerApi
 	token                string
-	adaptDedicatedServer func(
-		sdkDedicatedServer dedicatedServer.Server,
-	) (*domain.DedicatedServer, error)
+	adaptDedicatedServer func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -64,12 +62,7 @@ func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 		}
 
 		for _, sdkDedicatedServer := range result.GetServers() {
-			dedicatedServer, err := p.adaptDedicatedServer(sdkDedicatedServer)
-			if err != nil {
-				return nil, shared.NewGeneralError("GetAllDedicatedServers", err)
-			}
-
-			dedicatedServers = append(dedicatedServers, *dedicatedServer)
+			dedicatedServers = append(dedicatedServers, p.adaptDedicatedServer(sdkDedicatedServer))
 		}
 
 		if !pagination.CanIncrement() {
