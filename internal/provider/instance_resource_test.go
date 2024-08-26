@@ -250,34 +250,37 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("invalid sshKey", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m4.4xlarge"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-  ssh_key = "tralala"
-}`,
-					ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
-				},
-			},
-		})
-	})
+	// TODO Enable SSH key support
+	/**
+	  	t.Run("invalid sshKey", func(t *testing.T) {
+	  		resource.Test(t, resource.TestCase{
+	  			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+	  			Steps: []resource.TestStep{
+	  				{
+	  					Config: providerConfig + `
+	  resource "leaseweb_public_cloud_instance" "test" {
+	    region    = "eu-west-3"
+	    type      = {
+	      name = "lsw.m4.4xlarge"
+	    }
+	    reference = "my webserver"
+	    image = {
+	      id = "UBUNTU_20_04_64BIT"
+	    }
+	    root_disk_storage_type = "CENTRAL"
+	    contract = {
+	      billing_frequency = 1
+	      term              = 0
+	      type              = "HOURLY"
+	    }
+	    ssh_key = "tralala"
+	  }`,
+	  					ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+	  				},
+	  			},
+	  		})
+	  	})
+	*/
 
 	t.Run("rootDiskSize is too small", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
@@ -803,56 +806,59 @@ resource "leaseweb_public_cloud_instance" "test" {
 		},
 	)
 
-	t.Run(
-		"changing the sshKey is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-  ssh_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbRsxME8r5CbjnXcPj2IydrrDlqDjqvvK4vd4a6zDyP+Pu47HuBdbIqskdDviS/6ZHuMm7x9On/4VDRFaqVUSDAHqkJktBGgsrpoLxy5OMX2BUuxVZibW7US9hBukfi0qaBuk4P78e5ginZ+hXtZZx7li9yqs1Q27BkN+LmQ0Z6Zsbn/agq58GnuUGVwdlcilQ4WC6RoV7vtV/DIstAGDzuxA9ANrE6w6jOU25epq/OUvK7DNIm3U0PH3QK5wzYCubLuhH8tx9M7zcKJPodVPTOTsAO1RxTcwiyYTlNOg3yuubYPY+Lug1wpMPFR8WOfxSCSW9AUUTdm1Zfq7V5M99 "
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
+	// TODO Enable SSH key support
+	/**
+	  	t.Run(
+	  		"changing the sshKey is not allowed",
+	  		func(t *testing.T) {
+	  			resource.Test(t, resource.TestCase{
+	  				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+	  				Steps: []resource.TestStep{
+	  					{
+	  						Config: providerConfig + `
+	  resource "leaseweb_public_cloud_instance" "test" {
+	    region    = "eu-west-3"
+	    type      = {
+	      name = "lsw.m3.large"
+	    }
+	    reference = "my webserver"
+	    image = {
+	      id = "UBUNTU_20_04_64BIT"
+	    }
+	    root_disk_storage_type = "CENTRAL"
+	    contract = {
+	      billing_frequency = 1
+	      term              = 0
+	      type              = "HOURLY"
+	    }
+	  }`,
+	  					},
+	  					{
+	  						Config: providerConfig + `
+	  resource "leaseweb_public_cloud_instance" "test" {
+	    region    = "eu-west-3"
+	    type      = {
+	      name = "lsw.m3.large"
+	    }
+	    reference = "my webserver"
+	    image = {
+	      id = "UBUNTU_20_04_64BIT"
+	    }
+	    root_disk_storage_type = "CENTRAL"
+	    contract = {
+	      billing_frequency = 1
+	      term              = 0
+	      type              = "HOURLY"
+	    }
+	    ssh_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbRsxME8r5CbjnXcPj2IydrrDlqDjqvvK4vd4a6zDyP+Pu47HuBdbIqskdDviS/6ZHuMm7x9On/4VDRFaqVUSDAHqkJktBGgsrpoLxy5OMX2BUuxVZibW7US9hBukfi0qaBuk4P78e5ginZ+hXtZZx7li9yqs1Q27BkN+LmQ0Z6Zsbn/agq58GnuUGVwdlcilQ4WC6RoV7vtV/DIstAGDzuxA9ANrE6w6jOU25epq/OUvK7DNIm3U0PH3QK5wzYCubLuhH8tx9M7zcKJPodVPTOTsAO1RxTcwiyYTlNOg3yuubYPY+Lug1wpMPFR8WOfxSCSW9AUUTdm1Zfq7V5M99 "
+	  }`,
+	  						ExpectError: regexp.MustCompile(
+	  							"Attribute value is not allowed to change",
+	  						),
+	  					},
+	  				},
+	  			})
+	  		},
+	  	)
+	*/
 }

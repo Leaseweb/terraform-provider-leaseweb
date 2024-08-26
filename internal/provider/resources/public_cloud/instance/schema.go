@@ -2,7 +2,6 @@ package instance
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -124,18 +123,21 @@ func (i *instanceResource) Schema(
 				Computed: true,
 			},
 			"type": sharedSchemas.InstanceType(true),
-			"ssh_key": schema.StringAttribute{
-				Optional:      true,
-				Sensitive:     true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(facade.GetSshKeyRegularExpression()),
-						"Invalid ssh key",
-					),
-				},
-			},
+			// TODO Enable SSH key support
+			/**
+			  "ssh_key": schema.StringAttribute{
+			  	Optional:      true,
+			  	Sensitive:     true,
+			  	PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+			  	Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+			  	Validators: []validator.String{
+			  		stringvalidator.RegexMatches(
+			  			regexp.MustCompile(facade.GetSshKeyRegularExpression()),
+			  			"Invalid ssh key",
+			  		),
+			  	},
+			  },
+			*/
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,

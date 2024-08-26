@@ -24,6 +24,7 @@ type Instance struct {
 	AutoScalingGroup    types.Object `tfsdk:"auto_scaling_group"`
 	Iso                 types.Object `tfsdk:"iso"`
 	PrivateNetwork      types.Object `tfsdk:"private_network"`
-	SshKey              types.String `tfsdk:"ssh_key"`
-	Volume              types.Object `tfsdk:"volume"`
+	// TODO Enable SSH key support
+	//SshKey              types.String `tfsdk:"ssh_key"`
+	Volume types.Object `tfsdk:"volume"`
 }

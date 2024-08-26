@@ -48,7 +48,6 @@ resource "leaseweb_public_cloud_instance" "example" {
 - `market_app_id` (String) Market App ID that must be installed into the instance
 - `reference` (String) The identifying name set to the instance
 - `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
-- `ssh_key` (String, Sensitive) Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances
 
 ### Read-Only
 

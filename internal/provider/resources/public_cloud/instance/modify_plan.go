@@ -75,10 +75,13 @@ func (i *instanceResource) ModifyPlan(
 			stateValue:   stateInstance.RootDiskStorageType,
 			plannedValue: planInstance.RootDiskStorageType,
 		},
-		immutableString{
-			stateValue:   stateInstance.SshKey,
-			plannedValue: planInstance.SshKey,
-		},
+		// TODO Enable SSH key support
+		/**
+		  immutableString{
+		  	stateValue:   stateInstance.SshKey,
+		  	plannedValue: planInstance.SshKey,
+		  },
+		*/
 	}
 
 	i.validateImmutableString(stateInstance.Id, immutableStrings, response, ctx)
