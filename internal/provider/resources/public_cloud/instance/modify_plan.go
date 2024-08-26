@@ -9,15 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	instanceValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared_validators"
 )
-
-type immutableString struct {
-	stateValue   types.String
-	plannedValue types.String
-}
-
-type immutableStrings []immutableString
 
 // ModifyPlan calls validators that require access to the handler.
 // This needs to be done here as client.Client isn't properly initialized when
@@ -39,8 +31,19 @@ func (i *instanceResource) ModifyPlan(
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
+	stateInstanceType := model.InstanceType{}
+	stateInstance.Type.As(ctx, &stateInstanceType, basetypes.ObjectAsOptions{})
+
 	stateImage := model.Image{}
 	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
+
+	// Before deletion, determine if the instance is allowed to be deleted
+	if request.Plan.Raw.IsNull() {
+		i.validateInstance(stateInstance, response, ctx)
+		if response.Diagnostics.HasError() {
+			return
+		}
+	}
 
 	i.validateRegion(planInstance.Region, response, ctx)
 	if response.Diagnostics.HasError() {
@@ -49,6 +52,7 @@ func (i *instanceResource) ModifyPlan(
 
 	i.validateInstanceType(
 		planInstanceType.Name,
+		stateInstanceType.Name,
 		stateInstance.Id,
 		planInstance.Region,
 		response,
@@ -56,56 +60,6 @@ func (i *instanceResource) ModifyPlan(
 	)
 	if response.Diagnostics.HasError() {
 		return
-	}
-
-	immutableStrings := immutableStrings{
-		immutableString{
-			stateValue:   stateInstance.Region,
-			plannedValue: planInstance.Region,
-		},
-		immutableString{
-			stateValue:   stateImage.Id,
-			plannedValue: planImage.Id,
-		},
-		immutableString{
-			stateValue:   stateInstance.MarketAppId,
-			plannedValue: planInstance.MarketAppId,
-		},
-		immutableString{
-			stateValue:   stateInstance.RootDiskStorageType,
-			plannedValue: planInstance.RootDiskStorageType,
-		},
-		// TODO Enable SSH key support
-		/**
-		  immutableString{
-		  	stateValue:   stateInstance.SshKey,
-		  	plannedValue: planInstance.SshKey,
-		  },
-		*/
-	}
-
-	i.validateImmutableString(stateInstance.Id, immutableStrings, response, ctx)
-}
-
-func (i *instanceResource) validateImmutableString(
-	stateIdValue types.String,
-	immutableStrings immutableStrings,
-	response *resource.ModifyPlanResponse,
-	ctx context.Context,
-) {
-	for _, immutableString := range immutableStrings {
-		request := validator.StringRequest{ConfigValue: immutableString.plannedValue}
-		validatorResponse := validator.StringResponse{}
-
-		immutableStringValidator := shared_validators.NewImmutableStringValidator(
-			stateIdValue,
-			immutableString.stateValue,
-		)
-		immutableStringValidator.ValidateString(ctx, request, &validatorResponse)
-		if validatorResponse.Diagnostics.HasError() {
-			response.Diagnostics.Append(validatorResponse.Diagnostics.Errors()...)
-			return
-		}
 	}
 }
 
@@ -128,6 +82,7 @@ func (i *instanceResource) validateRegion(
 
 func (i *instanceResource) validateInstanceType(
 	instanceType types.String,
+	currentInstanceType types.String,
 	instanceId types.String,
 	region types.String,
 	response *resource.ModifyPlanResponse,
@@ -141,9 +96,42 @@ func (i *instanceResource) validateInstanceType(
 		i.client.PublicCloudFacade.CanInstanceTypeBeUsedWithInstance,
 		instanceId,
 		region,
+		currentInstanceType,
 	)
 
 	instanceTypeValidator.ValidateString(ctx, request, &instanceResponse)
+	if instanceResponse.Diagnostics.HasError() {
+		response.Diagnostics.Append(instanceResponse.Diagnostics.Errors()...)
+	}
+}
+
+// Checks if instance can be deleted.
+func (i *instanceResource) validateInstance(
+	instance model.Instance,
+	response *resource.ModifyPlanResponse,
+	ctx context.Context,
+) {
+	instanceObject, diags := basetypes.NewObjectValueFrom(
+		ctx,
+		model.Instance{}.AttributeTypes(),
+		instance,
+	)
+	if diags.HasError() {
+		response.Diagnostics.Append(diags.Errors()...)
+		return
+	}
+
+	instanceRequest := validator.ObjectRequest{ConfigValue: instanceObject}
+	instanceResponse := validator.ObjectResponse{}
+	validateInstanceTermination := instanceValidator.ValidateInstanceTermination(
+		i.client.PublicCloudFacade.CanInstanceBeTerminated,
+	)
+	validateInstanceTermination.ValidateObject(
+		ctx,
+		instanceRequest,
+		&instanceResponse,
+	)
+
 	if instanceResponse.Diagnostics.HasError() {
 		response.Diagnostics.Append(instanceResponse.Diagnostics.Errors()...)
 	}

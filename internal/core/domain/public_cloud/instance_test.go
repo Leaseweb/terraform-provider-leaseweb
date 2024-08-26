@@ -307,3 +307,61 @@ func TestNewUpdateInstance(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestInstance_CanBeTerminated(t *testing.T) {
+	t.Run(
+		"Instance cannot be terminated when state is creating",
+		func(t *testing.T) {
+			instance := Instance{State: enum.StateCreating}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, enum.StateCreating.String())
+		},
+	)
+
+	t.Run(
+		"Instance cannot be terminated when state is destroying",
+		func(t *testing.T) {
+			instance := Instance{State: enum.StateDestroying}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, enum.StateDestroying.String())
+		},
+	)
+
+	t.Run(
+		"Instance cannot be terminated when state is destroyed",
+		func(t *testing.T) {
+			instance := Instance{State: enum.StateDestroyed}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, enum.StateDestroyed.String())
+		},
+	)
+
+	t.Run(
+		"Instance cannot be terminated when contract.EndsAt is not nil",
+		func(t *testing.T) {
+			endsAt := time.Now()
+			instance := Instance{Contract: Contract{EndsAt: &endsAt}}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, endsAt.String())
+		},
+	)
+
+	t.Run(
+		"Instance can be terminated in other scenarios",
+		func(t *testing.T) {
+			instance := Instance{}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.True(t, permission)
+			assert.Nil(t, reason)
+		},
+	)
+}

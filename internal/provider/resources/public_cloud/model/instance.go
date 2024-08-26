@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -27,4 +28,51 @@ type Instance struct {
 	// TODO Enable SSH key support
 	//SshKey              types.String `tfsdk:"ssh_key"`
 	Volume types.Object `tfsdk:"volume"`
+}
+
+func (i Instance) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":        types.StringType,
+		"region":    types.StringType,
+		"reference": types.StringType,
+		"resources": types.ObjectType{
+			AttrTypes: Resources{}.AttributeTypes(),
+		},
+		"image": types.ObjectType{
+			AttrTypes: Image{}.AttributeTypes(),
+		},
+		"state":               types.StringType,
+		"product_type":        types.StringType,
+		"has_public_ipv4":     types.BoolType,
+		"has_private_network": types.BoolType,
+		"type": types.ObjectType{
+			AttrTypes: InstanceType{}.AttributeTypes(),
+		},
+		"root_disk_size":         types.Int64Type,
+		"root_disk_storage_type": types.StringType,
+		"ips": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: Ip{}.AttributeTypes(),
+			},
+		},
+		"started_at": types.StringType,
+		"contract": types.ObjectType{
+			AttrTypes: Contract{}.AttributeTypes(),
+		},
+		"market_app_id": types.StringType,
+		"auto_scaling_group": types.ObjectType{
+			AttrTypes: AutoScalingGroup{}.AttributeTypes(),
+		},
+		"iso": types.ObjectType{
+			AttrTypes: Iso{}.AttributeTypes(),
+		},
+		"private_network": types.ObjectType{
+			AttrTypes: PrivateNetwork{}.AttributeTypes(),
+		},
+		// TODO Enable SSH key support
+		//"ssh_key": types.StringType,
+		"volume": types.ObjectType{
+			AttrTypes: Volume{}.AttributeTypes(),
+		},
+	}
 }

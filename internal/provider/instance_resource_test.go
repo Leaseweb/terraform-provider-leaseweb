@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func TestAccInstanceResource(t *testing.T) {
@@ -597,215 +598,6 @@ resource "leaseweb_public_cloud_instance" "test" {
 		},
 	)
 
-	t.Run(
-		"changing the region is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-2"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
-
-	t.Run(
-		"changing the imageId is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_22_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
-
-	t.Run(
-		"changing the marketAppId is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  market_app_id = "newValue"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
-
-	t.Run(
-		"changing the rootDiskStorageType is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "LOCAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
-
 	// TODO Enable SSH key support
 	/**
 	  	t.Run(
@@ -861,4 +653,243 @@ resource "leaseweb_public_cloud_instance" "test" {
 	  		},
 	  	)
 	*/
+
+	t.Run("changing the region triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-2"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				},
+			},
+		})
+	})
+
+	t.Run("changing the imageId triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_22_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				},
+			},
+		})
+	})
+
+	t.Run(
+		"changing the marketAppId triggers replacement",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					},
+					{
+						ConfigPlanChecks: resource.ConfigPlanChecks{
+							PreApply: []plancheck.PlanCheck{
+								plancheck.ExpectResourceAction(
+									"leaseweb_public_cloud_instance.test",
+									plancheck.ResourceActionDestroyBeforeCreate,
+								),
+							},
+						},
+						// Ignore the inconsistent result as prism returns the old result.
+						ExpectError: regexp.MustCompile(
+							"Provider produced inconsistent result after apply",
+						),
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  market_app_id = "newValue"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"changing the rootDiskStorageType triggers replacement",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					},
+					{
+						ConfigPlanChecks: resource.ConfigPlanChecks{
+							PreApply: []plancheck.PlanCheck{
+								plancheck.ExpectResourceAction(
+									"leaseweb_public_cloud_instance.test",
+									plancheck.ResourceActionDestroyBeforeCreate,
+								),
+							},
+						},
+						// Ignore the inconsistent result as prism returns the old result.
+						ExpectError: regexp.MustCompile(
+							"Provider produced inconsistent result after apply",
+						),
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region    = "eu-west-3"
+  type      = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "LOCAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					},
+				},
+			})
+		},
+	)
 }

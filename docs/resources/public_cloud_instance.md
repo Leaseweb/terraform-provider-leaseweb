@@ -39,13 +39,13 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
 - `image` (Attributes) (see [below for nested schema](#nestedatt--image))
-- `region` (String) Region to launch the instance into
-- `root_disk_storage_type` (String) The root disk's storage type
+- `region` (String) Region to launch the instance into.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `root_disk_storage_type` (String) The root disk's storage type.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `type` (Attributes) (see [below for nested schema](#nestedatt--type))
 
 ### Optional
 
-- `market_app_id` (String) Market App ID that must be installed into the instance
+- `market_app_id` (String) Market App ID that must be installed into the instance.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `reference` (String) The identifying name set to the instance
 - `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
 
@@ -86,7 +86,7 @@ Read-Only:
 
 Required:
 
-- `id` (String) Image ID
+- `id` (String) Image ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
 Read-Only:
 

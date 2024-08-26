@@ -21,6 +21,7 @@ func (i *instanceResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	facade := public_cloud.PublicCloudFacade{}
+	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -33,9 +34,9 @@ func (i *instanceResource) Schema(
 			},
 			"region": schema.StringAttribute{
 				Required:    true,
-				Description: "Region to launch the instance into",
+				Description: "Region to launch the instance into." + warningError,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"reference": schema.StringAttribute{
@@ -49,7 +50,10 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Image ID",
+						Description: "Image ID." + warningError,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 					"name": schema.StringAttribute{
 						Computed: true,
@@ -125,18 +129,17 @@ func (i *instanceResource) Schema(
 			"type": sharedSchemas.InstanceType(true),
 			// TODO Enable SSH key support
 			/**
-			  "ssh_key": schema.StringAttribute{
-			  	Optional:      true,
-			  	Sensitive:     true,
-			  	PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			  	Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
-			  	Validators: []validator.String{
-			  		stringvalidator.RegexMatches(
-			  			regexp.MustCompile(facade.GetSshKeyRegularExpression()),
-			  			"Invalid ssh key",
-			  		),
-			  	},
-			  },
+			"ssh_key": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(facade.GetSshKeyRegularExpression()),
+						"Invalid ssh key",
+					),
+				},
+			},
 			*/
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
@@ -151,9 +154,12 @@ func (i *instanceResource) Schema(
 			},
 			"root_disk_storage_type": schema.StringAttribute{
 				Required:    true,
-				Description: "The root disk's storage type",
+				Description: "The root disk's storage type." + warningError,
 				Validators: []validator.String{
 					stringvalidator.OneOf(facade.GetRootDiskStorageTypes()...),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"ips": sharedSchemas.Ips(),
@@ -176,7 +182,10 @@ func (i *instanceResource) Schema(
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Market App ID that must be installed into the instance",
+				Description: "Market App ID that must be installed into the instance." + warningError,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplaceIfConfigured(),
+				},
 			},
 			"auto_scaling_group": schema.SingleNestedAttribute{
 				Computed: true,
