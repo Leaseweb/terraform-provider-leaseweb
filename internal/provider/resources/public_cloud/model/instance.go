@@ -25,8 +25,9 @@ type Instance struct {
 	AutoScalingGroup    types.Object `tfsdk:"auto_scaling_group"`
 	Iso                 types.Object `tfsdk:"iso"`
 	PrivateNetwork      types.Object `tfsdk:"private_network"`
-	SshKey              types.String `tfsdk:"ssh_key"`
-	Volume              types.Object `tfsdk:"volume"`
+	// TODO Enable SSH key support
+	//SshKey              types.String `tfsdk:"ssh_key"`
+	Volume types.Object `tfsdk:"volume"`
 }
 
 func (i Instance) AttributeTypes() map[string]attr.Type {
@@ -68,7 +69,8 @@ func (i Instance) AttributeTypes() map[string]attr.Type {
 		"private_network": types.ObjectType{
 			AttrTypes: PrivateNetwork{}.AttributeTypes(),
 		},
-		"ssh_key": types.StringType,
+		// TODO Enable SSH key support
+		//"ssh_key": types.StringType,
 		"volume": types.ObjectType{
 			AttrTypes: Volume{}.AttributeTypes(),
 		},

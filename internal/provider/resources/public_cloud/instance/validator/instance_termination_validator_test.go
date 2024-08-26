@@ -165,7 +165,8 @@ func generateInstanceModel() model.Instance {
 		PrivateNetwork: basetypes.NewObjectUnknown(
 			model.PrivateNetwork{}.AttributeTypes(),
 		),
-		SshKey: basetypes.NewStringUnknown(),
+		// TODO Enable SSH key support
+		//SshKey: basetypes.NewStringUnknown(),
 		Volume: basetypes.NewObjectUnknown(
 			model.Volume{}.AttributeTypes(),
 		),
