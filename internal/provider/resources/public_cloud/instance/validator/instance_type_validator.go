@@ -20,11 +20,13 @@ type InstanceTypeValidator struct {
 	) (bool, []string, error)
 	canInstanceTypeBeUsedWithInstance func(
 		id string,
+		currentInstanceType string,
 		instanceType string,
 		ctx context.Context,
 	) (bool, []string, error)
-	instanceId types.String
-	region     types.String
+	instanceId          types.String
+	region              types.String
+	currentInstanceType types.String
 }
 
 func (i InstanceTypeValidator) Description(ctx context.Context) string {
@@ -83,6 +85,7 @@ func (i InstanceTypeValidator) validateUpdatedInstance(
 ) {
 	canInstanceTypeBeUsed, allowedInstanceTypes, err := i.canInstanceTypeBeUsedWithInstance(
 		i.instanceId.ValueString(),
+		i.currentInstanceType.ValueString(),
 		request.ConfigValue.ValueString(),
 		ctx,
 	)
@@ -120,11 +123,13 @@ func NewInstanceTypeValidator(
 	) (bool, []string, error),
 	canInstanceTypeBeUsedWithInstance func(
 		id string,
+		currentInstanceType string,
 		instanceType string,
 		ctx context.Context,
 	) (bool, []string, error),
 	instanceId types.String,
 	region types.String,
+	currentInstanceType types.String,
 ) InstanceTypeValidator {
 	if region.IsUnknown() {
 		log.Fatal(errors.New("region must be specified"))
@@ -135,5 +140,6 @@ func NewInstanceTypeValidator(
 		canInstanceTypeBeUsedWithInstance: canInstanceTypeBeUsedWithInstance,
 		instanceId:                        instanceId,
 		region:                            region,
+		currentInstanceType:               currentInstanceType,
 	}
 }

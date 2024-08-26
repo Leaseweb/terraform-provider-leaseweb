@@ -49,6 +49,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 			},
 			canInstanceTypeBeUsedWithInstance: func(
 				id string,
+				currentInstanceType string,
 				instanceType string,
 				ctx context.Context,
 			) (bool, []string, error) {
@@ -85,6 +86,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 			},
 			canInstanceTypeBeUsedWithInstance: func(
 				id string,
+				currentInstanceType string,
 				instanceType string,
 				ctx context.Context,
 			) (bool, []string, error) {
@@ -146,6 +148,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 			validator := InstanceTypeValidator{
 				canInstanceTypeBeUsedWithInstance: func(
 					id string,
+					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
 				) (bool, []string, error) {
@@ -269,6 +272,7 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 			validator := InstanceTypeValidator{
 				canInstanceTypeBeUsedWithInstance: func(
 					id string,
+					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
 				) (bool, []string, error) {
@@ -290,20 +294,23 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 	)
 
 	t.Run(
-		"instanceType & stateValue are passed to canInstanceTypeBeUsedWithInstance",
+		"instanceType, currentInstanceType & stateValue are passed to canInstanceTypeBeUsedWithInstance",
 		func(t *testing.T) {
 			validator := InstanceTypeValidator{
 				canInstanceTypeBeUsedWithInstance: func(
 					id string,
+					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
 				) (bool, []string, error) {
 					assert.Equal(t, "instanceType", instanceType)
 					assert.Equal(t, "instanceId", id)
+					assert.Equal(t, "currentInstanceType", currentInstanceType)
 
 					return true, nil, nil
 				},
-				instanceId: basetypes.NewStringValue("instanceId"),
+				instanceId:          basetypes.NewStringValue("instanceId"),
+				currentInstanceType: basetypes.NewStringValue("currentInstanceType"),
 			}
 
 			response := terraformValidator.StringResponse{}
@@ -323,6 +330,7 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 			validator := InstanceTypeValidator{
 				canInstanceTypeBeUsedWithInstance: func(
 					id string,
+					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
 				) (bool, []string, error) {
@@ -364,6 +372,7 @@ func TestNewInstanceTypeValidator(t *testing.T) {
 		},
 		func(
 			id string,
+			currentInstanceType string,
 			instanceType string,
 			ctx context.Context,
 		) (bool, []string, error) {
@@ -371,12 +380,14 @@ func TestNewInstanceTypeValidator(t *testing.T) {
 		},
 		basetypes.NewStringValue("instanceId"),
 		basetypes.NewStringValue("region"),
+		basetypes.NewStringValue("currentInstanceType"),
 	)
 
 	assert.Equal(t, "instanceId", validator.instanceId.ValueString())
 	assert.Equal(t, "region", validator.region.ValueString())
 
 	_, got, _ := validator.canInstanceTypeBeUsedWithInstance(
+		"",
 		"",
 		"",
 		context.TODO(),
