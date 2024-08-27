@@ -44,7 +44,7 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Image ID." + warningError,
+						Description: "Can be either an Operating System or a UUID in case of a Custom Image ID." + warningError,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
 						},
@@ -137,7 +137,7 @@ func (i *instanceResource) Schema(
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
+				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
 				Validators: []validator.Int64{
 					int64validator.Between(
 						facade.GetMinimumRootDiskSize(),
@@ -147,7 +147,7 @@ func (i *instanceResource) Schema(
 			},
 			"root_disk_storage_type": schema.StringAttribute{
 				Required:    true,
-				Description: "The root disk's storage type." + warningError,
+				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
 					stringvalidator.OneOf(facade.GetRootDiskStorageTypes()...),
 				},

@@ -12,6 +12,7 @@ import (
 	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
@@ -744,7 +745,7 @@ func TestPublicCloudFacade_GetRootDiskStorageTypes(t *testing.T) {
 
 func TestPublicCloudFacade_GetBillingFrequencies(t *testing.T) {
 	facade := PublicCloudFacade{}
-	want := []int64{0, 1, 3, 6, 12}
+	want := shared.NewIntMarkdownList([]int{0, 1, 3, 6, 12})
 	got := facade.GetBillingFrequencies()
 
 	assert.Equal(t, want, got)
@@ -752,7 +753,7 @@ func TestPublicCloudFacade_GetBillingFrequencies(t *testing.T) {
 
 func TestPublicCloudFacade_GetContractTerms(t *testing.T) {
 	facade := PublicCloudFacade{}
-	want := []int64{0, 1, 3, 6, 12}
+	want := shared.NewIntMarkdownList([]int{0, 1, 3, 6, 12})
 	got := facade.GetContractTerms()
 
 	assert.Equal(t, want, got)

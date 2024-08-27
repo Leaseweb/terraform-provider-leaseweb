@@ -7,9 +7,9 @@ A Terraform provider to manage Leaseweb resources.
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.7
-- [Go](https://golang.org/doc/install) >= 1.21
-- [Node](https://nodejs.org) >= 20.13
-- [pnPM](https://pnpm.io/) >= 9.1
+- [Go](https://golang.org/doc/install) >= 1.22
+- [Node](https://nodejs.org) >= 20.17
+- [pnPM](https://pnpm.io/) >= 9.7
 
 All requirements are also satisfied by the included [docker-compose.yml](docker-compose.yml).
 
@@ -73,5 +73,5 @@ curl -i http://localhost:8080/publicCloud/v1/instances --header 'x-lsw-auth: tra
 Files are automatically linted via git hooks on commit and on push. To enable the git hooks run
 
 ```bash
-pnpm husky
+pnpm i
 ```

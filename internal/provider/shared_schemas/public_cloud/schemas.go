@@ -166,23 +166,23 @@ func Contract(
 			"billing_frequency": schema.Int64Attribute{
 				Computed:    !required,
 				Required:    required,
-				Description: "The billing frequency (in months)",
+				Description: "The billing frequency (in months). Valid options are " + facade.GetBillingFrequencies().Markdown(),
 				Validators: []validator.Int64{
-					int64validator.OneOf(facade.GetBillingFrequencies()...),
+					int64validator.OneOf(facade.GetBillingFrequencies().ToInt64()...),
 				},
 			},
 			"term": schema.Int64Attribute{
 				Computed:    !required,
 				Required:    required,
-				Description: "Contract term (in months). Used only when type is MONTHLY",
+				Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + facade.GetContractTerms().Markdown(),
 				Validators: []validator.Int64{
-					int64validator.OneOf(facade.GetContractTerms()...),
+					int64validator.OneOf(facade.GetContractTerms().ToInt64()...),
 				},
 			},
 			"type": schema.StringAttribute{
 				Computed:    !required,
 				Required:    required,
-				Description: "Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage",
+				Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 				Validators: []validator.String{
 					stringvalidator.OneOf(facade.GetContractTypes()...),
 				},
@@ -253,7 +253,7 @@ func ResourceRegion(required bool, warning string) resourceSchema.SingleNestedAt
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Description: printedWarning,
+				Description: "Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)" + printedWarning,
 			},
 			"location": resourceSchema.StringAttribute{
 				Computed:    true,
