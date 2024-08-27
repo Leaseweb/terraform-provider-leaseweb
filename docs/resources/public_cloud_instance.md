@@ -88,7 +88,7 @@ Read-Only:
 
 Required:
 
-- `id` (String) Image ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `id` (String) Can be either an Operating System or a UUID in case of a Custom ImageImage ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
 Read-Only:
 

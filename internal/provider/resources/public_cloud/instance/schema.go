@@ -44,7 +44,7 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Image ID." + warningError,
+						Description: "Can be either an Operating System or a UUID in case of a Custom ImageImage ID." + warningError,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
 						},
