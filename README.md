@@ -73,5 +73,5 @@ curl -i http://localhost:8080/publicCloud/v1/instances --header 'x-lsw-auth: tra
 Files are automatically linted via git hooks on commit and on push. To enable the git hooks run
 
 ```bash
-pnpm husky
+pnpm i
 ```
