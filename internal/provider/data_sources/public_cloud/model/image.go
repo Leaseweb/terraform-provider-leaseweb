@@ -12,7 +12,7 @@ type Image struct {
 	Flavour      types.String   `tfsdk:"flavour"`
 	State        types.String   `tfsdk:"state"`
 	StateReason  types.String   `tfsdk:"state_reason"`
-	Region       types.String   `tfsdk:"region"`
+	Region       *Region        `tfsdk:"region"`
 	CreatedAt    types.String   `tfsdk:"created_at"`
 	UpdatedAt    types.String   `tfsdk:"updated_at"`
 	Custom       types.Bool     `tfsdk:"custom"`

@@ -21,7 +21,7 @@ type ReasonInstanceCannotBeTerminated string
 
 type Instance struct {
 	Id                  string
-	Region              string
+	Region              Region
 	Reference           *string
 	StartedAt           *time.Time
 	Resources           Resources
@@ -99,7 +99,7 @@ type OptionalUpdateInstanceValues struct {
 // NewInstance creates a new instance with all supported options.
 func NewInstance(
 	id string,
-	region string,
+	region Region,
 	resources Resources,
 	image Image,
 	state enum.State,
@@ -160,7 +160,7 @@ func NewCreateInstance(
 	}
 
 	instance := Instance{
-		Region:              region,
+		Region:              Region{Name: region},
 		Type:                InstanceType{Name: instanceType},
 		RootDiskStorageType: rootDiskStorageType,
 		Image:               Image{Id: imageId},

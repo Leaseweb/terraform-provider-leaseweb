@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	sdk "github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +14,7 @@ var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"
 var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
 
 func Test_adaptNetworkSpeed(t *testing.T) {
-	sdkNetworkSpeed := publicCloud.NewNetworkSpeed(1, "unit")
+	sdkNetworkSpeed := sdk.NewNetworkSpeed(1, "unit")
 	got := adaptNetworkSpeed(*sdkNetworkSpeed)
 
 	assert.Equal(t, 1, got.Value)
@@ -22,7 +22,7 @@ func Test_adaptNetworkSpeed(t *testing.T) {
 }
 
 func Test_adaptMemory(t *testing.T) {
-	sdkMemory := publicCloud.NewMemory(1, "unit")
+	sdkMemory := sdk.NewMemory(1, "unit")
 	got := adaptMemory(*sdkMemory)
 
 	assert.Equal(t, float64(1), got.Value)
@@ -30,7 +30,7 @@ func Test_adaptMemory(t *testing.T) {
 }
 
 func Test_adaptCpu(t *testing.T) {
-	sdkCpu := publicCloud.NewCpu(1, "unit")
+	sdkCpu := sdk.NewCpu(1, "unit")
 	got := adaptCpu(*sdkCpu)
 
 	assert.Equal(t, 1, got.Value)
@@ -38,11 +38,11 @@ func Test_adaptCpu(t *testing.T) {
 }
 
 func Test_adaptResources(t *testing.T) {
-	sdkResources := publicCloud.NewResources(
-		publicCloud.Cpu{Unit: "cpu"},
-		publicCloud.Memory{Unit: "memory"},
-		publicCloud.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		publicCloud.NetworkSpeed{Unit: "privateNetworkSpeed"},
+	sdkResources := sdk.NewResources(
+		sdk.Cpu{Unit: "cpu"},
+		sdk.Memory{Unit: "memory"},
+		sdk.NetworkSpeed{Unit: "publicNetworkSpeed"},
+		sdk.NetworkSpeed{Unit: "privateNetworkSpeed"},
 	)
 
 	got := adaptResources(*sdkResources)
@@ -66,9 +66,9 @@ func TestAdaptInstanceDetails(t *testing.T) {
 			"5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 			got.Id,
 		)
-		assert.Equal(t, string(publicCloud.TYPENAME_M3_LARGE), got.Type.String())
+		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type.String())
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
@@ -122,7 +122,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 
 	t.Run("invalid ip returns error", func(t *testing.T) {
 		sdkInstance := generateInstanceDetails(t, nil)
-		sdkInstance.Ips = []publicCloud.IpDetails{{NetworkType: "tralala"}}
+		sdkInstance.Ips = []sdk.IpDetails{{NetworkType: "tralala"}}
 
 		_, err := AdaptInstanceDetails(sdkInstance)
 
@@ -142,7 +142,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 }
 
 func Test_adaptDdos(t *testing.T) {
-	got := adaptDdos(publicCloud.Ddos{
+	got := adaptDdos(sdk.Ddos{
 		DetectionProfile: "detectionProfile",
 		ProtectionType:   "protectionType",
 	})
@@ -155,16 +155,16 @@ func Test_adaptIpDetails(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		reverseLookup := "reverseLookup"
 
-		sdkIp := publicCloud.NewIpDetails(
+		sdkIp := sdk.NewIpDetails(
 			"1.2.3.4",
 			"prefixLength",
 			5,
 			true,
 			false,
-			publicCloud.NETWORKTYPE_INTERNAL,
-			*publicCloud.NewNullableString(&reverseLookup),
-			*publicCloud.NewNullableDdos(
-				&publicCloud.Ddos{DetectionProfile: "detectionProfile"},
+			sdk.NETWORKTYPE_INTERNAL,
+			*sdk.NewNullableString(&reverseLookup),
+			*sdk.NewNullableDdos(
+				&sdk.Ddos{DetectionProfile: "detectionProfile"},
 			),
 		)
 
@@ -182,7 +182,7 @@ func Test_adaptIpDetails(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid networkType", func(t *testing.T) {
-		_, err := adaptIpDetails(publicCloud.IpDetails{NetworkType: "tralala"})
+		_, err := adaptIpDetails(sdk.IpDetails{NetworkType: "tralala"})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -191,9 +191,9 @@ func Test_adaptIpDetails(t *testing.T) {
 
 func Test_adaptIpsDetails(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		got, err := adaptIpsDetails([]publicCloud.IpDetails{{
+		got, err := adaptIpsDetails([]sdk.IpDetails{{
 			Ip:          "1.2.3.4",
-			NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
+			NetworkType: sdk.NETWORKTYPE_PUBLIC,
 		}})
 
 		assert.NoError(t, err)
@@ -202,7 +202,7 @@ func Test_adaptIpsDetails(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid ip", func(t *testing.T) {
-		_, err := adaptIps([]publicCloud.Ip{{NetworkType: "tralala"}})
+		_, err := adaptIps([]sdk.Ip{{NetworkType: "tralala"}})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -211,9 +211,9 @@ func Test_adaptIpsDetails(t *testing.T) {
 
 func Test_adaptIps(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		got, err := adaptIps([]publicCloud.Ip{{
+		got, err := adaptIps([]sdk.Ip{{
 			Ip:          "1.2.3.4",
-			NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
+			NetworkType: sdk.NETWORKTYPE_PUBLIC,
 		}})
 
 		assert.NoError(t, err)
@@ -222,7 +222,7 @@ func Test_adaptIps(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid ip", func(t *testing.T) {
-		_, err := adaptIps([]publicCloud.Ip{{NetworkType: "tralala"}})
+		_, err := adaptIps([]sdk.Ip{{NetworkType: "tralala"}})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -235,14 +235,14 @@ func Test_adaptContract(t *testing.T) {
 		renewalsAt := time.Now()
 		createdAt := time.Now()
 
-		sdkContract := publicCloud.NewContract(
+		sdkContract := sdk.NewContract(
 			0,
 			1,
-			publicCloud.CONTRACTTYPE_MONTHLY,
-			*publicCloud.NewNullableTime(&endsAt),
+			sdk.CONTRACTTYPE_MONTHLY,
+			*sdk.NewNullableTime(&endsAt),
 			renewalsAt,
 			createdAt,
-			publicCloud.CONTRACTSTATE_ACTIVE,
+			sdk.CONTRACTSTATE_ACTIVE,
 		)
 
 		got, err := adaptContract(*sdkContract)
@@ -258,7 +258,7 @@ func Test_adaptContract(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid billingFrequency", func(t *testing.T) {
-		sdkContract := publicCloud.Contract{BillingFrequency: 45}
+		sdkContract := sdk.Contract{BillingFrequency: 45}
 
 		_, err := adaptContract(sdkContract)
 
@@ -267,7 +267,7 @@ func Test_adaptContract(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid term", func(t *testing.T) {
-		sdkContract := publicCloud.Contract{BillingFrequency: 0, Term: 55}
+		sdkContract := sdk.Contract{BillingFrequency: 0, Term: 55}
 
 		_, err := adaptContract(sdkContract)
 
@@ -276,7 +276,7 @@ func Test_adaptContract(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid type", func(t *testing.T) {
-		sdkContract := publicCloud.Contract{
+		sdkContract := sdk.Contract{
 			BillingFrequency: 0,
 			Term:             0,
 			Type:             "tralala",
@@ -289,10 +289,10 @@ func Test_adaptContract(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid state", func(t *testing.T) {
-		sdkContract := publicCloud.Contract{
+		sdkContract := sdk.Contract{
 			BillingFrequency: 0,
 			Term:             0,
-			Type:             publicCloud.CONTRACTTYPE_HOURLY,
+			Type:             sdk.CONTRACTTYPE_HOURLY,
 			State:            "tralala",
 		}
 
@@ -305,11 +305,11 @@ func Test_adaptContract(t *testing.T) {
 	t.Run(
 		"error returned when contract cannot be created",
 		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
+			sdkContract := sdk.Contract{
 				BillingFrequency: 0,
 				Term:             0,
-				Type:             publicCloud.CONTRACTTYPE_MONTHLY,
-				State:            publicCloud.CONTRACTSTATE_ACTIVE,
+				Type:             sdk.CONTRACTTYPE_MONTHLY,
+				State:            sdk.CONTRACTSTATE_ACTIVE,
 			}
 
 			_, err := adaptContract(sdkContract)
@@ -322,14 +322,14 @@ func Test_adaptContract(t *testing.T) {
 }
 
 func Test_adaptIso(t *testing.T) {
-	got := adaptIso(*publicCloud.NewIso("id", "name"))
+	got := adaptIso(*sdk.NewIso("id", "name"))
 
 	assert.Equal(t, "id", got.Id)
 	assert.Equal(t, "name", got.Name)
 }
 
 func Test_adaptPrivateNetwork(t *testing.T) {
-	got := adaptPrivateNetwork(*publicCloud.NewPrivateNetwork(
+	got := adaptPrivateNetwork(*sdk.NewPrivateNetwork(
 		"id",
 		"status",
 		"subnet",
@@ -354,26 +354,26 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		desiredAmount := int32(6)
 		loadBalancerId := "loadBalancerId"
 
-		sdkAutoScalingGroup := publicCloud.NewAutoScalingGroupDetails(
+		sdkAutoScalingGroup := sdk.NewAutoScalingGroupDetails(
 			instanceId,
 			"MANUAL",
 			"SCALING",
-			*publicCloud.NewNullableInt32(&desiredAmount),
+			*sdk.NewNullableInt32(&desiredAmount),
 			"region",
 			"reference",
 			createdAt,
 			updatedAt,
-			*publicCloud.NewNullableTime(&startsAt),
-			*publicCloud.NewNullableTime(&endsAt),
-			*publicCloud.NewNullableInt32(&minimumAmount),
-			*publicCloud.NewNullableInt32(&maximumAmount),
-			*publicCloud.NewNullableInt32(&cpuThreshold),
-			*publicCloud.NewNullableInt32(&warmupTime),
-			*publicCloud.NewNullableInt32(&cooldownTime),
-			*publicCloud.NewNullableLoadBalancer(&publicCloud.LoadBalancer{
+			*sdk.NewNullableTime(&startsAt),
+			*sdk.NewNullableTime(&endsAt),
+			*sdk.NewNullableInt32(&minimumAmount),
+			*sdk.NewNullableInt32(&maximumAmount),
+			*sdk.NewNullableInt32(&cpuThreshold),
+			*sdk.NewNullableInt32(&warmupTime),
+			*sdk.NewNullableInt32(&cooldownTime),
+			*sdk.NewNullableLoadBalancer(&sdk.LoadBalancer{
 				Id:    loadBalancerId,
-				State: publicCloud.STATE_CREATING,
-				Type:  publicCloud.TYPENAME_M3_LARGE,
+				State: sdk.STATE_CREATING,
+				Type:  sdk.TYPENAME_M3_LARGE,
 			}),
 		)
 
@@ -384,7 +384,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, 6, *got.DesiredAmount)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
 		assert.Equal(t, "reference", got.Reference.String())
 		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, updatedAt, got.UpdatedAt)
@@ -400,7 +400,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 
 	t.Run("invalid type returns error", func(t *testing.T) {
 		_, err := AdaptAutoScalingGroupDetails(
-			publicCloud.AutoScalingGroupDetails{Id: instanceId, Type: "tralala"},
+			sdk.AutoScalingGroupDetails{Id: instanceId, Type: "tralala"},
 		)
 
 		assert.Error(t, err)
@@ -409,9 +409,9 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 
 	t.Run("invalid state returns error", func(t *testing.T) {
 		_, err := AdaptAutoScalingGroupDetails(
-			publicCloud.AutoScalingGroupDetails{
+			sdk.AutoScalingGroupDetails{
 				Id:    instanceId,
-				Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
+				Type:  sdk.AUTOSCALINGGROUPTYPE_CPU_BASED,
 				State: "tralala",
 			},
 		)
@@ -422,7 +422,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 
 	t.Run("invalid reference returns error", func(t *testing.T) {
 		_, err := AdaptAutoScalingGroupDetails(
-			publicCloud.AutoScalingGroupDetails{
+			sdk.AutoScalingGroupDetails{
 				Id:        instanceId,
 				Type:      "MANUAL",
 				State:     "SCALING",
@@ -436,13 +436,13 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 
 	t.Run("invalid loadBalancer returns error", func(t *testing.T) {
 		_, err := AdaptAutoScalingGroupDetails(
-			publicCloud.AutoScalingGroupDetails{
+			sdk.AutoScalingGroupDetails{
 				Id:        instanceId,
 				Type:      "MANUAL",
 				State:     "SCALING",
 				Reference: "reference",
-				LoadBalancer: *publicCloud.NewNullableLoadBalancer(
-					&publicCloud.LoadBalancer{State: "tralala"},
+				LoadBalancer: *sdk.NewNullableLoadBalancer(
+					&sdk.LoadBalancer{State: "tralala"},
 				),
 			},
 		)
@@ -453,7 +453,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 }
 
 func Test_adaptStickySession(t *testing.T) {
-	got := adaptStickySession(publicCloud.StickySession{
+	got := adaptStickySession(sdk.StickySession{
 		Enabled:     false,
 		MaxLifeTime: 20,
 	})
@@ -467,10 +467,10 @@ func Test_adaptHealthCheck(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		host := "host"
 
-		sdkHealthCheck := publicCloud.NewHealthCheck(
+		sdkHealthCheck := sdk.NewHealthCheck(
 			"GET",
 			"uri",
-			*publicCloud.NewNullableString(&host),
+			*sdk.NewNullableString(&host),
 			22,
 		)
 
@@ -484,7 +484,7 @@ func Test_adaptHealthCheck(t *testing.T) {
 	})
 
 	t.Run("invalid method returns error", func(t *testing.T) {
-		_, err := adaptHealthCheck(publicCloud.HealthCheck{Method: "tralala"})
+		_, err := adaptHealthCheck(sdk.HealthCheck{Method: "tralala"})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -494,10 +494,10 @@ func Test_adaptHealthCheck(t *testing.T) {
 
 func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		sdkLoadBalancerConfiguration := publicCloud.NewLoadBalancerConfiguration(
-			*publicCloud.NewNullableStickySession(&publicCloud.StickySession{MaxLifeTime: 44}),
+		sdkLoadBalancerConfiguration := sdk.NewLoadBalancerConfiguration(
+			*sdk.NewNullableStickySession(&sdk.StickySession{MaxLifeTime: 44}),
 			"roundrobin",
-			*publicCloud.NewNullableHealthCheck(&publicCloud.HealthCheck{Method: "GET"}),
+			*sdk.NewNullableHealthCheck(&sdk.HealthCheck{Method: "GET"}),
 			true, 1, 2)
 
 		got, err := adaptLoadBalancerConfiguration(*sdkLoadBalancerConfiguration)
@@ -511,7 +511,7 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 
 	t.Run("invalid balance returns error", func(t *testing.T) {
 		_, err := adaptLoadBalancerConfiguration(
-			publicCloud.LoadBalancerConfiguration{Balance: "tralala"},
+			sdk.LoadBalancerConfiguration{Balance: "tralala"},
 		)
 
 		assert.Error(t, err)
@@ -520,10 +520,10 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 
 	t.Run("invalid HealthCheck returns error", func(t *testing.T) {
 		_, err := adaptLoadBalancerConfiguration(
-			publicCloud.LoadBalancerConfiguration{
-				Balance: publicCloud.BALANCE_ROUNDROBIN,
-				HealthCheck: *publicCloud.NewNullableHealthCheck(
-					&publicCloud.HealthCheck{Method: "tralala"},
+			sdk.LoadBalancerConfiguration{
+				Balance: sdk.BALANCE_ROUNDROBIN,
+				HealthCheck: *sdk.NewNullableHealthCheck(
+					&sdk.HealthCheck{Method: "tralala"},
 				),
 			},
 		)
@@ -542,9 +542,9 @@ func TestAdaptLoadBalancerDetails(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, string(publicCloud.TYPENAME_M3_LARGE), got.Type.String())
+		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type.String())
 		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
 		assert.Equal(t, enum.StateCreating, got.State)
 		assert.Equal(
 			t,
@@ -578,7 +578,7 @@ func TestAdaptLoadBalancerDetails(t *testing.T) {
 
 	t.Run("invalid ips returns error", func(t *testing.T) {
 		sdkLoadBalancer := generateLoadBalancerDetails(nil)
-		sdkLoadBalancer.Ips = []publicCloud.IpDetails{{NetworkType: "tralala"}}
+		sdkLoadBalancer.Ips = []sdk.IpDetails{{NetworkType: "tralala"}}
 
 		_, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
 
@@ -600,16 +600,16 @@ func TestAdaptLoadBalancerDetails(t *testing.T) {
 func TestAdaptInstanceType(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		got, err := AdaptInstanceType(
-			publicCloud.InstanceType{
+			sdk.InstanceType{
 				Name:      "name",
-				Resources: publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
-				Prices:    publicCloud.Prices{Currency: "currency"},
+				Resources: sdk.Resources{Cpu: sdk.Cpu{Unit: "cpu"}},
+				Prices:    sdk.Prices{Currency: "currency"},
 			},
 		)
-		want := public_cloud.InstanceType{
+		want := domain.InstanceType{
 			Name:      "name",
-			Resources: public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "cpu"}},
-			Prices:    public_cloud.Prices{Currency: "currency"},
+			Resources: domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
+			Prices:    domain.Prices{Currency: "currency"},
 		}
 
 		assert.NoError(t, err)
@@ -618,14 +618,14 @@ func TestAdaptInstanceType(t *testing.T) {
 
 	t.Run("optional values are set", func(t *testing.T) {
 		got, err := AdaptInstanceType(
-			publicCloud.InstanceType{
-				StorageTypes: []publicCloud.RootDiskStorageType{
-					publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
+			sdk.InstanceType{
+				StorageTypes: []sdk.RootDiskStorageType{
+					sdk.ROOTDISKSTORAGETYPE_CENTRAL,
 				},
 			},
 		)
-		want := public_cloud.InstanceType{
-			StorageTypes: &public_cloud.StorageTypes{enum.RootDiskStorageTypeCentral},
+		want := domain.InstanceType{
+			StorageTypes: &domain.StorageTypes{enum.RootDiskStorageTypeCentral},
 		}
 
 		assert.NoError(t, err)
@@ -634,8 +634,8 @@ func TestAdaptInstanceType(t *testing.T) {
 
 	t.Run("invalid storageType returns an error", func(t *testing.T) {
 		_, err := AdaptInstanceType(
-			publicCloud.InstanceType{
-				StorageTypes: []publicCloud.RootDiskStorageType{"tralala"},
+			sdk.InstanceType{
+				StorageTypes: []sdk.RootDiskStorageType{"tralala"},
 			},
 		)
 
@@ -645,8 +645,8 @@ func TestAdaptInstanceType(t *testing.T) {
 }
 
 func TestAdaptRegion(t *testing.T) {
-	got := AdaptRegion(publicCloud.Region{Name: "name", Location: "location"})
-	want := public_cloud.Region{Name: "name", Location: "location"}
+	got := AdaptRegion(sdk.Region{Name: "name", Location: "location"})
+	want := domain.Region{Name: "name", Location: "location"}
 
 	assert.Equal(t, want, got)
 }
@@ -663,7 +663,7 @@ func TestAdaptInstance(t *testing.T) {
 		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, "lsw.m3.large", got.Type.String())
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
@@ -714,7 +714,7 @@ func TestAdaptInstance(t *testing.T) {
 
 	t.Run("invalid ip returns error", func(t *testing.T) {
 		sdkInstance := generateInstance(t, nil)
-		sdkInstance.Ips = []publicCloud.Ip{{NetworkType: "tralala"}}
+		sdkInstance.Ips = []sdk.Ip{{NetworkType: "tralala"}}
 
 		_, err := AdaptInstance(sdkInstance)
 
@@ -745,7 +745,7 @@ func TestAdaptInstance(t *testing.T) {
 
 func Test_adaptImage(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		sdkImage := publicCloud.NewImage(
+		sdkImage := sdk.NewImage(
 			"UBUNTU_24_04_64BIT",
 			"name",
 			"family",
@@ -754,7 +754,7 @@ func Test_adaptImage(t *testing.T) {
 		)
 
 		got := adaptImage(*sdkImage)
-		want := public_cloud.Image{
+		want := domain.Image{
 			Id:           "UBUNTU_24_04_64BIT",
 			Name:         "name",
 			Family:       "family",
@@ -772,14 +772,14 @@ func Test_adaptIp(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		reverseLookup := "reverseLookup"
 
-		sdkIp := publicCloud.NewIp(
+		sdkIp := sdk.NewIp(
 			"1.2.3.4",
 			"prefixLength",
 			5,
 			true,
 			false,
-			publicCloud.NETWORKTYPE_INTERNAL,
-			*publicCloud.NewNullableString(&reverseLookup),
+			sdk.NETWORKTYPE_INTERNAL,
+			*sdk.NewNullableString(&reverseLookup),
 		)
 
 		got, err := adaptIp(*sdkIp)
@@ -795,7 +795,7 @@ func Test_adaptIp(t *testing.T) {
 	})
 
 	t.Run("error returned for invalid networkType", func(t *testing.T) {
-		_, err := adaptIpDetails(publicCloud.IpDetails{NetworkType: "tralala"})
+		_, err := adaptIpDetails(sdk.IpDetails{NetworkType: "tralala"})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -815,22 +815,22 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 		cooldownTime := int32(5)
 		desiredAmount := int32(6)
 
-		sdkAutoScalingGroup := publicCloud.NewAutoScalingGroup(
+		sdkAutoScalingGroup := sdk.NewAutoScalingGroup(
 			instanceId,
 			"MANUAL",
 			"SCALING",
-			*publicCloud.NewNullableInt32(&desiredAmount),
+			*sdk.NewNullableInt32(&desiredAmount),
 			"region",
 			"reference",
 			createdAt,
 			updatedAt,
-			*publicCloud.NewNullableTime(&startsAt),
-			*publicCloud.NewNullableTime(&endsAt),
-			*publicCloud.NewNullableInt32(&minimumAmount),
-			*publicCloud.NewNullableInt32(&maximumAmount),
-			*publicCloud.NewNullableInt32(&cpuThreshold),
-			*publicCloud.NewNullableInt32(&warmupTime),
-			*publicCloud.NewNullableInt32(&cooldownTime),
+			*sdk.NewNullableTime(&startsAt),
+			*sdk.NewNullableTime(&endsAt),
+			*sdk.NewNullableInt32(&minimumAmount),
+			*sdk.NewNullableInt32(&maximumAmount),
+			*sdk.NewNullableInt32(&cpuThreshold),
+			*sdk.NewNullableInt32(&warmupTime),
+			*sdk.NewNullableInt32(&cooldownTime),
 		)
 
 		got, err := adaptAutoScalingGroup(*sdkAutoScalingGroup)
@@ -840,7 +840,13 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, 6, *got.DesiredAmount)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(
+			t,
+			domain.Region{
+				Name: "region",
+			},
+			got.Region,
+		)
 		assert.Equal(t, "reference", got.Reference.String())
 		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, updatedAt, got.UpdatedAt)
@@ -855,7 +861,7 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 
 	t.Run("invalid type returns error", func(t *testing.T) {
 		_, err := adaptAutoScalingGroup(
-			publicCloud.AutoScalingGroup{Id: instanceId, Type: "tralala"},
+			sdk.AutoScalingGroup{Id: instanceId, Type: "tralala"},
 		)
 
 		assert.Error(t, err)
@@ -864,9 +870,9 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 
 	t.Run("invalid state returns error", func(t *testing.T) {
 		_, err := adaptAutoScalingGroup(
-			publicCloud.AutoScalingGroup{
+			sdk.AutoScalingGroup{
 				Id:    instanceId,
-				Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
+				Type:  sdk.AUTOSCALINGGROUPTYPE_CPU_BASED,
 				State: "tralala",
 			},
 		)
@@ -877,7 +883,7 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 
 	t.Run("invalid reference returns error", func(t *testing.T) {
 		_, err := adaptAutoScalingGroup(
-			publicCloud.AutoScalingGroup{
+			sdk.AutoScalingGroup{
 				Id:        instanceId,
 				Type:      "MANUAL",
 				State:     "SCALING",
@@ -899,7 +905,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, string(publicCloud.TYPENAME_M3_LARGE), got.Type.String())
+		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type.String())
 		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
 		assert.Equal(t, enum.StateCreating, got.State)
 	})
@@ -917,12 +923,12 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 func Test_adaptStorageTypes(t *testing.T) {
 	t.Run("sdk storageTypes are adapted correctly", func(t *testing.T) {
-		sdkStorageTypes := []publicCloud.RootDiskStorageType{
-			publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
-			publicCloud.ROOTDISKSTORAGETYPE_LOCAL,
+		sdkStorageTypes := []sdk.RootDiskStorageType{
+			sdk.ROOTDISKSTORAGETYPE_CENTRAL,
+			sdk.ROOTDISKSTORAGETYPE_LOCAL,
 		}
 		got, err := adaptStorageTypes(sdkStorageTypes)
-		want := public_cloud.StorageTypes{
+		want := domain.StorageTypes{
 			enum.RootDiskStorageTypeCentral, enum.RootDiskStorageTypeLocal,
 		}
 
@@ -933,7 +939,7 @@ func Test_adaptStorageTypes(t *testing.T) {
 	t.Run(
 		"error bubbles up when local storageType cannot be created",
 		func(t *testing.T) {
-			sdkStorageTypes := []publicCloud.RootDiskStorageType{"tralala"}
+			sdkStorageTypes := []sdk.RootDiskStorageType{"tralala"}
 			got, err := adaptStorageTypes(sdkStorageTypes)
 
 			assert.Nil(t, got)
@@ -944,10 +950,10 @@ func Test_adaptStorageTypes(t *testing.T) {
 }
 
 func Test_adaptPrice(t *testing.T) {
-	sdkPrice := publicCloud.NewPrice("1", "2")
+	sdkPrice := sdk.NewPrice("1", "2")
 	got := adaptPrice(*sdkPrice)
 
-	want := public_cloud.Price{
+	want := domain.Price{
 		HourlyPrice:  "1",
 		MonthlyPrice: "2",
 	}
@@ -956,34 +962,34 @@ func Test_adaptPrice(t *testing.T) {
 }
 
 func Test_adaptStorage(t *testing.T) {
-	sdkStorage := publicCloud.NewStorage(
-		publicCloud.Price{HourlyPrice: "1"},
-		publicCloud.Price{HourlyPrice: "2"},
+	sdkStorage := sdk.NewStorage(
+		sdk.Price{HourlyPrice: "1"},
+		sdk.Price{HourlyPrice: "2"},
 	)
 	got := adaptStorage(*sdkStorage)
 
-	want := public_cloud.Storage{
-		Local:   public_cloud.Price{HourlyPrice: "1"},
-		Central: public_cloud.Price{HourlyPrice: "2"},
+	want := domain.Storage{
+		Local:   domain.Price{HourlyPrice: "1"},
+		Central: domain.Price{HourlyPrice: "2"},
 	}
 
 	assert.Equal(t, want, got)
 }
 
 func Test_adaptPrices(t *testing.T) {
-	sdkPrices := publicCloud.NewPrices(
+	sdkPrices := sdk.NewPrices(
 		"currency",
 		"symbol",
-		publicCloud.Price{HourlyPrice: "1"},
-		publicCloud.Storage{Central: publicCloud.Price{HourlyPrice: "2"}},
+		sdk.Price{HourlyPrice: "1"},
+		sdk.Storage{Central: sdk.Price{HourlyPrice: "2"}},
 	)
 	got := adaptPrices(*sdkPrices)
 
-	want := public_cloud.Prices{
+	want := domain.Prices{
 		Currency:       "currency",
 		CurrencySymbol: "symbol",
-		Compute:        public_cloud.Price{HourlyPrice: "1"},
-		Storage:        public_cloud.Storage{Central: public_cloud.Price{HourlyPrice: "2"}},
+		Compute:        domain.Price{HourlyPrice: "1"},
+		Storage:        domain.Storage{Central: domain.Price{HourlyPrice: "2"}},
 	}
 
 	assert.Equal(t, want, got)
@@ -992,137 +998,137 @@ func Test_adaptPrices(t *testing.T) {
 func generateInstanceDetails(
 	t *testing.T,
 	startedAt *time.Time,
-) publicCloud.InstanceDetails {
+) sdk.InstanceDetails {
 	t.Helper()
 
 	reference := "reference"
 	marketAppId := "marketAppId"
 
-	return *publicCloud.NewInstanceDetails(
+	return *sdk.NewInstanceDetails(
 		instanceId,
-		publicCloud.TYPENAME_M3_LARGE,
-		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
+		sdk.TYPENAME_M3_LARGE,
+		sdk.Resources{Cpu: sdk.Cpu{Unit: "cpu"}},
 		"region",
-		*publicCloud.NewNullableString(&reference),
-		*publicCloud.NewNullableTime(startedAt),
-		*publicCloud.NewNullableString(&marketAppId),
-		publicCloud.STATE_RUNNING,
+		*sdk.NewNullableString(&reference),
+		*sdk.NewNullableTime(startedAt),
+		*sdk.NewNullableString(&marketAppId),
+		sdk.STATE_RUNNING,
 		"productType",
 		true,
 		false,
 		6,
-		publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
-		publicCloud.Contract{
+		sdk.ROOTDISKSTORAGETYPE_CENTRAL,
+		sdk.Contract{
 			BillingFrequency: 1,
-			Type:             publicCloud.CONTRACTTYPE_HOURLY,
-			State:            publicCloud.CONTRACTSTATE_ACTIVE,
+			Type:             sdk.CONTRACTTYPE_HOURLY,
+			State:            sdk.CONTRACTSTATE_ACTIVE,
 		},
-		*publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
+		*sdk.NewNullableAutoScalingGroup(&sdk.AutoScalingGroup{
 			Id:    autoScalingGroupId,
-			Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
-			State: publicCloud.AUTOSCALINGGROUPSTATE_ACTIVE,
+			Type:  sdk.AUTOSCALINGGROUPTYPE_CPU_BASED,
+			State: sdk.AUTOSCALINGGROUPSTATE_ACTIVE,
 		}),
-		publicCloud.Image{Id: "CENTOS_7_64BIT"},
-		*publicCloud.NewNullableIso(&publicCloud.Iso{Id: "isoId"}),
-		*publicCloud.NewNullablePrivateNetwork(
-			&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
+		sdk.Image{Id: "CENTOS_7_64BIT"},
+		*sdk.NewNullableIso(&sdk.Iso{Id: "isoId"}),
+		*sdk.NewNullablePrivateNetwork(
+			&sdk.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
 		),
-		[]publicCloud.IpDetails{
-			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
+		[]sdk.IpDetails{
+			{Ip: "1.2.3.4", NetworkType: sdk.NETWORKTYPE_PUBLIC},
 		},
-		*publicCloud.NewNullableVolume(&publicCloud.Volume{Size: 3, Unit: "unit"}),
+		*sdk.NewNullableVolume(&sdk.Volume{Size: 3, Unit: "unit"}),
 	)
 }
 
 func generateInstance(
 	t *testing.T,
 	startedAt *time.Time,
-) publicCloud.Instance {
+) sdk.Instance {
 	t.Helper()
 
 	reference := "reference"
 	marketAppId := "marketAppId"
 
-	return *publicCloud.NewInstance(
+	return *sdk.NewInstance(
 		instanceId,
-		publicCloud.TYPENAME_M3_LARGE,
-		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "cpu"}},
+		sdk.TYPENAME_M3_LARGE,
+		sdk.Resources{Cpu: sdk.Cpu{Unit: "cpu"}},
 		"region",
-		*publicCloud.NewNullableString(&reference),
-		*publicCloud.NewNullableTime(startedAt),
-		*publicCloud.NewNullableString(&marketAppId),
-		publicCloud.STATE_RUNNING,
+		*sdk.NewNullableString(&reference),
+		*sdk.NewNullableTime(startedAt),
+		*sdk.NewNullableString(&marketAppId),
+		sdk.STATE_RUNNING,
 		"productType",
 		true,
 		false,
 		6,
-		publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
-		publicCloud.Contract{
+		sdk.ROOTDISKSTORAGETYPE_CENTRAL,
+		sdk.Contract{
 			BillingFrequency: 1,
-			Type:             publicCloud.CONTRACTTYPE_HOURLY,
-			State:            publicCloud.CONTRACTSTATE_ACTIVE,
+			Type:             sdk.CONTRACTTYPE_HOURLY,
+			State:            sdk.CONTRACTSTATE_ACTIVE,
 		},
-		*publicCloud.NewNullableAutoScalingGroup(&publicCloud.AutoScalingGroup{
+		*sdk.NewNullableAutoScalingGroup(&sdk.AutoScalingGroup{
 			Id:    autoScalingGroupId,
-			Type:  publicCloud.AUTOSCALINGGROUPTYPE_CPU_BASED,
-			State: publicCloud.AUTOSCALINGGROUPSTATE_ACTIVE,
+			Type:  sdk.AUTOSCALINGGROUPTYPE_CPU_BASED,
+			State: sdk.AUTOSCALINGGROUPSTATE_ACTIVE,
 		}),
-		publicCloud.Image{Id: "CENTOS_7_64BIT"},
-		[]publicCloud.Ip{
-			{Ip: "1.2.3.4", NetworkType: publicCloud.NETWORKTYPE_PUBLIC},
+		sdk.Image{Id: "CENTOS_7_64BIT"},
+		[]sdk.Ip{
+			{Ip: "1.2.3.4", NetworkType: sdk.NETWORKTYPE_PUBLIC},
 		},
 	)
 }
 
-func generateLoadBalancerDetails(startedAt *time.Time) publicCloud.LoadBalancerDetails {
+func generateLoadBalancerDetails(startedAt *time.Time) sdk.LoadBalancerDetails {
 	reference := "reference"
 
-	return *publicCloud.NewLoadBalancerDetails(
+	return *sdk.NewLoadBalancerDetails(
 		instanceId,
 		"lsw.m3.large",
-		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "unit"}},
-		*publicCloud.NewNullableString(&reference),
+		sdk.Resources{Cpu: sdk.Cpu{Unit: "unit"}},
+		*sdk.NewNullableString(&reference),
 		"CREATING",
-		*publicCloud.NewNullableTime(startedAt),
-		[]publicCloud.IpDetails{{
+		*sdk.NewNullableTime(startedAt),
+		[]sdk.IpDetails{{
 			Ip:          "1.2.3.4",
-			NetworkType: publicCloud.NETWORKTYPE_PUBLIC,
+			NetworkType: sdk.NETWORKTYPE_PUBLIC,
 		}},
 		"region",
-		*publicCloud.NewNullableLoadBalancerConfiguration(&publicCloud.LoadBalancerConfiguration{
+		*sdk.NewNullableLoadBalancerConfiguration(&sdk.LoadBalancerConfiguration{
 			TargetPort: 22,
 			Balance:    "roundrobin",
 		}),
-		*publicCloud.NewNullableAutoScalingGroup(nil),
-		*publicCloud.NewNullablePrivateNetwork(
-			&publicCloud.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
+		*sdk.NewNullableAutoScalingGroup(nil),
+		*sdk.NewNullablePrivateNetwork(
+			&sdk.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
 		),
-		publicCloud.Contract{
+		sdk.Contract{
 			BillingFrequency: 1,
-			Type:             publicCloud.CONTRACTTYPE_MONTHLY,
-			State:            publicCloud.CONTRACTSTATE_ACTIVE,
-			Term:             publicCloud.CONTRACTTERM__1,
+			Type:             sdk.CONTRACTTYPE_MONTHLY,
+			State:            sdk.CONTRACTSTATE_ACTIVE,
+			Term:             sdk.CONTRACTTERM__1,
 		},
 	)
 }
 
-func generateLoadBalancer(startedAt *time.Time) publicCloud.LoadBalancer {
+func generateLoadBalancer(startedAt *time.Time) sdk.LoadBalancer {
 	reference := "reference"
 
-	return *publicCloud.NewLoadBalancer(
+	return *sdk.NewLoadBalancer(
 		instanceId,
 		"lsw.m3.large",
-		publicCloud.Resources{Cpu: publicCloud.Cpu{Unit: "unit"}},
-		*publicCloud.NewNullableString(&reference),
-		publicCloud.STATE_CREATING,
-		*publicCloud.NewNullableTime(startedAt),
+		sdk.Resources{Cpu: sdk.Cpu{Unit: "unit"}},
+		*sdk.NewNullableString(&reference),
+		sdk.STATE_CREATING,
+		*sdk.NewNullableTime(startedAt),
 	)
 }
 
 func Test_adaptVolume(t *testing.T) {
-	sdkVolume := publicCloud.NewVolume(1, "unit")
+	sdkVolume := sdk.NewVolume(1, "unit")
 	got := adaptVolume(*sdkVolume)
-	want := public_cloud.Volume{Size: 1, Unit: "unit"}
+	want := domain.Volume{Size: 1, Unit: "unit"}
 
 	assert.Equal(t, want, got)
 }
@@ -1130,26 +1136,26 @@ func Test_adaptVolume(t *testing.T) {
 func TestAdaptImageDetails(t *testing.T) {
 	state := "state"
 	stateReason := "stateReason"
-	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	version := "version"
 	architecture := "architecture"
+	region := "region"
 
-	sdkImageDetails := publicCloud.NewImageDetails(
+	sdkImageDetails := sdk.NewImageDetails(
 		"id",
 		"name",
 		"family",
 		"flavour",
 		false,
-		*publicCloud.NewNullableStorageSize(
-			publicCloud.NewStorageSize(float32(1), "unit"),
+		*sdk.NewNullableStorageSize(
+			sdk.NewStorageSize(float32(1), "unit"),
 		),
-		*publicCloud.NewNullableString(&state),
-		*publicCloud.NewNullableString(&stateReason),
-		*publicCloud.NewNullableString(&region),
-		*publicCloud.NewNullableTime(&createdAt),
-		*publicCloud.NewNullableTime(&updatedAt),
+		*sdk.NewNullableString(&state),
+		*sdk.NewNullableString(&stateReason),
+		*sdk.NewNullableString(&region),
+		*sdk.NewNullableTime(&createdAt),
+		*sdk.NewNullableTime(&updatedAt),
 		"version",
 		"architecture",
 		[]string{"marketApp"},
@@ -1158,7 +1164,7 @@ func TestAdaptImageDetails(t *testing.T) {
 
 	got := AdaptImageDetails(*sdkImageDetails)
 
-	want := public_cloud.Image{
+	want := domain.Image{
 		Id:           "id",
 		Name:         "name",
 		Version:      &version,
@@ -1167,11 +1173,13 @@ func TestAdaptImageDetails(t *testing.T) {
 		Architecture: &architecture,
 		State:        &state,
 		StateReason:  &stateReason,
-		Region:       &region,
+		Region: &domain.Region{
+			Name: "region",
+		},
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
 		Custom:       false,
-		StorageSize:  &public_cloud.StorageSize{Size: 1, Unit: "unit"},
+		StorageSize:  &domain.StorageSize{Size: 1, Unit: "unit"},
 		MarketApps:   []string{"marketApp"},
 		StorageTypes: []string{"storageType"},
 	}
@@ -1180,10 +1188,10 @@ func TestAdaptImageDetails(t *testing.T) {
 }
 
 func Test_adaptStorageSize(t *testing.T) {
-	sdkStorageSize := publicCloud.NewStorageSize(1, "unit")
+	sdkStorageSize := sdk.NewStorageSize(1, "unit")
 
 	got := adaptStorageSize(*sdkStorageSize)
-	want := public_cloud.StorageSize{Size: 1, Unit: "unit"}
+	want := domain.StorageSize{Size: 1, Unit: "unit"}
 
 	assert.Equal(t, want, got)
 }

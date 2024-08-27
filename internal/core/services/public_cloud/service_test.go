@@ -172,6 +172,9 @@ func newRepositorySpy() repositorySpy {
 			public_cloud.InstanceType{Name: "instanceType"},
 		},
 		getInstanceTypesForRegionSleep: 0,
+		regions: public_cloud.Regions{
+			public_cloud.Region{Name: "region"},
+		},
 	}
 }
 
@@ -180,7 +183,6 @@ func TestService_GetAllInstances(t *testing.T) {
 		"service passes back instances from repository",
 		func(t *testing.T) {
 			detailedInstance := generateInstance()
-			detailedInstance.Region = "region"
 			detailedInstance.Id = "instanceId"
 
 			instance := make(map[string]*public_cloud.Instance)
@@ -191,7 +193,7 @@ func TestService_GetAllInstances(t *testing.T) {
 			want := public_cloud.Instances{
 				public_cloud.Instance{
 					Id:     "instanceId",
-					Region: "region",
+					Region: public_cloud.Region{Name: "region"},
 					Image:  public_cloud.Image{Id: "imageId"},
 					Type:   public_cloud.InstanceType{Name: "instanceType"},
 				},
@@ -200,6 +202,7 @@ func TestService_GetAllInstances(t *testing.T) {
 			spy := newRepositorySpy()
 			spy.instances = returnedInstances
 			spy.instanceDetails = instance
+			spy.regions = public_cloud.Regions{public_cloud.Region{Name: "region"}}
 
 			service := New(&spy)
 
@@ -253,10 +256,8 @@ func TestService_GetAllInstances(t *testing.T) {
 		func(t *testing.T) {
 			detailedInstance1 := generateInstance()
 			detailedInstance1.Id = "b"
-			detailedInstance1.Region = "region"
 			detailedInstance2 := generateInstance()
 			detailedInstance2.Id = "a"
-			detailedInstance2.Region = "region"
 			instanceDetails := make(map[string]*public_cloud.Instance)
 			instanceDetails["b"] = &detailedInstance1
 			instanceDetails["a"] = &detailedInstance2
@@ -881,7 +882,6 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 		instance := generateInstance()
 
 		spy := newRepositorySpy()
-		spy.images = public_cloud.Images{public_cloud.Image{Id: "tralala"}}
 		spy.getAllImagesError = sharedRepository.NewGeneralError(
 			"",
 			errors.New("some error"),
@@ -896,6 +896,42 @@ func TestService_populateMissingInstanceAttributes(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("region errors bubble up", func(t *testing.T) {
+		instance := generateInstance()
+
+		spy := newRepositorySpy()
+		spy.getRegionsError = sharedRepository.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+
+		service := New(&spy)
+
+		_, err := service.populateMissingInstanceAttributes(
+			instance,
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("gets region", func(t *testing.T) {
+		instance := generateInstance()
+
+		spy := newRepositorySpy()
+		service := New(&spy)
+
+		want := public_cloud.Region{Name: "region"}
+		got, err := service.populateMissingInstanceAttributes(
+			instance,
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, want, got.Region)
 	})
 
 	t.Run("instanceType repository errors bubble up", func(t *testing.T) {
@@ -1108,7 +1144,50 @@ func TestService_getLoadBalancer(t *testing.T) {
 
 func generateInstance() public_cloud.Instance {
 	return public_cloud.Instance{
-		Image: public_cloud.Image{Id: "imageId"},
-		Type:  public_cloud.InstanceType{Name: "instanceType"},
+		Image:  public_cloud.Image{Id: "imageId"},
+		Type:   public_cloud.InstanceType{Name: "instanceType"},
+		Region: public_cloud.Region{Name: "region"},
 	}
+}
+
+func TestService_getRegion(t *testing.T) {
+	t.Run("repository errors bubble up", func(t *testing.T) {
+		spy := &repositorySpy{
+			getRegionsError: sharedRepository.NewGeneralError(
+				"",
+				errors.New("some error"),
+			),
+		}
+		service := New(spy)
+		got, err := service.getRegion("", context.TODO())
+
+		assert.Nil(t, got)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("error is returned if region can't be found", func(t *testing.T) {
+		spy := &repositorySpy{
+			regions: public_cloud.Regions{{Name: "region"}},
+		}
+		service := New(spy)
+		got, err := service.getRegion("tralala", context.TODO())
+
+		assert.Nil(t, got)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("region is returned if found", func(t *testing.T) {
+		want := public_cloud.Region{Name: "region"}
+
+		spy := &repositorySpy{
+			regions: public_cloud.Regions{want},
+		}
+		service := New(spy)
+		got, err := service.getRegion("region", context.TODO())
+
+		assert.Nil(t, err)
+		assert.Equal(t, want, *got)
+	})
 }

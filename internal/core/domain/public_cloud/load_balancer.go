@@ -10,7 +10,7 @@ type LoadBalancer struct {
 	Id             string
 	Type           InstanceType
 	Resources      Resources
-	Region         string
+	Region         Region
 	State          enum.State
 	Contract       Contract
 	Reference      *string
@@ -31,7 +31,7 @@ func NewLoadBalancer(
 	id string,
 	loadBalancerType InstanceType,
 	resources Resources,
-	region string,
+	region Region,
 	state enum.State,
 	contract Contract,
 	ips Ips,

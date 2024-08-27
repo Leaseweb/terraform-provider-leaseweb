@@ -6,7 +6,7 @@ import (
 
 type Instance struct {
 	Id                  types.String      `tfsdk:"id"`
-	Region              types.String      `tfsdk:"region"`
+	Region              Region            `tfsdk:"region"`
 	Reference           types.String      `tfsdk:"reference"`
 	Resources           Resources         `tfsdk:"resources"`
 	Image               Image             `tfsdk:"image"`

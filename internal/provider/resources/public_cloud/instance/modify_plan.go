@@ -28,6 +28,9 @@ func (i *instanceResource) ModifyPlan(
 	planImage := model.Image{}
 	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
 
+	planRegion := model.Region{}
+	planInstance.Region.As(ctx, &planRegion, basetypes.ObjectAsOptions{})
+
 	stateInstance := model.Instance{}
 	request.State.Get(ctx, &stateInstance)
 
@@ -45,7 +48,7 @@ func (i *instanceResource) ModifyPlan(
 		}
 	}
 
-	i.validateRegion(planInstance.Region, response, ctx)
+	i.validateRegion(planRegion.Name, response, ctx)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -54,7 +57,7 @@ func (i *instanceResource) ModifyPlan(
 		planInstanceType.Name,
 		stateInstanceType.Name,
 		stateInstance.Id,
-		planInstance.Region,
+		planRegion.Name,
 		response,
 		ctx,
 	)

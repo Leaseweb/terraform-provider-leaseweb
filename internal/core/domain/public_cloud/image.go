@@ -13,7 +13,7 @@ type Image struct {
 	Architecture *string
 	State        *string
 	StateReason  *string
-	Region       *string
+	Region       *Region
 	CreatedAt    *time.Time
 	UpdatedAt    *time.Time
 	Custom       bool
@@ -31,7 +31,7 @@ func NewImage(
 	architecture *string,
 	State *string,
 	stateReason *string,
-	region *string,
+	region *Region,
 	createdAt *time.Time,
 	updatedAt *time.Time,
 	custom bool,

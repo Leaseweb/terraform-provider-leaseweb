@@ -23,8 +23,10 @@ resource "leaseweb_public_cloud_instance" "example" {
   image = {
     id = "UBUNTU_22_04_64BIT"
   }
-  reference              = "my webserver"
-  region                 = "eu-west-3"
+  reference = "my webserver"
+  region = {
+    name = "eu-west-3"
+  }
   root_disk_storage_type = "CENTRAL"
   type = {
     name = "lsw.m3.large"
@@ -39,7 +41,7 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
 - `image` (Attributes) (see [below for nested schema](#nestedatt--image))
-- `region` (String) Region to launch the instance into.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `region` (Attributes) (see [below for nested schema](#nestedatt--region))
 - `root_disk_storage_type` (String) The root disk's storage type.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `type` (Attributes) (see [below for nested schema](#nestedatt--type))
 
@@ -97,13 +99,22 @@ Read-Only:
 - `flavour` (String)
 - `market_apps` (List of String)
 - `name` (String)
-- `region` (String)
+- `region` (Attributes) (see [below for nested schema](#nestedatt--image--region))
 - `state` (String)
 - `state_reason` (String)
 - `storage_size` (Attributes) (see [below for nested schema](#nestedatt--image--storage_size))
 - `storage_types` (List of String) The supported storage types for the instance type
 - `updated_at` (String)
 - `version` (String)
+
+<a id="nestedatt--image--region"></a>
+### Nested Schema for `image.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
+
 
 <a id="nestedatt--image--storage_size"></a>
 ### Nested Schema for `image.storage_size`
@@ -113,6 +124,18 @@ Read-Only:
 - `size` (Number) The storage size
 - `unit` (String) The storage size unit
 
+
+
+<a id="nestedatt--region"></a>
+### Nested Schema for `region`
+
+Required:
+
+- `name` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+
+Read-Only:
+
+- `location` (String) The city where the region is located
 
 
 <a id="nestedatt--type"></a>
@@ -238,7 +261,7 @@ Read-Only:
 - `maximum_amount` (Number) Only for "CPU_BASED" auto scaling group. The maximum number of instances that can be running
 - `minimum_amount` (Number) The minimum number of instances that should be running
 - `reference` (String) The identifying name set to the auto scaling group
-- `region` (String) The region in which the Auto Scaling Group was launched
+- `region` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--region))
 - `starts_at` (String) Only for "SCHEDULED" auto scaling group. Date and time (UTC) that the instances need to be launched
 - `state` (String) The Auto Scaling Group's current state.
 - `type` (String) Auto Scaling Group type
@@ -256,7 +279,7 @@ Read-Only:
 - `load_balancer_configuration` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--load_balancer_configuration))
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--private_network))
 - `reference` (String) The identifying name set to the load balancer
-- `region` (String) The region where the load balancer was launched into
+- `region` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--region))
 - `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--auto_scaling_group--load_balancer--resources))
 - `started_at` (String) Date and time when the load balancer was started for the first time, right after launching it
 - `state` (String) The load balancers current state
@@ -341,6 +364,15 @@ Read-Only:
 - `id` (String)
 - `status` (String)
 - `subnet` (String)
+
+
+<a id="nestedatt--auto_scaling_group--load_balancer--region"></a>
+### Nested Schema for `auto_scaling_group.load_balancer.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
 
 
 <a id="nestedatt--auto_scaling_group--load_balancer--resources"></a>
@@ -494,6 +526,15 @@ Read-Only:
 
 
 
+
+
+<a id="nestedatt--auto_scaling_group--region"></a>
+### Nested Schema for `auto_scaling_group.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
 
 
 

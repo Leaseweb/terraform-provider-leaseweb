@@ -27,10 +27,7 @@ func (d *instancesDataSource) Schema(
 							Computed:    true,
 							Description: "The instance unique identifier",
 						},
-						"region": schema.StringAttribute{
-							Computed:    true,
-							Description: "The region where the instance was launched",
-						},
+						"region": public_cloud.DataSourceRegion(),
 						"reference": schema.StringAttribute{
 							Computed:    true,
 							Description: "The identifying name set to the instance",
@@ -64,9 +61,7 @@ func (d *instancesDataSource) Schema(
 								"state_reason": schema.StringAttribute{
 									Computed: true,
 								},
-								"region": schema.StringAttribute{
-									Computed: true,
-								},
+								"region": public_cloud.DataSourceRegion(),
 								"created_at": schema.StringAttribute{
 									Computed: true,
 								},
@@ -163,10 +158,7 @@ func (d *instancesDataSource) Schema(
 									Computed:    true,
 									Description: "Number of instances that should be running",
 								},
-								"region": schema.StringAttribute{
-									Computed:    true,
-									Description: "The region in which the Auto Scaling Group was launched",
-								},
+								"region": public_cloud.DataSourceRegion(),
 								"reference": schema.StringAttribute{
 									Computed:    true,
 									Description: "The identifying name set to the auto scaling group",
@@ -216,10 +208,7 @@ func (d *instancesDataSource) Schema(
 										},
 										"type":      public_cloud.InstanceType(false),
 										"resources": public_cloud.Resources(),
-										"region": schema.StringAttribute{
-											Computed:    true,
-											Description: "The region where the load balancer was launched into",
-										},
+										"region":    public_cloud.DataSourceRegion(),
 										"reference": schema.StringAttribute{
 											Computed:    true,
 											Description: "The identifying name set to the load balancer",

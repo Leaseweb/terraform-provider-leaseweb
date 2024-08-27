@@ -13,7 +13,7 @@ type Image struct {
 	Flavour      types.String `tfsdk:"flavour"`
 	State        types.String `tfsdk:"state"`
 	StateReason  types.String `tfsdk:"state_reason"`
-	Region       types.String `tfsdk:"region"`
+	Region       types.Object `tfsdk:"region"`
 	CreatedAt    types.String `tfsdk:"created_at"`
 	UpdatedAt    types.String `tfsdk:"updated_at"`
 	Custom       types.Bool   `tfsdk:"custom"`
@@ -33,10 +33,12 @@ func (i Image) AttributeTypes() map[string]attr.Type {
 		"architecture": types.StringType,
 		"state":        types.StringType,
 		"state_reason": types.StringType,
-		"region":       types.StringType,
-		"created_at":   types.StringType,
-		"updated_at":   types.StringType,
-		"custom":       types.BoolType,
+		"region": types.ObjectType{
+			AttrTypes: Region{}.AttributeTypes(),
+		},
+		"created_at": types.StringType,
+		"updated_at": types.StringType,
+		"custom":     types.BoolType,
 		"storage_size": types.ObjectType{
 			AttrTypes: StorageSize{}.AttributeTypes(),
 		},

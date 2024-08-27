@@ -22,7 +22,7 @@ func AdaptInstances(domainInstances public_cloud.Instances) model.Instances {
 func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 	instance := model.Instance{
 		Id:     basetypes.NewStringValue(domainInstance.Id),
-		Region: basetypes.NewStringValue(domainInstance.Region),
+		Region: *adaptRegion(domainInstance.Region),
 		Reference: shared.AdaptNullableStringToStringValue(
 			domainInstance.Reference,
 		),
@@ -122,10 +122,13 @@ func adaptImage(domainImage public_cloud.Image) model.Image {
 		Architecture: shared.AdaptNullableStringToStringValue(domainImage.Architecture),
 		State:        shared.AdaptNullableStringToStringValue(domainImage.State),
 		StateReason:  shared.AdaptNullableStringToStringValue(domainImage.StateReason),
-		Region:       shared.AdaptNullableStringToStringValue(domainImage.Region),
-		CreatedAt:    shared.AdaptNullableTimeToStringValue(domainImage.CreatedAt),
-		UpdatedAt:    shared.AdaptNullableTimeToStringValue(domainImage.UpdatedAt),
-		Custom:       shared.AdaptBoolToBoolValue(domainImage.Custom),
+		Region: shared.AdaptNullableDomainEntityToDatasourceModel(
+			domainImage.Region,
+			adaptRegion,
+		),
+		CreatedAt: shared.AdaptNullableTimeToStringValue(domainImage.CreatedAt),
+		UpdatedAt: shared.AdaptNullableTimeToStringValue(domainImage.UpdatedAt),
+		Custom:    shared.AdaptBoolToBoolValue(domainImage.Custom),
 		StorageSize: shared.AdaptNullableDomainEntityToDatasourceModel(
 			domainImage.StorageSize,
 			adaptStorageSize,
@@ -169,7 +172,7 @@ func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *mode
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.DesiredAmount,
 		),
-		Region: basetypes.NewStringValue(autoScalingGroup.Region),
+		Region: *adaptRegion(autoScalingGroup.Region),
 		Reference: basetypes.NewStringValue(
 			autoScalingGroup.Reference.String(),
 		),
@@ -217,7 +220,7 @@ func adaptLoadBalancer(loadBalancer public_cloud.LoadBalancer) *model.LoadBalanc
 		Id:        basetypes.NewStringValue(loadBalancer.Id),
 		Type:      adaptInstanceType(loadBalancer.Type),
 		Resources: adaptResources(loadBalancer.Resources),
-		Region:    basetypes.NewStringValue(loadBalancer.Region),
+		Region:    *adaptRegion(loadBalancer.Region),
 		Reference: shared.AdaptNullableStringToStringValue(loadBalancer.Reference),
 		State:     basetypes.NewStringValue(string(loadBalancer.State)),
 		Contract:  adaptContract(loadBalancer.Contract),
@@ -353,5 +356,12 @@ func adaptStorage(storage public_cloud.Storage) model.Storage {
 	return model.Storage{
 		Local:   adaptPrice(storage.Local),
 		Central: adaptPrice(storage.Central),
+	}
+}
+
+func adaptRegion(region public_cloud.Region) *model.Region {
+	return &model.Region{
+		Name:     basetypes.NewStringValue(region.Name),
+		Location: basetypes.NewStringValue(region.Location),
 	}
 }

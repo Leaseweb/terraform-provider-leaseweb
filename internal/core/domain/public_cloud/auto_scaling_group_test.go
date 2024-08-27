@@ -14,12 +14,13 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		createdAt := time.Now()
 		updatedAt := time.Now()
 		reference, _ := value_object.NewAutoScalingGroupReference("reference")
+		region := Region{Name: "region"}
 
 		got := NewAutoScalingGroup(
 			"id",
 			enum.AutoScalingGroupTypeCpuBased,
 			enum.AutoScalingGroupStateScaling,
-			"region",
+			region,
 			*reference,
 			createdAt,
 			updatedAt,
@@ -28,7 +29,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, "id", got.Id)
 		assert.Equal(t, enum.AutoScalingGroupTypeCpuBased, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, region, got.Region)
 		assert.Equal(t, "reference", got.Reference.String())
 		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, updatedAt, got.UpdatedAt)
@@ -60,7 +61,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 			"",
 			enum.AutoScalingGroupTypeCpuBased,
 			enum.AutoScalingGroupStateScaling,
-			"region",
+			Region{},
 			*reference,
 			time.Now(),
 			time.Now(),
@@ -73,7 +74,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 				CpuThreshold:  &cpuThreshold,
 				WarmupTime:    &WarmupTime,
 				CoolDownTime:  &CoolDownTime,
-				LoadBalancer:  &LoadBalancer{Region: "loadBalancerRegion"},
+				LoadBalancer:  &LoadBalancer{Region: Region{Name: "loadBalancerRegion"}},
 			})
 
 		assert.Equal(t, desiredAmount, *got.DesiredAmount)
@@ -84,7 +85,7 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, cpuThreshold, *got.CpuThreshold)
 		assert.Equal(t, WarmupTime, *got.WarmupTime)
 		assert.Equal(t, CoolDownTime, *got.CooldownTime)
-		assert.Equal(t, "loadBalancerRegion", got.LoadBalancer.Region)
+		assert.Equal(t, Region{Name: "loadBalancerRegion"}, got.LoadBalancer.Region)
 	})
 
 }
