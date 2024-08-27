@@ -253,7 +253,7 @@ func ResourceRegion(required bool, warning string) resourceSchema.SingleNestedAt
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Description: printedWarning,
+				Description: "Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)" + printedWarning,
 			},
 			"location": resourceSchema.StringAttribute{
 				Computed:    true,

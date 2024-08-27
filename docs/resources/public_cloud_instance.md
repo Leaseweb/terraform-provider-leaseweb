@@ -113,7 +113,7 @@ Read-Only:
 Read-Only:
 
 - `location` (String) The city where the region is located
-- `name` (String)
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)
 
 
 <a id="nestedatt--image--storage_size"></a>
@@ -131,7 +131,7 @@ Read-Only:
 
 Required:
 
-- `name` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
 Read-Only:
 
@@ -372,7 +372,7 @@ Read-Only:
 Read-Only:
 
 - `location` (String) The city where the region is located
-- `name` (String)
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)
 
 
 <a id="nestedatt--auto_scaling_group--load_balancer--resources"></a>
@@ -534,7 +534,7 @@ Read-Only:
 Read-Only:
 
 - `location` (String) The city where the region is located
-- `name` (String)
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)
 
 
 
