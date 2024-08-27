@@ -32,7 +32,7 @@ func (i *instanceResource) Schema(
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"region": sharedSchemas.ResourceRegion(true),
+			"region": sharedSchemas.ResourceRegion(true, warningError),
 			"reference": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
@@ -70,7 +70,7 @@ func (i *instanceResource) Schema(
 					"state_reason": schema.StringAttribute{
 						Computed: true,
 					},
-					"region": sharedSchemas.ResourceRegion(false),
+					"region": sharedSchemas.ResourceRegion(false, warningError),
 					"created_at": schema.StringAttribute{
 						Computed: true,
 					},
@@ -121,18 +121,18 @@ func (i *instanceResource) Schema(
 			"type": sharedSchemas.InstanceType(true),
 			// TODO Enable SSH key support
 			/**
-			"ssh_key": schema.StringAttribute{
-				Optional:      true,
-				Sensitive:     true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(facade.GetSshKeyRegularExpression()),
-						"Invalid ssh key",
-					),
-				},
-			},
+			  "ssh_key": schema.StringAttribute{
+			  	Optional:      true,
+			  	Sensitive:     true,
+			  	PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+			  	Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+			  	Validators: []validator.String{
+			  		stringvalidator.RegexMatches(
+			  			regexp.MustCompile(facade.GetSshKeyRegularExpression()),
+			  			"Invalid ssh key",
+			  		),
+			  	},
+			  },
 			*/
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
@@ -199,7 +199,7 @@ func (i *instanceResource) Schema(
 						Computed:    true,
 						Description: "Number of instances that should be running",
 					},
-					"region": sharedSchemas.ResourceRegion(false),
+					"region": sharedSchemas.ResourceRegion(false, warningError),
 					"reference": schema.StringAttribute{
 						Computed:    true,
 						Description: "The identifying name set to the auto scaling group",
@@ -286,7 +286,7 @@ func (i *instanceResource) Schema(
 								Description: "Available resources",
 								Computed:    true,
 							},
-							"region": sharedSchemas.ResourceRegion(false),
+							"region": sharedSchemas.ResourceRegion(false, warningError),
 							"reference": schema.StringAttribute{
 								Computed:    true,
 								Description: "The identifying name set to the load balancer",

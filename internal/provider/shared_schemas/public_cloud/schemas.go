@@ -236,7 +236,13 @@ func DataSourceRegion() schema.SingleNestedAttribute {
 	}
 }
 
-func ResourceRegion(required bool) resourceSchema.SingleNestedAttribute {
+func ResourceRegion(required bool, warning string) resourceSchema.SingleNestedAttribute {
+	printedWarning := ""
+
+	if required {
+		printedWarning = warning
+	}
+
 	return resourceSchema.SingleNestedAttribute{
 		Required: required,
 		Computed: !required,
@@ -247,6 +253,7 @@ func ResourceRegion(required bool) resourceSchema.SingleNestedAttribute {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Description: printedWarning,
 			},
 			"location": resourceSchema.StringAttribute{
 				Computed:    true,

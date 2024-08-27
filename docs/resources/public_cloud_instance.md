@@ -131,7 +131,7 @@ Read-Only:
 
 Required:
 
-- `name` (String)
+- `name` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
 Read-Only:
 
