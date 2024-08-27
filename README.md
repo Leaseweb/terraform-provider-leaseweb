@@ -8,7 +8,7 @@ A Terraform provider to manage Leaseweb resources.
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.7
 - [Go](https://golang.org/doc/install) >= 1.22.3
-- [Node](https://nodejs.org) >= 20.13
+- [Node](https://nodejs.org) >= 20.17
 - [pnPM](https://pnpm.io/) >= 9.1
 
 All requirements are also satisfied by the included [docker-compose.yml](docker-compose.yml).
