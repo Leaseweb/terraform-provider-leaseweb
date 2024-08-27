@@ -137,7 +137,7 @@ func (i *instanceResource) Schema(
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
+				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
 				Validators: []validator.Int64{
 					int64validator.Between(
 						facade.GetMinimumRootDiskSize(),

@@ -49,7 +49,7 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 - `market_app_id` (String) Market App ID that must be installed into the instance.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `reference` (String) The identifying name set to the instance
-- `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
+- `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB
 
 ### Read-Only
 
