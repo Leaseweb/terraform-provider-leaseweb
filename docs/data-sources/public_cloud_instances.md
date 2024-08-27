@@ -41,7 +41,7 @@ Read-Only:
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--instances--private_network))
 - `product_type` (String) The product type
 - `reference` (String) The identifying name set to the instance
-- `region` (String) The region where the instance was launched
+- `region` (Attributes) (see [below for nested schema](#nestedatt--instances--region))
 - `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--instances--resources))
 - `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
 - `root_disk_storage_type` (String) The root disk's storage type
@@ -65,7 +65,7 @@ Read-Only:
 - `maximum_amount` (Number) Only for "CPU_BASED" auto scaling group. The maximum number of instances that can be running
 - `minimum_amount` (Number) The minimum number of instances that should be running
 - `reference` (String) The identifying name set to the auto scaling group
-- `region` (String) The region in which the Auto Scaling Group was launched
+- `region` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--region))
 - `starts_at` (String) Only for "SCHEDULED" auto scaling group. Date and time (UTC) that the instances need to be launched
 - `state` (String) The Auto Scaling Group's current state.
 - `type` (String) Auto Scaling Group type
@@ -83,7 +83,7 @@ Read-Only:
 - `load_balancer_configuration` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--load_balancer_configuration))
 - `private_network` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--private_network))
 - `reference` (String) The identifying name set to the load balancer
-- `region` (String) The region where the load balancer was launched into
+- `region` (Attributes) (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--region))
 - `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--instances--auto_scaling_group--load_balancer--resources))
 - `started_at` (String) Date and time when the load balancer was started for the first time, right after launching it
 - `state` (String) The load balancers current state
@@ -168,6 +168,15 @@ Read-Only:
 - `id` (String)
 - `status` (String)
 - `subnet` (String)
+
+
+<a id="nestedatt--instances--auto_scaling_group--load_balancer--region"></a>
+### Nested Schema for `instances.auto_scaling_group.load_balancer.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
 
 
 <a id="nestedatt--instances--auto_scaling_group--load_balancer--resources"></a>
@@ -323,6 +332,15 @@ Read-Only:
 
 
 
+<a id="nestedatt--instances--auto_scaling_group--region"></a>
+### Nested Schema for `instances.auto_scaling_group.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
+
+
 
 <a id="nestedatt--instances--contract"></a>
 ### Nested Schema for `instances.contract`
@@ -351,13 +369,22 @@ Read-Only:
 - `id` (String) Image ID
 - `market_apps` (List of String)
 - `name` (String)
-- `region` (String)
+- `region` (Attributes) (see [below for nested schema](#nestedatt--instances--image--region))
 - `state` (String)
 - `state_reason` (String)
 - `storage_size` (Attributes) (see [below for nested schema](#nestedatt--instances--image--storage_size))
 - `storage_types` (List of String) The supported storage types
 - `updated_at` (String)
 - `version` (String)
+
+<a id="nestedatt--instances--image--region"></a>
+### Nested Schema for `instances.image.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
+
 
 <a id="nestedatt--instances--image--storage_size"></a>
 ### Nested Schema for `instances.image.storage_size`
@@ -410,6 +437,15 @@ Read-Only:
 - `id` (String)
 - `status` (String)
 - `subnet` (String)
+
+
+<a id="nestedatt--instances--region"></a>
+### Nested Schema for `instances.region`
+
+Read-Only:
+
+- `location` (String) The city where the region is located
+- `name` (String)
 
 
 <a id="nestedatt--instances--resources"></a>

@@ -157,8 +157,15 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 			},
 		)
 
+		region, _ := basetypes.NewObjectValue(
+			model.Region{}.AttributeTypes(),
+			map[string]attr.Value{
+				"Name": basetypes.NewStringValue("region"),
+			},
+		)
+
 		instance := model.Instance{
-			Region:              basetypes.NewStringValue("region"),
+			Region:              region,
 			Type:                instanceType,
 			RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
 			Image:               image,
@@ -891,7 +898,27 @@ func TestPublicCloudFacade_IsInstanceTypeAvailableForRegion(t *testing.T) {
 
 func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 	t.Run(
-		"returns true if instanceType can be used with instance",
+		"returns true if instanceType is equal to the current instanceType",
+		func(t *testing.T) {
+			spy := &serviceSpy{
+				instanceTypesForUpdate: public_cloud.InstanceTypes{},
+			}
+			facade := PublicCloudFacade{publicCloudService: spy}
+
+			got, instanceTypes, err := facade.CanInstanceTypeBeUsedWithInstance(
+				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"tralala",
+				"tralala",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"tralala"}, instanceTypes)
+			assert.True(t, got)
+		},
+	)
+	t.Run(
+		"returns true if instanceType is in availableInstanceTypes",
 		func(t *testing.T) {
 			spy := &serviceSpy{
 				instanceTypesForUpdate: public_cloud.InstanceTypes{{Name: "tralala"}},
@@ -900,12 +927,13 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 
 			got, instanceTypes, err := facade.CanInstanceTypeBeUsedWithInstance(
 				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"",
 				"tralala",
 				context.TODO(),
 			)
 
 			assert.Nil(t, err)
-			assert.Equal(t, []string{"tralala"}, instanceTypes)
+			assert.Equal(t, []string{"tralala", ""}, instanceTypes)
 			assert.True(t, got)
 		},
 	)
@@ -920,12 +948,13 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 
 			got, instanceTypes, err := facade.CanInstanceTypeBeUsedWithInstance(
 				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"",
 				"tralala",
 				context.TODO(),
 			)
 
 			assert.Nil(t, err)
-			assert.Equal(t, []string{"piet"}, instanceTypes)
+			assert.Equal(t, []string{"piet", ""}, instanceTypes)
 			assert.False(t, got)
 		},
 	)
@@ -941,6 +970,7 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 
 		_, _, err := facade.CanInstanceTypeBeUsedWithInstance(
 			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
+			"",
 			"",
 			context.TODO(),
 		)
@@ -958,9 +988,71 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 		_, _, _ = facade.CanInstanceTypeBeUsedWithInstance(
 			want,
 			"",
+			"",
 			context.TODO(),
 		)
 
 		assert.Equal(t, want, spy.availableInstanceTypesForUpdatePassedId)
+	})
+}
+
+func TestPublicCloudFacade_CanInstanceBeTerminated(t *testing.T) {
+	t.Run("errors from service bubble up", func(t *testing.T) {
+		spy := &serviceSpy{}
+		spy.getInstanceError = serviceErrors.NewError(
+			"",
+			errors.New("some error"),
+		)
+		facade := PublicCloudFacade{publicCloudService: spy}
+
+		val, reason, err := facade.CanInstanceBeTerminated("id", context.TODO())
+
+		assert.Error(t, err)
+		assert.Nil(t, reason)
+		assert.False(t, val)
+	})
+
+	t.Run("instanceId is passed to service", func(t *testing.T) {
+		spy := &serviceSpy{}
+		spy.getInstanceError = serviceErrors.NewError(
+			"",
+			errors.New("some error"),
+		)
+		facade := PublicCloudFacade{publicCloudService: spy}
+
+		_, _, _ = facade.CanInstanceBeTerminated("id", context.TODO())
+
+		assert.Equal(t, "id", spy.getInstancePassedId)
+	})
+
+	t.Run("instance can be terminated", func(t *testing.T) {
+		spy := &serviceSpy{}
+		spy.getInstance = &public_cloud.Instance{}
+		facade := PublicCloudFacade{publicCloudService: spy}
+
+		val, reason, err := facade.CanInstanceBeTerminated(
+			"id",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.True(t, val)
+		assert.Nil(t, reason)
+	})
+
+	t.Run("instance cannot be terminated", func(t *testing.T) {
+		spy := &serviceSpy{}
+		spy.getInstance = &public_cloud.Instance{State: enum.StateDestroying}
+		facade := PublicCloudFacade{publicCloudService: spy}
+
+		val, reason, err := facade.CanInstanceBeTerminated(
+			"id",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.False(t, val)
+		assert.NotNil(t, reason)
+		assert.Contains(t, *reason, enum.StateDestroying.String())
 	})
 }

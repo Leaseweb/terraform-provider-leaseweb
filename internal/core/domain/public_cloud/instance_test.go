@@ -18,7 +18,7 @@ func TestNewInstance(t *testing.T) {
 
 		got := NewInstance(
 			"id",
-			"region",
+			Region{Name: "region"},
 			Resources{Cpu: Cpu{Unit: "cpu"}},
 			Image{Name: "image"},
 			enum.StateRunning,
@@ -34,7 +34,7 @@ func TestNewInstance(t *testing.T) {
 		)
 
 		assert.Equal(t, "id", got.Id)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, Region{Name: "region"}, got.Region)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "image", got.Image.Name)
 		assert.Equal(t, enum.StateRunning, got.State)
@@ -69,7 +69,7 @@ func TestNewInstance(t *testing.T) {
 
 		got := NewInstance(
 			"",
-			"",
+			Region{},
 			Resources{},
 			Image{},
 			enum.StateRunning,
@@ -82,14 +82,16 @@ func TestNewInstance(t *testing.T) {
 			Ips{},
 			Contract{},
 			OptionalInstanceValues{
-				Reference:        &reference,
-				MarketAppId:      &marketAppId,
-				SshKey:           sshKeyValueObject,
-				Iso:              &Iso{Id: "isoId"},
-				StartedAt:        &startedAt,
-				PrivateNetwork:   &PrivateNetwork{Id: "privateNetworkId"},
-				AutoScalingGroup: &AutoScalingGroup{Region: "autoScalingGroupRegion"},
-				Volume:           &Volume{Unit: "unit"},
+				Reference:      &reference,
+				MarketAppId:    &marketAppId,
+				SshKey:         sshKeyValueObject,
+				Iso:            &Iso{Id: "isoId"},
+				StartedAt:      &startedAt,
+				PrivateNetwork: &PrivateNetwork{Id: "privateNetworkId"},
+				AutoScalingGroup: &AutoScalingGroup{
+					Region: Region{Name: "autoScalingGroupRegion"},
+				},
+				Volume: &Volume{Unit: "unit"},
 			},
 		)
 
@@ -107,7 +109,11 @@ func TestNewInstance(t *testing.T) {
 			got.SshKey.String(),
 		)
 		assert.Equal(t, startedAt, *got.StartedAt)
-		assert.Equal(t, "autoScalingGroupRegion", got.AutoScalingGroup.Region)
+		assert.Equal(
+			t,
+			Region{Name: "autoScalingGroupRegion"},
+			got.AutoScalingGroup.Region,
+		)
 		assert.Equal(t, "unit", got.Volume.Unit)
 	})
 }
@@ -128,7 +134,7 @@ func TestNewCreateInstance(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, Region{Name: "region"}, got.Region)
 		assert.Equal(t, "instanceType", got.Type.Name)
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "ALMALINUX_8_64BIT", got.Image.Id)
@@ -306,4 +312,62 @@ func TestNewUpdateInstance(t *testing.T) {
 
 		assert.NoError(t, err)
 	})
+}
+
+func TestInstance_CanBeTerminated(t *testing.T) {
+	t.Run(
+		"Instance cannot be terminated when state is creating",
+		func(t *testing.T) {
+			instance := Instance{State: enum.StateCreating}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, enum.StateCreating.String())
+		},
+	)
+
+	t.Run(
+		"Instance cannot be terminated when state is destroying",
+		func(t *testing.T) {
+			instance := Instance{State: enum.StateDestroying}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, enum.StateDestroying.String())
+		},
+	)
+
+	t.Run(
+		"Instance cannot be terminated when state is destroyed",
+		func(t *testing.T) {
+			instance := Instance{State: enum.StateDestroyed}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, enum.StateDestroyed.String())
+		},
+	)
+
+	t.Run(
+		"Instance cannot be terminated when contract.EndsAt is not nil",
+		func(t *testing.T) {
+			endsAt := time.Now()
+			instance := Instance{Contract: Contract{EndsAt: &endsAt}}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.False(t, permission)
+			assert.Contains(t, *reason, endsAt.String())
+		},
+	)
+
+	t.Run(
+		"Instance can be terminated in other scenarios",
+		func(t *testing.T) {
+			instance := Instance{}
+			permission, reason := instance.CanBeTerminated()
+
+			assert.True(t, permission)
+			assert.Nil(t, reason)
+		},
+	)
 }

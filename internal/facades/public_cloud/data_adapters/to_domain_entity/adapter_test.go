@@ -7,17 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
 
-var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
+// TODO Enable SSH key support
+//var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 func TestAdaptToCreateInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instance := generateInstanceModel(
-			nil,
 			nil,
 			nil,
 			nil,
@@ -33,7 +34,7 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, public_cloud.Region{Name: "region"}, got.Region)
 		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.String())
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "UBUNTU_20_04_64BIT", got.Image.Id)
@@ -53,7 +54,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			nil,
-			nil,
 		)
 
 		got, err := AdaptToCreateInstanceOpts(
@@ -66,7 +66,8 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, 55, got.RootDiskSize.Value)
-		assert.Equal(t, defaultSshKey, got.SshKey.String())
+		// TODO Enable SSH key support
+		//assert.Equal(t, defaultSshKey, got.SshKey.String())
 	})
 
 	t.Run(
@@ -75,7 +76,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 			rootDiskStorageType := "tralala"
 			instance := generateInstanceModel(
 				&rootDiskStorageType,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -99,7 +99,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			instanceType := "tralala"
 			instance := generateInstanceModel(
-				nil,
 				nil,
 				nil,
 				nil,
@@ -130,7 +129,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
-				nil,
 			)
 
 			_, err := AdaptToCreateInstanceOpts(
@@ -152,7 +150,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				&contractTerm,
-				nil,
 				nil,
 				nil,
 				nil,
@@ -180,7 +177,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 				&billingFrequency,
 				nil,
 				nil,
-				nil,
 			)
 
 			_, err := AdaptToCreateInstanceOpts(
@@ -194,34 +190,36 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		},
 	)
 
-	t.Run("returns error if invalid sshKey is passed", func(t *testing.T) {
-		sshKey := "tralala"
-		instance := generateInstanceModel(
-			nil,
-			nil,
-			nil,
-			nil,
-			&sshKey,
-			nil,
-			nil,
-		)
+	// TODO Enable SSH key support
+	/**
+	  t.Run("returns error if invalid sshKey is passed", func(t *testing.T) {
+	  	sshKey := "tralala"
+	  	instance := generateInstanceModel(
+	  		nil,
+	  		nil,
+	  		nil,
+	  		nil,
+	  		&sshKey,
+	  		nil,
+	  		nil,
+	  	)
 
-		_, err := AdaptToCreateInstanceOpts(
-			instance,
-			[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
-			context.TODO(),
-		)
+	  	_, err := AdaptToCreateInstanceOpts(
+	  		instance,
+	  		[]string{string(publicCloud.TYPENAME_M5A_4XLARGE)},
+	  		context.TODO(),
+	  	)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "ssh key is invalid")
-	})
+	  	assert.Error(t, err)
+	  	assert.ErrorContains(t, err, "ssh key is invalid")
+	  })
+	*/
 
 	t.Run(
 		"returns error if invalid rootDiskSize is passed",
 		func(t *testing.T) {
 			rootDiskSize := 1
 			instance := generateInstanceModel(
-				nil,
 				nil,
 				nil,
 				nil,
@@ -246,7 +244,6 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			instanceType := "instanceType"
 			instance := generateInstanceModel(
-				nil,
 				nil,
 				nil,
 				nil,
@@ -277,7 +274,6 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 			nil,
 			nil,
 			nil,
-			nil,
 		)
 		instance.Id = basetypes.NewStringValue(id)
 
@@ -294,7 +290,6 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 
 	t.Run("optional values are set", func(t *testing.T) {
 		instance := generateInstanceModel(
-			nil,
 			nil,
 			nil,
 			nil,
@@ -333,7 +328,6 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 				nil,
 				nil,
 				nil,
-				nil,
 			)
 
 			_, err := AdaptToUpdateInstanceOpts(
@@ -354,7 +348,8 @@ func generateInstanceModel(
 	contractType *string,
 	contractTerm *int,
 	billingFrequency *int,
-	sshKey *string,
+	// TODO Enable SSH key support
+	//sshKey *string,
 	rootDiskSize *int,
 	instanceTypeName *string,
 ) model.Instance {
@@ -380,9 +375,12 @@ func generateInstanceModel(
 	if rootDiskSize == nil {
 		rootDiskSize = &defaultRootDiskSize
 	}
-	if sshKey == nil {
-		sshKey = &defaultSshKey
-	}
+	// TODO Enable SSH key support
+	/**
+	  if sshKey == nil {
+	  	sshKey = &defaultSshKey
+	  }
+	*/
 	if instanceTypeName == nil {
 		instanceTypeName = &defaultInstanceTypeName
 	}
@@ -407,6 +405,7 @@ func generateInstanceModel(
 			MarketApps:   basetypes.NewListUnknown(types.StringType),
 			StorageTypes: basetypes.NewListUnknown(types.StringType),
 			StorageSize:  storageSize,
+			Region:       basetypes.NewObjectNull(model.Region{}.AttributeTypes()),
 		},
 	)
 
@@ -437,9 +436,18 @@ func generateInstanceModel(
 		},
 	)
 
+	region, _ := types.ObjectValueFrom(
+		context.TODO(),
+		model.Region{}.AttributeTypes(),
+		model.Region{
+			Name:     basetypes.NewStringValue("region"),
+			Location: basetypes.NewStringUnknown(),
+		},
+	)
+
 	instance := model.Instance{
 		Id:                  basetypes.NewStringValue("id"),
-		Region:              basetypes.NewStringValue("region"),
+		Region:              region,
 		Type:                instanceType,
 		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),
 		RootDiskSize:        basetypes.NewInt64Value(int64(*rootDiskSize)),
@@ -447,7 +455,7 @@ func generateInstanceModel(
 		Contract:            contract,
 		MarketAppId:         basetypes.NewStringValue("marketAppId"),
 		Reference:           basetypes.NewStringValue("reference"),
-		SshKey:              basetypes.NewStringValue(*sshKey),
+		//SshKey:              basetypes.NewStringValue(*sshKey),
 	}
 
 	return instance

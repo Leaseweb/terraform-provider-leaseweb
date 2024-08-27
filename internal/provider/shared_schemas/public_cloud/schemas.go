@@ -5,6 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	resourceSchema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	facade "github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
@@ -213,6 +216,48 @@ func Network() schema.SingleNestedAttribute {
 			},
 			"subnet": schema.StringAttribute{
 				Computed: true,
+			},
+		},
+	}
+}
+
+func DataSourceRegion() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Computed: true,
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
+				Computed: true,
+			},
+			"location": schema.StringAttribute{
+				Computed:    true,
+				Description: "The city where the region is located",
+			},
+		},
+	}
+}
+
+func ResourceRegion(required bool, warning string) resourceSchema.SingleNestedAttribute {
+	printedWarning := ""
+
+	if required {
+		printedWarning = warning
+	}
+
+	return resourceSchema.SingleNestedAttribute{
+		Required: required,
+		Computed: !required,
+		Attributes: map[string]resourceSchema.Attribute{
+			"name": resourceSchema.StringAttribute{
+				Required: required,
+				Computed: !required,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Description: printedWarning,
+			},
+			"location": resourceSchema.StringAttribute{
+				Computed:    true,
+				Description: "The city where the region is located",
 			},
 		},
 	}

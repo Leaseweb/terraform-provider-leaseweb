@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
@@ -20,6 +21,8 @@ import (
 
 var ErrContractTermCannotBeZero = public_cloud.ErrContractTermCannotBeZero
 var ErrContractTermMustBeZero = public_cloud.ErrContractTermMustBeZero
+
+type CannotBeTerminatedReason string
 
 // PublicCloudFacade handles all communication between provider & the core.
 type PublicCloudFacade struct {
@@ -45,11 +48,11 @@ type PublicCloudFacade struct {
 }
 
 // GetAllInstances retrieve all instances.
-func (h PublicCloudFacade) GetAllInstances(ctx context.Context) (
+func (p PublicCloudFacade) GetAllInstances(ctx context.Context) (
 	*dataSourceModel.Instances,
 	*shared.FacadeError,
 ) {
-	instances, err := h.publicCloudService.GetAllInstances(ctx)
+	instances, err := p.publicCloudService.GetAllInstances(ctx)
 	if err != nil {
 		return nil, shared.NewFromServicesError("GetAllInstances", err)
 	}
@@ -60,20 +63,23 @@ func (h PublicCloudFacade) GetAllInstances(ctx context.Context) (
 }
 
 // CreateInstance creates an instance.
-func (h PublicCloudFacade) CreateInstance(
+func (p PublicCloudFacade) CreateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
+	var region resourceModel.Region
 
-	availableInstanceTypes, serviceError := h.publicCloudService.GetAvailableInstanceTypesForRegion(
-		plan.Region.ValueString(),
+	plan.Region.As(ctx, &region, basetypes.ObjectAsOptions{})
+
+	availableInstanceTypes, serviceError := p.publicCloudService.GetAvailableInstanceTypesForRegion(
+		region.Name.ValueString(),
 		ctx,
 	)
 	if serviceError != nil {
 		return nil, shared.NewError("CreateInstance", serviceError)
 	}
 
-	createInstanceOpts, err := h.adaptToCreateInstanceOpts(
+	createInstanceOpts, err := p.adaptToCreateInstanceOpts(
 		plan,
 		availableInstanceTypes.ToArray(),
 		ctx,
@@ -82,7 +88,7 @@ func (h PublicCloudFacade) CreateInstance(
 		return nil, shared.NewError("CreateInstance", err)
 	}
 
-	createdInstance, serviceErr := h.publicCloudService.CreateInstance(
+	createdInstance, serviceErr := p.publicCloudService.CreateInstance(
 		*createInstanceOpts,
 		ctx,
 	)
@@ -90,7 +96,7 @@ func (h PublicCloudFacade) CreateInstance(
 		return nil, shared.NewFromServicesError("CreateInstance", serviceErr)
 	}
 
-	instance, err := h.adaptInstanceToResourceModel(*createdInstance, ctx)
+	instance, err := p.adaptInstanceToResourceModel(*createdInstance, ctx)
 	if err != nil {
 		return nil, shared.NewError("CreateInstance", err)
 	}
@@ -99,11 +105,11 @@ func (h PublicCloudFacade) CreateInstance(
 }
 
 // DeleteInstance deletes an instance.
-func (h PublicCloudFacade) DeleteInstance(
+func (p PublicCloudFacade) DeleteInstance(
 	id string,
 	ctx context.Context,
 ) *shared.FacadeError {
-	serviceErr := h.publicCloudService.DeleteInstance(id, ctx)
+	serviceErr := p.publicCloudService.DeleteInstance(id, ctx)
 	if serviceErr != nil {
 		return shared.NewFromServicesError("DeleteInstance", serviceErr)
 	}
@@ -112,16 +118,16 @@ func (h PublicCloudFacade) DeleteInstance(
 }
 
 // GetInstance returns instance details.
-func (h PublicCloudFacade) GetInstance(
+func (p PublicCloudFacade) GetInstance(
 	id string,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	instance, serviceErr := h.publicCloudService.GetInstance(id, ctx)
+	instance, serviceErr := p.publicCloudService.GetInstance(id, ctx)
 	if serviceErr != nil {
 		return nil, shared.NewFromServicesError("GetInstance", serviceErr)
 	}
 
-	convertedInstance, err := h.adaptInstanceToResourceModel(*instance, ctx)
+	convertedInstance, err := p.adaptInstanceToResourceModel(*instance, ctx)
 	if err != nil {
 		return nil, shared.NewError("GetInstance", err)
 	}
@@ -130,11 +136,11 @@ func (h PublicCloudFacade) GetInstance(
 }
 
 // UpdateInstance updates an instance.
-func (h PublicCloudFacade) UpdateInstance(
+func (p PublicCloudFacade) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	availableInstanceTypes, repositoryErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
+	availableInstanceTypes, repositoryErr := p.publicCloudService.GetAvailableInstanceTypesForUpdate(
 		plan.Id.ValueString(),
 		ctx,
 	)
@@ -142,7 +148,7 @@ func (h PublicCloudFacade) UpdateInstance(
 		return nil, shared.NewError("UpdateInstance", repositoryErr)
 	}
 
-	instance, repositoryErr := h.publicCloudService.GetInstance(
+	instance, repositoryErr := p.publicCloudService.GetInstance(
 		plan.Id.ValueString(),
 		ctx,
 	)
@@ -150,7 +156,7 @@ func (h PublicCloudFacade) UpdateInstance(
 		return nil, shared.NewError("UpdateInstance", repositoryErr)
 	}
 
-	updateInstanceOpts, conversionError := h.adaptToUpdateInstanceOpts(
+	updateInstanceOpts, conversionError := p.adaptToUpdateInstanceOpts(
 		plan,
 		availableInstanceTypes.ToArray(),
 		instance.Type.Name,
@@ -160,7 +166,7 @@ func (h PublicCloudFacade) UpdateInstance(
 		return nil, shared.NewError("UpdateInstance", conversionError)
 	}
 
-	updatedInstance, updateInstanceErr := h.publicCloudService.UpdateInstance(
+	updatedInstance, updateInstanceErr := p.publicCloudService.UpdateInstance(
 		*updateInstanceOpts,
 		ctx,
 	)
@@ -171,7 +177,7 @@ func (h PublicCloudFacade) UpdateInstance(
 		)
 	}
 
-	convertedInstance, conversionError := h.adaptInstanceToResourceModel(
+	convertedInstance, conversionError := p.adaptInstanceToResourceModel(
 		*updatedInstance,
 		ctx,
 	)
@@ -183,46 +189,46 @@ func (h PublicCloudFacade) UpdateInstance(
 }
 
 // GetSshKeyRegularExpression returns regular expression used to validate ssh keys.
-func (h PublicCloudFacade) GetSshKeyRegularExpression() string {
+func (p PublicCloudFacade) GetSshKeyRegularExpression() string {
 	return value_object.SshRegexp
 }
 
 // GetMinimumRootDiskSize returns the minimal valid rootDiskSize.
-func (h PublicCloudFacade) GetMinimumRootDiskSize() int64 {
+func (p PublicCloudFacade) GetMinimumRootDiskSize() int64 {
 	return int64(value_object.MinRootDiskSize)
 }
 
 // GetMaximumRootDiskSize returns the maximum valid rootDiskSize.
-func (h PublicCloudFacade) GetMaximumRootDiskSize() int64 {
+func (p PublicCloudFacade) GetMaximumRootDiskSize() int64 {
 	return int64(value_object.MaxRootDiskSize)
 }
 
 // GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
-func (h PublicCloudFacade) GetRootDiskStorageTypes() []string {
+func (p PublicCloudFacade) GetRootDiskStorageTypes() []string {
 	return enum.RootDiskStorageTypeCentral.Values()
 }
 
 // GetBillingFrequencies returns a list of valid billing frequencies.
-func (h PublicCloudFacade) GetBillingFrequencies() []int64 {
+func (p PublicCloudFacade) GetBillingFrequencies() []int64 {
 	return shared.AdaptIntArrayToInt64Array(
 		enum.ContractBillingFrequencyThree.Values(),
 	)
 }
 
 // GetContractTerms returns a list of valid contract terms.
-func (h PublicCloudFacade) GetContractTerms() []int64 {
+func (p PublicCloudFacade) GetContractTerms() []int64 {
 	return shared.AdaptIntArrayToInt64Array(
 		enum.ContractTermThree.Values(),
 	)
 }
 
 // GetContractTypes returns a list of valid contract types.
-func (h PublicCloudFacade) GetContractTypes() []string {
+func (p PublicCloudFacade) GetContractTypes() []string {
 	return enum.ContractTypeHourly.Values()
 }
 
 // ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
-func (h PublicCloudFacade) ValidateContractTerm(
+func (p PublicCloudFacade) ValidateContractTerm(
 	contractTerm int64,
 	contractType string,
 ) error {
@@ -261,11 +267,11 @@ func (h PublicCloudFacade) ValidateContractTerm(
 }
 
 // DoesRegionExist checks if the region exists.
-func (h PublicCloudFacade) DoesRegionExist(
+func (p PublicCloudFacade) DoesRegionExist(
 	region string,
 	ctx context.Context,
 ) (bool, []string, *shared.FacadeError) {
-	regions, err := h.publicCloudService.GetRegions(ctx)
+	regions, err := p.publicCloudService.GetRegions(ctx)
 	if err != nil {
 		return false, nil, shared.NewFromServicesError(
 			"DoesRegionExist",
@@ -281,12 +287,12 @@ func (h PublicCloudFacade) DoesRegionExist(
 }
 
 // IsInstanceTypeAvailableForRegion checks if the instanceType is available for the region.
-func (h PublicCloudFacade) IsInstanceTypeAvailableForRegion(
+func (p PublicCloudFacade) IsInstanceTypeAvailableForRegion(
 	instanceType string,
 	region string,
 	ctx context.Context,
 ) (bool, []string, error) {
-	instanceTypes, err := h.publicCloudService.GetAvailableInstanceTypesForRegion(
+	instanceTypes, err := p.publicCloudService.GetAvailableInstanceTypesForRegion(
 		region,
 		ctx,
 	)
@@ -301,16 +307,25 @@ func (h PublicCloudFacade) IsInstanceTypeAvailableForRegion(
 }
 
 // CanInstanceTypeBeUsedWithInstance checks
-// if the passed instanceType can be used with the passed instance.
-func (h PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
+// if the passed instanceType can be used with the passed instance. This is
+// the case if:
+//   - instanceType is equal to currentInstanceType
+//   - instanceType is in available instanceTypes returned by service
+func (p PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 	instanceId string,
+	currentInstanceType string,
 	instanceType string,
 	ctx context.Context,
 ) (bool, []string, error) {
-	instanceTypes, serviceErr := h.publicCloudService.GetAvailableInstanceTypesForUpdate(
+	instanceTypes, serviceErr := p.publicCloudService.GetAvailableInstanceTypesForUpdate(
 		instanceId,
 		ctx,
 	)
+	instanceTypes = append(
+		instanceTypes,
+		public_cloud.InstanceType{Name: currentInstanceType},
+	)
+
 	if serviceErr != nil {
 		return false, nil, shared.NewFromServicesError(
 			"CanInstanceTypeBeUsedWithInstance",
@@ -319,6 +334,26 @@ func (h PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 	}
 
 	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
+}
+
+// CanInstanceBeTerminated determines whether an instance can be terminated.
+func (p PublicCloudFacade) CanInstanceBeTerminated(
+	instanceId string,
+	ctx context.Context,
+) (bool, *CannotBeTerminatedReason, error) {
+
+	instance, err := p.publicCloudService.GetInstance(instanceId, ctx)
+	if err != nil {
+		return false, nil, shared.NewError("CanInstanceBeTerminated", err)
+	}
+
+	canBeTerminated, instanceReason := instance.CanBeTerminated()
+	if instanceReason != nil {
+		reason := CannotBeTerminatedReason(*instanceReason)
+		return canBeTerminated, &reason, nil
+	}
+
+	return canBeTerminated, nil, nil
 }
 
 func NewPublicCloudFacade(publicCloudService ports.PublicCloudService) PublicCloudFacade {

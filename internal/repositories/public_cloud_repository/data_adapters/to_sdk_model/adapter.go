@@ -48,7 +48,7 @@ func AdaptToLaunchInstanceOpts(instance public_cloud.Instance) (
 	}
 
 	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
-		instance.Region,
+		instance.Region.Name,
 		*instanceTypeName,
 		instance.Image.Id,
 		*contractType,

@@ -9,7 +9,7 @@ type LoadBalancer struct {
 	Id                        types.String `tfsdk:"id"`
 	Type                      types.Object `tfsdk:"type"`
 	Resources                 types.Object `tfsdk:"resources"`
-	Region                    types.String `tfsdk:"region"`
+	Region                    types.Object `tfsdk:"region"`
 	Reference                 types.String `tfsdk:"reference"`
 	State                     types.String `tfsdk:"state"`
 	Contract                  types.Object `tfsdk:"contract"`
@@ -24,7 +24,7 @@ func (l LoadBalancer) AttributeTypes() map[string]attr.Type {
 		"id":         types.StringType,
 		"type":       types.ObjectType{AttrTypes: InstanceType{}.AttributeTypes()},
 		"resources":  types.ObjectType{AttrTypes: Resources{}.AttributeTypes()},
-		"region":     types.StringType,
+		"region":     types.ObjectType{AttrTypes: Region{}.AttributeTypes()},
 		"reference":  types.StringType,
 		"state":      types.StringType,
 		"contract":   types.ObjectType{AttrTypes: Contract{}.AttributeTypes()},

@@ -17,9 +17,11 @@ func (e ErrInvalidInstanceTypePassed) Error() string {
 	return e.msg
 }
 
+type ReasonInstanceCannotBeTerminated string
+
 type Instance struct {
 	Id                  string
-	Region              string
+	Region              Region
 	Reference           *string
 	StartedAt           *time.Time
 	Resources           Resources
@@ -39,6 +41,30 @@ type Instance struct {
 	SshKey              *value_object.SshKey
 	AutoScalingGroup    *AutoScalingGroup
 	Volume              *Volume
+}
+
+// CanBeTerminated determines if an Instance can be terminated.
+// This is not the case when:
+//   - Instance.State is enum.StateCreating
+//   - Instance.State is enum.StateDestroying
+//   - Instance.State is enum.StateDestroyed
+//   - Contract.EndsAt is not null
+func (i Instance) CanBeTerminated() (bool, *ReasonInstanceCannotBeTerminated) {
+	if i.State == enum.StateCreating || i.State == enum.StateDestroying || i.State == enum.StateDestroyed {
+		reason := ReasonInstanceCannotBeTerminated(
+			fmt.Sprintf("state is %q", i.State.String()),
+		)
+		return false, &reason
+	}
+
+	if i.Contract.EndsAt != nil {
+		reason := ReasonInstanceCannotBeTerminated(
+			fmt.Sprintf("contract.endsAt is %q", i.Contract.EndsAt.String()),
+		)
+		return false, &reason
+	}
+
+	return true, nil
 }
 
 // OptionalInstanceValues contains optional supported instance fields.
@@ -73,7 +99,7 @@ type OptionalUpdateInstanceValues struct {
 // NewInstance creates a new instance with all supported options.
 func NewInstance(
 	id string,
-	region string,
+	region Region,
 	resources Resources,
 	image Image,
 	state enum.State,
@@ -134,7 +160,7 @@ func NewCreateInstance(
 	}
 
 	instance := Instance{
-		Region:              region,
+		Region:              Region{Name: region},
 		Type:                InstanceType{Name: instanceType},
 		RootDiskStorageType: rootDiskStorageType,
 		Image:               Image{Id: imageId},

@@ -10,7 +10,6 @@ import (
 func TestNewImage(t *testing.T) {
 	state := "state"
 	stateReason := "stateReason"
-	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	storageSize := StorageSize{Unit: "unit"}
@@ -26,7 +25,7 @@ func TestNewImage(t *testing.T) {
 		&architecture,
 		&state,
 		&stateReason,
-		&region,
+		&Region{Name: "region"},
 		&createdAt,
 		&updatedAt,
 		false,
@@ -43,7 +42,7 @@ func TestNewImage(t *testing.T) {
 		Architecture: &architecture,
 		State:        &state,
 		StateReason:  &stateReason,
-		Region:       &region,
+		Region:       &Region{Name: "region"},
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,
 		Custom:       false,

@@ -2,7 +2,6 @@ package instance
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -22,6 +21,7 @@ func (i *instanceResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	facade := public_cloud.PublicCloudFacade{}
+	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -32,13 +32,7 @@ func (i *instanceResource) Schema(
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"region": schema.StringAttribute{
-				Required:    true,
-				Description: "Region to launch the instance into",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
+			"region": sharedSchemas.ResourceRegion(true, warningError),
 			"reference": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
@@ -50,7 +44,10 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Image ID",
+						Description: "Image ID." + warningError,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 					"name": schema.StringAttribute{
 						Computed: true,
@@ -73,9 +70,7 @@ func (i *instanceResource) Schema(
 					"state_reason": schema.StringAttribute{
 						Computed: true,
 					},
-					"region": schema.StringAttribute{
-						Computed: true,
-					},
+					"region": sharedSchemas.ResourceRegion(false, warningError),
 					"created_at": schema.StringAttribute{
 						Computed: true,
 					},
@@ -124,18 +119,21 @@ func (i *instanceResource) Schema(
 				Computed: true,
 			},
 			"type": sharedSchemas.InstanceType(true),
-			"ssh_key": schema.StringAttribute{
-				Optional:      true,
-				Sensitive:     true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(facade.GetSshKeyRegularExpression()),
-						"Invalid ssh key",
-					),
-				},
-			},
+			// TODO Enable SSH key support
+			/**
+			  "ssh_key": schema.StringAttribute{
+			  	Optional:      true,
+			  	Sensitive:     true,
+			  	PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+			  	Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+			  	Validators: []validator.String{
+			  		stringvalidator.RegexMatches(
+			  			regexp.MustCompile(facade.GetSshKeyRegularExpression()),
+			  			"Invalid ssh key",
+			  		),
+			  	},
+			  },
+			*/
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,
@@ -149,9 +147,12 @@ func (i *instanceResource) Schema(
 			},
 			"root_disk_storage_type": schema.StringAttribute{
 				Required:    true,
-				Description: "The root disk's storage type",
+				Description: "The root disk's storage type." + warningError,
 				Validators: []validator.String{
 					stringvalidator.OneOf(facade.GetRootDiskStorageTypes()...),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"ips": sharedSchemas.Ips(),
@@ -174,7 +175,10 @@ func (i *instanceResource) Schema(
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Market App ID that must be installed into the instance",
+				Description: "Market App ID that must be installed into the instance." + warningError,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplaceIfConfigured(),
+				},
 			},
 			"auto_scaling_group": schema.SingleNestedAttribute{
 				Computed: true,
@@ -195,10 +199,7 @@ func (i *instanceResource) Schema(
 						Computed:    true,
 						Description: "Number of instances that should be running",
 					},
-					"region": schema.StringAttribute{
-						Computed:    true,
-						Description: "The region in which the Auto Scaling Group was launched",
-					},
+					"region": sharedSchemas.ResourceRegion(false, warningError),
 					"reference": schema.StringAttribute{
 						Computed:    true,
 						Description: "The identifying name set to the auto scaling group",
@@ -285,10 +286,7 @@ func (i *instanceResource) Schema(
 								Description: "Available resources",
 								Computed:    true,
 							},
-							"region": schema.StringAttribute{
-								Computed:    true,
-								Description: "The region where the load balancer was launched into",
-							},
+							"region": sharedSchemas.ResourceRegion(false, warningError),
 							"reference": schema.StringAttribute{
 								Computed:    true,
 								Description: "The identifying name set to the load balancer",

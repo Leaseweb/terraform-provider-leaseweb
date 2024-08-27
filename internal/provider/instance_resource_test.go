@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func TestAccInstanceResource(t *testing.T) {
@@ -17,7 +18,9 @@ func TestAccInstanceResource(t *testing.T) {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -40,7 +43,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"region",
+							"region.name",
 							"eu-west-3",
 						),
 						resource.TestCheckResourceAttr(
@@ -90,7 +93,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -113,7 +118,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"region",
+							"region.name",
 							"eu-west-3",
 						),
 						resource.TestCheckResourceAttr(
@@ -167,7 +172,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -198,7 +205,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -227,7 +236,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "tralala"
   }
@@ -250,34 +261,39 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("invalid sshKey", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m4.4xlarge"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-  ssh_key = "tralala"
-}`,
-					ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
-				},
-			},
-		})
-	})
+	// TODO Enable SSH key support
+	/**
+		  	t.Run("invalid sshKey", func(t *testing.T) {
+		  		resource.Test(t, resource.TestCase{
+		  			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		  			Steps: []resource.TestStep{
+		  				{
+		  					Config: providerConfig + `
+		  resource "leaseweb_public_cloud_instance" "test" {
+		    region = {
+	        name = "eu-west-3"
+	      }
+		    type = {
+		      name = "lsw.m4.4xlarge"
+		    }
+		    reference = "my webserver"
+		    image = {
+		      id = "UBUNTU_20_04_64BIT"
+		    }
+		    root_disk_storage_type = "CENTRAL"
+		    contract = {
+		      billing_frequency = 1
+		      term              = 0
+		      type              = "HOURLY"
+		    }
+		    ssh_key = "tralala"
+		  }`,
+		  					ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+		  				},
+		  			},
+		  		})
+		  	})
+	*/
 
 	t.Run("rootDiskSize is too small", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
@@ -286,8 +302,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.4xlarge"
   }
   reference = "my webserver"
@@ -317,8 +335,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.4xlarge"
   }
   reference = "my webserver"
@@ -348,8 +368,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.2xlarge"
   }
   reference = "my webserver"
@@ -378,8 +400,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "tralala"
-  type      = {
+  region = {
+    name = "tralala"
+  }
+  type = {
     name = "lsw.m4.2xlarge"
   }
   reference = "my webserver"
@@ -406,7 +430,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.2xlarge"
   }
@@ -436,8 +462,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.2xlarge"
   }
   reference = "my webserver"
@@ -466,8 +494,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.2xlarge"
   }
   reference = "my webserver"
@@ -551,8 +581,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -570,8 +602,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.large"
   }
   reference = "my webserver"
@@ -594,69 +628,77 @@ resource "leaseweb_public_cloud_instance" "test" {
 		},
 	)
 
-	t.Run(
-		"changing the region is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-2"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
+	// TODO Enable SSH key support
+	/**
+		  	t.Run(
+		  		"changing the sshKey is not allowed",
+		  		func(t *testing.T) {
+		  			resource.Test(t, resource.TestCase{
+		  				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		  				Steps: []resource.TestStep{
+		  					{
+		  						Config: providerConfig + `
+		  resource "leaseweb_public_cloud_instance" "test" {
+	      region = {
+	        name = "eu-west-3"
+	      }
+		    type = {
+		      name = "lsw.m3.large"
+		    }
+		    reference = "my webserver"
+		    image = {
+		      id = "UBUNTU_20_04_64BIT"
+		    }
+		    root_disk_storage_type = "CENTRAL"
+		    contract = {
+		      billing_frequency = 1
+		      term              = 0
+		      type              = "HOURLY"
+		    }
+		  }`,
+		  					},
+		  					{
+		  						Config: providerConfig + `
+		  resource "leaseweb_public_cloud_instance" "test" {
+	      region = {
+	          name = "eu-west-3"
+	        }
+		    type = {
+		      name = "lsw.m3.large"
+		    }
+		    reference = "my webserver"
+		    image = {
+		      id = "UBUNTU_20_04_64BIT"
+		    }
+		    root_disk_storage_type = "CENTRAL"
+		    contract = {
+		      billing_frequency = 1
+		      term              = 0
+		      type              = "HOURLY"
+		    }
+		    ssh_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbRsxME8r5CbjnXcPj2IydrrDlqDjqvvK4vd4a6zDyP+Pu47HuBdbIqskdDviS/6ZHuMm7x9On/4VDRFaqVUSDAHqkJktBGgsrpoLxy5OMX2BUuxVZibW7US9hBukfi0qaBuk4P78e5ginZ+hXtZZx7li9yqs1Q27BkN+LmQ0Z6Zsbn/agq58GnuUGVwdlcilQ4WC6RoV7vtV/DIstAGDzuxA9ANrE6w6jOU25epq/OUvK7DNIm3U0PH3QK5wzYCubLuhH8tx9M7zcKJPodVPTOTsAO1RxTcwiyYTlNOg3yuubYPY+Lug1wpMPFR8WOfxSCSW9AUUTdm1Zfq7V5M99 "
+		  }`,
+		  						ExpectError: regexp.MustCompile(
+		  							"Attribute value is not allowed to change",
+		  						),
+		  					},
+		  				},
+		  			})
+		  		},
+		  	)
+	*/
 
-	t.Run(
-		"changing the imageId is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
+	t.Run("changing the region triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -670,11 +712,87 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
 					},
-					{
-						Config: providerConfig + `
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-2"
+  }
+  type = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				},
+			},
+		})
+	})
+
+	t.Run("changing the imageId triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
+    name = "lsw.m3.large"
+  }
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -689,17 +807,13 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
 	t.Run(
-		"changing the marketAppId is not allowed",
+		"changing the marketAppId triggers replacement",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -707,7 +821,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -724,9 +840,23 @@ resource "leaseweb_public_cloud_instance" "test" {
 }`,
 					},
 					{
+						ConfigPlanChecks: resource.ConfigPlanChecks{
+							PreApply: []plancheck.PlanCheck{
+								plancheck.ExpectResourceAction(
+									"leaseweb_public_cloud_instance.test",
+									plancheck.ResourceActionDestroyBeforeCreate,
+								),
+							},
+						},
+						// Ignore the inconsistent result as prism returns the old result.
+						ExpectError: regexp.MustCompile(
+							"Provider produced inconsistent result after apply",
+						),
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   market_app_id = "newValue"
   type      = {
     name = "lsw.m3.large"
@@ -742,9 +872,6 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
 					},
 				},
 			})
@@ -752,7 +879,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 	)
 
 	t.Run(
-		"changing the rootDiskStorageType is not allowed",
+		"changing the rootDiskStorageType triggers replacement",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -760,8 +887,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -777,9 +906,23 @@ resource "leaseweb_public_cloud_instance" "test" {
 }`,
 					},
 					{
+						ConfigPlanChecks: resource.ConfigPlanChecks{
+							PreApply: []plancheck.PlanCheck{
+								plancheck.ExpectResourceAction(
+									"leaseweb_public_cloud_instance.test",
+									plancheck.ResourceActionDestroyBeforeCreate,
+								),
+							},
+						},
+						// Ignore the inconsistent result as prism returns the old result.
+						ExpectError: regexp.MustCompile(
+							"Provider produced inconsistent result after apply",
+						),
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -794,62 +937,6 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
-					},
-				},
-			})
-		},
-	)
-
-	t.Run(
-		"changing the sshKey is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
-    name = "lsw.m3.large"
-  }
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-  ssh_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbRsxME8r5CbjnXcPj2IydrrDlqDjqvvK4vd4a6zDyP+Pu47HuBdbIqskdDviS/6ZHuMm7x9On/4VDRFaqVUSDAHqkJktBGgsrpoLxy5OMX2BUuxVZibW7US9hBukfi0qaBuk4P78e5ginZ+hXtZZx7li9yqs1Q27BkN+LmQ0Z6Zsbn/agq58GnuUGVwdlcilQ4WC6RoV7vtV/DIstAGDzuxA9ANrE6w6jOU25epq/OUvK7DNIm3U0PH3QK5wzYCubLuhH8tx9M7zcKJPodVPTOTsAO1RxTcwiyYTlNOg3yuubYPY+Lug1wpMPFR8WOfxSCSW9AUUTdm1Zfq7V5M99 "
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute value is not allowed to change",
-						),
 					},
 				},
 			})

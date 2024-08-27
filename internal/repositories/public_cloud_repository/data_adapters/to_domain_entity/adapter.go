@@ -3,21 +3,21 @@ package to_domain_entity
 import (
 	"fmt"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	sdkModel "github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	domainEntity "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
-// AdaptInstance adapts an instance domain entity to an sdk instance model.
+// AdaptInstance adapts publicCloud.Instance to public_cloud.Instance.
 func AdaptInstance(
-	sdkInstance publicCloud.Instance,
+	sdkInstance sdkModel.Instance,
 ) (
-	*public_cloud.Instance,
+	*domainEntity.Instance,
 	error,
 ) {
-	var autoScalingGroup *public_cloud.AutoScalingGroup
+	var autoScalingGroup *domainEntity.AutoScalingGroup
 
 	state, err := enum.NewState(string(sdkInstance.GetState()))
 	if err != nil {
@@ -56,16 +56,16 @@ func AdaptInstance(
 		}
 	}
 
-	optionalValues := public_cloud.OptionalInstanceValues{
+	optionalValues := domainEntity.OptionalInstanceValues{
 		Reference:        shared.AdaptNullableStringToValue(sdkInstance.Reference),
 		MarketAppId:      shared.AdaptNullableStringToValue(sdkInstance.MarketAppId),
 		StartedAt:        shared.AdaptNullableTimeToValue(sdkInstance.StartedAt),
 		AutoScalingGroup: autoScalingGroup,
 	}
 
-	instance := public_cloud.NewInstance(
+	instance := domainEntity.NewInstance(
 		sdkInstance.GetId(),
-		sdkInstance.GetRegion(),
+		domainEntity.Region{Name: sdkInstance.GetRegion()},
 		adaptResources(sdkInstance.GetResources()),
 		adaptImage(sdkInstance.GetImage()),
 		state,
@@ -73,7 +73,7 @@ func AdaptInstance(
 		sdkInstance.GetHasPublicIpV4(),
 		sdkInstance.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		public_cloud.InstanceType{Name: string(sdkInstance.GetType())},
+		domainEntity.InstanceType{Name: string(sdkInstance.GetType())},
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -83,10 +83,12 @@ func AdaptInstance(
 	return &instance, nil
 }
 
-func AdaptInstanceDetails(
-	sdkInstanceDetails publicCloud.InstanceDetails,
-) (*public_cloud.Instance, error) {
-	var autoScalingGroup *public_cloud.AutoScalingGroup
+// AdaptInstanceDetails adapts publicCloud.InstanceDetails to public_cloud.Instance.
+func AdaptInstanceDetails(sdkInstanceDetails sdkModel.InstanceDetails) (
+	*domainEntity.Instance,
+	error,
+) {
+	var autoScalingGroup *domainEntity.AutoScalingGroup
 
 	state, err := enum.NewState(string(sdkInstanceDetails.GetState()))
 	if err != nil {
@@ -125,7 +127,7 @@ func AdaptInstanceDetails(
 		}
 	}
 
-	optionalValues := public_cloud.OptionalInstanceValues{
+	optionalValues := domainEntity.OptionalInstanceValues{
 		Reference: shared.AdaptNullableStringToValue(
 			sdkInstanceDetails.Reference,
 		),
@@ -152,9 +154,9 @@ func AdaptInstanceDetails(
 		optionalValues.Volume = &volume
 	}
 
-	instance := public_cloud.NewInstance(
+	instance := domainEntity.NewInstance(
 		sdkInstanceDetails.GetId(),
-		sdkInstanceDetails.GetRegion(),
+		domainEntity.Region{Name: sdkInstanceDetails.GetRegion()},
 		adaptResources(sdkInstanceDetails.GetResources()),
 		adaptImage(sdkInstanceDetails.GetImage()),
 		state,
@@ -162,7 +164,7 @@ func AdaptInstanceDetails(
 		sdkInstanceDetails.GetHasPublicIpV4(),
 		sdkInstanceDetails.GetIncludesPrivateNetwork(),
 		*rootDiskSize,
-		public_cloud.InstanceType{Name: string(sdkInstanceDetails.GetType())},
+		domainEntity.InstanceType{Name: string(sdkInstanceDetails.GetType())},
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -172,8 +174,8 @@ func AdaptInstanceDetails(
 	return &instance, nil
 }
 
-func adaptResources(sdkResources publicCloud.Resources) public_cloud.Resources {
-	resources := public_cloud.NewResources(
+func adaptResources(sdkResources sdkModel.Resources) domainEntity.Resources {
+	resources := domainEntity.NewResources(
 		adaptCpu(sdkResources.GetCpu()),
 		adaptMemory(sdkResources.GetMemory()),
 		adaptNetworkSpeed(sdkResources.GetPublicNetworkSpeed()),
@@ -183,23 +185,23 @@ func adaptResources(sdkResources publicCloud.Resources) public_cloud.Resources {
 	return resources
 }
 
-func adaptCpu(sdkCpu publicCloud.Cpu) public_cloud.Cpu {
-	return public_cloud.NewCpu(int(sdkCpu.GetValue()), sdkCpu.GetUnit())
+func adaptCpu(sdkCpu sdkModel.Cpu) domainEntity.Cpu {
+	return domainEntity.NewCpu(int(sdkCpu.GetValue()), sdkCpu.GetUnit())
 }
 
-func adaptMemory(sdkMemory publicCloud.Memory) public_cloud.Memory {
-	return public_cloud.NewMemory(float64(sdkMemory.GetValue()), sdkMemory.GetUnit())
+func adaptMemory(sdkMemory sdkModel.Memory) domainEntity.Memory {
+	return domainEntity.NewMemory(float64(sdkMemory.GetValue()), sdkMemory.GetUnit())
 }
 
-func adaptNetworkSpeed(sdkNetworkSpeed publicCloud.NetworkSpeed) public_cloud.NetworkSpeed {
-	return public_cloud.NewNetworkSpeed(
+func adaptNetworkSpeed(sdkNetworkSpeed sdkModel.NetworkSpeed) domainEntity.NetworkSpeed {
+	return domainEntity.NewNetworkSpeed(
 		int(sdkNetworkSpeed.GetValue()),
 		sdkNetworkSpeed.GetUnit(),
 	)
 }
 
-func adaptImage(sdkImage publicCloud.Image) public_cloud.Image {
-	return public_cloud.NewImage(
+func adaptImage(sdkImage sdkModel.Image) domainEntity.Image {
+	return domainEntity.NewImage(
 		sdkImage.GetId(),
 		sdkImage.GetName(),
 		nil,
@@ -218,8 +220,8 @@ func adaptImage(sdkImage publicCloud.Image) public_cloud.Image {
 	)
 }
 
-func adaptIpsDetails(sdkIps []publicCloud.IpDetails) (public_cloud.Ips, error) {
-	var ips public_cloud.Ips
+func adaptIpsDetails(sdkIps []sdkModel.IpDetails) (domainEntity.Ips, error) {
+	var ips domainEntity.Ips
 	for _, sdkIp := range sdkIps {
 		ip, err := adaptIpDetails(sdkIp)
 		if err != nil {
@@ -231,8 +233,8 @@ func adaptIpsDetails(sdkIps []publicCloud.IpDetails) (public_cloud.Ips, error) {
 	return ips, nil
 }
 
-func adaptIps(sdkIps []publicCloud.Ip) (public_cloud.Ips, error) {
-	var ips public_cloud.Ips
+func adaptIps(sdkIps []sdkModel.Ip) (domainEntity.Ips, error) {
+	var ips domainEntity.Ips
 	for _, sdkIp := range sdkIps {
 		ip, err := adaptIp(sdkIp)
 		if err != nil {
@@ -244,13 +246,13 @@ func adaptIps(sdkIps []publicCloud.Ip) (public_cloud.Ips, error) {
 	return ips, nil
 }
 
-func adaptIpDetails(sdkIp publicCloud.IpDetails) (*public_cloud.Ip, error) {
+func adaptIpDetails(sdkIp sdkModel.IpDetails) (*domainEntity.Ip, error) {
 	networkType, err := enum.NewNetworkType(string(sdkIp.GetNetworkType()))
 	if err != nil {
 		return nil, fmt.Errorf("adaptIpDetails: %w", err)
 	}
 
-	optionalIpValues := public_cloud.OptionalIpValues{
+	optionalIpValues := domainEntity.OptionalIpValues{
 		ReverseLookup: shared.AdaptNullableStringToValue(sdkIp.ReverseLookup),
 	}
 
@@ -260,7 +262,7 @@ func adaptIpDetails(sdkIp publicCloud.IpDetails) (*public_cloud.Ip, error) {
 		optionalIpValues.Ddos = &ddos
 	}
 
-	ip := public_cloud.NewIp(
+	ip := domainEntity.NewIp(
 		sdkIp.GetIp(),
 		sdkIp.GetPrefixLength(),
 		int(sdkIp.GetVersion()),
@@ -273,7 +275,7 @@ func adaptIpDetails(sdkIp publicCloud.IpDetails) (*public_cloud.Ip, error) {
 	return &ip, nil
 }
 
-func adaptIp(sdkIp publicCloud.Ip) (*public_cloud.Ip, error) {
+func adaptIp(sdkIp sdkModel.Ip) (*domainEntity.Ip, error) {
 	networkType, err := enum.NewNetworkType(string(sdkIp.GetNetworkType()))
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -282,11 +284,11 @@ func adaptIp(sdkIp publicCloud.Ip) (*public_cloud.Ip, error) {
 		)
 	}
 
-	optionalIpValues := public_cloud.OptionalIpValues{
+	optionalIpValues := domainEntity.OptionalIpValues{
 		ReverseLookup: shared.AdaptNullableStringToValue(sdkIp.ReverseLookup),
 	}
 
-	ip := public_cloud.NewIp(
+	ip := domainEntity.NewIp(
 		sdkIp.GetIp(),
 		sdkIp.GetPrefixLength(),
 		int(sdkIp.GetVersion()),
@@ -299,14 +301,14 @@ func adaptIp(sdkIp publicCloud.Ip) (*public_cloud.Ip, error) {
 	return &ip, nil
 }
 
-func adaptDdos(sdkDdos publicCloud.Ddos) public_cloud.Ddos {
-	return public_cloud.NewDdos(
+func adaptDdos(sdkDdos sdkModel.Ddos) domainEntity.Ddos {
+	return domainEntity.NewDdos(
 		sdkDdos.GetDetectionProfile(),
 		sdkDdos.GetProtectionType(),
 	)
 }
 
-func adaptContract(sdkContract publicCloud.Contract) (*public_cloud.Contract, error) {
+func adaptContract(sdkContract sdkModel.Contract) (*domainEntity.Contract, error) {
 	billingFrequency, err := enum.NewContractBillingFrequency(
 		int(sdkContract.GetBillingFrequency()),
 	)
@@ -329,7 +331,7 @@ func adaptContract(sdkContract publicCloud.Contract) (*public_cloud.Contract, er
 		return nil, fmt.Errorf("adaptContract: %w", err)
 	}
 
-	contract, err := public_cloud.NewContract(
+	contract, err := domainEntity.NewContract(
 		billingFrequency,
 		contractTerm,
 		contractType,
@@ -346,25 +348,24 @@ func adaptContract(sdkContract publicCloud.Contract) (*public_cloud.Contract, er
 	return contract, nil
 }
 
-func adaptIso(sdkIso publicCloud.Iso) public_cloud.Iso {
-	return public_cloud.NewIso(sdkIso.GetId(), sdkIso.GetName())
+func adaptIso(sdkIso sdkModel.Iso) domainEntity.Iso {
+	return domainEntity.NewIso(sdkIso.GetId(), sdkIso.GetName())
 }
 
-func adaptPrivateNetwork(sdkPrivateNetwork publicCloud.PrivateNetwork) public_cloud.PrivateNetwork {
-	return public_cloud.PrivateNetwork{
+func adaptPrivateNetwork(sdkPrivateNetwork sdkModel.PrivateNetwork) domainEntity.PrivateNetwork {
+	return domainEntity.PrivateNetwork{
 		Id:     sdkPrivateNetwork.GetPrivateNetworkId(),
 		Status: sdkPrivateNetwork.GetStatus(),
 		Subnet: sdkPrivateNetwork.GetSubnet(),
 	}
 }
 
-func AdaptAutoScalingGroupDetails(
-	sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-) (
-	*public_cloud.AutoScalingGroup,
+// AdaptAutoScalingGroupDetails adapts publicCloud.AutoScalingGroupDetails to public_cloud.AutoScalingGroup.
+func AdaptAutoScalingGroupDetails(sdkAutoScalingGroup sdkModel.AutoScalingGroupDetails) (
+	*domainEntity.AutoScalingGroup,
 	error,
 ) {
-	var loadBalancer *public_cloud.LoadBalancer
+	var loadBalancer *domainEntity.LoadBalancer
 
 	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
 		string(sdkAutoScalingGroup.GetType()),
@@ -395,7 +396,7 @@ func AdaptAutoScalingGroupDetails(
 		}
 	}
 
-	options := public_cloud.AutoScalingGroupOptions{
+	options := domainEntity.AutoScalingGroupOptions{
 		DesiredAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.DesiredAmount),
 		MinimumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MinimumAmount),
 		MaximumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MaximumAmount),
@@ -407,11 +408,11 @@ func AdaptAutoScalingGroupDetails(
 		LoadBalancer:  loadBalancer,
 	}
 
-	autoScalingGroup := public_cloud.NewAutoScalingGroup(
+	autoScalingGroup := domainEntity.NewAutoScalingGroup(
 		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
-		sdkAutoScalingGroup.GetRegion(),
+		domainEntity.Region{Name: sdkAutoScalingGroup.GetRegion()},
 		*reference,
 		sdkAutoScalingGroup.GetCreatedAt(),
 		sdkAutoScalingGroup.GetUpdatedAt(),
@@ -421,10 +422,9 @@ func AdaptAutoScalingGroupDetails(
 	return &autoScalingGroup, nil
 }
 
-func AdaptLoadBalancerDetails(
-	sdkLoadBalancer publicCloud.LoadBalancerDetails,
-) (
-	*public_cloud.LoadBalancer,
+// AdaptLoadBalancerDetails adapts publicCloud.LoadBalancerDetails to public_cloud.LoadBalancer.
+func AdaptLoadBalancerDetails(sdkLoadBalancer sdkModel.LoadBalancerDetails) (
+	*domainEntity.LoadBalancer,
 	error,
 ) {
 	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
@@ -442,7 +442,7 @@ func AdaptLoadBalancerDetails(
 		return nil, fmt.Errorf("AdaptLoadBalancerDetails:  %w", err)
 	}
 
-	options := public_cloud.OptionalLoadBalancerValues{
+	options := domainEntity.OptionalLoadBalancerValues{
 		Reference: shared.AdaptNullableStringToValue(sdkLoadBalancer.Reference),
 		StartedAt: shared.AdaptNullableTimeToValue(sdkLoadBalancer.StartedAt),
 	}
@@ -460,11 +460,11 @@ func AdaptLoadBalancerDetails(
 		options.PrivateNetwork = &privateNetwork
 	}
 
-	loadBalancer := public_cloud.NewLoadBalancer(
+	loadBalancer := domainEntity.NewLoadBalancer(
 		sdkLoadBalancer.GetId(),
-		public_cloud.InstanceType{Name: string(sdkLoadBalancer.GetType())},
+		domainEntity.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
-		sdkLoadBalancer.GetRegion(),
+		domainEntity.Region{Name: sdkLoadBalancer.GetRegion()},
 		state,
 		*contract,
 		ips,
@@ -474,8 +474,8 @@ func AdaptLoadBalancerDetails(
 	return &loadBalancer, nil
 }
 
-func adaptLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
-	*public_cloud.LoadBalancer,
+func adaptLoadBalancer(sdkLoadBalancer sdkModel.LoadBalancer) (
+	*domainEntity.LoadBalancer,
 	error,
 ) {
 	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
@@ -483,27 +483,27 @@ func adaptLoadBalancer(sdkLoadBalancer publicCloud.LoadBalancer) (
 		return nil, fmt.Errorf("adaptLoadBalancer: %w", err)
 	}
 
-	options := public_cloud.OptionalLoadBalancerValues{
+	options := domainEntity.OptionalLoadBalancerValues{
 		Reference: shared.AdaptNullableStringToValue(sdkLoadBalancer.Reference),
 		StartedAt: shared.AdaptNullableTimeToValue(sdkLoadBalancer.StartedAt),
 	}
 
-	loadBalancer := public_cloud.NewLoadBalancer(
+	loadBalancer := domainEntity.NewLoadBalancer(
 		sdkLoadBalancer.GetId(),
-		public_cloud.InstanceType{Name: string(sdkLoadBalancer.GetType())},
+		domainEntity.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
-		"",
+		domainEntity.Region{},
 		state,
-		public_cloud.Contract{},
-		public_cloud.Ips{},
+		domainEntity.Contract{},
+		domainEntity.Ips{},
 		options,
 	)
 
 	return &loadBalancer, nil
 }
 
-func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.LoadBalancerConfiguration) (
-	*public_cloud.LoadBalancerConfiguration,
+func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration sdkModel.LoadBalancerConfiguration) (
+	*domainEntity.LoadBalancerConfiguration,
 	error,
 ) {
 	balance, err := enum.NewBalance(string(sdkLoadBalancerConfiguration.GetBalance()))
@@ -511,7 +511,7 @@ func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.Loa
 		return nil, fmt.Errorf("adaptLoadBalancerConfiguration: %w", err)
 	}
 
-	options := public_cloud.OptionalLoadBalancerConfigurationOptions{
+	options := domainEntity.OptionalLoadBalancerConfigurationOptions{
 		HealthCheck: nil,
 	}
 	if sdkLoadBalancerConfiguration.StickySession.Get() != nil {
@@ -527,7 +527,7 @@ func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.Loa
 		options.HealthCheck = healthCheck
 	}
 
-	configuration := public_cloud.NewLoadBalancerConfiguration(
+	configuration := domainEntity.NewLoadBalancerConfiguration(
 		balance,
 		sdkLoadBalancerConfiguration.GetXForwardedFor(),
 		int(sdkLoadBalancerConfiguration.GetIdleTimeOut()),
@@ -538,15 +538,15 @@ func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration publicCloud.Loa
 	return &configuration, nil
 }
 
-func adaptStickySession(sdkStickySession publicCloud.StickySession) public_cloud.StickySession {
-	return public_cloud.NewStickySession(
+func adaptStickySession(sdkStickySession sdkModel.StickySession) domainEntity.StickySession {
+	return domainEntity.NewStickySession(
 		sdkStickySession.GetEnabled(),
 		int(sdkStickySession.GetMaxLifeTime()),
 	)
 }
 
-func adaptHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
-	*public_cloud.HealthCheck,
+func adaptHealthCheck(sdkHealthCheck sdkModel.HealthCheck) (
+	*domainEntity.HealthCheck,
 	error,
 ) {
 	method, err := enum.NewMethod(sdkHealthCheck.GetMethod())
@@ -554,11 +554,11 @@ func adaptHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 		return nil, fmt.Errorf("adaptHealthCheck: %w", err)
 	}
 
-	healthCheck := public_cloud.NewHealthCheck(
+	healthCheck := domainEntity.NewHealthCheck(
 		method,
 		sdkHealthCheck.GetUri(),
 		int(sdkHealthCheck.GetPort()),
-		public_cloud.OptionalHealthCheckValues{
+		domainEntity.OptionalHealthCheckValues{
 			Host: shared.AdaptNullableStringToValue(sdkHealthCheck.Host),
 		},
 	)
@@ -566,14 +566,14 @@ func adaptHealthCheck(sdkHealthCheck publicCloud.HealthCheck) (
 	return &healthCheck, nil
 }
 
-func AdaptInstanceType(sdkInstanceType publicCloud.InstanceType) (
-	*public_cloud.InstanceType,
+func AdaptInstanceType(sdkInstanceType sdkModel.InstanceType) (
+	*domainEntity.InstanceType,
 	error,
 ) {
 	resources := adaptResources(sdkInstanceType.GetResources())
 	prices := adaptPrices(sdkInstanceType.GetPrices())
 
-	optional := public_cloud.OptionalInstanceTypeValues{}
+	optional := domainEntity.OptionalInstanceTypeValues{}
 
 	sdkStorageTypes, _ := sdkInstanceType.GetStorageTypesOk()
 	if sdkStorageTypes != nil {
@@ -584,7 +584,7 @@ func AdaptInstanceType(sdkInstanceType publicCloud.InstanceType) (
 		optional.StorageTypes = storageTypes
 	}
 
-	instanceType := public_cloud.NewInstanceType(
+	instanceType := domainEntity.NewInstanceType(
 		sdkInstanceType.GetName(),
 		resources,
 		prices,
@@ -594,8 +594,8 @@ func AdaptInstanceType(sdkInstanceType publicCloud.InstanceType) (
 	return &instanceType, nil
 }
 
-func adaptPrices(sdkPrices publicCloud.Prices) public_cloud.Prices {
-	return public_cloud.NewPrices(
+func adaptPrices(sdkPrices sdkModel.Prices) domainEntity.Prices {
+	return domainEntity.NewPrices(
 		sdkPrices.GetCurrency(),
 		sdkPrices.GetCurrencySymbol(),
 		adaptPrice(sdkPrices.GetCompute()),
@@ -603,22 +603,22 @@ func adaptPrices(sdkPrices publicCloud.Prices) public_cloud.Prices {
 	)
 }
 
-func adaptStorage(sdkStorage publicCloud.Storage) public_cloud.Storage {
-	return public_cloud.NewStorage(
+func adaptStorage(sdkStorage sdkModel.Storage) domainEntity.Storage {
+	return domainEntity.NewStorage(
 		adaptPrice(sdkStorage.Local),
 		adaptPrice(sdkStorage.Central),
 	)
 }
 
-func adaptPrice(sdkPrice publicCloud.Price) public_cloud.Price {
-	return public_cloud.NewPrice(sdkPrice.GetHourlyPrice(), sdkPrice.GetMonthlyPrice())
+func adaptPrice(sdkPrice sdkModel.Price) domainEntity.Price {
+	return domainEntity.NewPrice(sdkPrice.GetHourlyPrice(), sdkPrice.GetMonthlyPrice())
 }
 
-func adaptStorageTypes(sdkStorageTypes []publicCloud.RootDiskStorageType) (
-	*public_cloud.StorageTypes,
+func adaptStorageTypes(sdkStorageTypes []sdkModel.RootDiskStorageType) (
+	*domainEntity.StorageTypes,
 	error,
 ) {
-	var storageTypes public_cloud.StorageTypes
+	var storageTypes domainEntity.StorageTypes
 
 	for _, sdkStorageType := range sdkStorageTypes {
 		storageType, err := enum.NewRootDiskStorageType(string(sdkStorageType))
@@ -631,14 +631,12 @@ func adaptStorageTypes(sdkStorageTypes []publicCloud.RootDiskStorageType) (
 	return &storageTypes, nil
 }
 
-func AdaptRegion(sdkRegion publicCloud.Region) public_cloud.Region {
-	return public_cloud.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
+func AdaptRegion(sdkRegion sdkModel.Region) domainEntity.Region {
+	return domainEntity.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
 }
 
-func adaptAutoScalingGroup(
-	sdkAutoScalingGroup publicCloud.AutoScalingGroup,
-) (
-	*public_cloud.AutoScalingGroup,
+func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
+	*domainEntity.AutoScalingGroup,
 	error,
 ) {
 	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
@@ -659,7 +657,7 @@ func adaptAutoScalingGroup(
 		return nil, fmt.Errorf("adaptAutoScalingGroup: %w", err)
 	}
 
-	options := public_cloud.AutoScalingGroupOptions{
+	options := domainEntity.AutoScalingGroupOptions{
 		DesiredAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.DesiredAmount),
 		MinimumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MinimumAmount),
 		MaximumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MaximumAmount),
@@ -670,11 +668,11 @@ func adaptAutoScalingGroup(
 		WarmupTime:    shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.WarmupTime),
 	}
 
-	autoScalingGroup := public_cloud.NewAutoScalingGroup(
+	autoScalingGroup := domainEntity.NewAutoScalingGroup(
 		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
-		sdkAutoScalingGroup.GetRegion(),
+		domainEntity.Region{Name: sdkAutoScalingGroup.GetRegion()},
 		*reference,
 		sdkAutoScalingGroup.GetCreatedAt(),
 		sdkAutoScalingGroup.GetUpdatedAt(),
@@ -684,21 +682,29 @@ func adaptAutoScalingGroup(
 	return &autoScalingGroup, nil
 }
 
-func adaptVolume(sdkVolume publicCloud.Volume) public_cloud.Volume {
-	return public_cloud.NewVolume(float64(sdkVolume.GetSize()), sdkVolume.GetUnit())
+func adaptVolume(sdkVolume sdkModel.Volume) domainEntity.Volume {
+	return domainEntity.NewVolume(float64(sdkVolume.GetSize()), sdkVolume.GetUnit())
 }
 
-func AdaptImageDetails(sdkImageDetails publicCloud.ImageDetails) public_cloud.Image {
+// AdaptImageDetails adapts publicCloud.ImageDetails to public_cloud.Image.
+func AdaptImageDetails(sdkImageDetails sdkModel.ImageDetails) domainEntity.Image {
+	var region *domainEntity.Region
+
 	state, _ := sdkImageDetails.GetStateOk()
 	stateReason, _ := sdkImageDetails.GetStateReasonOk()
-	region, _ := sdkImageDetails.GetRegionOk()
+	regionName, _ := sdkImageDetails.GetRegionOk()
 	createdAt, _ := sdkImageDetails.GetCreatedAtOk()
 	updatedAt, _ := sdkImageDetails.GetUpdatedAtOk()
 	storageSize := adaptStorageSize(sdkImageDetails.GetStorageSize())
 	version, _ := sdkImageDetails.GetVersionOk()
 	architecture, _ := sdkImageDetails.GetArchitectureOk()
 
-	return public_cloud.NewImage(
+	if regionName != nil {
+		region = &domainEntity.Region{}
+		region.Name = *regionName
+	}
+
+	return domainEntity.NewImage(
 		sdkImageDetails.GetId(),
 		sdkImageDetails.GetName(),
 		version,
@@ -717,8 +723,8 @@ func AdaptImageDetails(sdkImageDetails publicCloud.ImageDetails) public_cloud.Im
 	)
 }
 
-func adaptStorageSize(sdkStorageSize publicCloud.StorageSize) public_cloud.StorageSize {
-	return public_cloud.NewStorageSize(
+func adaptStorageSize(sdkStorageSize sdkModel.StorageSize) domainEntity.StorageSize {
+	return domainEntity.NewStorageSize(
 		float64(sdkStorageSize.GetSize()),
 		sdkStorageSize.GetUnit(),
 	)

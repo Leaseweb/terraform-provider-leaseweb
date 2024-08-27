@@ -8,7 +8,7 @@ type LoadBalancer struct {
 	Id                        types.String               `tfsdk:"id"`
 	Type                      InstanceType               `tfsdk:"type"`
 	Resources                 Resources                  `tfsdk:"resources"`
-	Region                    types.String               `tfsdk:"region"`
+	Region                    Region                     `tfsdk:"region"`
 	Reference                 types.String               `tfsdk:"reference"`
 	State                     types.String               `tfsdk:"state"`
 	Contract                  Contract                   `tfsdk:"contract"`

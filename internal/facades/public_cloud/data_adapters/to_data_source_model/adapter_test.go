@@ -9,6 +9,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,11 +42,12 @@ func Test_adaptInstance(t *testing.T) {
 	instance.SshKey = sshKeyValueObject
 	instance.AutoScalingGroup.Id = autoScalingGroupId
 	instance.AutoScalingGroup.LoadBalancer.Id = loadBalancerId
+	instance.Region = public_cloud.Region{Name: "region"}
 
 	got := adaptInstance(instance)
 
 	assert.Equal(t, id, got.Id.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "region", got.Region.Name.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "productType", got.ProductType.ValueString())
 	assert.False(t, got.HasPublicIpv4.ValueBool())
@@ -119,7 +121,7 @@ func Test_adaptMemory(t *testing.T) {
 func Test_adaptImage(t *testing.T) {
 	state := "state"
 	stateReason := "stateReason"
-	region := "region"
+	region := public_cloud.Region{Name: "region"}
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	architecture := "architecture"
@@ -153,7 +155,7 @@ func Test_adaptImage(t *testing.T) {
 	assert.Equal(t, "architecture", got.Architecture.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
 	assert.Equal(t, "stateReason", got.StateReason.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "region", got.Region.Name.ValueString())
 	assert.Equal(t, createdAt.String(), got.CreatedAt.ValueString())
 	assert.Equal(t, updatedAt.String(), got.UpdatedAt.ValueString())
 	assert.False(t, got.Custom.ValueBool())
@@ -216,7 +218,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 		id,
 		public_cloud.InstanceType{Name: "type"},
 		public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "Resources"}},
-		"region",
+		public_cloud.Region{Name: "region"},
 		enum.StateCreating,
 		public_cloud.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
 		public_cloud.Ips{{Ip: "1.2.3.4"}},
@@ -235,7 +237,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 	assert.Equal(t, id, got.Id.ValueString(), "id is set")
 	assert.Equal(t, "type", got.Type.Name.ValueString())
 	assert.Equal(t, "Resources", got.Resources.Cpu.Unit.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "region", got.Region.Name.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(6), got.Contract.BillingFrequency.ValueInt64())
@@ -372,7 +374,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	state := "state"
 	stateReason := "stateReason"
-	region := "region"
+	region := public_cloud.Region{Name: "region"}
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	architecture := "architecture"
@@ -472,7 +474,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"",
 		public_cloud.InstanceType{Name: "type"},
 		resources,
-		"region",
+		public_cloud.Region{Name: "loadBalancerRegion"},
 		enum.StateCreating,
 		*contract,
 		public_cloud.Ips{ip},
@@ -501,7 +503,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"",
 		"type",
 		"state",
-		"region",
+		public_cloud.Region{Name: "autoScalingGroupRegion"},
 		*autoScalingGroupReference,
 		autoScalingGroupCreatedAt,
 		autoScalingGroupUpdatedAt,
@@ -521,7 +523,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	return public_cloud.NewInstance(
 		"",
-		"region",
+		public_cloud.Region{Name: "region"},
 		resources,
 		image,
 		enum.StateCreating,
@@ -630,4 +632,16 @@ func Test_adaptInstanceType(t *testing.T) {
 
 		assert.Equal(t, []string{"LOCAL"}, got.StorageTypes)
 	})
+}
+
+func Test_adaptRegion(t *testing.T) {
+	sdkRegion := public_cloud.NewRegion("name", "location")
+
+	want := model.Region{
+		Location: basetypes.NewStringValue("location"),
+		Name:     basetypes.NewStringValue("name"),
+	}
+	got := adaptRegion(sdkRegion)
+
+	assert.Equal(t, want, *got)
 }
