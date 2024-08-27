@@ -18,10 +18,10 @@ var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzY
 func Test_adaptImage(t *testing.T) {
 	var marketApps []string
 	var storageTypes []string
+	var region model.Region
 
 	state := "state"
 	stateReason := "stateReason"
-	region := "region"
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	version := "version"
@@ -36,7 +36,7 @@ func Test_adaptImage(t *testing.T) {
 		&architecture,
 		&state,
 		&stateReason,
-		&region,
+		&public_cloud.Region{Name: "region"},
 		&createdAt,
 		&updatedAt,
 		false,
@@ -51,6 +51,7 @@ func Test_adaptImage(t *testing.T) {
 
 	got.MarketApps.ElementsAs(context.TODO(), &marketApps, false)
 	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
+	got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
 
 	assert.Equal(t, "UBUNTU_20_04_64BIT", got.Id.ValueString())
 	assert.Equal(t, "name", got.Name.ValueString())
@@ -60,7 +61,7 @@ func Test_adaptImage(t *testing.T) {
 	assert.Equal(t, "architecture", got.Architecture.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
 	assert.Equal(t, "stateReason", got.StateReason.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "region", region.Name.ValueString())
 	assert.Equal(t, createdAt.String(), got.CreatedAt.ValueString())
 	assert.Equal(t, updatedAt.String(), got.UpdatedAt.ValueString())
 	assert.False(t, got.Custom.ValueBool())
@@ -319,6 +320,8 @@ func Test_adaptIp(t *testing.T) {
 
 func Test_adaptLoadBalancer(t *testing.T) {
 	t.Run("loadBalancer Conversion works", func(t *testing.T) {
+		var region model.Region
+
 		reference := "reference"
 		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 		id := "id"
@@ -327,7 +330,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 			id,
 			public_cloud.InstanceType{Name: "instanceType"},
 			public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "cpu"}},
-			"region",
+			public_cloud.Region{Name: "region"},
 			enum.StateCreating,
 			public_cloud.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
 			public_cloud.Ips{{Ip: "1.2.3.4"}},
@@ -345,6 +348,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 			context.TODO(),
 			loadBalancer,
 		)
+		got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
 
 		assert.NoError(t, err)
 
@@ -354,7 +358,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 			"{\"unit\":\"cpu\",\"value\":0}",
 			got.Resources.Attributes()["cpu"].String(),
 		)
-		assert.Equal(t, "region", got.Region.ValueString())
+		assert.Equal(t, "region", region.Name.ValueString())
 		assert.Equal(t, "reference", got.Reference.ValueString())
 		assert.Equal(t, "CREATING", got.State.ValueString())
 
@@ -402,6 +406,7 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 func TestAdaptInstance(t *testing.T) {
 	var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
+	var region model.Region
 
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	marketAppId := "marketAppId"
@@ -426,8 +431,11 @@ func TestAdaptInstance(t *testing.T) {
 	got, err := AdaptInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
+
+	got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
+
 	assert.Equal(t, id, got.Id.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "region", region.Name.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "productType", got.ProductType.ValueString())
 	assert.False(t, got.HasPublicIpv4.ValueBool())
@@ -501,6 +509,8 @@ func TestAdaptInstance(t *testing.T) {
 }
 
 func Test_adaptAutoScalingGroup(t *testing.T) {
+	var region model.Region
+
 	desiredAmount := 1
 	createdAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	updatedAt, _ := time.Parse(time.RFC3339, "2020-09-08T00:00:00Z")
@@ -519,7 +529,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 		id,
 		"type",
 		"state",
-		"region",
+		public_cloud.Region{Name: "region"},
 		*reference,
 		createdAt,
 		updatedAt,
@@ -546,11 +556,13 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 
 	assert.NoError(t, err)
 
+	got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
+
 	assert.Equal(t, id, got.Id.ValueString())
 	assert.Equal(t, "type", got.Type.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
 	assert.Equal(t, int64(1), got.DesiredAmount.ValueInt64())
-	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "region", region.Name.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(
 		t,
@@ -608,7 +620,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	state := "state"
 	stateReason := "stateReason"
-	region := "region"
+	region := public_cloud.Region{Name: "region"}
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	version := "version"
@@ -751,7 +763,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"",
 		instanceType,
 		resources,
-		"region",
+		public_cloud.Region{Name: "region"},
 		enum.StateCreating,
 		*contract,
 		public_cloud.Ips{ip},
@@ -780,7 +792,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"",
 		"type",
 		"state",
-		"region",
+		public_cloud.Region{Name: "autoScalingGroupRegion"},
 		*autoScalingGroupReference,
 		autoScalingGroupCreatedAt,
 		autoScalingGroupUpdatedAt,
@@ -800,7 +812,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	return public_cloud.NewInstance(
 		"",
-		"region",
+		public_cloud.Region{Name: "region"},
 		resources,
 		image,
 		enum.StateCreating,
@@ -939,4 +951,13 @@ func Test_adaptInstanceType(t *testing.T) {
 
 	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
 	assert.Equal(t, []string{"storageType"}, storageTypes)
+}
+
+func Test_adaptRegion(t *testing.T) {
+	entityRegion := public_cloud.NewRegion("name", "location")
+	got, err := adaptRegion(context.TODO(), entityRegion)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "name", got.Name.ValueString())
+	assert.Equal(t, "location", got.Location.ValueString())
 }

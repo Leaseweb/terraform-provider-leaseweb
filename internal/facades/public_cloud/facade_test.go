@@ -157,8 +157,15 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 			},
 		)
 
+		region, _ := basetypes.NewObjectValue(
+			model.Region{}.AttributeTypes(),
+			map[string]attr.Value{
+				"Name": basetypes.NewStringValue("region"),
+			},
+		)
+
 		instance := model.Instance{
-			Region:              basetypes.NewStringValue("region"),
+			Region:              region,
 			Type:                instanceType,
 			RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
 			Image:               image,

@@ -10,7 +10,7 @@ type AutoScalingGroup struct {
 	Type          types.String `tfsdk:"type"`
 	State         types.String `tfsdk:"state"`
 	DesiredAmount types.Int64  `tfsdk:"desired_amount"`
-	Region        types.String `tfsdk:"region"`
+	Region        types.Object `tfsdk:"region"`
 	Reference     types.String `tfsdk:"reference"`
 	CreatedAt     types.String `tfsdk:"created_at"`
 	UpdatedAt     types.String `tfsdk:"updated_at"`
@@ -30,7 +30,7 @@ func (a AutoScalingGroup) AttributeTypes() map[string]attr.Type {
 		"type":           types.StringType,
 		"state":          types.StringType,
 		"desired_amount": types.Int64Type,
-		"region":         types.StringType,
+		"region":         types.ObjectType{AttrTypes: Region{}.AttributeTypes()},
 		"reference":      types.StringType,
 		"created_at":     types.StringType,
 		"updated_at":     types.StringType,

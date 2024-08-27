@@ -129,9 +129,19 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 }
 
 func generateInstanceModel() model.Instance {
+	region := model.Region{
+		Name:     basetypes.NewStringValue("name"),
+		Location: basetypes.NewStringValue("location"),
+	}
+	regionObject, _ := basetypes.NewObjectValueFrom(
+		context.TODO(),
+		region.AttributeTypes(),
+		region,
+	)
+
 	return model.Instance{
 		Id:        basetypes.NewStringUnknown(),
-		Region:    basetypes.NewStringUnknown(),
+		Region:    regionObject,
 		Reference: basetypes.NewStringUnknown(),
 		Resources: basetypes.NewObjectUnknown(
 			model.Resources{}.AttributeTypes(),

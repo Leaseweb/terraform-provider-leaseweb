@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,7 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, public_cloud.Region{Name: "region"}, got.Region)
 		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.String())
 		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "UBUNTU_20_04_64BIT", got.Image.Id)
@@ -407,6 +408,7 @@ func generateInstanceModel(
 			MarketApps:   basetypes.NewListUnknown(types.StringType),
 			StorageTypes: basetypes.NewListUnknown(types.StringType),
 			StorageSize:  storageSize,
+			Region:       basetypes.NewObjectNull(model.Region{}.AttributeTypes()),
 		},
 	)
 
@@ -437,9 +439,18 @@ func generateInstanceModel(
 		},
 	)
 
+	region, _ := types.ObjectValueFrom(
+		context.TODO(),
+		model.Region{}.AttributeTypes(),
+		model.Region{
+			Name:     basetypes.NewStringValue("region"),
+			Location: basetypes.NewStringUnknown(),
+		},
+	)
+
 	instance := model.Instance{
 		Id:                  basetypes.NewStringValue("id"),
-		Region:              basetypes.NewStringValue("region"),
+		Region:              region,
 		Type:                instanceType,
 		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),
 		RootDiskSize:        basetypes.NewInt64Value(int64(*rootDiskSize)),

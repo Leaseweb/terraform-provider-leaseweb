@@ -61,6 +61,19 @@ func AdaptToCreateInstanceOpts(
 		)
 	}
 
+	region := model.Region{}
+	regionDiags := instanceResourceModel.Region.As(
+		ctx,
+		&region,
+		basetypes.ObjectAsOptions{},
+	)
+	if regionDiags != nil {
+		return nil, shared.ReturnError(
+			"AdaptToCreateInstanceOpts",
+			regionDiags,
+		)
+	}
+
 	rootDiskStorageType, err := enum.NewRootDiskStorageType(
 		instanceResourceModel.RootDiskStorageType.ValueString(),
 	)
@@ -119,7 +132,7 @@ func AdaptToCreateInstanceOpts(
 	}
 
 	createInstanceOpts, err := public_cloud.NewCreateInstance(
-		instanceResourceModel.Region.ValueString(),
+		region.Name.ValueString(),
 		instanceType.Name.ValueString(),
 		rootDiskStorageType,
 		image.Id.ValueString(),

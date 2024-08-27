@@ -207,7 +207,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	return public_cloud.NewInstance(
 		"",
-		"region",
+		public_cloud.Region{Name: "region"},
 		public_cloud.Resources{},
 		public_cloud.Image{},
 		enum.StateCreating,

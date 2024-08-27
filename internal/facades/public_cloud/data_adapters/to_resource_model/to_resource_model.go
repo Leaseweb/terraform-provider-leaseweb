@@ -18,7 +18,6 @@ func AdaptInstance(
 	plan := model.Instance{}
 
 	plan.Id = basetypes.NewStringValue(instance.Id)
-	plan.Region = basetypes.NewStringValue(instance.Region)
 	plan.Reference = shared.AdaptNullableStringToStringValue(instance.Reference)
 	plan.State = basetypes.NewStringValue(string(instance.State))
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
@@ -138,6 +137,17 @@ func AdaptInstance(
 	}
 	plan.Type = instanceType
 
+	region, err := shared.AdaptDomainEntityToResourceObject(
+		instance.Region,
+		model.Region{}.AttributeTypes(),
+		ctx,
+		adaptRegion,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("AdaptInstance: %w", err)
+	}
+	plan.Region = region
+
 	return &plan, nil
 }
 
@@ -182,6 +192,17 @@ func adaptImage(
 	}
 	plan.StorageSize = storageSize
 
+	region, err := shared.AdaptNullableDomainEntityToResourceObject(
+		image.Region,
+		model.Region{}.AttributeTypes(),
+		ctx,
+		adaptRegion,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptImage: %w", err)
+	}
+	plan.Region = region
+
 	plan.Id = basetypes.NewStringValue(image.Id)
 	plan.Name = basetypes.NewStringValue(image.Name)
 	plan.Version = shared.AdaptNullableStringToStringValue(image.Version)
@@ -190,7 +211,6 @@ func adaptImage(
 	plan.Architecture = shared.AdaptNullableStringToStringValue(image.Architecture)
 	plan.State = shared.AdaptNullableStringToStringValue(image.State)
 	plan.StateReason = shared.AdaptNullableStringToStringValue(image.StateReason)
-	plan.Region = shared.AdaptNullableStringToStringValue(image.Region)
 	plan.CreatedAt = shared.AdaptNullableTimeToStringValue(image.CreatedAt)
 	plan.UpdatedAt = shared.AdaptNullableTimeToStringValue(image.UpdatedAt)
 	plan.Custom = shared.AdaptBoolToBoolValue(image.Custom)
@@ -336,6 +356,17 @@ func adaptAutoScalingGroup(
 	if loadBalancerDiags != nil {
 		return nil, loadBalancerDiags
 	}
+
+	region, diags := shared.AdaptDomainEntityToResourceObject(
+		autoScalingGroup.Region,
+		model.Region{}.AttributeTypes(),
+		ctx,
+		adaptRegion,
+	)
+	if diags != nil {
+		return nil, diags
+	}
+
 	return &model.AutoScalingGroup{
 		Id:    basetypes.NewStringValue(autoScalingGroup.Id),
 		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
@@ -343,7 +374,7 @@ func adaptAutoScalingGroup(
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.DesiredAmount,
 		),
-		Region: basetypes.NewStringValue(autoScalingGroup.Region),
+		Region: region,
 		Reference: basetypes.NewStringValue(
 			autoScalingGroup.Reference.String(),
 		),
@@ -443,11 +474,21 @@ func adaptLoadBalancer(
 		return nil, diags
 	}
 
+	region, diags := shared.AdaptDomainEntityToResourceObject(
+		loadBalancer.Region,
+		model.Region{}.AttributeTypes(),
+		ctx,
+		adaptRegion,
+	)
+	if diags != nil {
+		return nil, diags
+	}
+
 	return &model.LoadBalancer{
 		Id:        basetypes.NewStringValue(loadBalancer.Id),
 		Type:      instanceType,
 		Resources: resources,
-		Region:    basetypes.NewStringValue(loadBalancer.Region),
+		Region:    region,
 		Reference: shared.AdaptNullableStringToStringValue(
 			loadBalancer.Reference,
 		),
@@ -688,5 +729,15 @@ func adaptStorage(
 	return &model.Storage{
 		Local:   local,
 		Central: central,
+	}, nil
+}
+
+func adaptRegion(
+	ctx context.Context,
+	region public_cloud.Region,
+) (*model.Region, error) {
+	return &model.Region{
+		Name:     basetypes.NewStringValue(region.Name),
+		Location: basetypes.NewStringValue(region.Location),
 	}, nil
 }

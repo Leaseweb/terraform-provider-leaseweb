@@ -33,13 +33,7 @@ func (i *instanceResource) Schema(
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"region": schema.StringAttribute{
-				Required:    true,
-				Description: "Region to launch the instance into." + warningError,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
+			"region": sharedSchemas.ResourceRegion(true),
 			"reference": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
@@ -77,9 +71,7 @@ func (i *instanceResource) Schema(
 					"state_reason": schema.StringAttribute{
 						Computed: true,
 					},
-					"region": schema.StringAttribute{
-						Computed: true,
-					},
+					"region": sharedSchemas.ResourceRegion(false),
 					"created_at": schema.StringAttribute{
 						Computed: true,
 					},
@@ -129,9 +121,10 @@ func (i *instanceResource) Schema(
 			},
 			"type": sharedSchemas.InstanceType(true),
 			"ssh_key": schema.StringAttribute{
-				Optional:    true,
-				Sensitive:   true,
-				Description: "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
+				Optional:      true,
+				Sensitive:     true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(facade.GetSshKeyRegularExpression()),
@@ -204,10 +197,7 @@ func (i *instanceResource) Schema(
 						Computed:    true,
 						Description: "Number of instances that should be running",
 					},
-					"region": schema.StringAttribute{
-						Computed:    true,
-						Description: "The region in which the Auto Scaling Group was launched",
-					},
+					"region": sharedSchemas.ResourceRegion(false),
 					"reference": schema.StringAttribute{
 						Computed:    true,
 						Description: "The identifying name set to the auto scaling group",
@@ -294,10 +284,7 @@ func (i *instanceResource) Schema(
 								Description: "Available resources",
 								Computed:    true,
 							},
-							"region": schema.StringAttribute{
-								Computed:    true,
-								Description: "The region where the load balancer was launched into",
-							},
+							"region": sharedSchemas.ResourceRegion(false),
 							"reference": schema.StringAttribute{
 								Computed:    true,
 								Description: "The identifying name set to the load balancer",

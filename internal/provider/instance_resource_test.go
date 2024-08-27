@@ -18,7 +18,9 @@ func TestAccInstanceResource(t *testing.T) {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -41,7 +43,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"region",
+							"region.name",
 							"eu-west-3",
 						),
 						resource.TestCheckResourceAttr(
@@ -91,7 +93,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -114,7 +118,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
-							"region",
+							"region.name",
 							"eu-west-3",
 						),
 						resource.TestCheckResourceAttr(
@@ -168,7 +172,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -199,7 +205,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -228,7 +236,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "tralala"
   }
@@ -258,7 +268,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m4.4xlarge"
   }
@@ -287,8 +299,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.4xlarge"
   }
   reference = "my webserver"
@@ -318,8 +332,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.4xlarge"
   }
   reference = "my webserver"
@@ -349,8 +365,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m4.2xlarge"
   }
   reference = "my webserver"
@@ -379,8 +397,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "tralala"
-  type      = {
+  region = {
+    name = "tralala"
+  }
+  type = {
     name = "lsw.m4.2xlarge"
   }
   reference = "my webserver"
@@ -407,7 +427,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.2xlarge"
   }
@@ -437,8 +459,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.2xlarge"
   }
   reference = "my webserver"
@@ -467,8 +491,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.2xlarge"
   }
   reference = "my webserver"
@@ -552,8 +578,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -571,7 +599,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m4.large"
   }
@@ -602,8 +632,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -633,8 +665,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 					),
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-2"
-  type      = {
+  region = {
+    name = "eu-west-2"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -660,8 +694,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -691,7 +727,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					),
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -720,7 +758,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }
@@ -751,7 +791,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   market_app_id = "newValue"
   type      = {
     name = "lsw.m3.large"
@@ -782,8 +824,10 @@ resource "leaseweb_public_cloud_instance" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
-  type      = {
+  region = {
+    name = "eu-west-3"
+  }
+  type = {
     name = "lsw.m3.large"
   }
   reference = "my webserver"
@@ -813,7 +857,9 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						Config: providerConfig + `
 resource "leaseweb_public_cloud_instance" "test" {
-  region    = "eu-west-3"
+  region = {
+    name = "eu-west-3"
+  }
   type      = {
     name = "lsw.m3.large"
   }

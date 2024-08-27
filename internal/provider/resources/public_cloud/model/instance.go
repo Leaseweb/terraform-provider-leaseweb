@@ -7,7 +7,7 @@ import (
 
 type Instance struct {
 	Id                  types.String `tfsdk:"id"`
-	Region              types.String `tfsdk:"region"`
+	Region              types.Object `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
 	Resources           types.Object `tfsdk:"resources"`
 	Image               types.Object `tfsdk:"image"`
@@ -31,8 +31,10 @@ type Instance struct {
 
 func (i Instance) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":        types.StringType,
-		"region":    types.StringType,
+		"id": types.StringType,
+		"region": types.ObjectType{
+			AttrTypes: Region{}.AttributeTypes(),
+		},
 		"reference": types.StringType,
 		"resources": types.ObjectType{
 			AttrTypes: Resources{}.AttributeTypes(),

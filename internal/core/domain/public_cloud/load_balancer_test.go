@@ -16,7 +16,7 @@ func TestNewLoadBalancer(t *testing.T) {
 			"id",
 			instanceType,
 			Resources{Cpu: Cpu{Unit: "cpu"}},
-			"region",
+			Region{Name: "region"},
 			enum.StateRunning,
 			Contract{Type: enum.ContractTypeMonthly},
 			Ips{{Ip: "1.2.3.4"}},
@@ -26,7 +26,7 @@ func TestNewLoadBalancer(t *testing.T) {
 		assert.Equal(t, "id", got.Id)
 		assert.Equal(t, instanceType, got.Type)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, Region{Name: "region"}, got.Region)
 		assert.Equal(t, enum.StateRunning, got.State)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
@@ -45,7 +45,7 @@ func TestNewLoadBalancer(t *testing.T) {
 			"",
 			InstanceType{},
 			Resources{},
-			"",
+			Region{},
 			enum.StateRunning,
 			Contract{Type: enum.ContractTypeMonthly},
 			Ips{},
