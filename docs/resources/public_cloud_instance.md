@@ -42,7 +42,7 @@ resource "leaseweb_public_cloud_instance" "example" {
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
 - `image` (Attributes) (see [below for nested schema](#nestedatt--image))
 - `region` (Attributes) (see [below for nested schema](#nestedatt--region))
-- `root_disk_storage_type` (String) The root disk's storage type.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `root_disk_storage_type` (String) The root disk's storage type. Can be *LOCAL* or *CENTRAL*. **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `type` (Attributes) (see [below for nested schema](#nestedatt--type))
 
 ### Optional

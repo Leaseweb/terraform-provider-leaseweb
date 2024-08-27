@@ -147,7 +147,7 @@ func (i *instanceResource) Schema(
 			},
 			"root_disk_storage_type": schema.StringAttribute{
 				Required:    true,
-				Description: "The root disk's storage type." + warningError,
+				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
 					stringvalidator.OneOf(facade.GetRootDiskStorageTypes()...),
 				},
