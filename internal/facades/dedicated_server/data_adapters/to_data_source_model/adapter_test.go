@@ -345,10 +345,8 @@ func TestAdaptDedicatedServers(t *testing.T) {
 
 func TestAdaptOperatingSystems(t *testing.T) {
 
-	got := AdaptOperatingSystems(domain.OperatingSystems{
-		domain.NewOperatingSystem("id1", "name"),
-		domain.NewOperatingSystem("id2", "name2"),
-	})
+	got := AdaptOperatingSystems(domain.OperatingSystems{{Id: "id1"}, {Id: "id2"}})
+
 	assert.Len(t, got.OperatingSystems, 2)
 	assert.Equal(t, "id1", got.OperatingSystems[0].Id.ValueString())
 	assert.Equal(t, "id2", got.OperatingSystems[1].Id.ValueString())

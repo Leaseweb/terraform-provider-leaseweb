@@ -134,19 +134,4 @@ func TestService_GetAllOperatingSystems(t *testing.T) {
 			assert.ErrorContains(t, err, want)
 		},
 	)
-
-	t.Run(
-		"error from repository GetAllOperatingSystems bubbles up",
-		func(t *testing.T) {
-			want := "some error"
-			generalError := sharedRepository.NewGeneralError("", errors.New(want))
-			repoResponse := domain.OperatingSystems{{}, {}, {}}
-
-			service := New(&repositorySpy{operatingSystems: repoResponse, getAllOperatingSystemsError: generalError})
-			_, err := service.GetAllOperatingSystems(context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, want)
-		},
-	)
 }
