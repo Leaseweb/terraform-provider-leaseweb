@@ -110,17 +110,20 @@ func AdaptToCreateInstanceOpts(
 		)
 	}
 
-	if instanceResourceModel.SshKey.ValueString() != "" {
-		sshKey, err = value_object.NewSshKey(
-			instanceResourceModel.SshKey.ValueString(),
-		)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToCreateInstanceOpts: %w",
-				err,
-			)
-		}
-	}
+	// TODO Enable SSH key support
+	/**
+	  if instanceResourceModel.SshKey.ValueString() != "" {
+	  	sshKey, err = value_object.NewSshKey(
+	  		instanceResourceModel.SshKey.ValueString(),
+	  	)
+	  	if err != nil {
+	  		return nil, fmt.Errorf(
+	  			"AdaptToCreateInstanceOpts: %w",
+	  			err,
+	  		)
+	  	}
+	  }
+	*/
 
 	if instanceResourceModel.RootDiskSize.ValueInt64() != 0 {
 		rootDiskSize, err = value_object.NewRootDiskSize(

@@ -2,7 +2,6 @@ package instance
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -120,6 +119,8 @@ func (i *instanceResource) Schema(
 				Computed: true,
 			},
 			"type": sharedSchemas.InstanceType(true),
+			// TODO Enable SSH key support
+			/**
 			"ssh_key": schema.StringAttribute{
 				Optional:      true,
 				Sensitive:     true,
@@ -132,6 +133,7 @@ func (i *instanceResource) Schema(
 					),
 				},
 			},
+			*/
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,

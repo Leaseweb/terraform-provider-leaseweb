@@ -34,9 +34,12 @@ func AdaptInstance(
 		instance.MarketAppId,
 	)
 
-	if instance.SshKey != nil {
-		plan.SshKey = basetypes.NewStringValue(instance.SshKey.String())
-	}
+	// TODO Enable SSH key support
+	/**
+	  if instance.SshKey != nil {
+	  	plan.SshKey = basetypes.NewStringValue(instance.SshKey.String())
+	  }
+	*/
 
 	image, err := shared.AdaptDomainEntityToResourceObject(
 		instance.Image,
