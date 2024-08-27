@@ -71,9 +71,19 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 Required:
 
-- `billing_frequency` (Number) The billing frequency (in months)
-- `term` (Number) Contract term (in months). Used only when type is MONTHLY
-- `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
+- `billing_frequency` (Number) The billing frequency (in months). Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
+- `term` (Number) Contract term (in months). Used only when type is *MONTHLY*. Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
+- `type` (String) Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage
 
 Read-Only:
 
@@ -290,13 +300,23 @@ Read-Only:
 
 Read-Only:
 
-- `billing_frequency` (Number) The billing frequency (in months)
+- `billing_frequency` (Number) The billing frequency (in months). Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
 - `created_at` (String) Date when the contract was created
 - `ends_at` (String)
 - `renewals_at` (String) Date when the contract will be automatically renewed
 - `state` (String)
-- `term` (Number) Contract term (in months). Used only when type is MONTHLY
-- `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
+- `term` (Number) Contract term (in months). Used only when type is *MONTHLY*. Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
+- `type` (String) Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage
 
 
 <a id="nestedatt--auto_scaling_group--load_balancer--ips"></a>
