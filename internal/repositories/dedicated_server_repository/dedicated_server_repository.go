@@ -20,29 +20,28 @@ type Optional struct {
 type DedicatedServerRepository struct {
 	dedicatedServerApi   sdk.DedicatedServerApi
 	token                string
-	adaptDedicatedServer func(
-		sdkDedicatedServer dedicatedServer.Server,
-	) (*domain.DedicatedServer, error)
+	adaptDedicatedServer func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
+	adaptOperatingSystem func(sdkOperatingSystem dedicatedServer.OperatingSystem) domain.OperatingSystem
 }
 
 // Injects the authentication token into the context for the sdk.
-func (p DedicatedServerRepository) authContext(ctx context.Context) context.Context {
+func (r DedicatedServerRepository) authContext(ctx context.Context) context.Context {
 	return context.WithValue(
 		ctx,
 		dedicatedServer.ContextAPIKeys,
 		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: p.token, Prefix: ""},
+			"X-LSW-Auth": {Key: r.token, Prefix: ""},
 		},
 	)
 }
 
-func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
+func (r DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 	domain.DedicatedServers,
 	*shared.RepositoryError,
 ) {
 	var dedicatedServers domain.DedicatedServers
 
-	request := p.dedicatedServerApi.GetServerList(p.authContext(ctx))
+	request := r.dedicatedServerApi.GetServerList(r.authContext(ctx))
 
 	result, response, err := request.Execute()
 
@@ -64,12 +63,7 @@ func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 		}
 
 		for _, sdkDedicatedServer := range result.GetServers() {
-			dedicatedServer, err := p.adaptDedicatedServer(sdkDedicatedServer)
-			if err != nil {
-				return nil, shared.NewGeneralError("GetAllDedicatedServers", err)
-			}
-
-			dedicatedServers = append(dedicatedServers, *dedicatedServer)
+			dedicatedServers = append(dedicatedServers, r.adaptDedicatedServer(sdkDedicatedServer))
 		}
 
 		if !pagination.CanIncrement() {
@@ -83,6 +77,50 @@ func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 	}
 
 	return dedicatedServers, nil
+}
+
+func (r DedicatedServerRepository) GetAllOperatingSystems(ctx context.Context) (
+	domain.OperatingSystems,
+	*shared.RepositoryError,
+) {
+	var operatingSystems domain.OperatingSystems
+
+	request := r.dedicatedServerApi.GetOperatingSystemList(r.authContext(ctx))
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
+		}
+
+		for _, sdkOperatingSystem := range result.OperatingSystems {
+			operatingSystems = append(operatingSystems, r.adaptOperatingSystem(sdkOperatingSystem))
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
+		}
+	}
+
+	return operatingSystems, nil
 }
 
 func NewDedicatedServerRepository(
@@ -104,5 +142,6 @@ func NewDedicatedServerRepository(
 		dedicatedServerApi:   client.DedicatedServerAPI,
 		token:                token,
 		adaptDedicatedServer: to_domain_entity.AdaptDedicatedServer,
+		adaptOperatingSystem: to_domain_entity.AdaptOperatingSystem,
 	}
 }

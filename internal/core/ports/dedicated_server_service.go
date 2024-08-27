@@ -11,4 +11,6 @@ import (
 type DedicatedServerService interface {
 	// GetAllDedicatedServers gets all dedicated servers.
 	GetAllDedicatedServers(ctx context.Context) (*domain.DedicatedServers, *errors.ServiceError)
+	// GetAllOperatingSystems gets all operating systems.
+	GetAllOperatingSystems(ctx context.Context) (domain.OperatingSystems, *errors.ServiceError)
 }
