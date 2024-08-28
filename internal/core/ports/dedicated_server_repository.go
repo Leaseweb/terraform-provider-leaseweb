@@ -9,9 +9,15 @@ import (
 
 // DedicatedServerRepository is used to connect to dedicated_server api.
 type DedicatedServerRepository interface {
-	// GetAllDedicatedServers retrieves dedicated_server.DedicatedServers from the dedicated server api.
+	// GetAllDedicatedServers retrieves dedicated_server.DedicatedServers from the dedicated_server api.
 	GetAllDedicatedServers(ctx context.Context) (
 		domain.DedicatedServers,
+		*shared.RepositoryError,
+	)
+
+	// GetAllOperatingSystems retrieves dedicated_server.OperatingSystems from the dedicated_server api.
+	GetAllOperatingSystems(ctx context.Context) (
+		domain.OperatingSystems,
 		*shared.RepositoryError,
 	)
 

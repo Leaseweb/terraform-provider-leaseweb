@@ -343,6 +343,23 @@ func TestAdaptDedicatedServers(t *testing.T) {
 	assert.Equal(t, "id2", got.DedicatedServers[1].Id.ValueString())
 }
 
+func TestAdaptOperatingSystems(t *testing.T) {
+
+	got := AdaptOperatingSystems(domain.OperatingSystems{{Id: "id1"}, {Id: "id2"}})
+
+	assert.Len(t, got.OperatingSystems, 2)
+	assert.Equal(t, "id1", got.OperatingSystems[0].Id.ValueString())
+	assert.Equal(t, "id2", got.OperatingSystems[1].Id.ValueString())
+}
+
+func Test_adaptOperatingSystem(t *testing.T) {
+
+	got := adaptOperatingSystem(domain.NewOperatingSystem("id", "name"))
+
+	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "name", got.Name.ValueString())
+}
+
 func TestAdaptControlPanels(t *testing.T) {
 	got := AdaptControlPanels(domain.ControlPanels{domain.ControlPanel{Id: "id"}})
 

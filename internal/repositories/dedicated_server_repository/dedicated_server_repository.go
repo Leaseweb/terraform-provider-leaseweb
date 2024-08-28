@@ -18,30 +18,31 @@ type Optional struct {
 
 // DedicatedServerRepository fulfills contract for ports.DedicatedServerRepository.
 type DedicatedServerRepository struct {
-	dedicatedServerApi   sdk.DedicatedServerApi
-	token                string
-	adaptDedicatedServer func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
-	adaptControlPanels   func(sdkControlPanel []dedicatedServer.ControlPanel) domain.ControlPanels
+	dedicatedServerApi    sdk.DedicatedServerApi
+	token                 string
+	adaptDedicatedServer  func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
+	adaptOperatingSystems func(sdkOperatingSystem []dedicatedServer.OperatingSystem) domain.OperatingSystems
+	adaptControlPanels    func(sdkControlPanel []dedicatedServer.ControlPanel) domain.ControlPanels
 }
 
 // Injects the authentication token into the context for the sdk.
-func (d DedicatedServerRepository) authContext(ctx context.Context) context.Context {
+func (r DedicatedServerRepository) authContext(ctx context.Context) context.Context {
 	return context.WithValue(
 		ctx,
 		dedicatedServer.ContextAPIKeys,
 		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.token, Prefix: ""},
+			"X-LSW-Auth": {Key: r.token, Prefix: ""},
 		},
 	)
 }
 
-func (d DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
+func (r DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 	domain.DedicatedServers,
 	*shared.RepositoryError,
 ) {
 	var dedicatedServers domain.DedicatedServers
 
-	request := d.dedicatedServerApi.GetServerList(d.authContext(ctx))
+	request := r.dedicatedServerApi.GetServerList(r.authContext(ctx))
 
 	result, response, err := request.Execute()
 
@@ -63,7 +64,7 @@ func (d DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 		}
 
 		for _, sdkDedicatedServer := range result.GetServers() {
-			dedicatedServers = append(dedicatedServers, d.adaptDedicatedServer(sdkDedicatedServer))
+			dedicatedServers = append(dedicatedServers, r.adaptDedicatedServer(sdkDedicatedServer))
 		}
 
 		if !pagination.CanIncrement() {
@@ -77,6 +78,48 @@ func (d DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 	}
 
 	return dedicatedServers, nil
+}
+
+func (r DedicatedServerRepository) GetAllOperatingSystems(ctx context.Context) (
+	domain.OperatingSystems,
+	*shared.RepositoryError,
+) {
+	var operatingSystems domain.OperatingSystems
+
+	request := r.dedicatedServerApi.GetOperatingSystemList(r.authContext(ctx))
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
+		}
+
+		operatingSystems = append(operatingSystems, r.adaptOperatingSystems(result.GetOperatingSystems())...)
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
+		}
+	}
+
+	return operatingSystems, nil
 }
 
 func (d DedicatedServerRepository) GetAllControlPanels(ctx context.Context) (
@@ -137,9 +180,10 @@ func NewDedicatedServerRepository(
 	client := *dedicatedServer.NewAPIClient(configuration)
 
 	return DedicatedServerRepository{
-		dedicatedServerApi:   client.DedicatedServerAPI,
-		token:                token,
-		adaptDedicatedServer: to_domain_entity.AdaptDedicatedServer,
-		adaptControlPanels:   to_domain_entity.AdaptControlPanels,
+		dedicatedServerApi:    client.DedicatedServerAPI,
+		token:                 token,
+		adaptDedicatedServer:  to_domain_entity.AdaptDedicatedServer,
+		adaptOperatingSystems: to_domain_entity.AdaptOperatingSystems,
+		adaptControlPanels:    to_domain_entity.AdaptControlPanels,
 	}
 }

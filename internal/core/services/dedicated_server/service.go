@@ -13,12 +13,12 @@ type Service struct {
 	dedicatedServerRepository ports.DedicatedServerRepository
 }
 
-func (srv Service) GetAllDedicatedServers(ctx context.Context) (
+func (s Service) GetAllDedicatedServers(ctx context.Context) (
 	domain.DedicatedServers,
 	*errors.ServiceError,
 ) {
 
-	dedicatedServers, err := srv.dedicatedServerRepository.GetAllDedicatedServers(ctx)
+	dedicatedServers, err := s.dedicatedServerRepository.GetAllDedicatedServers(ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError(
 			"GetAllDedicatedServers",
@@ -29,12 +29,28 @@ func (srv Service) GetAllDedicatedServers(ctx context.Context) (
 	return dedicatedServers, nil
 }
 
-func (srv Service) GetAllControlPanels(ctx context.Context) (
+func (s Service) GetAllOperatingSystems(ctx context.Context) (
+	domain.OperatingSystems,
+	*errors.ServiceError,
+) {
+
+	operatingSystems, err := s.dedicatedServerRepository.GetAllOperatingSystems(ctx)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"GetAllOperatingSystems",
+			*err,
+		)
+	}
+
+	return operatingSystems, nil
+}
+
+func (s Service) GetAllControlPanels(ctx context.Context) (
 	domain.ControlPanels,
 	*errors.ServiceError,
 ) {
 
-	controlPanels, err := srv.dedicatedServerRepository.GetAllControlPanels(ctx)
+	controlPanels, err := s.dedicatedServerRepository.GetAllControlPanels(ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError(
 			"GetAllControlPanels",

@@ -6,7 +6,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/dedicated_server/data_adapters/to_data_source_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
-	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/model"
 )
 
 // DedicatedServerFacade handles all communication between provider & the core.
@@ -15,11 +15,11 @@ type DedicatedServerFacade struct {
 }
 
 // GetAllDedicatedServers retrieves model.DedicatedServers.
-func (d DedicatedServerFacade) GetAllDedicatedServers(ctx context.Context) (
-	*dataSourceModel.DedicatedServers,
+func (f DedicatedServerFacade) GetAllDedicatedServers(ctx context.Context) (
+	*model.DedicatedServers,
 	*shared.FacadeError,
 ) {
-	dedicatedServers, err := d.dedicatedServerService.GetAllDedicatedServers(ctx)
+	dedicatedServers, err := f.dedicatedServerService.GetAllDedicatedServers(ctx)
 	if err != nil {
 		return nil, shared.NewFromServicesError("GetAllDedicatedServers", err)
 	}
@@ -29,12 +29,28 @@ func (d DedicatedServerFacade) GetAllDedicatedServers(ctx context.Context) (
 	return &dataSourceDedicatedServers, nil
 }
 
-// GetAllControlPanels retrieves model.ControlPanels.
-func (d DedicatedServerFacade) GetAllControlPanels(ctx context.Context) (
-	*dataSourceModel.ControlPanels,
+// GetAllOperatingSystems retrieve model.OperatingSystems.
+func (f DedicatedServerFacade) GetAllOperatingSystems(ctx context.Context) (
+	*model.OperatingSystems,
 	*shared.FacadeError,
 ) {
-	controlPanels, err := d.dedicatedServerService.GetAllControlPanels(ctx)
+	operatingSystems, err := f.dedicatedServerService.GetAllOperatingSystems(ctx)
+
+	if err != nil {
+		return nil, shared.NewFromServicesError("GetAllOperatingSystems", err)
+	}
+
+	dataSourceOperatingSystems := to_data_source_model.AdaptOperatingSystems(operatingSystems)
+
+	return &dataSourceOperatingSystems, nil
+}
+
+// GetAllControlPanels retrieves model.ControlPanels.
+func (f DedicatedServerFacade) GetAllControlPanels(ctx context.Context) (
+	*model.ControlPanels,
+	*shared.FacadeError,
+) {
+	controlPanels, err := f.dedicatedServerService.GetAllControlPanels(ctx)
 	if err != nil {
 		return nil, shared.NewFromServicesError("GetAllControlPanels", err)
 	}
