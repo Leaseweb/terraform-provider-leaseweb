@@ -463,3 +463,19 @@ func Test_adaptOperatingSystem(t *testing.T) {
 
 	assert.Equal(t, want, got)
 }
+
+func Test_adaptControlPanel(t *testing.T) {
+	controlPanel := dedicatedServer.NewControlPanel("id", "name")
+	got := adaptControlPanel(*controlPanel)
+	want := domain.NewControlPanel("id", "name")
+	assert.Equal(t, want, got)
+}
+
+func TestAdaptControlPanels(t *testing.T) {
+	var controlPanels []dedicatedServer.ControlPanel
+	controlPanel := dedicatedServer.NewControlPanel("id", "name")
+	controlPanels = append(controlPanels, *controlPanel)
+	got := AdaptControlPanels(controlPanels)
+	assert.Len(t, got, 1)
+	assert.Equal(t, "id", got[0].Id)
+}

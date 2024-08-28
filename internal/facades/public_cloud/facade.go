@@ -209,17 +209,13 @@ func (p PublicCloudFacade) GetRootDiskStorageTypes() []string {
 }
 
 // GetBillingFrequencies returns a list of valid billing frequencies.
-func (p PublicCloudFacade) GetBillingFrequencies() []int64 {
-	return shared.AdaptIntArrayToInt64Array(
-		enum.ContractBillingFrequencyThree.Values(),
-	)
+func (p PublicCloudFacade) GetBillingFrequencies() shared.IntMarkdownList {
+	return shared.NewIntMarkdownList(enum.ContractBillingFrequencyThree.Values())
 }
 
 // GetContractTerms returns a list of valid contract terms.
-func (p PublicCloudFacade) GetContractTerms() []int64 {
-	return shared.AdaptIntArrayToInt64Array(
-		enum.ContractTermThree.Values(),
-	)
+func (p PublicCloudFacade) GetContractTerms() shared.IntMarkdownList {
+	return shared.NewIntMarkdownList(enum.ContractTermThree.Values())
 }
 
 // GetContractTypes returns a list of valid contract types.

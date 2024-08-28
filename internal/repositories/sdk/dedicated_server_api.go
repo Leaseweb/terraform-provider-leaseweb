@@ -10,4 +10,5 @@ import (
 type DedicatedServerApi interface {
 	GetServerList(ctx context.Context) dedicatedServer.ApiGetServerListRequest
 	GetOperatingSystemList(ctx context.Context) dedicatedServer.ApiGetOperatingSystemListRequest
+	GetControlPanelList(ctx context.Context) dedicatedServer.ApiGetControlPanelListRequest
 }

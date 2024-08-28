@@ -42,14 +42,14 @@ resource "leaseweb_public_cloud_instance" "example" {
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
 - `image` (Attributes) (see [below for nested schema](#nestedatt--image))
 - `region` (Attributes) (see [below for nested schema](#nestedatt--region))
-- `root_disk_storage_type` (String) The root disk's storage type.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `root_disk_storage_type` (String) The root disk's storage type. Can be *LOCAL* or *CENTRAL*. **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `type` (Attributes) (see [below for nested schema](#nestedatt--type))
 
 ### Optional
 
 - `market_app_id` (String) Market App ID that must be installed into the instance.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `reference` (String) The identifying name set to the instance
-- `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances
+- `root_disk_size` (Number) The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB
 
 ### Read-Only
 
@@ -71,9 +71,19 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 Required:
 
-- `billing_frequency` (Number) The billing frequency (in months)
-- `term` (Number) Contract term (in months). Used only when type is MONTHLY
-- `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
+- `billing_frequency` (Number) The billing frequency (in months). Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
+- `term` (Number) Contract term (in months). Used only when type is *MONTHLY*. Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
+- `type` (String) Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage
 
 Read-Only:
 
@@ -88,7 +98,7 @@ Read-Only:
 
 Required:
 
-- `id` (String) Image ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `id` (String) Can be either an Operating System or a UUID in case of a Custom Image ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
 Read-Only:
 
@@ -113,7 +123,7 @@ Read-Only:
 Read-Only:
 
 - `location` (String) The city where the region is located
-- `name` (String)
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)
 
 
 <a id="nestedatt--image--storage_size"></a>
@@ -131,7 +141,7 @@ Read-Only:
 
 Required:
 
-- `name` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
 Read-Only:
 
@@ -290,13 +300,23 @@ Read-Only:
 
 Read-Only:
 
-- `billing_frequency` (Number) The billing frequency (in months)
+- `billing_frequency` (Number) The billing frequency (in months). Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
 - `created_at` (String) Date when the contract was created
 - `ends_at` (String)
 - `renewals_at` (String) Date when the contract will be automatically renewed
 - `state` (String)
-- `term` (Number) Contract term (in months). Used only when type is MONTHLY
-- `type` (String) Select HOURLY for billing based on hourly usage, else MONTHLY for billing per month usage
+- `term` (Number) Contract term (in months). Used only when type is *MONTHLY*. Valid options are 
+  - *0*
+  - *1*
+  - *3*
+  - *6*
+  - *12*
+- `type` (String) Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage
 
 
 <a id="nestedatt--auto_scaling_group--load_balancer--ips"></a>
@@ -372,7 +392,7 @@ Read-Only:
 Read-Only:
 
 - `location` (String) The city where the region is located
-- `name` (String)
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)
 
 
 <a id="nestedatt--auto_scaling_group--load_balancer--resources"></a>
@@ -534,7 +554,7 @@ Read-Only:
 Read-Only:
 
 - `location` (String) The city where the region is located
-- `name` (String)
+- `name` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)
 
 
 

@@ -196,3 +196,21 @@ func adaptOperatingSystem(domainOs domain.OperatingSystem) model.OperatingSystem
 		Name: basetypes.NewStringValue(domainOs.Name),
 	}
 }
+
+// AdaptControlPanels adapts model.ControlPanels to dedicated_server.ControlPanels.
+func AdaptControlPanels(domainControlPanels domain.ControlPanels) model.ControlPanels {
+	var controlPanels model.ControlPanels
+
+	for _, domainControlPanel := range domainControlPanels {
+		controlPanels.ControlPanels = append(controlPanels.ControlPanels, adaptControlPanel(domainControlPanel))
+	}
+
+	return controlPanels
+}
+
+func adaptControlPanel(domainControlPanel domain.ControlPanel) model.ControlPanel {
+	return model.ControlPanel{
+		Id:   basetypes.NewStringValue(domainControlPanel.Id),
+		Name: basetypes.NewStringValue(domainControlPanel.Name),
+	}
+}

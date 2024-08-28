@@ -14,7 +14,7 @@ type Service struct {
 }
 
 func (s Service) GetAllDedicatedServers(ctx context.Context) (
-	*domain.DedicatedServers,
+	domain.DedicatedServers,
 	*errors.ServiceError,
 ) {
 
@@ -26,7 +26,7 @@ func (s Service) GetAllDedicatedServers(ctx context.Context) (
 		)
 	}
 
-	return &dedicatedServers, nil
+	return dedicatedServers, nil
 }
 
 func (s Service) GetAllOperatingSystems(ctx context.Context) (
@@ -43,6 +43,22 @@ func (s Service) GetAllOperatingSystems(ctx context.Context) (
 	}
 
 	return operatingSystems, nil
+}
+
+func (s Service) GetAllControlPanels(ctx context.Context) (
+	domain.ControlPanels,
+	*errors.ServiceError,
+) {
+
+	controlPanels, err := s.dedicatedServerRepository.GetAllControlPanels(ctx)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"GetAllControlPanels",
+			*err,
+		)
+	}
+
+	return controlPanels, nil
 }
 
 func New(dedicatedServerRepository ports.DedicatedServerRepository) Service {

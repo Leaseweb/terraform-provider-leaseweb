@@ -18,9 +18,11 @@ var (
 type repositorySpy struct {
 	dedicatedServers domain.DedicatedServers
 	operatingSystems domain.OperatingSystems
+	controlPanels    domain.ControlPanels
 
 	getAllDedicatedServerError  *sharedRepository.RepositoryError
 	getAllOperatingSystemsError *sharedRepository.RepositoryError
+	getAllControlPanelError     *sharedRepository.RepositoryError
 }
 
 func (r *repositorySpy) GetAllDedicatedServers(ctx context.Context) (
@@ -37,6 +39,13 @@ func (r *repositorySpy) GetAllOperatingSystems(ctx context.Context) (
 	return r.operatingSystems, r.getAllOperatingSystemsError
 }
 
+func (r *repositorySpy) GetAllControlPanels(ctx context.Context) (
+	domain.ControlPanels,
+	*sharedRepository.RepositoryError,
+) {
+	return r.controlPanels, r.getAllControlPanelError
+}
+
 func TestService_GetAllDedicatedServers(t *testing.T) {
 	t.Run(
 		"service passes back dedicated server from repository",
@@ -51,14 +60,13 @@ func TestService_GetAllDedicatedServers(t *testing.T) {
 			}
 
 			spy := repositorySpy{dedicatedServers: want}
-			spy.dedicatedServers = want
 
 			service := New(&spy)
 
 			got, err := service.GetAllDedicatedServers(context.TODO())
 
 			assert.Nil(t, err)
-			assert.Equal(t, want, *got)
+			assert.Equal(t, want, got)
 		},
 	)
 
@@ -132,6 +140,46 @@ func TestService_GetAllOperatingSystems(t *testing.T) {
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, want)
+		},
+	)
+}
+
+func TestService_GetAllControlPanels(t *testing.T) {
+	t.Run(
+		"service passes back control panels from repository",
+		func(t *testing.T) {
+
+			want := domain.ControlPanels{
+				domain.ControlPanel{
+					Id:   "id",
+					Name: "name",
+				},
+			}
+			spy := repositorySpy{controlPanels: want}
+			service := New(&spy)
+			got, err := service.GetAllControlPanels(context.TODO())
+
+			assert.Equal(t, want, got)
+			assert.Nil(t, err)
+		},
+	)
+
+	t.Run(
+		"error from repository getAllControlPanels bubbles up",
+		func(t *testing.T) {
+			service := New(
+				&repositorySpy{
+					getAllControlPanelError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
+			)
+
+			_, err := service.GetAllControlPanels(context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
 		},
 	)
 }

@@ -22,6 +22,7 @@ type DedicatedServerRepository struct {
 	token                 string
 	adaptDedicatedServer  func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
 	adaptOperatingSystems func(sdkOperatingSystem []dedicatedServer.OperatingSystem) domain.OperatingSystems
+	adaptControlPanels    func(sdkControlPanel []dedicatedServer.ControlPanel) domain.ControlPanels
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -121,6 +122,48 @@ func (r DedicatedServerRepository) GetAllOperatingSystems(ctx context.Context) (
 	return operatingSystems, nil
 }
 
+func (d DedicatedServerRepository) GetAllControlPanels(ctx context.Context) (
+	domain.ControlPanels,
+	*shared.RepositoryError,
+) {
+	var controlPanels domain.ControlPanels
+
+	request := d.dedicatedServerApi.GetControlPanelList(d.authContext(ctx))
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError("GetAllControlPanels", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllControlPanels", err, response)
+		}
+
+		controlPanels = append(controlPanels, d.adaptControlPanels(result.GetControlPanels())...)
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllControlPanels", err, response)
+		}
+	}
+
+	return controlPanels, nil
+}
+
 func NewDedicatedServerRepository(
 	token string,
 	optional Optional,
@@ -141,5 +184,6 @@ func NewDedicatedServerRepository(
 		token:                 token,
 		adaptDedicatedServer:  to_domain_entity.AdaptDedicatedServer,
 		adaptOperatingSystems: to_domain_entity.AdaptOperatingSystems,
+		adaptControlPanels:    to_domain_entity.AdaptControlPanels,
 	}
 }

@@ -183,3 +183,19 @@ func adaptOperatingSystem(sdkOs dedicatedServer.OperatingSystem) domain.Operatin
 		sdkOs.GetName(),
 	)
 }
+
+// AdaptControlPanels adapts dedicated_server.ControlPanels to dedicatedServer.ControlPanel[].
+func AdaptControlPanels(sdkControlPanels []dedicatedServer.ControlPanel) domain.ControlPanels {
+	controlPanels := domain.ControlPanels{}
+	for _, sdkControlPanel := range sdkControlPanels {
+		controlPanels = append(controlPanels, adaptControlPanel(sdkControlPanel))
+	}
+	return controlPanels
+}
+
+func adaptControlPanel(sdkControlPanel dedicatedServer.ControlPanel) domain.ControlPanel {
+	return domain.NewControlPanel(
+		sdkControlPanel.GetId(),
+		sdkControlPanel.GetName(),
+	)
+}

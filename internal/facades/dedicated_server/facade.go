@@ -14,7 +14,7 @@ type DedicatedServerFacade struct {
 	dedicatedServerService ports.DedicatedServerService
 }
 
-// GetAllDedicatedServers retrieve all dedicated servers.
+// GetAllDedicatedServers retrieves model.DedicatedServers.
 func (f DedicatedServerFacade) GetAllDedicatedServers(ctx context.Context) (
 	*model.DedicatedServers,
 	*shared.FacadeError,
@@ -24,12 +24,12 @@ func (f DedicatedServerFacade) GetAllDedicatedServers(ctx context.Context) (
 		return nil, shared.NewFromServicesError("GetAllDedicatedServers", err)
 	}
 
-	dataSourceDedicatedServers := to_data_source_model.AdaptDedicatedServers(*dedicatedServers)
+	dataSourceDedicatedServers := to_data_source_model.AdaptDedicatedServers(dedicatedServers)
 
 	return &dataSourceDedicatedServers, nil
 }
 
-// GetAllOperatingSystems retrieve all operating systems.
+// GetAllOperatingSystems retrieve model.OperatingSystems.
 func (f DedicatedServerFacade) GetAllOperatingSystems(ctx context.Context) (
 	*model.OperatingSystems,
 	*shared.FacadeError,
@@ -43,6 +43,21 @@ func (f DedicatedServerFacade) GetAllOperatingSystems(ctx context.Context) (
 	dataSourceOperatingSystems := to_data_source_model.AdaptOperatingSystems(operatingSystems)
 
 	return &dataSourceOperatingSystems, nil
+}
+
+// GetAllControlPanels retrieves model.ControlPanels.
+func (f DedicatedServerFacade) GetAllControlPanels(ctx context.Context) (
+	*model.ControlPanels,
+	*shared.FacadeError,
+) {
+	controlPanels, err := f.dedicatedServerService.GetAllControlPanels(ctx)
+	if err != nil {
+		return nil, shared.NewFromServicesError("GetAllControlPanels", err)
+	}
+
+	dataSourceControlPanels := to_data_source_model.AdaptControlPanels(controlPanels)
+
+	return &dataSourceControlPanels, nil
 }
 
 func New(dedicatedServerService ports.DedicatedServerService) DedicatedServerFacade {
