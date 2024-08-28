@@ -9,6 +9,9 @@ import (
 
 // DedicatedServerService gets data associated with dedicated_server.
 type DedicatedServerService interface {
-	// GetAllDedicatedServers gets all dedicated servers.
-	GetAllDedicatedServers(ctx context.Context) (*domain.DedicatedServers, *errors.ServiceError)
+	// GetAllDedicatedServers gets dedicated_server.DedicatedServers.
+	GetAllDedicatedServers(ctx context.Context) (domain.DedicatedServers, *errors.ServiceError)
+
+	// GetAllControlPanels gets dedicated_server.ControlPanels.
+	GetAllControlPanels(ctx context.Context) (domain.ControlPanels, *errors.ServiceError)
 }

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/control_panels"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -160,6 +161,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		instances.NewInstancesDataSource,
 		dedicated_servers.NewDedicatedServerDataSource,
+		control_panels.New,
 	}
 }
 

@@ -342,3 +342,17 @@ func TestAdaptDedicatedServers(t *testing.T) {
 	assert.Equal(t, "id1", got.DedicatedServers[0].Id.ValueString())
 	assert.Equal(t, "id2", got.DedicatedServers[1].Id.ValueString())
 }
+
+func TestAdaptControlPanels(t *testing.T) {
+	got := AdaptControlPanels(domain.ControlPanels{domain.ControlPanel{Id: "id"}})
+
+	assert.Len(t, got.ControlPanels, 1)
+	assert.Equal(t, "id", got.ControlPanels[0].Id.ValueString())
+}
+
+func Test_adaptControlPanel(t *testing.T) {
+	got := adaptControlPanel(domain.NewControlPanel("id", "name"))
+
+	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "name", got.Name.ValueString())
+}
