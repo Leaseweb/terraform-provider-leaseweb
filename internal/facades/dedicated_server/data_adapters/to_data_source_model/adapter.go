@@ -6,6 +6,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/model"
 )
 
+// AdaptDedicatedServers adapts domain.DedicatedServers to model.DedicatedServers.
 func AdaptDedicatedServers(domainDedicatedServers domain.DedicatedServers) model.DedicatedServers {
 	var dedicatedServers model.DedicatedServers
 
@@ -180,6 +181,7 @@ func adaptPciCard(pciCard domain.PciCard) model.PciCard {
 	}
 }
 
+// AdaptOperatingSystems adapts domain.OperatingSystems to model.OperatingSystems.
 func AdaptOperatingSystems(domainOs domain.OperatingSystems) (modelOs model.OperatingSystems) {
 	for _, os := range domainOs {
 		modelOs.OperatingSystems = append(modelOs.OperatingSystems, adaptOperatingSystem(os))

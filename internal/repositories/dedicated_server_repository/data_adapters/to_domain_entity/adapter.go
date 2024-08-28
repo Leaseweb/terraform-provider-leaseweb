@@ -169,7 +169,15 @@ func adaptHdd(sdkHdd dedicatedServer.Hdd) domain.Hdd {
 	)
 }
 
-func AdaptOperatingSystem(sdkOs dedicatedServer.OperatingSystem) domain.OperatingSystem {
+// AdaptOperatingSystem adapts []dedicatedServer.OperatingSystem to domain.OperatingSystems.
+func AdaptOperatingSystems(sdkOs []dedicatedServer.OperatingSystem) (domainOs domain.OperatingSystems) {
+	for _, os := range sdkOs {
+		domainOs = append(domainOs, adaptOperatingSystem(os))
+	}
+	return
+}
+
+func adaptOperatingSystem(sdkOs dedicatedServer.OperatingSystem) domain.OperatingSystem {
 	return domain.NewOperatingSystem(
 		sdkOs.GetId(),
 		sdkOs.GetName(),

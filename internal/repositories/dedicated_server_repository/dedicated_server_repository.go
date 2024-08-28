@@ -18,10 +18,10 @@ type Optional struct {
 
 // DedicatedServerRepository fulfills contract for ports.DedicatedServerRepository.
 type DedicatedServerRepository struct {
-	dedicatedServerApi   sdk.DedicatedServerApi
-	token                string
-	adaptDedicatedServer func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
-	adaptOperatingSystem func(sdkOperatingSystem dedicatedServer.OperatingSystem) domain.OperatingSystem
+	dedicatedServerApi    sdk.DedicatedServerApi
+	token                 string
+	adaptDedicatedServer  func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
+	adaptOperatingSystems func(sdkOperatingSystem []dedicatedServer.OperatingSystem) domain.OperatingSystems
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -106,9 +106,7 @@ func (r DedicatedServerRepository) GetAllOperatingSystems(ctx context.Context) (
 			return nil, shared.NewSdkError("GetAllOperatingSystems", err, response)
 		}
 
-		for _, sdkOperatingSystem := range result.OperatingSystems {
-			operatingSystems = append(operatingSystems, r.adaptOperatingSystem(sdkOperatingSystem))
-		}
+		operatingSystems = append(operatingSystems, r.adaptOperatingSystems(result.GetOperatingSystems())...)
 
 		if !pagination.CanIncrement() {
 			break
@@ -139,9 +137,9 @@ func NewDedicatedServerRepository(
 	client := *dedicatedServer.NewAPIClient(configuration)
 
 	return DedicatedServerRepository{
-		dedicatedServerApi:   client.DedicatedServerAPI,
-		token:                token,
-		adaptDedicatedServer: to_domain_entity.AdaptDedicatedServer,
-		adaptOperatingSystem: to_domain_entity.AdaptOperatingSystem,
+		dedicatedServerApi:    client.DedicatedServerAPI,
+		token:                 token,
+		adaptDedicatedServer:  to_domain_entity.AdaptDedicatedServer,
+		adaptOperatingSystems: to_domain_entity.AdaptOperatingSystems,
 	}
 }

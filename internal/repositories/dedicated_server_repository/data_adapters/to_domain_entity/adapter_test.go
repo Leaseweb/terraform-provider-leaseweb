@@ -446,10 +446,19 @@ func Test_adaptDedicatedServer(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func TestAdaptOperatingSystem(t *testing.T) {
+func TestAdaptOperatingSystems(t *testing.T) {
+	var operatingSystems []dedicatedServer.OperatingSystem
+	operatingSystem := dedicatedServer.NewOperatingSystem("id", "name")
+	operatingSystems = append(operatingSystems, *operatingSystem)
+	got := AdaptOperatingSystems(operatingSystems)
+	assert.Len(t, got, 1)
+	assert.Equal(t, "id", got[0].Id)
+}
+
+func Test_adaptOperatingSystem(t *testing.T) {
 	operatingSystem := dedicatedServer.NewOperatingSystem("id", "name")
 
-	got := AdaptOperatingSystem(*operatingSystem)
+	got := adaptOperatingSystem(*operatingSystem)
 	want := domain.NewOperatingSystem("id", "name")
 
 	assert.Equal(t, want, got)
