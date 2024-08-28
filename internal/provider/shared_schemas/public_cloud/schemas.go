@@ -1,3 +1,4 @@
+// Package public_cloud implements schemas used multiple times in public_cloud data sources & resources.
 package public_cloud
 
 import (

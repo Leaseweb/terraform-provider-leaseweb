@@ -1,3 +1,4 @@
+// Package dedicated_server implements services related to dedicated_servers
 package dedicated_server
 
 import (

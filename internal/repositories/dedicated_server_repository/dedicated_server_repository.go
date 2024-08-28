@@ -1,3 +1,5 @@
+// Package dedicated_server_repository implements repository logic
+// to access the dedicated_server sdk.
 package dedicated_server_repository
 
 import (

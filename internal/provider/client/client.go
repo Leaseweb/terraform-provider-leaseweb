@@ -1,3 +1,4 @@
+// Package client implements access to facades.
 package client
 
 import (

@@ -1,3 +1,5 @@
+// Package public_cloud_repository implements repository logic
+// to access the public_cloud sdk.
 package public_cloud_repository
 
 import (

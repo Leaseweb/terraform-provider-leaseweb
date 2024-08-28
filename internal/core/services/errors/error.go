@@ -1,3 +1,4 @@
+// Package errors implements errors related to core services.
 package errors
 
 import (
