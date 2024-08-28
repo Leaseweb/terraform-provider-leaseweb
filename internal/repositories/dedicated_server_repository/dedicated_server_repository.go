@@ -21,26 +21,27 @@ type DedicatedServerRepository struct {
 	dedicatedServerApi   sdk.DedicatedServerApi
 	token                string
 	adaptDedicatedServer func(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer
+	adaptControlPanels   func(sdkControlPanel []dedicatedServer.ControlPanel) domain.ControlPanels
 }
 
 // Injects the authentication token into the context for the sdk.
-func (p DedicatedServerRepository) authContext(ctx context.Context) context.Context {
+func (d DedicatedServerRepository) authContext(ctx context.Context) context.Context {
 	return context.WithValue(
 		ctx,
 		dedicatedServer.ContextAPIKeys,
 		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: p.token, Prefix: ""},
+			"X-LSW-Auth": {Key: d.token, Prefix: ""},
 		},
 	)
 }
 
-func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
+func (d DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 	domain.DedicatedServers,
 	*shared.RepositoryError,
 ) {
 	var dedicatedServers domain.DedicatedServers
 
-	request := p.dedicatedServerApi.GetServerList(p.authContext(ctx))
+	request := d.dedicatedServerApi.GetServerList(d.authContext(ctx))
 
 	result, response, err := request.Execute()
 
@@ -62,7 +63,7 @@ func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 		}
 
 		for _, sdkDedicatedServer := range result.GetServers() {
-			dedicatedServers = append(dedicatedServers, p.adaptDedicatedServer(sdkDedicatedServer))
+			dedicatedServers = append(dedicatedServers, d.adaptDedicatedServer(sdkDedicatedServer))
 		}
 
 		if !pagination.CanIncrement() {
@@ -76,6 +77,48 @@ func (p DedicatedServerRepository) GetAllDedicatedServers(ctx context.Context) (
 	}
 
 	return dedicatedServers, nil
+}
+
+func (d DedicatedServerRepository) GetAllControlPanels(ctx context.Context) (
+	domain.ControlPanels,
+	*shared.RepositoryError,
+) {
+	var controlPanels domain.ControlPanels
+
+	request := d.dedicatedServerApi.GetControlPanelList(d.authContext(ctx))
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError("GetAllControlPanels", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := shared.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllControlPanels", err, response)
+		}
+
+		controlPanels = append(controlPanels, d.adaptControlPanels(result.GetControlPanels())...)
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, shared.NewSdkError("GetAllControlPanels", err, response)
+		}
+	}
+
+	return controlPanels, nil
 }
 
 func NewDedicatedServerRepository(
@@ -97,5 +140,6 @@ func NewDedicatedServerRepository(
 		dedicatedServerApi:   client.DedicatedServerAPI,
 		token:                token,
 		adaptDedicatedServer: to_domain_entity.AdaptDedicatedServer,
+		adaptControlPanels:   to_domain_entity.AdaptControlPanels,
 	}
 }

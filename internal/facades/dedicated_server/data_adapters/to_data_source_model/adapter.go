@@ -6,6 +6,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/model"
 )
 
+// AdaptDedicatedServers adapts model.DedicatedServers to dedicated_server.DedicatedServers.
 func AdaptDedicatedServers(domainDedicatedServers domain.DedicatedServers) model.DedicatedServers {
 	var dedicatedServers model.DedicatedServers
 
@@ -177,5 +178,23 @@ func adaptPciCards(domainPciCards domain.PciCards) model.PciCards {
 func adaptPciCard(pciCard domain.PciCard) model.PciCard {
 	return model.PciCard{
 		Description: basetypes.NewStringValue(pciCard.String()),
+	}
+}
+
+// AdaptControlPanels adapts model.ControlPanels to dedicated_server.ControlPanels.
+func AdaptControlPanels(domainControlPanels domain.ControlPanels) model.ControlPanels {
+	var controlPanels model.ControlPanels
+
+	for _, domainControlPanel := range domainControlPanels {
+		controlPanels.ControlPanels = append(controlPanels.ControlPanels, adaptControlPanel(domainControlPanel))
+	}
+
+	return controlPanels
+}
+
+func adaptControlPanel(domainControlPanel domain.ControlPanel) model.ControlPanel {
+	return model.ControlPanel{
+		Id:   basetypes.NewStringValue(domainControlPanel.Id),
+		Name: basetypes.NewStringValue(domainControlPanel.Name),
 	}
 }
