@@ -1,3 +1,4 @@
+// Package to_domain_entity implements adapters to convert resource models to domain entities.
 package to_domain_entity
 
 import (

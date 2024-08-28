@@ -1,3 +1,4 @@
+// Package logging implements logging that the end user sees.
 package logging
 
 import (
