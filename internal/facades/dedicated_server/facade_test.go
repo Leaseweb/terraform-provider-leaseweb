@@ -7,7 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/model"
+	model "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/model"
+	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/dedicated_server/model"
 
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
@@ -20,12 +21,14 @@ var (
 
 type serviceSpy struct {
 	dedicatedServers domain.DedicatedServers
+	dedicatedServer  domain.DedicatedServer
 	operatingSystems domain.OperatingSystems
 	controlPanels    domain.ControlPanels
 
 	getAllDedicatedServerError *serviceErrors.ServiceError
 	getAllOperatingSystemError *serviceErrors.ServiceError
 	getAllControlPanelError    *serviceErrors.ServiceError
+	getDedicatedServerError    *serviceErrors.ServiceError
 }
 
 func (s *serviceSpy) GetAllDedicatedServers(ctx context.Context) (domain.DedicatedServers, *serviceErrors.ServiceError) {
@@ -38,6 +41,56 @@ func (s *serviceSpy) GetAllOperatingSystems(ctx context.Context) (domain.Operati
 
 func (s *serviceSpy) GetAllControlPanels(ctx context.Context) (domain.ControlPanels, *serviceErrors.ServiceError) {
 	return s.controlPanels, s.getAllControlPanelError
+}
+
+func (s *serviceSpy) GetDedicatedServer(ctx context.Context, id string) (*domain.DedicatedServer, *serviceErrors.ServiceError) {
+	return &s.dedicatedServer, s.getDedicatedServerError
+}
+
+func TestFacadeGetAllDedicatedServers(t *testing.T) {
+	t.Run(
+		"facade passes back dedicated servers from service",
+		func(t *testing.T) {
+
+			id := "123456"
+
+			want := model.DedicatedServers{
+				DedicatedServers: []model.DedicatedServer{
+					{Id: basetypes.NewStringValue(id)},
+				},
+			}
+
+			facade := New(&serviceSpy{
+				dedicatedServers: domain.DedicatedServers{
+					domain.DedicatedServer{Id: id},
+				},
+			})
+			facade.adaptDedicatedServersToDatasourceModel = func(dedicatedServers domain.DedicatedServers) model.DedicatedServers {
+				return model.DedicatedServers{
+					DedicatedServers: []model.DedicatedServer{{Id: basetypes.NewStringValue(id)}},
+				}
+			}
+			got, err := facade.GetAllDedicatedServers(context.TODO())
+
+			assert.Nil(t, err)
+			assert.Equal(t, want, *got)
+		},
+	)
+
+	t.Run(
+		"error from service GetAllDedicatedServers bubbles up",
+		func(t *testing.T) {
+
+			want := "some error"
+			serviceError := serviceErrors.NewError("", errors.New(want))
+
+			facade := New(&serviceSpy{getAllDedicatedServerError: serviceError})
+			_, err := facade.GetAllDedicatedServers(context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
 }
 
 func TestFacadeGetAllOperatingSystems(t *testing.T) {
@@ -123,6 +176,47 @@ func TestGetAllControlPanels(t *testing.T) {
 			)
 
 			_, err := facade.GetAllControlPanels(context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+}
+
+func TestFacadeGetDedicatedServer(t *testing.T) {
+	t.Run(
+		"facade passes back dedicated server from service",
+		func(t *testing.T) {
+
+			id := "123456"
+
+			want := resourceModel.DedicatedServer{
+				Id: basetypes.NewStringValue(id),
+			}
+
+			facade := New(&serviceSpy{
+				dedicatedServer: domain.DedicatedServer{Id: id},
+			})
+			facade.adaptDedicatedServerToResourceModel = func(dedicatedServer domain.DedicatedServer) resourceModel.DedicatedServer {
+				return resourceModel.DedicatedServer{Id: basetypes.NewStringValue(id)}
+			}
+
+			got, err := facade.GetDedicatedServer(context.TODO(), id)
+
+			assert.Nil(t, err)
+			assert.Equal(t, want, *got)
+		},
+	)
+
+	t.Run(
+		"error from service GetDedicatedServer bubbles up",
+		func(t *testing.T) {
+
+			want := "some error"
+			serviceError := serviceErrors.NewError("", errors.New(want))
+
+			facade := New(&serviceSpy{getDedicatedServerError: serviceError})
+			_, err := facade.GetDedicatedServer(context.TODO(), "id")
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")

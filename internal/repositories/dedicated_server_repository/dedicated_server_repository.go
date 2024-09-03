@@ -166,6 +166,20 @@ func (d DedicatedServerRepository) GetAllControlPanels(ctx context.Context) (
 	return controlPanels, nil
 }
 
+func (p DedicatedServerRepository) GetDedicatedServer(ctx context.Context, id string) (
+	*domain.DedicatedServer,
+	*shared.RepositoryError,
+) {
+	request := p.dedicatedServerApi.GetServer(p.authContext(ctx), id)
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError("GetDedicatedServer", err, response)
+	}
+	dedicatedServer := p.adaptDedicatedServer(*result)
+	return &dedicatedServer, nil
+}
+
 func NewDedicatedServerRepository(
 	token string,
 	optional Optional,

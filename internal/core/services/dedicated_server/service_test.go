@@ -19,10 +19,12 @@ type repositorySpy struct {
 	dedicatedServers domain.DedicatedServers
 	operatingSystems domain.OperatingSystems
 	controlPanels    domain.ControlPanels
+	dedicatedServer  domain.DedicatedServer
 
 	getAllDedicatedServerError  *sharedRepository.RepositoryError
 	getAllOperatingSystemsError *sharedRepository.RepositoryError
 	getAllControlPanelError     *sharedRepository.RepositoryError
+	getDedicatedServerError     *sharedRepository.RepositoryError
 }
 
 func (r *repositorySpy) GetAllDedicatedServers(ctx context.Context) (
@@ -46,22 +48,20 @@ func (r *repositorySpy) GetAllControlPanels(ctx context.Context) (
 	return r.controlPanels, r.getAllControlPanelError
 }
 
+func (r *repositorySpy) GetDedicatedServer(ctx context.Context, id string) (
+	*domain.DedicatedServer,
+	*sharedRepository.RepositoryError,
+) {
+	return &r.dedicatedServer, r.getDedicatedServerError
+}
+
 func TestService_GetAllDedicatedServers(t *testing.T) {
 	t.Run(
-		"service passes back dedicated server from repository",
+		"service passes back dedicated servers from repository",
 		func(t *testing.T) {
-
 			id := "123456"
-
-			want := domain.DedicatedServers{
-				domain.DedicatedServer{
-					Id: id,
-				},
-			}
-
-			spy := repositorySpy{dedicatedServers: want}
-
-			service := New(&spy)
+			want := domain.DedicatedServers{domain.DedicatedServer{Id: id}}
+			service := New(&repositorySpy{dedicatedServers: want})
 
 			got, err := service.GetAllDedicatedServers(context.TODO())
 
@@ -115,12 +115,11 @@ func TestService_GetAllDedicatedServers(t *testing.T) {
 
 func TestService_GetAllOperatingSystems(t *testing.T) {
 	t.Run(
-		"service passes back dedicated server from repository",
+		"service passes back operating systems from repository",
 		func(t *testing.T) {
-
 			want := domain.OperatingSystems{{Id: "123456"}}
-
 			service := New(&repositorySpy{operatingSystems: want})
+
 			got, err := service.GetAllOperatingSystems(context.TODO())
 
 			assert.Nil(t, err)
@@ -131,11 +130,10 @@ func TestService_GetAllOperatingSystems(t *testing.T) {
 	t.Run(
 		"error from repository getAllOperatingSystems bubbles up",
 		func(t *testing.T) {
-
 			want := "some error"
 			generalError := sharedRepository.NewGeneralError("", errors.New(want))
-
 			service := New(&repositorySpy{getAllOperatingSystemsError: generalError})
+
 			_, err := service.GetAllOperatingSystems(context.TODO())
 
 			assert.Error(t, err)
@@ -148,7 +146,6 @@ func TestService_GetAllControlPanels(t *testing.T) {
 	t.Run(
 		"service passes back control panels from repository",
 		func(t *testing.T) {
-
 			want := domain.ControlPanels{
 				domain.ControlPanel{
 					Id:   "id",
@@ -157,6 +154,7 @@ func TestService_GetAllControlPanels(t *testing.T) {
 			}
 			spy := repositorySpy{controlPanels: want}
 			service := New(&spy)
+
 			got, err := service.GetAllControlPanels(context.TODO())
 
 			assert.Equal(t, want, got)
@@ -177,6 +175,41 @@ func TestService_GetAllControlPanels(t *testing.T) {
 			)
 
 			_, err := service.GetAllControlPanels(context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+}
+
+func TestService_GetDedicatedServer(t *testing.T) {
+	t.Run(
+		"service passes back dedicated server from repository",
+		func(t *testing.T) {
+			id := "123456"
+			want := domain.DedicatedServer{Id: id}
+			service := New(&repositorySpy{dedicatedServer: want})
+
+			got, err := service.GetDedicatedServer(context.TODO(), id)
+
+			assert.Nil(t, err)
+			assert.Equal(t, want, *got)
+		},
+	)
+
+	t.Run(
+		"error from repository GetDedicatedServer bubbles up",
+		func(t *testing.T) {
+			service := New(
+				&repositorySpy{
+					getDedicatedServerError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
+			)
+
+			_, err := service.GetDedicatedServer(context.TODO(), "id")
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")

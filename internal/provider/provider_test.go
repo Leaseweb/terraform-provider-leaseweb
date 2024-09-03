@@ -110,6 +110,15 @@ func TestLeasewebProvider_Resources(t *testing.T) {
 		),
 		"resource should implement Public Cloud InstanceResource",
 	)
+
+	assert.True(
+		t,
+		implementsResource(
+			leasewebProvider().Resources(
+				context.TODO()), "_dedicated_servers",
+		),
+		"resource should implement Dedicated Server dedicatedServerResource",
+	)
 }
 
 func implementsDataSource(
