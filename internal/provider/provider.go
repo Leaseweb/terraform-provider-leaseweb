@@ -17,6 +17,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/dedicated_servers"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/operating_systems"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/instances"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/dedicated_server/data_traffic_notification_setting"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/dedicated_server/dedicated_server"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance"
 )
@@ -173,5 +174,6 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		instance.NewInstanceResource,
 		dedicated_server.NewDedicatedServerResource,
+		data_traffic_notification_setting.NewDataTrafficNotificationSettingResource,
 	}
 }

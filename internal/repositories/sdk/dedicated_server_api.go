@@ -12,4 +12,23 @@ type DedicatedServerApi interface {
 	GetOperatingSystemList(ctx context.Context) dedicatedServer.ApiGetOperatingSystemListRequest
 	GetControlPanelList(ctx context.Context) dedicatedServer.ApiGetControlPanelListRequest
 	GetServer(ctx context.Context, id string) dedicatedServer.ApiGetServerRequest
+	GetServerDataTrafficNotificationSetting(
+		ctx context.Context,
+		serverId string,
+		dataTrafficNotificationSettingId string,
+	) dedicatedServer.ApiGetServerDataTrafficNotificationSettingRequest
+	CreateServerDataTrafficNotificationSetting(
+		ctx context.Context,
+		serverId string,
+	) dedicatedServer.ApiCreateServerDataTrafficNotificationSettingRequest
+	UpdateServerDataTrafficNotificationSetting(
+		ctx context.Context,
+		serverId string,
+		dataTrafficNotificationSettingId string,
+	) dedicatedServer.ApiUpdateServerDataTrafficNotificationSettingRequest
+	DeleteServerDataTrafficNotificationSetting(
+		ctx context.Context,
+		serverId string,
+		dataTrafficNotificationSettingId string,
+	) dedicatedServer.ApiDeleteServerDataTrafficNotificationSettingRequest
 }

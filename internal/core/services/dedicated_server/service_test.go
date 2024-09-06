@@ -16,15 +16,24 @@ var (
 )
 
 type repositorySpy struct {
-	dedicatedServers domain.DedicatedServers
-	operatingSystems domain.OperatingSystems
-	controlPanels    domain.ControlPanels
-	dedicatedServer  domain.DedicatedServer
+	dedicatedServers               domain.DedicatedServers
+	operatingSystems               domain.OperatingSystems
+	controlPanels                  domain.ControlPanels
+	dedicatedServer                domain.DedicatedServer
+	dataTrafficNotificationSetting domain.DataTrafficNotificationSetting
 
-	getAllDedicatedServerError  *sharedRepository.RepositoryError
-	getAllOperatingSystemsError *sharedRepository.RepositoryError
-	getAllControlPanelError     *sharedRepository.RepositoryError
-	getDedicatedServerError     *sharedRepository.RepositoryError
+	getAllDedicatedServerError                *sharedRepository.RepositoryError
+	getAllOperatingSystemsError               *sharedRepository.RepositoryError
+	getAllControlPanelError                   *sharedRepository.RepositoryError
+	getDedicatedServerError                   *sharedRepository.RepositoryError
+	getDataTrafficNotificationSettingError    *sharedRepository.RepositoryError
+	createDataTrafficNotificationSettingError *sharedRepository.RepositoryError
+	updateDataTrafficNotificationSettingError *sharedRepository.RepositoryError
+	deleteDataTrafficNotificationSettingError *sharedRepository.RepositoryError
+}
+
+func (r *repositorySpy) UpdateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (*domain.DataTrafficNotificationSetting, *sharedRepository.RepositoryError) {
+	return &r.dataTrafficNotificationSetting, r.updateDataTrafficNotificationSettingError
 }
 
 func (r *repositorySpy) GetAllDedicatedServers(ctx context.Context) (
@@ -53,6 +62,28 @@ func (r *repositorySpy) GetDedicatedServer(ctx context.Context, id string) (
 	*sharedRepository.RepositoryError,
 ) {
 	return &r.dedicatedServer, r.getDedicatedServerError
+}
+
+func (r *repositorySpy) GetDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) (
+	*domain.DataTrafficNotificationSetting,
+	*sharedRepository.RepositoryError,
+) {
+	return &r.dataTrafficNotificationSetting, r.getDataTrafficNotificationSettingError
+}
+
+func (r *repositorySpy) CreateDataTrafficNotificationSetting(
+	ctx context.Context,
+	serverId string,
+	dataTrafficNotificationSetting domain.DataTrafficNotificationSetting,
+) (
+	*domain.DataTrafficNotificationSetting,
+	*sharedRepository.RepositoryError,
+) {
+	return &r.dataTrafficNotificationSetting, r.createDataTrafficNotificationSettingError
+}
+
+func (r *repositorySpy) DeleteDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) *sharedRepository.RepositoryError {
+	return r.deleteDataTrafficNotificationSettingError
 }
 
 func TestService_GetAllDedicatedServers(t *testing.T) {

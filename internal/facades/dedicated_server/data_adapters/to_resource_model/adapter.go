@@ -203,3 +203,18 @@ func adaptControlPanel(domainControlPanel domain.ControlPanel) resourcesModel.Co
 		Name: basetypes.NewStringValue(domainControlPanel.Name),
 	}
 }
+
+// TODO: check if it's a good idea to pass serverID
+// AdaptDataTrafficNotificationSetting adapts domain.DataTrafficNotificationSetting to resourcesModel.DataTrafficNotificationSetting.
+func AdaptDataTrafficNotificationSetting(
+	serverId string,
+	dataTrafficNotificationSetting domain.DataTrafficNotificationSetting,
+) resourcesModel.DataTrafficNotificationSetting {
+	return resourcesModel.DataTrafficNotificationSetting{
+		Id:        basetypes.NewStringValue(dataTrafficNotificationSetting.Id),
+		Frequency: basetypes.NewStringValue(dataTrafficNotificationSetting.Frequency),
+		Threshold: basetypes.NewStringValue(dataTrafficNotificationSetting.Threshold),
+		Unit:      basetypes.NewStringValue(dataTrafficNotificationSetting.Unit),
+		ServerId:  basetypes.NewStringValue(serverId),
+	}
+}

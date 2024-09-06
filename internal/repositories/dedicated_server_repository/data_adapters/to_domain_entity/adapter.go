@@ -200,3 +200,16 @@ func adaptControlPanel(sdkControlPanel dedicatedServer.ControlPanel) domain.Cont
 		sdkControlPanel.GetName(),
 	)
 }
+
+// AdaptDataTrafficNotificationSetting adapts dedicated_server.DataTrafficNotificationSetting to domain.DataTrafficNotificationSetting.
+func AdaptDataTrafficNotificationSetting(sdkDataTrafficNotificationSetting dedicatedServer.DataTrafficNotificationSetting) domain.DataTrafficNotificationSetting {
+	return domain.NewDataTrafficNotificationSetting(
+		sdkDataTrafficNotificationSetting.GetId(),
+		sdkDataTrafficNotificationSetting.GetFrequency(),
+		//sdkDataTrafficNotificationSetting.GetLastCheckedAt(),
+		sdkDataTrafficNotificationSetting.GetThreshold(),
+		//sdkDataTrafficNotificationSetting.GetThresholdExceededAt(),
+		sdkDataTrafficNotificationSetting.GetUnit(),
+		//sdkDataTrafficNotificationSetting.GetActions(),
+	)
+}

@@ -20,4 +20,25 @@ type DedicatedServerService interface {
 
 	// GetDedicatedServer gets a single dedicated server.
 	GetDedicatedServer(ctx context.Context, id string) (*domain.DedicatedServer, *errors.ServiceError)
+
+	// GetDataTrafficNotificationSetting gets a single data traffic notification setting.
+	GetDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) (
+		*domain.DataTrafficNotificationSetting,
+		*errors.ServiceError,
+	)
+
+	// CreateDataTrafficNotificationSetting creates a data traffic notification setting.
+	CreateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (
+		*domain.DataTrafficNotificationSetting,
+		*errors.ServiceError,
+	)
+
+	// UpdateDataTrafficNotificationSetting updates a data traffic notification setting.
+	UpdateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (
+		*domain.DataTrafficNotificationSetting,
+		*errors.ServiceError,
+	)
+
+	// DeleteDataTrafficNotificationSetting deletes a single data traffic notification setting.
+	DeleteDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) *errors.ServiceError
 }

@@ -32,4 +32,25 @@ type DedicatedServerRepository interface {
 		*domain.DedicatedServer,
 		*shared.RepositoryError,
 	)
+
+	// GetDataTrafficNotificationSetting returns data for a singular data traffic notification setting from the dedicated server api.
+	GetDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) (
+		*domain.DataTrafficNotificationSetting,
+		*shared.RepositoryError,
+	)
+
+	// CreateDataTrafficNotificationSetting creates a new data traffic notification service in the dedicated server api.
+	CreateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (
+		*domain.DataTrafficNotificationSetting,
+		*shared.RepositoryError,
+	)
+
+	// UpdateDataTrafficNotificationSetting updates a data traffic notification service in the dedicated server api.
+	UpdateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (
+		*domain.DataTrafficNotificationSetting,
+		*shared.RepositoryError,
+	)
+
+	// DeleteDataTrafficNotificationSetting deletes a data traffic notification setting in the dedicated server api.
+	DeleteDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) *shared.RepositoryError
 }

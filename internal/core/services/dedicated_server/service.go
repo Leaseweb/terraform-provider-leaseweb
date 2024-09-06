@@ -78,6 +78,64 @@ func (srv Service) GetDedicatedServer(ctx context.Context, id string) (
 	return dedicatedServer, nil
 }
 
+func (srv Service) GetDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) (
+	*domain.DataTrafficNotificationSetting,
+	*errors.ServiceError,
+) {
+
+	dataTrafficNotificationSetting, err := srv.dedicatedServerRepository.GetDataTrafficNotificationSetting(ctx, serverId, dataTrafficNotificationSettingId)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"GetDataTrafficNotificationSetting",
+			*err,
+		)
+	}
+
+	return dataTrafficNotificationSetting, nil
+}
+
+func (srv Service) CreateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (
+	*domain.DataTrafficNotificationSetting,
+	*errors.ServiceError,
+) {
+
+	createdDataTrafficNotificationSetting, err := srv.dedicatedServerRepository.CreateDataTrafficNotificationSetting(ctx, serverId, dataTrafficNotificationSetting)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"CreateDataTrafficNotificationSetting",
+			*err,
+		)
+	}
+
+	return createdDataTrafficNotificationSetting, nil
+}
+
+func (srv Service) UpdateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (
+	*domain.DataTrafficNotificationSetting,
+	*errors.ServiceError,
+) {
+	updatedDataTrafficNotificationSetting, err := srv.dedicatedServerRepository.UpdateDataTrafficNotificationSetting(ctx, serverId, dataTrafficNotificationSettingId, dataTrafficNotificationSetting)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"UpdateDataTrafficNotificationSetting",
+			*err,
+		)
+	}
+	return updatedDataTrafficNotificationSetting, nil
+}
+
+func (srv Service) DeleteDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string) *errors.ServiceError {
+
+	err := srv.dedicatedServerRepository.DeleteDataTrafficNotificationSetting(ctx, serverId, dataTrafficNotificationSettingId)
+	if err != nil {
+		return errors.NewFromRepositoryError(
+			"DeleteDataTrafficNotificationSetting",
+			*err,
+		)
+	}
+	return nil
+}
+
 func New(dedicatedServerRepository ports.DedicatedServerRepository) Service {
 	return Service{dedicatedServerRepository: dedicatedServerRepository}
 }

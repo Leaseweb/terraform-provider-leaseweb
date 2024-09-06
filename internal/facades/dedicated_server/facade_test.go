@@ -20,15 +20,24 @@ var (
 )
 
 type serviceSpy struct {
-	dedicatedServers domain.DedicatedServers
-	dedicatedServer  domain.DedicatedServer
-	operatingSystems domain.OperatingSystems
-	controlPanels    domain.ControlPanels
+	dedicatedServers               domain.DedicatedServers
+	dedicatedServer                domain.DedicatedServer
+	operatingSystems               domain.OperatingSystems
+	controlPanels                  domain.ControlPanels
+	dataTrafficNotificationSetting domain.DataTrafficNotificationSetting
 
-	getAllDedicatedServerError *serviceErrors.ServiceError
-	getAllOperatingSystemError *serviceErrors.ServiceError
-	getAllControlPanelError    *serviceErrors.ServiceError
-	getDedicatedServerError    *serviceErrors.ServiceError
+	getAllDedicatedServerError                *serviceErrors.ServiceError
+	getAllOperatingSystemError                *serviceErrors.ServiceError
+	getAllControlPanelError                   *serviceErrors.ServiceError
+	getDedicatedServerError                   *serviceErrors.ServiceError
+	getDataTrafficNotificationSettingError    *serviceErrors.ServiceError
+	createDataTrafficNotificationSettingError *serviceErrors.ServiceError
+	deleteDataTrafficNotificationSettingError *serviceErrors.ServiceError
+	updateDataTrafficNotificationSettingError *serviceErrors.ServiceError
+}
+
+func (s *serviceSpy) UpdateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSettingId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (*domain.DataTrafficNotificationSetting, *serviceErrors.ServiceError) {
+	return &s.dataTrafficNotificationSetting, s.updateDataTrafficNotificationSettingError
 }
 
 func (s *serviceSpy) GetAllDedicatedServers(ctx context.Context) (domain.DedicatedServers, *serviceErrors.ServiceError) {
@@ -45,6 +54,29 @@ func (s *serviceSpy) GetAllControlPanels(ctx context.Context) (domain.ControlPan
 
 func (s *serviceSpy) GetDedicatedServer(ctx context.Context, id string) (*domain.DedicatedServer, *serviceErrors.ServiceError) {
 	return &s.dedicatedServer, s.getDedicatedServerError
+}
+
+func (s *serviceSpy) GetDataTrafficNotificationSetting(
+	ctx context.Context,
+	serverId string,
+	dataTrafficNotificationSettingId string,
+) (
+	*domain.DataTrafficNotificationSetting,
+	*serviceErrors.ServiceError,
+) {
+	return &s.dataTrafficNotificationSetting, s.getDataTrafficNotificationSettingError
+}
+
+func (s *serviceSpy) CreateDataTrafficNotificationSetting(ctx context.Context, serverId string, dataTrafficNotificationSetting domain.DataTrafficNotificationSetting) (*domain.DataTrafficNotificationSetting, *serviceErrors.ServiceError) {
+	return &s.dataTrafficNotificationSetting, s.createDataTrafficNotificationSettingError
+}
+
+func (s *serviceSpy) DeleteDataTrafficNotificationSetting(
+	ctx context.Context,
+	serverId string,
+	dataTrafficNotificationSettingId string,
+) *serviceErrors.ServiceError {
+	return s.deleteDataTrafficNotificationSettingError
 }
 
 func TestFacadeGetAllDedicatedServers(t *testing.T) {
