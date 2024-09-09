@@ -16,13 +16,15 @@ var (
 )
 
 type repositorySpy struct {
-	dedicatedServers domain.DedicatedServers
-	operatingSystems domain.OperatingSystems
-	controlPanels    domain.ControlPanels
+	dedicatedServers             domain.DedicatedServers
+	operatingSystems             domain.OperatingSystems
+	controlPanels                domain.ControlPanels
+	notificationSettingBandwidth *domain.NotificationSettingBandwidth
 
-	getAllDedicatedServerError  *sharedRepository.RepositoryError
-	getAllOperatingSystemsError *sharedRepository.RepositoryError
-	getAllControlPanelError     *sharedRepository.RepositoryError
+	getAllDedicatedServerError              *sharedRepository.RepositoryError
+	getAllOperatingSystemsError             *sharedRepository.RepositoryError
+	getAllControlPanelError                 *sharedRepository.RepositoryError
+	createNotificationSettingBandwidthError *sharedRepository.RepositoryError
 }
 
 func (r *repositorySpy) GetAllDedicatedServers(ctx context.Context) (
@@ -44,6 +46,13 @@ func (r *repositorySpy) GetAllControlPanels(ctx context.Context) (
 	*sharedRepository.RepositoryError,
 ) {
 	return r.controlPanels, r.getAllControlPanelError
+}
+
+func (r *repositorySpy) CreateNotificationSettingBandwidth(
+	notificationSettingBandwidth domain.NotificationSettingBandwidth,
+	ctx context.Context,
+) (*domain.NotificationSettingBandwidth, *sharedRepository.RepositoryError) {
+	return r.notificationSettingBandwidth, r.createNotificationSettingBandwidthError
 }
 
 func TestService_GetAllDedicatedServers(t *testing.T) {
@@ -177,6 +186,52 @@ func TestService_GetAllControlPanels(t *testing.T) {
 			)
 
 			_, err := service.GetAllControlPanels(context.TODO())
+
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "some error")
+		},
+	)
+}
+
+func TestService_CreateNotificationSettingBandwidth(t *testing.T) {
+	t.Run(
+		"service passed back notificationSettingBandwidth from repository while creating a notification setting bandwidth",
+		func(t *testing.T) {
+
+			want := domain.NotificationSettingBandwidth{
+				ServerId:  "12345",
+				Frequency: "DAILY",
+				Threshold: "1",
+				Unit:      "Gbps",
+			}
+			spy := repositorySpy{notificationSettingBandwidth: &want}
+			service := New(&spy)
+			got, err := service.CreateNotificationSettingBandwidth(want, context.TODO())
+
+			assert.Equal(t, want, *got)
+			assert.Nil(t, err)
+		},
+	)
+
+	t.Run(
+		"service passed back error while creating a notification setting bandwidth",
+		func(t *testing.T) {
+			service := New(
+				&repositorySpy{
+					createNotificationSettingBandwidthError: sharedRepository.NewGeneralError(
+						"",
+						errors.New("some error"),
+					),
+				},
+			)
+
+			notificationSettingBandwidth := domain.NotificationSettingBandwidth{
+				ServerId:  "12345",
+				Frequency: "DAILY",
+				Threshold: "1",
+				Unit:      "Gbps",
+			}
+			_, err := service.CreateNotificationSettingBandwidth(notificationSettingBandwidth, context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")

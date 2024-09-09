@@ -3,7 +3,6 @@ package dedicated_server
 
 import (
 	"context"
-
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
@@ -60,6 +59,21 @@ func (s Service) GetAllControlPanels(ctx context.Context) (
 	}
 
 	return controlPanels, nil
+}
+
+func (s Service) CreateNotificationSettingBandwidth(
+	notificationSettingBandwidth domain.NotificationSettingBandwidth,
+	ctx context.Context,
+) (*domain.NotificationSettingBandwidth, *errors.ServiceError) {
+	createdNotificationSettingBandwidth, err := s.dedicatedServerRepository.CreateNotificationSettingBandwidth(
+		notificationSettingBandwidth,
+		ctx,
+	)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError("CreateNotificationSettingBandwidth", *err)
+	}
+
+	return createdNotificationSettingBandwidth, nil
 }
 
 func New(dedicatedServerRepository ports.DedicatedServerRepository) Service {

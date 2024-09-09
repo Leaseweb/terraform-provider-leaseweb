@@ -2,7 +2,6 @@ package ports
 
 import (
 	"context"
-
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
@@ -26,4 +25,10 @@ type DedicatedServerRepository interface {
 		domain.ControlPanels,
 		*shared.RepositoryError,
 	)
+
+	// CreateNotificationSettingBandwidth creates dedicated_server.NotificationSettingBandwidth from the dedicated_server api.
+	CreateNotificationSettingBandwidth(
+		notificationSettingBandwidth domain.NotificationSettingBandwidth,
+		ctx context.Context,
+	) (*domain.NotificationSettingBandwidth, *shared.RepositoryError)
 }

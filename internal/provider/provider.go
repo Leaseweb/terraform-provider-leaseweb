@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/dedicated_server/notification_setting_bandwidth"
 	"os"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/control_panels"
@@ -169,5 +170,8 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 }
 
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{instance.NewInstanceResource}
+	return []func() resource.Resource{
+		instance.NewInstanceResource,
+		notification_setting_bandwidth.New,
+	}
 }

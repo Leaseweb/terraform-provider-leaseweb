@@ -479,3 +479,29 @@ func TestAdaptControlPanels(t *testing.T) {
 	assert.Len(t, got, 1)
 	assert.Equal(t, "id", got[0].Id)
 }
+
+func TestAdaptNotificationSettingBandwidth(t *testing.T) {
+	bandwidthNotificationSetting := dedicatedServer.NewBandwidthNotificationSetting(
+		"DAILY", "1234", "1", "Gbps",
+	)
+	got := AdaptNotificationSettingBandwidth("12345", *bandwidthNotificationSetting)
+	assert.Equal(t, got.Id, bandwidthNotificationSetting.GetId())
+}
+
+func Test_adaptActions(t *testing.T) {
+	var actions []dedicatedServer.Actions
+	action := dedicatedServer.Actions{}
+	action.SetType("EMAIL")
+	actions = append(actions, action)
+
+	got := adaptActions(actions)
+	assert.Len(t, got, 1)
+}
+
+func Test_adaptAction(t *testing.T) {
+	action := dedicatedServer.Actions{}
+	action.SetType("EMAIL")
+
+	got := adaptAction(action)
+	assert.Equal(t, got.Type, "EMAIL")
+}

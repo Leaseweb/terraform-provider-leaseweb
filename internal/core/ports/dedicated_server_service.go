@@ -2,7 +2,6 @@ package ports
 
 import (
 	"context"
-
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 )
@@ -17,4 +16,10 @@ type DedicatedServerService interface {
 
 	// GetAllControlPanels gets dedicated_server.ControlPanels.
 	GetAllControlPanels(ctx context.Context) (domain.ControlPanels, *errors.ServiceError)
+
+	// CreateNotificationSettingBandwidth creates dedicated_server.NotificationSettingBandwidth.
+	CreateNotificationSettingBandwidth(
+		notificationSettingBandwidth domain.NotificationSettingBandwidth,
+		ctx context.Context,
+	) (*domain.NotificationSettingBandwidth, *errors.ServiceError)
 }

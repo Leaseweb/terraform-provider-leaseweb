@@ -1,0 +1,2 @@
+// Package notification_setting_bandwidth functionality for dedicated_server resources.
+package notification_setting_bandwidth

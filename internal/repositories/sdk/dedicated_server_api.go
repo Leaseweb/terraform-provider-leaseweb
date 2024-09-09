@@ -11,4 +11,5 @@ type DedicatedServerApi interface {
 	GetServerList(ctx context.Context) dedicatedServer.ApiGetServerListRequest
 	GetOperatingSystemList(ctx context.Context) dedicatedServer.ApiGetOperatingSystemListRequest
 	GetControlPanelList(ctx context.Context) dedicatedServer.ApiGetControlPanelListRequest
+	CreateServerBandwidthNotificationSetting(ctx context.Context, serverId string) dedicatedServer.ApiCreateServerBandwidthNotificationSettingRequest
 }

@@ -4,10 +4,10 @@ package dedicated_server_repository
 
 import (
 	"context"
-
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/dedicated_server_repository/data_adapters/to_domain_entity"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/dedicated_server_repository/data_adapters/to_sdk_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/sdk"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
@@ -164,6 +164,33 @@ func (d DedicatedServerRepository) GetAllControlPanels(ctx context.Context) (
 	}
 
 	return controlPanels, nil
+}
+
+func (d DedicatedServerRepository) CreateNotificationSettingBandwidth(
+	notificationSettingBandwidth domain.NotificationSettingBandwidth,
+	ctx context.Context,
+) (*domain.NotificationSettingBandwidth, *shared.RepositoryError) {
+
+	createNotificationSettingBandwidth := to_sdk_model.AdaptToCreateNotificationSettingBandwidthOpts(notificationSettingBandwidth)
+
+	sdkCreatedNotificationSettingBandwidth, response, err := d.dedicatedServerApi.
+		CreateServerBandwidthNotificationSetting(d.authContext(ctx), notificationSettingBandwidth.ServerId).
+		BandwidthNotificationSettingOpts(*createNotificationSettingBandwidth).Execute()
+
+	if err != nil {
+		return nil, shared.NewSdkError(
+			"CreateNotificationSettingBandwidth",
+			err,
+			response,
+		)
+	}
+
+	createdNotificationSettingBandwidth := to_domain_entity.AdaptNotificationSettingBandwidth(
+		notificationSettingBandwidth.ServerId,
+		*sdkCreatedNotificationSettingBandwidth,
+	)
+
+	return createdNotificationSettingBandwidth, nil
 }
 
 func NewDedicatedServerRepository(

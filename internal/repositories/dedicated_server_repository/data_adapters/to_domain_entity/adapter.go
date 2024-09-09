@@ -3,6 +3,7 @@ package to_domain_entity
 
 import (
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	sdkModel "github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 )
 
@@ -199,4 +200,47 @@ func adaptControlPanel(sdkControlPanel dedicatedServer.ControlPanel) domain.Cont
 		sdkControlPanel.GetId(),
 		sdkControlPanel.GetName(),
 	)
+}
+
+// AdaptNotificationSettingBandwidth adapts sdkModel.BandwidthNotificationSetting to domain.NotificationSettingBandwidth.
+func AdaptNotificationSettingBandwidth(
+	serverId string,
+	sdkNotificationSettingBandwidth sdkModel.BandwidthNotificationSetting,
+) *domain.NotificationSettingBandwidth {
+
+	optionalValues := domain.OptionalNotificationSettingBandwidthValues{
+		LastCheckedAt:       AdaptNullableStringToValue(sdkNotificationSettingBandwidth.LastCheckedAt),
+		ThresholdExceededAt: AdaptNullableStringToValue(sdkNotificationSettingBandwidth.ThresholdExceededAt),
+	}
+
+	notificationSettingBandwidth := domain.NewNotificationSettingBandwidth(
+		serverId,
+		sdkNotificationSettingBandwidth.GetId(),
+		sdkNotificationSettingBandwidth.GetFrequency(),
+		sdkNotificationSettingBandwidth.GetThreshold(),
+		sdkNotificationSettingBandwidth.GetUnit(),
+		adaptActions(sdkNotificationSettingBandwidth.GetActions()),
+		optionalValues,
+	)
+
+	return &notificationSettingBandwidth
+}
+
+func adaptActions(sdkActions []sdkModel.Actions) domain.Actions {
+	var actions domain.Actions
+	for _, sdkAction := range sdkActions {
+		actions = append(actions, *adaptAction(sdkAction))
+	}
+
+	return actions
+}
+
+func adaptAction(sdkAction sdkModel.Actions) *domain.Action {
+	optionalValues := domain.OptionalActionValues{
+		LastTriggeredAt: AdaptNullableStringToValue(sdkAction.LastTriggeredAt),
+	}
+
+	action := domain.NewAction(sdkAction.GetType(), optionalValues)
+
+	return &action
 }

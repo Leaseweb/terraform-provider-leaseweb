@@ -42,6 +42,6 @@ func NewClient(token string, optional Optional) Client {
 
 	return Client{
 		PublicCloudFacade:     public_cloud.NewPublicCloudFacade(&publicCloudService),
-		DedicatedServerFacade: dedicated_server.New(dedicatedServerService),
+		DedicatedServerFacade: dedicated_server.New(&dedicatedServerService),
 	}
 }
