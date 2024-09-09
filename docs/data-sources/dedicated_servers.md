@@ -191,7 +191,7 @@ Read-Only:
 - `chassis` (String)
 - `cpu` (Attributes) (see [below for nested schema](#nestedatt--dedicated_servers--specs--cpu))
 - `hardware_raid_capable` (Boolean)
-- `hdd` (Attributes List) (see [below for nested schema](#nestedatt--dedicated_servers--specs--hdd))
+- `hdds` (Attributes List) (see [below for nested schema](#nestedatt--dedicated_servers--specs--hdds))
 - `pci_cards` (Attributes List) (see [below for nested schema](#nestedatt--dedicated_servers--specs--pci_cards))
 - `ram` (Attributes) (see [below for nested schema](#nestedatt--dedicated_servers--specs--ram))
 
@@ -204,8 +204,8 @@ Read-Only:
 - `type` (String)
 
 
-<a id="nestedatt--dedicated_servers--specs--hdd"></a>
-### Nested Schema for `dedicated_servers.specs.hdd`
+<a id="nestedatt--dedicated_servers--specs--hdds"></a>
+### Nested Schema for `dedicated_servers.specs.hdds`
 
 Read-Only:
 

@@ -26,4 +26,10 @@ type DedicatedServerRepository interface {
 		domain.ControlPanels,
 		*shared.RepositoryError,
 	)
+
+	// GetDedicatedServer returns data for a singular dedicated_server from the dedicated server api.
+	GetDedicatedServer(ctx context.Context, id string) (
+		*domain.DedicatedServer,
+		*shared.RepositoryError,
+	)
 }

@@ -17,4 +17,7 @@ type DedicatedServerService interface {
 
 	// GetAllControlPanels gets dedicated_server.ControlPanels.
 	GetAllControlPanels(ctx context.Context) (domain.ControlPanels, *errors.ServiceError)
+
+	// GetDedicatedServer gets a single dedicated server.
+	GetDedicatedServer(ctx context.Context, id string) (*domain.DedicatedServer, *errors.ServiceError)
 }

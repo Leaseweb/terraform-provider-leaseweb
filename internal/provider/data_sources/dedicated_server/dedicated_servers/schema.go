@@ -156,7 +156,7 @@ func (d *dedicatedServerDataSource) Schema(_ context.Context, _ datasource.Schem
 								"chassis": schema.StringAttribute{
 									Computed: true,
 								},
-								"hdd": schema.ListNestedAttribute{
+								"hdds": schema.ListNestedAttribute{
 									Computed: true,
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{

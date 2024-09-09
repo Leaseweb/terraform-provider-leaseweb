@@ -62,6 +62,22 @@ func (s Service) GetAllControlPanels(ctx context.Context) (
 	return controlPanels, nil
 }
 
+func (srv Service) GetDedicatedServer(ctx context.Context, id string) (
+	*domain.DedicatedServer,
+	*errors.ServiceError,
+) {
+
+	dedicatedServer, err := srv.dedicatedServerRepository.GetDedicatedServer(ctx, id)
+	if err != nil {
+		return nil, errors.NewFromRepositoryError(
+			"GetDedicatedServer",
+			*err,
+		)
+	}
+
+	return dedicatedServer, nil
+}
+
 func New(dedicatedServerRepository ports.DedicatedServerRepository) Service {
 	return Service{dedicatedServerRepository: dedicatedServerRepository}
 }
