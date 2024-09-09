@@ -1,3 +1,4 @@
+// Package to_sdk_model implements adapters to convert public_cloud domain entities to sdk models.
 package to_sdk_model
 
 import (

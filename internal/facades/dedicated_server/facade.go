@@ -1,3 +1,4 @@
+// Package dedicated_server implements the dedicated_server facade.
 package dedicated_server
 
 import (

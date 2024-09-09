@@ -1,3 +1,4 @@
+// Package public_cloud implements the public_cloud facade.
 package public_cloud
 
 import (

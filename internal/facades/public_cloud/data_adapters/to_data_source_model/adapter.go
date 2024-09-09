@@ -1,3 +1,4 @@
+// Package to_data_source_model implements adapters to convert domain entities to sdk models.
 package to_data_source_model
 
 import (

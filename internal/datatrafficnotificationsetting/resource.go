@@ -54,6 +54,7 @@ func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, 
 	if req.ProviderData == nil {
 		return
 	}
+	configuration := dedicatedServer.NewConfiguration()
 
 	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
@@ -67,9 +68,14 @@ func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, 
 		)
 		return
 	}
-	d.apiKey = coreClient.Token
+	d.apiKey = coreClient.ProviderData.ApiKey
+	if coreClient.ProviderData.Host != nil {
+		configuration.Host = *coreClient.ProviderData.Host
+	}
+	if coreClient.ProviderData.Scheme != nil {
+		configuration.Scheme = *coreClient.ProviderData.Scheme
+	}
 
-	configuration := dedicatedServer.NewConfiguration()
 	apiClient := dedicatedServer.NewAPIClient(configuration)
 	d.client = apiClient.DedicatedServerAPI
 }
@@ -129,7 +135,11 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		Unit:      types.StringValue(result.GetUnit()),
 	}
 	newData.ServerId = data.ServerId
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newData)...)
+	diags = resp.State.Set(ctx, newData)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -153,7 +163,11 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 		Unit:      types.StringValue(result.GetUnit()),
 	}
 	newData.ServerId = data.ServerId
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newData)...)
+	diags = resp.State.Set(ctx, newData)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -182,7 +196,11 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		Threshold: types.StringValue(result.GetThreshold()),
 		Unit:      types.StringValue(result.GetUnit()),
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newData)...)
+	diags = resp.State.Set(ctx, newData)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

@@ -1,3 +1,4 @@
+// Package to_domain_entity implements adapters to convert dedicated_server sdk models to domain entities.
 package to_domain_entity
 
 import (
@@ -5,7 +6,7 @@ import (
 	domain "github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/dedicated_server"
 )
 
-// AdaptDedicatedServer adapts an dedicatedServer domain entity to an sdk dedicatedServer model.
+// AdaptDedicatedServer adapts dedicatedServer.Server to dedicated_server.DedicatedServer.
 func AdaptDedicatedServer(sdkDedicatedServer dedicatedServer.Server) domain.DedicatedServer {
 	return domain.NewDedicatedServer(
 		sdkDedicatedServer.GetId(),

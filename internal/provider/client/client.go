@@ -1,3 +1,4 @@
+// Package client implements access to facades.
 package client
 
 import (
@@ -9,9 +10,16 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
 )
 
+// TODO: Refactor this part, ProviderData can be managed directly, not within client.
+type ProviderData struct {
+	ApiKey string
+	Host   *string
+	Scheme *string
+}
+
 // The Client handles instantiation of the facades.
 type Client struct {
-	Token                 string
+	ProviderData          ProviderData
 	PublicCloudFacade     public_cloud.PublicCloudFacade
 	DedicatedServerFacade dedicated_server.DedicatedServerFacade
 }
@@ -41,7 +49,11 @@ func NewClient(token string, optional Optional) Client {
 	dedicatedServerService := dedicatedserverservice.New(dedicatedServerRepository)
 
 	return Client{
-		Token:                 token,
+		ProviderData: ProviderData{
+			ApiKey: token,
+			Host:   optional.Host,
+			Scheme: optional.Scheme,
+		},
 		PublicCloudFacade:     public_cloud.NewPublicCloudFacade(&publicCloudService),
 		DedicatedServerFacade: dedicated_server.New(dedicatedServerService),
 	}

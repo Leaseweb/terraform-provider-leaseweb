@@ -1,3 +1,4 @@
+// Package public_cloud implements services related to public_cloud instances
 package public_cloud
 
 import (
