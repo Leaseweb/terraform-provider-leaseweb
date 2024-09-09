@@ -11,6 +11,7 @@ import (
 
 // The Client handles instantiation of the facades.
 type Client struct {
+	Token                 string
 	PublicCloudFacade     public_cloud.PublicCloudFacade
 	DedicatedServerFacade dedicated_server.DedicatedServerFacade
 }
@@ -40,6 +41,7 @@ func NewClient(token string, optional Optional) Client {
 	dedicatedServerService := dedicatedserverservice.New(dedicatedServerRepository)
 
 	return Client{
+		Token:                 token,
 		PublicCloudFacade:     public_cloud.NewPublicCloudFacade(&publicCloudService),
 		DedicatedServerFacade: dedicated_server.New(dedicatedServerService),
 	}
