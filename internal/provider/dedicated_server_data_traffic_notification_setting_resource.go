@@ -1,4 +1,4 @@
-package datatrafficnotificationsetting
+package provider
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/validators"
+	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
 )
 
 var (
@@ -41,7 +41,7 @@ func NewDataTrafficNotificationSettingResource() resource.Resource {
 }
 
 func (d *dataTrafficNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_data_traffic_notification_setting"
+	resp.TypeName = req.ProviderTypeName + "_dedicated_server_data_traffic_notification_setting"
 }
 
 func (d *dataTrafficNotificationSettingResource) authContext(ctx context.Context) context.Context {
