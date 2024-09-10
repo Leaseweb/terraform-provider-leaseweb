@@ -4,14 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/validators"
 )
 
 var (
@@ -20,6 +23,7 @@ var (
 )
 
 type dataTrafficNotificationSettingResource struct {
+	// TODO: Refactor this part, apiKey shouldn't be here.
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -98,12 +102,21 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 			},
 			"frequency": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"DAILY", "WEEKLY", "MONTHLY"}...),
+				},
 			},
 			"threshold": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					customValidators.GreaterThanZero(),
+				},
 			},
 			"unit": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"MB", "GB", "TB"}...),
+				},
 			},
 		},
 	}
@@ -125,6 +138,7 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, _, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error creating data traffic notification setting", err.Error())
 		return
 	}
 
@@ -137,9 +151,6 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	newData.ServerId = data.ServerId
 	diags = resp.State.Set(ctx, newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -153,6 +164,7 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString())
 	result, _, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error reading data traffic notification setting", err.Error())
 		return
 	}
 
@@ -165,9 +177,6 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	newData.ServerId = data.ServerId
 	diags = resp.State.Set(ctx, newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -186,6 +195,7 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, _, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error updating data traffic notification setting", err.Error())
 		return
 	}
 
@@ -198,9 +208,6 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	}
 	diags = resp.State.Set(ctx, newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -214,6 +221,7 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString())
 	_, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error deleting data traffic notification setting", err.Error())
 		return
 	}
 }
