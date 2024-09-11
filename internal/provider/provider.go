@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/datatrafficnotificationsetting"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/dedicated_servers"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/operating_systems"
@@ -172,6 +171,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		instance.NewInstanceResource,
-		datatrafficnotificationsetting.NewDataTrafficNotificationSettingResource,
+		NewDedicatedServerResource,
+		NewDataTrafficNotificationSettingResource,
 	}
 }
