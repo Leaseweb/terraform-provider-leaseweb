@@ -156,3 +156,24 @@ func ExampleConvertStringEnumToValues() {
 	fmt.Println(values)
 	// Output: [firstValue secondValue]
 }
+
+func TestConvertStringSliceToValues(t *testing.T) {
+	type credentialType string
+	var allowedCredentialTypeEnumValues = []credentialType{
+		"OPERATING_SYSTEM",
+		"RESCUE_MODE",
+	}
+
+	got := ConvertStringSliceToValues(allowedCredentialTypeEnumValues)
+	want := []string{"OPERATING_SYSTEM", "RESCUE_MODE"}
+
+	assert.Equal(t, want, got)
+}
+
+func TestConvertStringSliceToMarkdown(t *testing.T) {
+	enum := []string{"OPERATING_SYSTEM", "RESCUE_MODE"}
+	want := "\n  - *OPERATING_SYSTEM*\n  - *RESCUE_MODE*\n"
+	got := ConvertStringSliceToMarkdown(enum)
+
+	assert.Equal(t, want, got)
+}

@@ -145,6 +145,8 @@ github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20240819091634-010d47
 github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20240819091634-010d471a4889/go.mod h1:MSrebSkGmRy0OzTJd+lDXsILYms/13QO7GfNNK/5Mds=
 github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20240827104230-17ba71259431 h1:v89yJ0HM1PxfJjfBPBtVbL8OE+1ZUvaqTCUjsn68120=
 github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20240827104230-17ba71259431/go.mod h1:MSrebSkGmRy0OzTJd+lDXsILYms/13QO7GfNNK/5Mds=
+github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20240905115830-e1f291c1a275 h1:tRPSCPYaGkoAntis2J5k/2xjF92Zku1ndzaLYjKuP8s=
+github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20240905115830-e1f291c1a275/go.mod h1:MSrebSkGmRy0OzTJd+lDXsILYms/13QO7GfNNK/5Mds=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240809071344-9c6e5ec7d2db h1:eYzMYi6x0gAzxHhDTb0GPEJlXOn3GSy39vUYg9pVtKo=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240809071344-9c6e5ec7d2db/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20240809092542-30d3ea354379 h1:27h6xQ647JgakAvg+OKYxKS/Ha5FDDWMIT8tyxaKzaU=

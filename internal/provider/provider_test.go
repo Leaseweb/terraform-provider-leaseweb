@@ -97,6 +97,33 @@ func TestLeasewebProvider_DataSources(t *testing.T) {
 		),
 		"data sources should implement DedicatedServersDataSource",
 	)
+
+	assert.True(
+		t,
+		implementsDataSource(
+			leasewebProvider().DataSources(
+				context.TODO()), "_dedicated_server_operating_systems",
+		),
+		"data sources should implement DedicatedServerOperatingSystemDataSource",
+	)
+
+	assert.True(
+		t,
+		implementsDataSource(
+			leasewebProvider().DataSources(
+				context.TODO()), "_dedicated_server_credential",
+		),
+		"data sources should implement DedicatedServerCredentialSource",
+	)
+
+	assert.True(
+		t,
+		implementsDataSource(
+			leasewebProvider().DataSources(
+				context.TODO()), "_dedicated_server_control_panels",
+		),
+		"data sources should implement DedicatedServerControlPanelsSource",
+	)
 }
 
 func TestLeasewebProvider_Resources(t *testing.T) {

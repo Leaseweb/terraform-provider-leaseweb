@@ -69,3 +69,22 @@ func ConvertStringEnumToValues[T fmt.Stringer](enumValues []T) []string {
 
 	return values
 }
+
+// ConvertStringSliceToValues expect any type of slice those are eventually string and return an slice of simple string.
+func ConvertStringSliceToValues[T ~string](enumValues []T) []string {
+	var values []string
+	for _, v := range enumValues {
+		values = append(values, string(v))
+	}
+	return values
+}
+
+// ConvertStringSliceToMarkdown expect slice of string and convert it to markdown string.
+func ConvertStringSliceToMarkdown(enumValues []string) string {
+	markdown := "\n"
+	for _, i := range enumValues {
+		markdown += "  - *" + i + "*\n"
+	}
+
+	return markdown
+}
