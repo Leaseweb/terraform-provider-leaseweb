@@ -26,40 +26,35 @@ type dedicatedServerResource struct {
 }
 
 type dedicatedServerResourceData struct {
-	Id                                  types.String `tfsdk:"id"`
-	AssetId                             types.String `tfsdk:"asset_id"`
-	SerialNumber                        types.String `tfsdk:"serial_number"`
-	RackId                              types.String `tfsdk:"rack_id"`
-	RackCapacity                        types.String `tfsdk:"rack_capacity"`
-	RackType                            types.String `tfsdk:"rack_type"`
-	FeatureAvailabilityAutomation       types.Bool   `tfsdk:"feature_availability_automation"`
-	FeatureAvailabilityIpmiReboot       types.Bool   `tfsdk:"feature_availability_ipmi_reboot"`
-	FeatureAvailabilityPowerCycle       types.Bool   `tfsdk:"feature_availability_power_cycle"`
-	FeatureAvailabilityPrivateNetwork   types.Bool   `tfsdk:"feature_availability_private_network"`
-	FeatureAvailabilityRemoteManagement types.Bool   `tfsdk:"feature_availability_remote_management"`
-	LocationRack                        types.String `tfsdk:"location_rack"`
-	LocationSite                        types.String `tfsdk:"location_site"`
-	LocationSuite                       types.String `tfsdk:"location_suite"`
-	LocationUnit                        types.String `tfsdk:"location_unit"`
-	PublicNetworkInterfaceMac           types.String `tfsdk:"public_network_interface_mac"`
-	PublicNetworkInterfaceIp            types.String `tfsdk:"public_network_interface_ip"`
-	PublicNetworkInterfaceGateway       types.String `tfsdk:"public_network_interface_gateway"`
-	PublicNetworkInterfaceLocationId    types.String `tfsdk:"public_network_interface_location_id"`
-	PublicNetworkInterfaceNullRouted    types.Bool   `tfsdk:"public_network_interface_null_routed"`
-	InternalNetworkInterfaceMac         types.String `tfsdk:"internal_network_interface_mac"`
-	InternalNetworkInterfaceIp          types.String `tfsdk:"internal_network_interface_ip"`
-	InternalNetworkInterfaceGateway     types.String `tfsdk:"internal_network_interface_gateway"`
-	InternalNetworkInterfaceLocationId  types.String `tfsdk:"internal_network_interface_location_id"`
-	InternalNetworkInterfaceNullRouted  types.Bool   `tfsdk:"internal_network_interface_null_routed"`
-	RemoteNetworkInterfaceMac           types.String `tfsdk:"remote_network_interface_mac"`
-	RemoteNetworkInterfaceIp            types.String `tfsdk:"remote_network_interface_ip"`
-	RemoteNetworkInterfaceGateway       types.String `tfsdk:"remote_network_interface_gateway"`
-	RemoteNetworkInterfaceLocationId    types.String `tfsdk:"remote_network_interface_location_id"`
-	RemoteNetworkInterfaceNullRouted    types.Bool   `tfsdk:"remote_network_interface_null_routed"`
-	RamSize                             types.Int32  `tfsdk:"ram_size"`
-	RamUnit                             types.String `tfsdk:"ram_unit"`
-	CpuQuantity                         types.Int32  `tfsdk:"cpu_quantity"`
-	CpuType                             types.String `tfsdk:"cpu_type"`
+	Id                                 types.String `tfsdk:"id"`
+	AssetId                            types.String `tfsdk:"asset_id"`
+	SerialNumber                       types.String `tfsdk:"serial_number"`
+	ContractId                         types.String `tfsdk:"contract_id"`
+	RackId                             types.String `tfsdk:"rack_id"`
+	RackCapacity                       types.String `tfsdk:"rack_capacity"`
+	RackType                           types.String `tfsdk:"rack_type"`
+	IsAutomationFeatureAvailable       types.Bool   `tfsdk:"is_automation_feature_available"`
+	IsIpmiRebootFeatureAvailable       types.Bool   `tfsdk:"is_ipmi_reboot_feature_available"`
+	IsPowerCycleFeatureAvailable       types.Bool   `tfsdk:"is_power_cyclefeature_available"`
+	IsPrivateNetworkFeatureAvailable   types.Bool   `tfsdk:"is_private_network_feature_available"`
+	IsRemoteManagementFeatureAvailable types.Bool   `tfsdk:"is_remote_management_feature_available"`
+	LocationRack                       types.String `tfsdk:"location_rack"`
+	LocationSite                       types.String `tfsdk:"location_site"`
+	LocationSuite                      types.String `tfsdk:"location_suite"`
+	LocationUnit                       types.String `tfsdk:"location_unit"`
+	PublicMac                          types.String `tfsdk:"public_mac"`
+	PublicIp                           types.String `tfsdk:"public_ip"`
+	PublicGateway                      types.String `tfsdk:"public_gateway"`
+	InternalMac                        types.String `tfsdk:"internal_mac"`
+	InternalIp                         types.String `tfsdk:"internal_ip"`
+	InternalGateway                    types.String `tfsdk:"internal_gateway"`
+	RemoteMac                          types.String `tfsdk:"remote_mac"`
+	RemoteIp                           types.String `tfsdk:"remote_ip"`
+	RemoteGateway                      types.String `tfsdk:"remote_gateway"`
+	RamSize                            types.Int32  `tfsdk:"ram_size"`
+	RamUnit                            types.String `tfsdk:"ram_unit"`
+	CpuQuantity                        types.Int32  `tfsdk:"cpu_quantity"`
+	CpuType                            types.String `tfsdk:"cpu_type"`
 }
 
 func NewDedicatedServerResource() resource.Resource {
@@ -115,11 +110,10 @@ func (d *dedicatedServerResource) Schema(
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 			},
 			"asset_id": schema.StringAttribute{
 				Computed: true,
@@ -127,114 +121,83 @@ func (d *dedicatedServerResource) Schema(
 			"serial_number": schema.StringAttribute{
 				Computed: true,
 			},
+			"contract_id": schema.StringAttribute{
+				Computed: true,
+			},
 			"rack_id": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"rack_capacity": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"rack_type": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
-			"feature_availability_automation": schema.BoolAttribute{
+			"is_automation_feature_available": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
-			"feature_availability_ipmi_reboot": schema.BoolAttribute{
+			"is_ipmi_reboot_feature_available": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
-			"feature_availability_power_cycle": schema.BoolAttribute{
+			"is_power_cyclefeature_available": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
-			"feature_availability_private_network": schema.BoolAttribute{
+			"is_private_network_feature_available": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
-			"feature_availability_remote_management": schema.BoolAttribute{
+			"is_remote_management_feature_available": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"location_rack": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"location_site": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"location_suite": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"location_unit": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
-			"public_network_interface_mac": schema.StringAttribute{
+			"public_mac": schema.StringAttribute{
 				Computed: true,
 			},
-			"public_network_interface_ip": schema.StringAttribute{
+			"public_ip": schema.StringAttribute{
 				Computed: true,
 			},
-			"public_network_interface_gateway": schema.StringAttribute{
+			"public_gateway": schema.StringAttribute{
 				Computed: true,
 			},
-			"public_network_interface_location_id": schema.StringAttribute{
+			"internal_mac": schema.StringAttribute{
 				Computed: true,
 			},
-			"public_network_interface_null_routed": schema.BoolAttribute{
+			"internal_ip": schema.StringAttribute{
 				Computed: true,
 			},
-			"internal_network_interface_mac": schema.StringAttribute{
+			"internal_gateway": schema.StringAttribute{
 				Computed: true,
 			},
-			"internal_network_interface_ip": schema.StringAttribute{
+			"remote_mac": schema.StringAttribute{
 				Computed: true,
 			},
-			"internal_network_interface_gateway": schema.StringAttribute{
+			"remote_ip": schema.StringAttribute{
 				Computed: true,
 			},
-			"internal_network_interface_location_id": schema.StringAttribute{
-				Computed: true,
-			},
-			"internal_network_interface_null_routed": schema.BoolAttribute{
-				Computed: true,
-			},
-			"remote_network_interface_mac": schema.StringAttribute{
-				Computed: true,
-			},
-			"remote_network_interface_ip": schema.StringAttribute{
-				Computed: true,
-			},
-			"remote_network_interface_gateway": schema.StringAttribute{
-				Computed: true,
-			},
-			"remote_network_interface_location_id": schema.StringAttribute{
-				Computed: true,
-			},
-			"remote_network_interface_null_routed": schema.BoolAttribute{
+			"remote_gateway": schema.StringAttribute{
 				Computed: true,
 			},
 			"ram_size": schema.Int32Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"ram_unit": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"cpu_quantity": schema.Int32Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"cpu_type": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -259,43 +222,113 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	newData := dedicatedServerResourceData{
-		Id:                                  types.StringValue(result.GetId()),
-		AssetId:                             types.StringValue(result.GetAssetId()),
-		SerialNumber:                        types.StringValue(result.GetSerialNumber()),
-		RackId:                              types.StringValue(*result.GetRack().Id),
-		RackCapacity:                        types.StringValue(*result.GetRack().Capacity),
-		RackType:                            types.StringValue(*result.GetRack().Type),
-		FeatureAvailabilityAutomation:       types.BoolValue(*result.GetFeatureAvailability().Automation),
-		FeatureAvailabilityIpmiReboot:       types.BoolValue(*result.GetFeatureAvailability().IpmiReboot),
-		FeatureAvailabilityPowerCycle:       types.BoolValue(*result.GetFeatureAvailability().PowerCycle),
-		FeatureAvailabilityPrivateNetwork:   types.BoolValue(*result.GetFeatureAvailability().PrivateNetwork),
-		FeatureAvailabilityRemoteManagement: types.BoolValue(*result.GetFeatureAvailability().RemoteManagement),
-		LocationRack:                        types.StringValue(*result.GetLocation().Rack),
-		LocationSite:                        types.StringValue(*result.GetLocation().Site),
-		LocationSuite:                       types.StringValue(*result.GetLocation().Suite),
-		LocationUnit:                        types.StringValue(*result.GetLocation().Unit),
-		PublicNetworkInterfaceMac:           types.StringValue(result.GetNetworkInterfaces().Public.GetMac()),
-		PublicNetworkInterfaceIp:            types.StringValue(result.GetNetworkInterfaces().Public.GetIp()),
-		PublicNetworkInterfaceGateway:       types.StringValue(result.GetNetworkInterfaces().Public.GetGateway()),
-		PublicNetworkInterfaceLocationId:    types.StringValue(result.GetNetworkInterfaces().Public.GetLocationId()),
-		PublicNetworkInterfaceNullRouted:    types.BoolValue(result.GetNetworkInterfaces().Public.GetNullRouted()),
-		InternalNetworkInterfaceMac:         types.StringValue(result.GetNetworkInterfaces().Internal.GetMac()),
-		InternalNetworkInterfaceIp:          types.StringValue(result.GetNetworkInterfaces().Internal.GetIp()),
-		InternalNetworkInterfaceGateway:     types.StringValue(result.GetNetworkInterfaces().Internal.GetGateway()),
-		InternalNetworkInterfaceLocationId:  types.StringValue(result.GetNetworkInterfaces().Internal.GetLocationId()),
-		InternalNetworkInterfaceNullRouted:  types.BoolValue(result.GetNetworkInterfaces().Internal.GetNullRouted()),
-		RemoteNetworkInterfaceMac:           types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetMac()),
-		RemoteNetworkInterfaceIp:            types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetIp()),
-		RemoteNetworkInterfaceGateway:       types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetGateway()),
-		RemoteNetworkInterfaceLocationId:    types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetLocationId()),
-		RemoteNetworkInterfaceNullRouted:    types.BoolValue(result.GetNetworkInterfaces().RemoteManagement.GetNullRouted()),
-		RamSize:                             types.Int32Value(*result.GetSpecs().Ram.Size),
-		RamUnit:                             types.StringValue(*result.GetSpecs().Ram.Unit),
-		CpuQuantity:                         types.Int32Value(*result.GetSpecs().Cpu.Quantity),
-		CpuType:                             types.StringValue(*result.GetSpecs().Cpu.Type),
+	var contractId *string
+	if contract, ok := result.GetContractOk(); ok {
+		contractId, _ = contract.GetIdOk()
 	}
-	diags = resp.State.Set(ctx, newData)
+
+	var rackId, rackCapacity, rackType *string
+	if rack, ok := result.GetRackOk(); ok {
+		rackId, _ = rack.GetIdOk()
+		rackCapacity, _ = rack.GetCapacityOk()
+		rackType, _ = rack.GetTypeOk()
+	}
+
+	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool
+	if featureAvailability, ok := result.GetFeatureAvailabilityOk(); ok {
+		automation, _ = featureAvailability.GetAutomationOk()
+		ipmiReboot, _ = featureAvailability.GetIpmiRebootOk()
+		powerCycle, _ = featureAvailability.GetPowerCycleOk()
+		privateNetwork, _ = featureAvailability.GetPrivateNetworkOk()
+		remoteManagement, _ = featureAvailability.GetRemoteManagementOk()
+	}
+
+	var locationRack, locationSite, locationSuite, locationUnit *string
+	if location, ok := result.GetLocationOk(); ok {
+		locationRack, _ = location.GetRackOk()
+		locationSite, _ = location.GetSiteOk()
+		locationSuite, _ = location.GetSuiteOk()
+		locationUnit, _ = location.GetUnitOk()
+	}
+
+	var publicMac, publicIp, publicGateway *string
+	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
+		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
+			publicMac, _ = publicNetworkInterface.GetMacOk()
+			publicIp, _ = publicNetworkInterface.GetIpOk()
+			publicGateway, _ = publicNetworkInterface.GetGatewayOk()
+		}
+	}
+
+	var internalMac, internalIp, internalGateway *string
+	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
+		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
+			internalMac, _ = internalNetworkInterface.GetMacOk()
+			internalIp, _ = internalNetworkInterface.GetIpOk()
+			internalGateway, _ = internalNetworkInterface.GetGatewayOk()
+		}
+	}
+
+	var remoteMac, remoteIp, remoteGateway *string
+	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
+		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
+			remoteMac, _ = remoteNetworkInterface.GetMacOk()
+			remoteIp, _ = remoteNetworkInterface.GetIpOk()
+			remoteGateway, _ = remoteNetworkInterface.GetGatewayOk()
+		}
+	}
+
+	var ramSize *int32
+	var ramUnit *string
+	if specs, ok := result.GetSpecsOk(); ok {
+		if ram, ok := specs.GetRamOk(); ok {
+			ramSize, _ = ram.GetSizeOk()
+			ramUnit, _ = ram.GetUnitOk()
+		}
+	}
+
+	var cpuQuantity *int32
+	var cpuType *string
+	if specs, ok := result.GetSpecsOk(); ok {
+		if cpu, ok := specs.GetCpuOk(); ok {
+			cpuQuantity, _ = cpu.GetQuantityOk()
+			cpuType, _ = cpu.GetTypeOk()
+		}
+	}
+
+	dedicatedServer := dedicatedServerResourceData{
+		Id:                                 types.StringValue(result.GetId()),
+		AssetId:                            types.StringValue(result.GetAssetId()),
+		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
+		ContractId:                         types.StringPointerValue(contractId),
+		RackId:                             types.StringPointerValue(rackId),
+		RackCapacity:                       types.StringPointerValue(rackCapacity),
+		RackType:                           types.StringPointerValue(rackType),
+		IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
+		IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
+		IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
+		IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
+		IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
+		LocationRack:                       types.StringPointerValue(locationRack),
+		LocationSite:                       types.StringPointerValue(locationSite),
+		LocationSuite:                      types.StringPointerValue(locationSuite),
+		LocationUnit:                       types.StringPointerValue(locationUnit),
+		PublicMac:                          types.StringPointerValue(publicMac),
+		PublicIp:                           types.StringPointerValue(publicIp),
+		PublicGateway:                      types.StringPointerValue(publicGateway),
+		InternalMac:                        types.StringPointerValue(internalMac),
+		InternalIp:                         types.StringPointerValue(internalIp),
+		InternalGateway:                    types.StringPointerValue(internalGateway),
+		RemoteMac:                          types.StringPointerValue(remoteMac),
+		RemoteIp:                           types.StringPointerValue(remoteIp),
+		RemoteGateway:                      types.StringPointerValue(remoteGateway),
+		RamSize:                            types.Int32PointerValue(ramSize),
+		RamUnit:                            types.StringPointerValue(ramUnit),
+		CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
+		CpuType:                            types.StringPointerValue(cpuType),
+	}
+
+	diags = resp.State.Set(ctx, &dedicatedServer)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -315,43 +348,112 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 		return
 	}
 
-	newData := dedicatedServerResourceData{
-		Id:                                  types.StringValue(result.GetId()),
-		AssetId:                             types.StringValue(result.GetAssetId()),
-		SerialNumber:                        types.StringValue(result.GetSerialNumber()),
-		RackId:                              types.StringValue(*result.GetRack().Id),
-		RackCapacity:                        types.StringValue(*result.GetRack().Capacity),
-		RackType:                            types.StringValue(*result.GetRack().Type),
-		FeatureAvailabilityAutomation:       types.BoolValue(*result.GetFeatureAvailability().Automation),
-		FeatureAvailabilityIpmiReboot:       types.BoolValue(*result.GetFeatureAvailability().IpmiReboot),
-		FeatureAvailabilityPowerCycle:       types.BoolValue(*result.GetFeatureAvailability().PowerCycle),
-		FeatureAvailabilityPrivateNetwork:   types.BoolValue(*result.GetFeatureAvailability().PrivateNetwork),
-		FeatureAvailabilityRemoteManagement: types.BoolValue(*result.GetFeatureAvailability().RemoteManagement),
-		LocationRack:                        types.StringValue(*result.GetLocation().Rack),
-		LocationSite:                        types.StringValue(*result.GetLocation().Site),
-		LocationSuite:                       types.StringValue(*result.GetLocation().Suite),
-		LocationUnit:                        types.StringValue(*result.GetLocation().Unit),
-		PublicNetworkInterfaceMac:           types.StringValue(result.GetNetworkInterfaces().Public.GetMac()),
-		PublicNetworkInterfaceIp:            types.StringValue(result.GetNetworkInterfaces().Public.GetIp()),
-		PublicNetworkInterfaceGateway:       types.StringValue(result.GetNetworkInterfaces().Public.GetGateway()),
-		PublicNetworkInterfaceLocationId:    types.StringValue(result.GetNetworkInterfaces().Public.GetLocationId()),
-		PublicNetworkInterfaceNullRouted:    types.BoolValue(result.GetNetworkInterfaces().Public.GetNullRouted()),
-		InternalNetworkInterfaceMac:         types.StringValue(result.GetNetworkInterfaces().Internal.GetMac()),
-		InternalNetworkInterfaceIp:          types.StringValue(result.GetNetworkInterfaces().Internal.GetIp()),
-		InternalNetworkInterfaceGateway:     types.StringValue(result.GetNetworkInterfaces().Internal.GetGateway()),
-		InternalNetworkInterfaceLocationId:  types.StringValue(result.GetNetworkInterfaces().Internal.GetLocationId()),
-		InternalNetworkInterfaceNullRouted:  types.BoolValue(result.GetNetworkInterfaces().Internal.GetNullRouted()),
-		RemoteNetworkInterfaceMac:           types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetMac()),
-		RemoteNetworkInterfaceIp:            types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetIp()),
-		RemoteNetworkInterfaceGateway:       types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetGateway()),
-		RemoteNetworkInterfaceLocationId:    types.StringValue(result.GetNetworkInterfaces().RemoteManagement.GetLocationId()),
-		RemoteNetworkInterfaceNullRouted:    types.BoolValue(result.GetNetworkInterfaces().RemoteManagement.GetNullRouted()),
-		RamSize:                             types.Int32Value(*result.GetSpecs().Ram.Size),
-		RamUnit:                             types.StringValue(*result.GetSpecs().Ram.Unit),
-		CpuQuantity:                         types.Int32Value(*result.GetSpecs().Cpu.Quantity),
-		CpuType:                             types.StringValue(*result.GetSpecs().Cpu.Type),
+	var contractId *string
+	if contract, ok := result.GetContractOk(); ok {
+		contractId, _ = contract.GetIdOk()
 	}
-	diags := resp.State.Set(ctx, newData)
+
+	var rackId, rackCapacity, rackType *string
+	if rack, ok := result.GetRackOk(); ok {
+		rackId, _ = rack.GetIdOk()
+		rackCapacity, _ = rack.GetCapacityOk()
+		rackType, _ = rack.GetTypeOk()
+	}
+
+	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool
+	if featureAvailability, ok := result.GetFeatureAvailabilityOk(); ok {
+		automation, _ = featureAvailability.GetAutomationOk()
+		ipmiReboot, _ = featureAvailability.GetIpmiRebootOk()
+		powerCycle, _ = featureAvailability.GetPowerCycleOk()
+		privateNetwork, _ = featureAvailability.GetPrivateNetworkOk()
+		remoteManagement, _ = featureAvailability.GetRemoteManagementOk()
+	}
+
+	var locationRack, locationSite, locationSuite, locationUnit *string
+	if location, ok := result.GetLocationOk(); ok {
+		locationRack, _ = location.GetRackOk()
+		locationSite, _ = location.GetSiteOk()
+		locationSuite, _ = location.GetSuiteOk()
+		locationUnit, _ = location.GetUnitOk()
+	}
+
+	var publicMac, publicIp, publicGateway *string
+	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
+		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
+			publicMac, _ = publicNetworkInterface.GetMacOk()
+			publicIp, _ = publicNetworkInterface.GetIpOk()
+			publicGateway, _ = publicNetworkInterface.GetGatewayOk()
+		}
+	}
+
+	var internalMac, internalIp, internalGateway *string
+	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
+		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
+			internalMac, _ = internalNetworkInterface.GetMacOk()
+			internalIp, _ = internalNetworkInterface.GetIpOk()
+			internalGateway, _ = internalNetworkInterface.GetGatewayOk()
+		}
+	}
+
+	var remoteMac, remoteIp, remoteGateway *string
+	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
+		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
+			remoteMac, _ = remoteNetworkInterface.GetMacOk()
+			remoteIp, _ = remoteNetworkInterface.GetIpOk()
+			remoteGateway, _ = remoteNetworkInterface.GetGatewayOk()
+		}
+	}
+
+	var ramSize *int32
+	var ramUnit *string
+	if specs, ok := result.GetSpecsOk(); ok {
+		if ram, ok := specs.GetRamOk(); ok {
+			ramSize, _ = ram.GetSizeOk()
+			ramUnit, _ = ram.GetUnitOk()
+		}
+	}
+
+	var cpuQuantity *int32
+	var cpuType *string
+	if specs, ok := result.GetSpecsOk(); ok {
+		if cpu, ok := specs.GetCpuOk(); ok {
+			cpuQuantity, _ = cpu.GetQuantityOk()
+			cpuType, _ = cpu.GetTypeOk()
+		}
+	}
+
+	dedicatedServer := dedicatedServerResourceData{
+		Id:                                 types.StringValue(result.GetId()),
+		AssetId:                            types.StringValue(result.GetAssetId()),
+		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
+		ContractId:                         types.StringPointerValue(contractId),
+		RackId:                             types.StringPointerValue(rackId),
+		RackCapacity:                       types.StringPointerValue(rackCapacity),
+		RackType:                           types.StringPointerValue(rackType),
+		IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
+		IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
+		IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
+		IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
+		IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
+		LocationRack:                       types.StringPointerValue(locationRack),
+		LocationSite:                       types.StringPointerValue(locationSite),
+		LocationSuite:                      types.StringPointerValue(locationSuite),
+		LocationUnit:                       types.StringPointerValue(locationUnit),
+		PublicMac:                          types.StringPointerValue(publicMac),
+		PublicIp:                           types.StringPointerValue(publicIp),
+		PublicGateway:                      types.StringPointerValue(publicGateway),
+		InternalMac:                        types.StringPointerValue(internalMac),
+		InternalIp:                         types.StringPointerValue(internalIp),
+		InternalGateway:                    types.StringPointerValue(internalGateway),
+		RemoteMac:                          types.StringPointerValue(remoteMac),
+		RemoteIp:                           types.StringPointerValue(remoteIp),
+		RemoteGateway:                      types.StringPointerValue(remoteGateway),
+		RamSize:                            types.Int32PointerValue(ramSize),
+		RamUnit:                            types.StringPointerValue(ramUnit),
+		CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
+		CpuType:                            types.StringPointerValue(cpuType),
+	}
+	diags := resp.State.Set(ctx, dedicatedServer)
 	resp.Diagnostics.Append(diags...)
 }
 

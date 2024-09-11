@@ -2,7 +2,7 @@ package provider
 
 import "testing"
 
-// TODO: we need implement test for import dedicated server.
+// TODO: We need to check if implementing tests only for import is applicable.
 func TestAccDedicatedServerResource(t *testing.T) {
 
 }
