@@ -1,17 +1,20 @@
-package datatrafficnotificationsetting
+package provider
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
 )
 
 var (
@@ -20,6 +23,7 @@ var (
 )
 
 type dataTrafficNotificationSettingResource struct {
+	// TODO: Refactor this part, apiKey shouldn't be here.
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -37,7 +41,7 @@ func NewDataTrafficNotificationSettingResource() resource.Resource {
 }
 
 func (d *dataTrafficNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_data_traffic_notification_setting"
+	resp.TypeName = req.ProviderTypeName + "_dedicated_server_data_traffic_notification_setting"
 }
 
 func (d *dataTrafficNotificationSettingResource) authContext(ctx context.Context) context.Context {
@@ -98,12 +102,21 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 			},
 			"frequency": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"DAILY", "WEEKLY", "MONTHLY"}...),
+				},
 			},
 			"threshold": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					customValidators.GreaterThanZero(),
+				},
 			},
 			"unit": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"MB", "GB", "TB"}...),
+				},
 			},
 		},
 	}
@@ -125,6 +138,7 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, _, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error creating data traffic notification setting", err.Error())
 		return
 	}
 
@@ -153,6 +167,7 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString())
 	result, _, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error reading data traffic notification setting", err.Error())
 		return
 	}
 
@@ -186,6 +201,7 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, _, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error updating data traffic notification setting", err.Error())
 		return
 	}
 
@@ -214,6 +230,7 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString())
 	_, err := request.Execute()
 	if err != nil {
+		resp.Diagnostics.AddError("Error deleting data traffic notification setting", err.Error())
 		return
 	}
 }
