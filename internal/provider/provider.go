@@ -58,12 +58,15 @@ func (p *leasewebProvider) Schema(
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
+				Description: "Host for Leaseweb API, defaults to \"api.leaseweb.com\". May also be provided via LEASEWEB_HOST",
 				Optional: true,
 			},
 			"scheme": schema.StringAttribute{
+				Description: "Scheme for Leaseweb API, defaults to \"https\". May also be provided via LEASEWEB_SCHEME",
 				Optional: true,
 			},
 			"token": schema.StringAttribute{
+				Description: "The API token to use. By default it takes the value from the LEASEWEB_API_TOKEN environment variable if present.",
 				Sensitive: true,
 				Required:  true,
 			},
