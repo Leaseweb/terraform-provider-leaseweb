@@ -15,13 +15,6 @@ description: |-
 ```terraform
 # List all Dedicated servers
 data "leaseweb_dedicated_servers" "all" {
-  reference               = "test-reference"
-  ip                      = "127.0.0.4"
-  mac_address             = "aa:bb:cc:dd:ee:ff"
-  site                    = "ams-01"
-  private_rack_id         = "rack id"
-  private_network_capable = "true"
-  private_network_enabled = "true"
 }
 ```
 
@@ -30,14 +23,14 @@ data "leaseweb_dedicated_servers" "all" {
 
 ### Optional
 
-- `ip` (String)
-- `mac_address` (String)
-- `private_network_capable` (String)
-- `private_network_enabled` (String)
-- `private_rack_id` (String)
-- `reference` (String)
-- `site` (String)
+- `ip` (String) Filter the list of servers by ip address.
+- `mac_address` (String) Filter the list of servers by mac address.
+- `private_network_capable` (String) Filter the list for private network capable servers.
+- `private_network_enabled` (String) Filter the list for private network enabled servers.
+- `private_rack_id` (String) Filter the list of servers by dedicated rack id.
+- `reference` (String) Filter the list of servers by reference.
+- `site` (String) Filter the list of servers by site (location).
 
 ### Read-Only
 
-- `ids` (List of String)
+- `ids` (List of String) List of the dedicated server IDs available to the account.

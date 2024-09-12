@@ -33,7 +33,7 @@ type dedicatedServerDataSourceData struct {
 	RackType                           types.String `tfsdk:"rack_type"`
 	IsAutomationFeatureAvailable       types.Bool   `tfsdk:"is_automation_feature_available"`
 	IsIpmiRebootFeatureAvailable       types.Bool   `tfsdk:"is_ipmi_reboot_feature_available"`
-	IsPowerCycleFeatureAvailable       types.Bool   `tfsdk:"is_power_cyclefeature_available"`
+	IsPowerCycleFeatureAvailable       types.Bool   `tfsdk:"is_power_cycle_feature_available"`
 	IsPrivateNetworkFeatureAvailable   types.Bool   `tfsdk:"is_private_network_feature_available"`
 	IsRemoteManagementFeatureAvailable types.Bool   `tfsdk:"is_remote_management_feature_available"`
 	LocationRack                       types.String `tfsdk:"location_rack"`
@@ -101,13 +101,19 @@ func (d *dedicatedServerDataSource) Metadata(ctx context.Context, req datasource
 
 func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 
-	var dedicatedServer dedicatedServerDataSourceData
-	resp.Diagnostics.Append(req.Config.Get(ctx, &dedicatedServer)...)
+	var data dedicatedServerDataSourceData
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	request := d.client.GetServer(d.authContext(ctx), dedicatedServer.Id.ValueString())
+	request := d.client.GetServer(d.authContext(ctx), data.Id.ValueString())
 	result, _, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading dedicated server", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf(
+				"Error reading dedicated server with id: %q",
+				data.Id.ValueString(),
+			),
+			err.Error(),
+		)
 		return
 	}
 
@@ -185,7 +191,7 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 		}
 	}
 
-	dedicatedServer = dedicatedServerDataSourceData{
+	data = dedicatedServerDataSourceData{
 		Id:                                 types.StringValue(result.GetId()),
 		AssetId:                            types.StringValue(result.GetAssetId()),
 		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
@@ -217,7 +223,7 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 		CpuType:                            types.StringPointerValue(cpuType),
 	}
 
-	diags := resp.State.Set(ctx, &dedicatedServer)
+	diags := resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -228,91 +234,119 @@ func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.S
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: "The unique identifier of the server.",
 			},
 			"asset_id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The Asset Id of the server.",
 			},
 			"serial_number": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Serial number of server.",
 			},
 			"contract_id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The unique identifier of the contract.",
 			},
 			"rack_id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The Id of the rack.",
 			},
 			"rack_capacity": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The capacity of the rack.",
 			},
 			"rack_type": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The type of the rack.",
 			},
 			"is_automation_feature_available": schema.BoolAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "To check if automation feature is available for the server.",
 			},
 			"is_ipmi_reboot_feature_available": schema.BoolAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "To check if ipmi_reboot feature is available for the server.",
 			},
-			"is_power_cyclefeature_available": schema.BoolAttribute{
-				Computed: true,
+			"is_power_cycle_feature_available": schema.BoolAttribute{
+				Computed:    true,
+				Description: "To check if power_cycle feature is available for the server.",
 			},
 			"is_private_network_feature_available": schema.BoolAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "To check if private network feature is available for the server.",
 			},
 			"is_remote_management_feature_available": schema.BoolAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "To check if remote management feature is available for the server.",
 			},
 			"location_rack": schema.StringAttribute{
 				Computed: true,
 			},
 			"location_site": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The site of the location.",
 			},
 			"location_suite": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The suite of the location.",
 			},
 			"location_unit": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The unit of the location.",
 			},
 			"public_mac": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Public mac address.",
 			},
 			"public_ip": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Public ip address.",
 			},
 			"public_gateway": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Public gateway.",
 			},
 			"internal_mac": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Internal mac address.",
 			},
 			"internal_ip": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Internal ip address.",
 			},
 			"internal_gateway": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Internal gateway.",
 			},
 			"remote_mac": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Remote mac address.",
 			},
 			"remote_ip": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Remote ip address.",
 			},
 			"remote_gateway": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Remote gateway.",
 			},
 			"ram_size": schema.Int32Attribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The size of the ram.",
 			},
 			"ram_unit": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The unit of the ram.",
 			},
 			"cpu_quantity": schema.Int32Attribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The quantity of the cpu.",
 			},
 			"cpu_type": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The type of the cpu.",
 			},
 		},
 	}

@@ -59,7 +59,7 @@ func TestAccDedicatedServerDataSource(t *testing.T) {
 							),
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_server.test",
-								"is_power_cyclefeature_available",
+								"is_power_cycle_feature_available",
 								"true",
 							),
 							resource.TestCheckResourceAttr(
