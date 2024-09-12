@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/dedicated_servers"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/dedicated_server/operating_systems"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/instances"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance"
@@ -162,9 +161,11 @@ func (p *leasewebProvider) Configure(
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		instances.NewInstancesDataSource,
-		dedicated_servers.NewDedicatedServerDataSource,
+		NewDedicatedServerDataSource,
+		NewDedicatedServersDataSource,
 		operating_systems.New,
 		control_panels.New,
+		NewDedicatedServerCredentialDataSource,
 	}
 }
 

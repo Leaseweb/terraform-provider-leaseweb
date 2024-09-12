@@ -15,10 +15,10 @@ description: |-
 ```terraform
 # Manage example Dedicated server data traffic notification
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "example" {
-  server_id = "12345"
-  frequency = "WEEKLY"
-  threshold = "12"
-  unit      = "GB"
+  dedicated_server_id = "12345"
+  frequency           = "WEEKLY"
+  threshold           = "12"
+  unit                = "GB"
 }
 ```
 
@@ -27,11 +27,11 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "example"
 
 ### Required
 
-- `frequency` (String)
-- `server_id` (String)
-- `threshold` (String)
-- `unit` (String)
+- `dedicated_server_id` (String) The ID of the dedicated server.
+- `frequency` (String) The frequency of the notification. Can be either "DAILY", "WEEKLY" or "MONTHLY".
+- `threshold` (String) The threshold of the notification.
+- `unit` (String) The unit of the notification. Can be either "MB", "GB" or "TB".
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the notification setting.

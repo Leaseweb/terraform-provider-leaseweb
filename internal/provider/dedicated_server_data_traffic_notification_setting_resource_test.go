@@ -16,7 +16,7 @@ func TestAccDataTrafficNotificationSettingResource(t *testing.T) {
 				{
 					Config: providerConfig + `
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
-  server_id = "145406"
+  dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "1"
   unit = "GB"
@@ -29,7 +29,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
-							"server_id",
+							"dedicated_server_id",
 							"145406",
 						),
 						resource.TestCheckResourceAttr(
@@ -53,7 +53,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
-  server_id = "145406"
+  dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "1"
   unit = "GB"
@@ -66,7 +66,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
-							"server_id",
+							"dedicated_server_id",
 							"145406",
 						),
 						resource.TestCheckResourceAttr(
@@ -100,7 +100,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
-  server_id = "145406"
+  dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "-1"
   unit = "GB"
@@ -123,7 +123,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
-  server_id = "145406"
+  dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "1"
   unit = "blah"
@@ -146,7 +146,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 					{
 						Config: providerConfig + `
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
-  server_id = "145406"
+  dedicated_server_id = "145406"
   frequency = "blah"
   threshold = "1"
   unit = "GB"
