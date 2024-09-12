@@ -80,59 +80,59 @@ func (d *dedicatedServersDataSource) Metadata(ctx context.Context, req datasourc
 
 func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 
-	var filter dedicatedServersDataSourceData
-	resp.Diagnostics.Append(req.Config.Get(ctx, &filter)...)
+	var data dedicatedServersDataSourceData
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	// NOTE: we show only latest 50 items.
 	request := d.client.GetServerList(d.authContext(ctx)).Limit(50)
 
-	if !filter.Reference.IsNull() && !filter.Reference.IsUnknown() {
-		request = request.Reference(filter.Reference.ValueString())
+	if !data.Reference.IsNull() && !data.Reference.IsUnknown() {
+		request = request.Reference(data.Reference.ValueString())
 	}
 
-	if !filter.Ip.IsNull() && !filter.Ip.IsUnknown() {
-		request = request.Ip(filter.Ip.ValueString())
+	if !data.Ip.IsNull() && !data.Ip.IsUnknown() {
+		request = request.Ip(data.Ip.ValueString())
 	}
 
-	if !filter.MacAddress.IsNull() && !filter.MacAddress.IsUnknown() {
-		request = request.MacAddress(filter.MacAddress.ValueString())
+	if !data.MacAddress.IsNull() && !data.MacAddress.IsUnknown() {
+		request = request.MacAddress(data.MacAddress.ValueString())
 	}
 
-	if !filter.Site.IsNull() && !filter.Site.IsUnknown() {
-		request = request.Site(filter.Site.ValueString())
+	if !data.Site.IsNull() && !data.Site.IsUnknown() {
+		request = request.Site(data.Site.ValueString())
 	}
 
-	if !filter.PrivateRackId.IsNull() && !filter.PrivateRackId.IsUnknown() {
-		request = request.PrivateRackId(filter.PrivateRackId.ValueString())
+	if !data.PrivateRackId.IsNull() && !data.PrivateRackId.IsUnknown() {
+		request = request.PrivateRackId(data.PrivateRackId.ValueString())
 	}
 
-	if !filter.PrivateNetworkCapable.IsNull() && !filter.PrivateNetworkCapable.IsUnknown() {
-		request = request.PrivateNetworkCapable(filter.PrivateNetworkCapable.ValueString())
+	if !data.PrivateNetworkCapable.IsNull() && !data.PrivateNetworkCapable.IsUnknown() {
+		request = request.PrivateNetworkCapable(data.PrivateNetworkCapable.ValueString())
 	}
 
-	if !filter.PrivateNetworkEnabled.IsNull() && !filter.PrivateNetworkEnabled.IsUnknown() {
-		request = request.PrivateNetworkEnabled(filter.PrivateNetworkEnabled.ValueString())
+	if !data.PrivateNetworkEnabled.IsNull() && !data.PrivateNetworkEnabled.IsUnknown() {
+		request = request.PrivateNetworkEnabled(data.PrivateNetworkEnabled.ValueString())
 	}
 
 	var Ids []types.String
 
 	result, _, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading dedicated server", err.Error())
+		resp.Diagnostics.AddError("Error reading dedicated servers", err.Error())
 		return
 	}
 	for _, server := range result.GetServers() {
 		Ids = append(Ids, types.StringValue(server.GetId()))
 	}
 
-	data := dedicatedServersDataSourceData{
+	data = dedicatedServersDataSourceData{
 		Ids:                   Ids,
-		Reference:             filter.Reference,
-		Ip:                    filter.Ip,
-		MacAddress:            filter.MacAddress,
-		Site:                  filter.Site,
-		PrivateRackId:         filter.PrivateRackId,
-		PrivateNetworkCapable: filter.PrivateNetworkCapable,
-		PrivateNetworkEnabled: filter.PrivateNetworkEnabled,
+		Reference:             data.Reference,
+		Ip:                    data.Ip,
+		MacAddress:            data.MacAddress,
+		Site:                  data.Site,
+		PrivateRackId:         data.PrivateRackId,
+		PrivateNetworkCapable: data.PrivateNetworkCapable,
+		PrivateNetworkEnabled: data.PrivateNetworkEnabled,
 	}
 
 	diags := resp.State.Set(ctx, &data)
@@ -148,27 +148,35 @@ func (d *dedicatedServersDataSource) Schema(ctx context.Context, req datasource.
 			"ids": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
+				Description: "List of the dedicated server IDs available to the account.",
 			},
 			"reference": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list of servers by reference.",
 			},
 			"ip": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list of servers by ip address.",
 			},
 			"mac_address": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list of servers by mac address.",
 			},
 			"site": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list of servers by site (location).",
 			},
 			"private_rack_id": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list of servers by dedicated rack id.",
 			},
 			"private_network_capable": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list for private network capable servers.",
 			},
 			"private_network_enabled": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Filter the list for private network enabled servers.",
 			},
 		},
 	}
