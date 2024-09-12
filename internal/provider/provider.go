@@ -170,5 +170,8 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 }
 
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{instance.NewInstanceResource}
+	return []func() resource.Resource{
+		instance.NewInstanceResource,
+		NewDataTrafficNotificationSettingResource,
+	}
 }
