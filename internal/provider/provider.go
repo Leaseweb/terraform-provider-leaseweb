@@ -165,6 +165,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		NewDedicatedServersDataSource,
 		operating_systems.New,
 		control_panels.New,
+		NewDedicatedServerCredentialDataSource,
 	}
 }
 

@@ -29,11 +29,11 @@ type dataTrafficNotificationSettingResource struct {
 }
 
 type dataTrafficNotificationSettingResourceData struct {
-	Id        types.String `tfsdk:"id"`
-	ServerId  types.String `tfsdk:"server_id"`
-	Frequency types.String `tfsdk:"frequency"`
-	Threshold types.String `tfsdk:"threshold"`
-	Unit      types.String `tfsdk:"unit"`
+	Id                types.String `tfsdk:"id"`
+	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
+	Frequency         types.String `tfsdk:"frequency"`
+	Threshold         types.String `tfsdk:"threshold"`
+	Unit              types.String `tfsdk:"unit"`
 }
 
 func NewDataTrafficNotificationSettingResource() resource.Resource {
@@ -92,28 +92,33 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The ID of the notification setting.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"server_id": schema.StringAttribute{
-				Required: true,
+			"dedicated_server_id": schema.StringAttribute{
+				Required:    true,
+				Description: "The ID of the dedicated server.",
 			},
 			"frequency": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: `The frequency of the notification. Can be either "DAILY", "WEEKLY" or "MONTHLY".`,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"DAILY", "WEEKLY", "MONTHLY"}...),
 				},
 			},
 			"threshold": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: "The threshold of the notification.",
 				Validators: []validator.String{
 					customValidators.GreaterThanZero(),
 				},
 			},
 			"unit": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: `The unit of the notification. Can be either "MB", "GB" or "TB".`,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"MB", "GB", "TB"}...),
 				},
@@ -135,21 +140,27 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
+	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, _, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating data traffic notification setting", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf(
+				"Error creating data traffic notification setting with dedicated_server_id: %q",
+				data.DedicatedServerId.ValueString(),
+			),
+			err.Error(),
+		)
 		return
 	}
 
-	newData := dataTrafficNotificationSettingResourceData{
-		Id:        types.StringValue(result.GetId()),
-		Frequency: types.StringValue(result.GetFrequency()),
-		Threshold: types.StringValue(result.GetThreshold()),
-		Unit:      types.StringValue(result.GetUnit()),
+	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+		DedicatedServerId: data.DedicatedServerId,
+		Id:                types.StringValue(result.GetId()),
+		Frequency:         types.StringValue(result.GetFrequency()),
+		Threshold:         types.StringValue(result.GetThreshold()),
+		Unit:              types.StringValue(result.GetUnit()),
 	}
-	newData.ServerId = data.ServerId
-	diags = resp.State.Set(ctx, newData)
+	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -161,21 +172,28 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 		return
 	}
 
-	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString())
+	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
 	result, _, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading data traffic notification setting", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf(
+				"Error reading data traffic notification setting with id: %q and dedicated_server_id: %q",
+				data.Id.ValueString(),
+				data.DedicatedServerId.ValueString(),
+			),
+			err.Error(),
+		)
 		return
 	}
 
-	newData := dataTrafficNotificationSettingResourceData{
-		Id:        types.StringValue(result.GetId()),
-		Frequency: types.StringValue(result.GetFrequency()),
-		Threshold: types.StringValue(result.GetThreshold()),
-		Unit:      types.StringValue(result.GetUnit()),
+	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+		DedicatedServerId: data.DedicatedServerId,
+		Id:                types.StringValue(result.GetId()),
+		Frequency:         types.StringValue(result.GetFrequency()),
+		Threshold:         types.StringValue(result.GetThreshold()),
+		Unit:              types.StringValue(result.GetUnit()),
 	}
-	newData.ServerId = data.ServerId
-	diags = resp.State.Set(ctx, newData)
+	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -192,21 +210,28 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
+	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, _, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating data traffic notification setting", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf(
+				"Error updating data traffic notification setting with id: %q and dedicated_server_id: %q",
+				data.Id.ValueString(),
+				data.DedicatedServerId.ValueString(),
+			),
+			err.Error(),
+		)
 		return
 	}
 
-	newData := dataTrafficNotificationSettingResourceData{
-		Id:        data.Id,
-		ServerId:  data.ServerId,
-		Frequency: types.StringValue(result.GetFrequency()),
-		Threshold: types.StringValue(result.GetThreshold()),
-		Unit:      types.StringValue(result.GetUnit()),
+	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+		Id:                data.Id,
+		DedicatedServerId: data.DedicatedServerId,
+		Frequency:         types.StringValue(result.GetFrequency()),
+		Threshold:         types.StringValue(result.GetThreshold()),
+		Unit:              types.StringValue(result.GetUnit()),
 	}
-	diags = resp.State.Set(ctx, newData)
+	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -218,10 +243,17 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 		return
 	}
 
-	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.ServerId.ValueString(), data.Id.ValueString())
+	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
 	_, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error deleting data traffic notification setting", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf(
+				"Error deleting data traffic notification setting with id: %q and dedicated_server_id: %q",
+				data.Id.ValueString(),
+				data.DedicatedServerId.ValueString(),
+			),
+			err.Error(),
+		)
 		return
 	}
 }
