@@ -497,10 +497,6 @@ func TestAdaptInstance(t *testing.T) {
 	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "cpu", cpu.Unit.ValueString())
 
-	volume := model.Volume{}
-	got.Volume.As(context.TODO(), &volume, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "unit", volume.Unit.ValueString())
-
 	instanceType := model.InstanceType{}
 	got.Type.As(context.TODO(), &instanceType, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "instanceType", instanceType.Name.ValueString())
@@ -809,8 +805,6 @@ func generateDomainInstance() public_cloud.Instance {
 			LoadBalancer:  &loadBalancer,
 		})
 
-	volume := public_cloud.NewVolume(1, "unit")
-
 	return public_cloud.NewInstance(
 		"",
 		public_cloud.Region{Name: "region"},
@@ -822,7 +816,7 @@ func generateDomainInstance() public_cloud.Instance {
 		true,
 		*rootDiskSize,
 		instanceType,
-		enum.RootDiskStorageTypeCentral,
+		enum.StorageTypeCentral,
 		public_cloud.Ips{ip},
 		*contract,
 		public_cloud.OptionalInstanceValues{
@@ -833,23 +827,8 @@ func generateDomainInstance() public_cloud.Instance {
 			StartedAt:        &startedAt,
 			PrivateNetwork:   &privateNetwork,
 			AutoScalingGroup: &autoScalingGroup,
-			Volume:           &volume,
 		},
 	)
-}
-
-func Test_adaptVolume(t *testing.T) {
-	got, err := adaptVolume(
-		context.TODO(),
-		public_cloud.Volume{
-			Size: 2,
-			Unit: "unit",
-		},
-	)
-
-	assert.NoError(t, err)
-	assert.Equal(t, float64(2), got.Size.ValueFloat64())
-	assert.Equal(t, "unit", got.Unit.ValueString())
 }
 
 func Test_adaptStorageSize(t *testing.T) {

@@ -273,18 +273,6 @@ func (d *instancesDataSource) Schema(
 								},
 							},
 						},
-						"volume": schema.SingleNestedAttribute{
-							Computed: true,
-							Attributes: map[string]schema.Attribute{
-								"size": schema.Float64Attribute{
-									Computed:    true,
-									Description: "The Volume Size",
-								},
-								"unit": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
 						"private_network": public_cloud.Network(),
 					},
 				},

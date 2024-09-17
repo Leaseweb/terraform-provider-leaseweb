@@ -73,7 +73,6 @@ func Test_adaptInstance(t *testing.T) {
 		loadBalancerId,
 		got.AutoScalingGroup.LoadBalancer.Id.ValueString(),
 	)
-	assert.Equal(t, "unit", got.Volume.Unit.ValueString())
 }
 
 func Test_adaptResources(t *testing.T) {
@@ -519,8 +518,6 @@ func generateDomainInstance() public_cloud.Instance {
 			LoadBalancer:  &loadBalancer,
 		})
 
-	volume := public_cloud.NewVolume(1, "unit")
-
 	return public_cloud.NewInstance(
 		"",
 		public_cloud.Region{Name: "region"},
@@ -532,7 +529,7 @@ func generateDomainInstance() public_cloud.Instance {
 		true,
 		*rootDiskSize,
 		public_cloud.InstanceType{Name: "lsw.c3.large"},
-		enum.RootDiskStorageTypeCentral,
+		enum.StorageTypeCentral,
 		public_cloud.Ips{ip},
 		*contract,
 		public_cloud.OptionalInstanceValues{
@@ -543,18 +540,8 @@ func generateDomainInstance() public_cloud.Instance {
 			StartedAt:        &startedAt,
 			PrivateNetwork:   &privateNetwork,
 			AutoScalingGroup: &autoScalingGroup,
-			Volume:           &volume,
 		},
 	)
-}
-
-func Test_adaptVolume(t *testing.T) {
-	volume := public_cloud.NewVolume(1, "unit")
-
-	got := adaptVolume(volume)
-
-	assert.Equal(t, float64(1), got.Size.ValueFloat64())
-	assert.Equal(t, "unit", got.Unit.ValueString())
 }
 
 func Test_adaptStorageSize(t *testing.T) {
@@ -625,7 +612,7 @@ func Test_adaptInstanceType(t *testing.T) {
 				public_cloud.Resources{},
 				public_cloud.Prices{},
 				public_cloud.OptionalInstanceTypeValues{
-					StorageTypes: &public_cloud.StorageTypes{enum.RootDiskStorageTypeLocal},
+					StorageTypes: &public_cloud.StorageTypes{enum.StorageTypeLocal},
 				},
 			),
 		)

@@ -177,8 +177,5 @@ func generateInstanceModel() model.Instance {
 		),
 		// TODO Enable SSH key support
 		//SshKey: basetypes.NewStringUnknown(),
-		Volume: basetypes.NewObjectUnknown(
-			model.Volume{}.AttributeTypes(),
-		),
 	}
 }

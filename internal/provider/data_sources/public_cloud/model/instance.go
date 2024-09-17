@@ -24,5 +24,4 @@ type Instance struct {
 	AutoScalingGroup    *AutoScalingGroup `tfsdk:"auto_scaling_group"`
 	Iso                 *Iso              `tfsdk:"iso"`
 	PrivateNetwork      *PrivateNetwork   `tfsdk:"private_network"`
-	Volume              *Volume           `tfsdk:"volume"`
 }

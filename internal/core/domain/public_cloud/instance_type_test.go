@@ -24,7 +24,7 @@ func TestNewInstanceType(t *testing.T) {
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
-		storageTypes := StorageTypes{enum.RootDiskStorageTypeCentral}
+		storageTypes := StorageTypes{enum.StorageTypeCentral}
 		optional := OptionalInstanceTypeValues{StorageTypes: &storageTypes}
 
 		got := NewInstanceType("name", Resources{}, Prices{}, optional)

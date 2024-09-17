@@ -370,7 +370,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	var instanceTypes public_cloud.InstanceTypes
 
 	request := p.publicCLoudAPI.GetInstanceTypeList(p.authContext(ctx)).
-		Region(region)
+		Region(publicCloud.RegionName(region))
 
 	result, response, err := request.Execute()
 

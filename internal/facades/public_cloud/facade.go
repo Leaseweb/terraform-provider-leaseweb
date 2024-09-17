@@ -206,7 +206,7 @@ func (p PublicCloudFacade) GetMaximumRootDiskSize() int64 {
 
 // GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
 func (p PublicCloudFacade) GetRootDiskStorageTypes() []string {
-	return enum.RootDiskStorageTypeCentral.Values()
+	return enum.StorageTypeCentral.Values()
 }
 
 // GetBillingFrequencies returns a list of valid billing frequencies.
