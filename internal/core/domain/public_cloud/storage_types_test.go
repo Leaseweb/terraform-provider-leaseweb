@@ -9,8 +9,8 @@ import (
 
 func TestStorageTypes_ToArray(t *testing.T) {
 	storageTypes := StorageTypes{
-		enum.RootDiskStorageTypeLocal,
-		enum.RootDiskStorageTypeCentral,
+		enum.StorageTypeLocal,
+		enum.StorageTypeCentral,
 	}
 
 	got := storageTypes.ToArray()

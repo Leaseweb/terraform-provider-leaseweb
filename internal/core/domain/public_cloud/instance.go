@@ -31,7 +31,7 @@ type Instance struct {
 	HasPublicIpv4       bool
 	HasPrivateNetwork   bool
 	Type                InstanceType
-	RootDiskStorageType enum.RootDiskStorageType
+	RootDiskStorageType enum.StorageType
 	RootDiskSize        value_object.RootDiskSize
 	Ips                 Ips
 	Contract            Contract
@@ -40,7 +40,6 @@ type Instance struct {
 	PrivateNetwork      *PrivateNetwork
 	SshKey              *value_object.SshKey
 	AutoScalingGroup    *AutoScalingGroup
-	Volume              *Volume
 }
 
 // CanBeTerminated determines if an Instance can be terminated.
@@ -76,7 +75,6 @@ type OptionalInstanceValues struct {
 	StartedAt        *time.Time
 	PrivateNetwork   *PrivateNetwork
 	AutoScalingGroup *AutoScalingGroup
-	Volume           *Volume
 }
 
 // OptionalCreateInstanceValues contains optional supported fields for instance creation.
@@ -108,7 +106,7 @@ func NewInstance(
 	hasPrivateNetwork bool,
 	rootDiskSize value_object.RootDiskSize,
 	instanceType InstanceType,
-	rootDiskStorageType enum.RootDiskStorageType,
+	rootDiskStorageType enum.StorageType,
 	ips Ips,
 	contract Contract,
 	optional OptionalInstanceValues,
@@ -136,7 +134,6 @@ func NewInstance(
 	instance.StartedAt = optional.StartedAt
 	instance.PrivateNetwork = optional.PrivateNetwork
 	instance.AutoScalingGroup = optional.AutoScalingGroup
-	instance.Volume = optional.Volume
 
 	return instance
 }
@@ -145,7 +142,7 @@ func NewInstance(
 func NewCreateInstance(
 	region string,
 	instanceType string,
-	rootDiskStorageType enum.RootDiskStorageType,
+	rootDiskStorageType enum.StorageType,
 	imageId string,
 	contractType enum.ContractType,
 	contractTerm enum.ContractTerm,

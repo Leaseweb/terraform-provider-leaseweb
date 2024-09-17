@@ -27,7 +27,6 @@ type Instance struct {
 	PrivateNetwork      types.Object `tfsdk:"private_network"`
 	// TODO Enable SSH key support
 	//SshKey              types.String `tfsdk:"ssh_key"`
-	Volume types.Object `tfsdk:"volume"`
 }
 
 func (i Instance) AttributeTypes() map[string]attr.Type {
@@ -73,8 +72,5 @@ func (i Instance) AttributeTypes() map[string]attr.Type {
 		},
 		// TODO Enable SSH key support
 		//"ssh_key": types.StringType,
-		"volume": types.ObjectType{
-			AttrTypes: Volume{}.AttributeTypes(),
-		},
 	}
 }

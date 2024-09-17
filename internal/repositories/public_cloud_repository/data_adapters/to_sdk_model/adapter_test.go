@@ -72,7 +72,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 		instance, _ := public_cloud.NewCreateInstance(
 			"region",
 			"lsw.c3.4xlarge",
-			enum.RootDiskStorageTypeCentral,
+			enum.StorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
@@ -84,11 +84,11 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 		got, err := AdaptToLaunchInstanceOpts(*instance)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, "region", string(got.Region))
 		assert.Equal(t, publicCloud.TYPENAME_C3_4XLARGE, got.Type)
 		assert.Equal(
 			t,
-			publicCloud.ROOTDISKSTORAGETYPE_CENTRAL,
+			publicCloud.STORAGETYPE_CENTRAL,
 			got.RootDiskStorageType,
 		)
 		assert.Equal(t, "ALMALINUX_8_64BIT", got.ImageId)
@@ -109,7 +109,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 		instance, _ := public_cloud.NewCreateInstance(
 			"",
 			"lsw.m3.large",
-			enum.RootDiskStorageTypeCentral,
+			enum.StorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
@@ -216,7 +216,7 @@ func generateDomainInstance() public_cloud.Instance {
 		true,
 		*rootDiskSize,
 		public_cloud.InstanceType{Name: "lsw.m3.xlarge"},
-		enum.RootDiskStorageTypeCentral,
+		enum.StorageTypeCentral,
 		public_cloud.Ips{},
 		public_cloud.Contract{Type: enum.ContractTypeMonthly},
 		public_cloud.OptionalInstanceValues{},

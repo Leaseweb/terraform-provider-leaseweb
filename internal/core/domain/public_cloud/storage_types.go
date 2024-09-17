@@ -4,7 +4,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 )
 
-type StorageTypes []enum.RootDiskStorageType
+type StorageTypes []enum.StorageType
 
 func (s StorageTypes) ToArray() []string {
 	var values []string

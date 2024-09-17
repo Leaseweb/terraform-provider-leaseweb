@@ -75,7 +75,7 @@ func AdaptToCreateInstanceOpts(
 		)
 	}
 
-	rootDiskStorageType, err := enum.NewRootDiskStorageType(
+	rootDiskStorageType, err := enum.NewStorageType(
 		instanceResourceModel.RootDiskStorageType.ValueString(),
 	)
 	if err != nil {

@@ -64,7 +64,6 @@ resource "leaseweb_public_cloud_instance" "example" {
 - `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--resources))
 - `started_at` (String) Date and time when the instance was started for the first time, right after launching it
 - `state` (String) The instance's current state
-- `volume` (Attributes) (see [below for nested schema](#nestedatt--volume))
 
 <a id="nestedatt--contract"></a>
 ### Nested Schema for `contract`
@@ -645,16 +644,6 @@ Read-Only:
 
 - `unit` (String)
 - `value` (Number)
-
-
-
-<a id="nestedatt--volume"></a>
-### Nested Schema for `volume`
-
-Read-Only:
-
-- `size` (Number) The Volume Size
-- `unit` (String)
 
 ## Import
 

@@ -27,7 +27,7 @@ func TestNewInstance(t *testing.T) {
 			true,
 			*rootDiskSize,
 			instanceType,
-			enum.RootDiskStorageTypeCentral,
+			enum.StorageTypeCentral,
 			Ips{{Ip: "1.2.3.4"}},
 			Contract{BillingFrequency: enum.ContractBillingFrequencyOne},
 			OptionalInstanceValues{},
@@ -42,7 +42,7 @@ func TestNewInstance(t *testing.T) {
 		assert.False(t, got.HasPublicIpv4)
 		assert.True(t, got.HasPrivateNetwork)
 		assert.Equal(t, instanceType, got.Type)
-		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
+		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(
 			t,
@@ -58,7 +58,6 @@ func TestNewInstance(t *testing.T) {
 		assert.Nil(t, got.StartedAt)
 		assert.Nil(t, got.PrivateNetwork)
 		assert.Nil(t, got.AutoScalingGroup)
-		assert.Nil(t, got.Volume)
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
@@ -78,7 +77,7 @@ func TestNewInstance(t *testing.T) {
 			true,
 			value_object.RootDiskSize{},
 			InstanceType{},
-			enum.RootDiskStorageTypeCentral,
+			enum.StorageTypeCentral,
 			Ips{},
 			Contract{},
 			OptionalInstanceValues{
@@ -91,7 +90,6 @@ func TestNewInstance(t *testing.T) {
 				AutoScalingGroup: &AutoScalingGroup{
 					Region: Region{Name: "autoScalingGroupRegion"},
 				},
-				Volume: &Volume{Unit: "unit"},
 			},
 		)
 
@@ -114,7 +112,6 @@ func TestNewInstance(t *testing.T) {
 			Region{Name: "autoScalingGroupRegion"},
 			got.AutoScalingGroup.Region,
 		)
-		assert.Equal(t, "unit", got.Volume.Unit)
 	})
 }
 
@@ -123,7 +120,7 @@ func TestNewCreateInstance(t *testing.T) {
 		got, err := NewCreateInstance(
 			"region",
 			"instanceType",
-			enum.RootDiskStorageTypeCentral,
+			enum.StorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
@@ -136,7 +133,7 @@ func TestNewCreateInstance(t *testing.T) {
 
 		assert.Equal(t, Region{Name: "region"}, got.Region)
 		assert.Equal(t, "instanceType", got.Type.Name)
-		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
+		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "ALMALINUX_8_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermSix, got.Contract.Term)
@@ -161,7 +158,7 @@ func TestNewCreateInstance(t *testing.T) {
 		got, err := NewCreateInstance(
 			"",
 			"instanceType",
-			enum.RootDiskStorageTypeCentral,
+			enum.StorageTypeCentral,
 			"ALMALINUX_8_64BIT",
 			enum.ContractTypeMonthly,
 			enum.ContractTermSix,
@@ -194,7 +191,7 @@ func TestNewCreateInstance(t *testing.T) {
 			_, err := NewCreateInstance(
 				"",
 				"instanceType",
-				enum.RootDiskStorageTypeCentral,
+				enum.StorageTypeCentral,
 				"ALMALINUX_8_64BIT",
 				enum.ContractTypeMonthly,
 				enum.ContractTermSix,

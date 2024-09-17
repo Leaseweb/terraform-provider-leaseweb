@@ -65,10 +65,6 @@ func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 			domainInstance.PrivateNetwork,
 			adaptPrivateNetwork,
 		),
-		Volume: shared.AdaptNullableDomainEntityToDatasourceModel(
-			domainInstance.Volume,
-			adaptVolume,
-		),
 	}
 
 	for _, autoScalingGroupIp := range domainInstance.Ips {
@@ -306,13 +302,6 @@ func adaptDdos(ddos public_cloud.Ddos) *model.Ddos {
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
-	}
-}
-
-func adaptVolume(volume public_cloud.Volume) *model.Volume {
-	return &model.Volume{
-		Size: basetypes.NewFloat64Value(volume.Size),
-		Unit: basetypes.NewStringValue(volume.Unit),
 	}
 }
 

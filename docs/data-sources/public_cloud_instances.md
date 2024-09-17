@@ -48,7 +48,6 @@ Read-Only:
 - `started_at` (String) Date and time when the instance was started for the first time, right after launching it
 - `state` (String) The instance's current state
 - `type` (Attributes) (see [below for nested schema](#nestedatt--instances--type))
-- `volume` (Attributes) (see [below for nested schema](#nestedatt--instances--volume))
 
 <a id="nestedatt--instances--auto_scaling_group"></a>
 ### Nested Schema for `instances.auto_scaling_group`
@@ -616,14 +615,3 @@ Read-Only:
 
 - `unit` (String)
 - `value` (Number)
-
-
-
-
-<a id="nestedatt--instances--volume"></a>
-### Nested Schema for `instances.volume`
-
-Read-Only:
-
-- `size` (Number) The Volume Size
-- `unit` (String)

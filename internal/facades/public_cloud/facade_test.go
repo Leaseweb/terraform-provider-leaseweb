@@ -737,7 +737,7 @@ func TestPublicCloudFacade_GetMaximumRootDiskSize(t *testing.T) {
 
 func TestPublicCloudFacade_GetRootDiskStorageTypes(t *testing.T) {
 	facade := PublicCloudFacade{}
-	want := enum.RootDiskStorageTypeCentral.Values()
+	want := enum.StorageTypeCentral.Values()
 	got := facade.GetRootDiskStorageTypes()
 
 	assert.Equal(t, want, got)
