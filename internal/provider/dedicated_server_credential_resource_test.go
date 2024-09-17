@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCredentialResource(t *testing.T) {
+func TestAccDedicatedServerCredentialResource(t *testing.T) {
 	t.Run("creates and updates a credential", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

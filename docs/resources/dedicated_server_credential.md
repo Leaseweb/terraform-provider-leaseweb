@@ -19,5 +19,5 @@ description: |-
 
 - `dedicated_server_id` (String) The ID of the dedicated server.
 - `password` (String) The password for the credentials
-- `type` (String) The type of the credential.
+- `type` (String) The type of the credential. Valid options are: "OPERATING_SYSTEM", "CONTROL_PANEL", "REMOTE_MANAGEMENT", "RESCUE_MODE", "SWITCH", "PDU", "FIREWALL", "LOAD_BALANCER"
 - `username` (String) The username for the credentials

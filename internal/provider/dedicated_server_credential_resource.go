@@ -10,37 +10,39 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
 
 var (
-	_ resource.Resource              = &credentialResource{}
-	_ resource.ResourceWithConfigure = &credentialResource{}
+	_ resource.Resource              = &dedicatedServerCredentialResource{}
+	_ resource.ResourceWithConfigure = &dedicatedServerCredentialResource{}
 )
 
-type credentialResource struct {
+type dedicatedServerCredentialResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type credentialResourceData struct {
+type dedicatedServerCredentialResourceData struct {
 	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
 	Username          types.String `tfsdk:"username"`
 	Type              types.String `tfsdk:"type"`
 	Password          types.String `tfsdk:"password"`
 }
 
-func NewCredentialResource() resource.Resource {
-	return &credentialResource{}
+func NewDedicatedServerCredentialResource() resource.Resource {
+	return &dedicatedServerCredentialResource{}
 }
 
-func (d *credentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (d *dedicatedServerCredentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
 }
 
-func (d *credentialResource) authContext(ctx context.Context) context.Context {
+func (d *dedicatedServerCredentialResource) authContext(ctx context.Context) context.Context {
 	return context.WithValue(
 		ctx,
 		dedicatedServer.ContextAPIKeys,
@@ -50,7 +52,7 @@ func (d *credentialResource) authContext(ctx context.Context) context.Context {
 	)
 }
 
-func (d *credentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dedicatedServerCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -80,7 +82,7 @@ func (d *credentialResource) Configure(ctx context.Context, req resource.Configu
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *credentialResource) Schema(
+func (d *dedicatedServerCredentialResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -90,16 +92,25 @@ func (d *credentialResource) Schema(
 			"dedicated_server_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The ID of the dedicated server.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"username": schema.StringAttribute{
 				Required:    true,
 				Description: `The username for the credentials`,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: "The type of the credential.",
+				Description: `The type of the credential. Valid options are: "OPERATING_SYSTEM", "CONTROL_PANEL", "REMOTE_MANAGEMENT", "RESCUE_MODE", "SWITCH", "PDU", "FIREWALL", "LOAD_BALANCER"`,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"OPERATING_SYSTEM", "CONTROL_PANEL", "REMOTE_MANAGEMENT", "RESCUE_MODE", "SWITCH", "PDU", "FIREWALL", "LOAD_BALANCER"}...),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"password": schema.StringAttribute{
@@ -110,8 +121,8 @@ func (d *credentialResource) Schema(
 	}
 }
 
-func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data credentialResourceData
+func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data dedicatedServerCredentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -128,7 +139,8 @@ func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
-				"Error creating credential for dedicated_server_id: %q",
+				"Error creating credential with username: %q and dedicated_server_id: %q",
+				data.Username.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
 			err.Error(),
@@ -136,7 +148,7 @@ func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	data = credentialResourceData{
+	data = dedicatedServerCredentialResourceData{
 		DedicatedServerId: data.DedicatedServerId,
 		Type:              types.StringValue(result.GetType()),
 		Password:          types.StringValue(result.GetPassword()),
@@ -149,8 +161,8 @@ func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func (d *credentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data credentialResourceData
+func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data dedicatedServerCredentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -171,7 +183,7 @@ func (d *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	data = credentialResourceData{
+	data = dedicatedServerCredentialResourceData{
 		DedicatedServerId: data.DedicatedServerId,
 		Type:              types.StringValue(result.GetType()),
 		Password:          types.StringValue(result.GetPassword()),
@@ -184,15 +196,14 @@ func (d *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (d *credentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data credentialResourceData
+func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data dedicatedServerCredentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// NOTE: If type/username modified, The API will create a new credential
 	opts := dedicatedServer.NewUpdateServerCredentialOpts(
 		data.Password.ValueString(),
 	)
@@ -210,7 +221,7 @@ func (d *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	data = credentialResourceData{
+	data = dedicatedServerCredentialResourceData{
 		DedicatedServerId: data.DedicatedServerId,
 		Type:              types.StringValue(result.GetType()),
 		Password:          types.StringValue(result.GetPassword()),
@@ -223,8 +234,8 @@ func (d *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 }
 
-func (d *credentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data credentialResourceData
+func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data dedicatedServerCredentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
