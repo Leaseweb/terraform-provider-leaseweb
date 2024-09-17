@@ -77,7 +77,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.True(t, got.HasPublicIpv4)
 		assert.False(t, got.HasPrivateNetwork)
 		assert.Equal(t, 6, got.RootDiskSize.Value)
-		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
+		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
 			t,
 			enum.ContractBillingFrequencyOne,
@@ -88,7 +88,6 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id)
-		assert.Equal(t, "unit", got.Volume.Unit)
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
@@ -619,13 +618,13 @@ func TestAdaptInstanceType(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
 		got, err := AdaptInstanceType(
 			sdk.InstanceType{
-				StorageTypes: []sdk.RootDiskStorageType{
-					sdk.ROOTDISKSTORAGETYPE_CENTRAL,
+				StorageTypes: []sdk.StorageType{
+					sdk.STORAGETYPE_CENTRAL,
 				},
 			},
 		)
 		want := domain.InstanceType{
-			StorageTypes: &domain.StorageTypes{enum.RootDiskStorageTypeCentral},
+			StorageTypes: &domain.StorageTypes{enum.StorageTypeCentral},
 		}
 
 		assert.NoError(t, err)
@@ -635,7 +634,7 @@ func TestAdaptInstanceType(t *testing.T) {
 	t.Run("invalid storageType returns an error", func(t *testing.T) {
 		_, err := AdaptInstanceType(
 			sdk.InstanceType{
-				StorageTypes: []sdk.RootDiskStorageType{"tralala"},
+				StorageTypes: []sdk.StorageType{"tralala"},
 			},
 		)
 
@@ -672,7 +671,7 @@ func TestAdaptInstance(t *testing.T) {
 		assert.True(t, got.HasPublicIpv4)
 		assert.False(t, got.HasPrivateNetwork)
 		assert.Equal(t, 6, got.RootDiskSize.Value)
-		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
+		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
 			t,
 			enum.ContractBillingFrequencyOne,
@@ -923,13 +922,13 @@ func Test_adaptLoadBalancer(t *testing.T) {
 
 func Test_adaptStorageTypes(t *testing.T) {
 	t.Run("sdk storageTypes are adapted correctly", func(t *testing.T) {
-		sdkStorageTypes := []sdk.RootDiskStorageType{
-			sdk.ROOTDISKSTORAGETYPE_CENTRAL,
-			sdk.ROOTDISKSTORAGETYPE_LOCAL,
+		sdkStorageTypes := []sdk.StorageType{
+			sdk.STORAGETYPE_CENTRAL,
+			sdk.STORAGETYPE_LOCAL,
 		}
 		got, err := adaptStorageTypes(sdkStorageTypes)
 		want := domain.StorageTypes{
-			enum.RootDiskStorageTypeCentral, enum.RootDiskStorageTypeLocal,
+			enum.StorageTypeCentral, enum.StorageTypeLocal,
 		}
 
 		assert.NoError(t, err)
@@ -939,7 +938,7 @@ func Test_adaptStorageTypes(t *testing.T) {
 	t.Run(
 		"error bubbles up when local storageType cannot be created",
 		func(t *testing.T) {
-			sdkStorageTypes := []sdk.RootDiskStorageType{"tralala"}
+			sdkStorageTypes := []sdk.StorageType{"tralala"}
 			got, err := adaptStorageTypes(sdkStorageTypes)
 
 			assert.Nil(t, got)
@@ -1017,7 +1016,7 @@ func generateInstanceDetails(
 		true,
 		false,
 		6,
-		sdk.ROOTDISKSTORAGETYPE_CENTRAL,
+		sdk.STORAGETYPE_CENTRAL,
 		sdk.Contract{
 			BillingFrequency: 1,
 			Type:             sdk.CONTRACTTYPE_HOURLY,
@@ -1036,7 +1035,6 @@ func generateInstanceDetails(
 		[]sdk.IpDetails{
 			{Ip: "1.2.3.4", NetworkType: sdk.NETWORKTYPE_PUBLIC},
 		},
-		*sdk.NewNullableVolume(&sdk.Volume{Size: 3, Unit: "unit"}),
 	)
 }
 
@@ -1062,7 +1060,7 @@ func generateInstance(
 		true,
 		false,
 		6,
-		sdk.ROOTDISKSTORAGETYPE_CENTRAL,
+		sdk.STORAGETYPE_CENTRAL,
 		sdk.Contract{
 			BillingFrequency: 1,
 			Type:             sdk.CONTRACTTYPE_HOURLY,
@@ -1125,14 +1123,6 @@ func generateLoadBalancer(startedAt *time.Time) sdk.LoadBalancer {
 	)
 }
 
-func Test_adaptVolume(t *testing.T) {
-	sdkVolume := sdk.NewVolume(1, "unit")
-	got := adaptVolume(*sdkVolume)
-	want := domain.Volume{Size: 1, Unit: "unit"}
-
-	assert.Equal(t, want, got)
-}
-
 func TestAdaptImageDetails(t *testing.T) {
 	state := "state"
 	stateReason := "stateReason"
@@ -1140,7 +1130,8 @@ func TestAdaptImageDetails(t *testing.T) {
 	updatedAt := time.Now()
 	version := "version"
 	architecture := "architecture"
-	region := "region"
+	regionName, _ := sdk.NewRegionNameFromValue("eu-west-3")
+	var minDiskSize int32 = 1
 
 	sdkImageDetails := sdk.NewImageDetails(
 		"id",
@@ -1153,13 +1144,14 @@ func TestAdaptImageDetails(t *testing.T) {
 		),
 		*sdk.NewNullableString(&state),
 		*sdk.NewNullableString(&stateReason),
-		*sdk.NewNullableString(&region),
+		*sdk.NewNullableRegionName(regionName),
 		*sdk.NewNullableTime(&createdAt),
 		*sdk.NewNullableTime(&updatedAt),
-		"version",
-		"architecture",
+		*sdk.NewNullableString(&version),
+		*sdk.NewNullableString(&architecture),
 		[]string{"marketApp"},
 		[]string{"storageType"},
+		*sdk.NewNullableInt32(&minDiskSize),
 	)
 
 	got := AdaptImageDetails(*sdkImageDetails)
@@ -1174,7 +1166,7 @@ func TestAdaptImageDetails(t *testing.T) {
 		State:        &state,
 		StateReason:  &stateReason,
 		Region: &domain.Region{
-			Name: "region",
+			Name: "eu-west-3",
 		},
 		CreatedAt:    &createdAt,
 		UpdatedAt:    &updatedAt,

@@ -32,7 +32,7 @@ func AdaptInstance(
 		return nil, fmt.Errorf("AdaptInstance: %w", err)
 	}
 
-	rootDiskStorageType, err := enum.NewRootDiskStorageType(
+	rootDiskStorageType, err := enum.NewStorageType(
 		string(sdkInstance.GetRootDiskStorageType()),
 	)
 	if err != nil {
@@ -66,7 +66,7 @@ func AdaptInstance(
 
 	instance := domainEntity.NewInstance(
 		sdkInstance.GetId(),
-		domainEntity.Region{Name: sdkInstance.GetRegion()},
+		domainEntity.Region{Name: string(sdkInstance.GetRegion())},
 		adaptResources(sdkInstance.GetResources()),
 		adaptImage(sdkInstance.GetImage()),
 		state,
@@ -103,7 +103,7 @@ func AdaptInstanceDetails(sdkInstanceDetails sdkModel.InstanceDetails) (
 		return nil, fmt.Errorf("AdaptInstanceDetails: %w", err)
 	}
 
-	rootDiskStorageType, err := enum.NewRootDiskStorageType(
+	rootDiskStorageType, err := enum.NewStorageType(
 		string(sdkInstanceDetails.GetRootDiskStorageType()),
 	)
 	if err != nil {
@@ -148,16 +148,10 @@ func AdaptInstanceDetails(sdkInstanceDetails sdkModel.InstanceDetails) (
 		)
 		optionalValues.PrivateNetwork = &privateNetwork
 	}
-	if sdkInstanceDetails.Volume.Get() != nil {
-		volume := adaptVolume(
-			*sdkInstanceDetails.Volume.Get(),
-		)
-		optionalValues.Volume = &volume
-	}
 
 	instance := domainEntity.NewInstance(
 		sdkInstanceDetails.GetId(),
-		domainEntity.Region{Name: sdkInstanceDetails.GetRegion()},
+		domainEntity.Region{Name: string(sdkInstanceDetails.GetRegion())},
 		adaptResources(sdkInstanceDetails.GetResources()),
 		adaptImage(sdkInstanceDetails.GetImage()),
 		state,
@@ -413,7 +407,7 @@ func AdaptAutoScalingGroupDetails(sdkAutoScalingGroup sdkModel.AutoScalingGroupD
 		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
-		domainEntity.Region{Name: sdkAutoScalingGroup.GetRegion()},
+		domainEntity.Region{Name: string(sdkAutoScalingGroup.GetRegion())},
 		*reference,
 		sdkAutoScalingGroup.GetCreatedAt(),
 		sdkAutoScalingGroup.GetUpdatedAt(),
@@ -465,7 +459,7 @@ func AdaptLoadBalancerDetails(sdkLoadBalancer sdkModel.LoadBalancerDetails) (
 		sdkLoadBalancer.GetId(),
 		domainEntity.InstanceType{Name: string(sdkLoadBalancer.GetType())},
 		adaptResources(sdkLoadBalancer.GetResources()),
-		domainEntity.Region{Name: sdkLoadBalancer.GetRegion()},
+		domainEntity.Region{Name: string(sdkLoadBalancer.GetRegion())},
 		state,
 		*contract,
 		ips,
@@ -586,7 +580,7 @@ func AdaptInstanceType(sdkInstanceType sdkModel.InstanceType) (
 	}
 
 	instanceType := domainEntity.NewInstanceType(
-		sdkInstanceType.GetName(),
+		string(sdkInstanceType.GetName()),
 		resources,
 		prices,
 		optional,
@@ -615,14 +609,14 @@ func adaptPrice(sdkPrice sdkModel.Price) domainEntity.Price {
 	return domainEntity.NewPrice(sdkPrice.GetHourlyPrice(), sdkPrice.GetMonthlyPrice())
 }
 
-func adaptStorageTypes(sdkStorageTypes []sdkModel.RootDiskStorageType) (
+func adaptStorageTypes(sdkStorageTypes []sdkModel.StorageType) (
 	*domainEntity.StorageTypes,
 	error,
 ) {
 	var storageTypes domainEntity.StorageTypes
 
 	for _, sdkStorageType := range sdkStorageTypes {
-		storageType, err := enum.NewRootDiskStorageType(string(sdkStorageType))
+		storageType, err := enum.NewStorageType(string(sdkStorageType))
 		if err != nil {
 			return nil, fmt.Errorf("adaptStorageTypes: %w", err)
 		}
@@ -633,7 +627,7 @@ func adaptStorageTypes(sdkStorageTypes []sdkModel.RootDiskStorageType) (
 }
 
 func AdaptRegion(sdkRegion sdkModel.Region) domainEntity.Region {
-	return domainEntity.NewRegion(sdkRegion.GetName(), sdkRegion.GetLocation())
+	return domainEntity.NewRegion(string(sdkRegion.GetName()), sdkRegion.GetLocation())
 }
 
 func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
@@ -673,7 +667,7 @@ func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
 		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
-		domainEntity.Region{Name: sdkAutoScalingGroup.GetRegion()},
+		domainEntity.Region{Name: string(sdkAutoScalingGroup.GetRegion())},
 		*reference,
 		sdkAutoScalingGroup.GetCreatedAt(),
 		sdkAutoScalingGroup.GetUpdatedAt(),
@@ -681,10 +675,6 @@ func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
 	)
 
 	return &autoScalingGroup, nil
-}
-
-func adaptVolume(sdkVolume sdkModel.Volume) domainEntity.Volume {
-	return domainEntity.NewVolume(float64(sdkVolume.GetSize()), sdkVolume.GetUnit())
 }
 
 // AdaptImageDetails adapts publicCloud.ImageDetails to public_cloud.Image.
@@ -702,7 +692,7 @@ func AdaptImageDetails(sdkImageDetails sdkModel.ImageDetails) domainEntity.Image
 
 	if regionName != nil {
 		region = &domainEntity.Region{}
-		region.Name = *regionName
+		region.Name = string(*regionName)
 	}
 
 	return domainEntity.NewImage(

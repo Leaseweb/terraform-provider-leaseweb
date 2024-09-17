@@ -36,7 +36,7 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, public_cloud.Region{Name: "region"}, got.Region)
 		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.String())
-		assert.Equal(t, enum.RootDiskStorageTypeCentral, got.RootDiskStorageType)
+		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "UBUNTU_20_04_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermThree, got.Contract.Term)

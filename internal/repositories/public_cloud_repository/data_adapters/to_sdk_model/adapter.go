@@ -20,7 +20,7 @@ func AdaptToLaunchInstanceOpts(instance public_cloud.Instance) (
 		return nil, fmt.Errorf("AdaptToLaunchInstanceOpts: %w", err)
 	}
 
-	rootDiskStorageType, err := publicCloud.NewRootDiskStorageTypeFromValue(
+	rootDiskStorageType, err := publicCloud.NewStorageTypeFromValue(
 		instance.RootDiskStorageType.String(),
 	)
 	if err != nil {
@@ -49,7 +49,7 @@ func AdaptToLaunchInstanceOpts(instance public_cloud.Instance) (
 	}
 
 	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
-		instance.Region.Name,
+		publicCloud.RegionName(instance.Region.Name),
 		*instanceTypeName,
 		instance.Image.Id,
 		*contractType,

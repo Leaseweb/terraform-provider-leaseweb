@@ -119,17 +119,6 @@ func AdaptInstance(
 	}
 	plan.Ips = ips
 
-	volume, err := shared.AdaptNullableDomainEntityToResourceObject(
-		instance.Volume,
-		model.Volume{}.AttributeTypes(),
-		ctx,
-		adaptVolume,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstance: %w", err)
-	}
-	plan.Volume = volume
-
 	instanceType, err := shared.AdaptDomainEntityToResourceObject(
 		instance.Type,
 		model.InstanceType{}.AttributeTypes(),
@@ -600,16 +589,6 @@ func adaptDdos(ctx context.Context, ddos public_cloud.Ddos) (*model.Ddos, error)
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
-	}, nil
-}
-
-func adaptVolume(
-	ctx context.Context,
-	volume public_cloud.Volume,
-) (*model.Volume, error) {
-	return &model.Volume{
-		Size: basetypes.NewFloat64Value(volume.Size),
-		Unit: basetypes.NewStringValue(volume.Unit),
 	}, nil
 }
 
