@@ -172,5 +172,6 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 		NewDedicatedServerResource,
 		NewDataTrafficNotificationSettingResource,
 		NewBandwidthNotificationSettingResource,
+		NewCredentialResource,
 	}
 }
