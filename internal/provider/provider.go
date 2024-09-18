@@ -170,6 +170,7 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		instance.NewInstanceResource,
 		NewDedicatedServerResource,
+		NewDedicatedServerCredentialResource,
 		NewDataTrafficNotificationSettingResource,
 		NewBandwidthNotificationSettingResource,
 	}
