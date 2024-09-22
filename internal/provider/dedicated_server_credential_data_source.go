@@ -112,7 +112,7 @@ func (d *dataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	}
 
 	serverID := data.DedicatedServerID.ValueString()
-	credType := data.Type.ValueString()
+	credType := dedicatedServer.CredentialType(data.Type.ValueString())
 	username := data.Username.ValueString()
 
 	credential, _, err := d.client.GetServerCredential(d.authContext(ctx), serverID, credType, username).Execute()

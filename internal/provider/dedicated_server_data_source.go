@@ -126,7 +126,11 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	if rack, ok := result.GetRackOk(); ok {
 		rackId, _ = rack.GetIdOk()
 		rackCapacity, _ = rack.GetCapacityOk()
-		rackType, _ = rack.GetTypeOk()
+
+		if rt, ok := rack.GetTypeOk(); ok && rt != nil {
+			rtStr := string(*rt)
+			rackType = &rtStr
+		}
 	}
 
 	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool
