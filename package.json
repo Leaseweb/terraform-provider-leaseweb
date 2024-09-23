@@ -15,8 +15,7 @@
     "terraform",
     "provider"
   ],
-  "author": "Ryan Kes <ryan@andthensome.nl>",
-  "license": "Mozilla Public License Version 2.0",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@commitlint/cli": "19.3.0",
     "@commitlint/config-conventional": "19.2.2",
