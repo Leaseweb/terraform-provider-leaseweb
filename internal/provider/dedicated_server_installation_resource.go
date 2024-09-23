@@ -383,25 +383,24 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 	plan.Timezone = types.StringValue(payload.GetTimezone())
 	plan.PowerCycle = types.BoolValue(payload.GetPowerCycle())
 
-	// Preparing partitions for the response
-	partitionsVal := []dedicatedServerInstallationPartitionsModel{}
+	// Preparing and converting partitions into types.Object to store in the state
+	var partitionsObjects []attr.Value
 	for _, p := range payload.GetPartitions() {
-		partitionsVal = append(partitionsVal, dedicatedServerInstallationPartitionsModel{
+		partition := dedicatedServerInstallationPartitionsModel{
 			Filesystem: types.StringValue(p.GetFilesystem()),
 			Mountpoint: types.StringValue(p.GetMountpoint()),
 			Size:       types.StringValue(p.GetSize()),
-		})
-	}
-	// Convert partitionsVal (a slice of structs) into types.Object to store in the state
-	var partitionsObjects []attr.Value
-	for _, partition := range partitionsVal {
+		}
+
 		partitionObj, diags := types.ObjectValueFrom(ctx, partition.AttributeTypes(), partition)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
+
 		partitionsObjects = append(partitionsObjects, partitionObj)
 	}
+
 	// Convert the slice of partition objects to a types.List and store it in the plan
 	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: dedicatedServerInstallationPartitionsModel{}.AttributeTypes()}, partitionsObjects)
 	if diags.HasError() {
