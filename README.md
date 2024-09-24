@@ -81,3 +81,7 @@ pnpm i
 All commits must adhere to the [conventional commit spec](https://www.conventionalcommits.org/en/v1.0.0/).
 For the acceptance tests to run properly make sure to run ```docker-compose up -d```
 before committing anything or the commit will fail.
+
+### API Stability 
+
+Given that the public cloud API is currently in its beta version, we are maintaining the Terraform plugin in beta as well, despite the stability of our Dedicated Server API. 
