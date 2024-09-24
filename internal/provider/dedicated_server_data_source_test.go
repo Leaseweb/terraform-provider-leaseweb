@@ -45,7 +45,7 @@ func TestAccDedicatedServerDataSource(t *testing.T) {
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_server.test",
 								"rack_type",
-								"PRIVATE",
+								"DEDICATED",
 							),
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_server.test",

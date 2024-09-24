@@ -259,7 +259,11 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 	if rack, ok := result.GetRackOk(); ok {
 		rackId, _ = rack.GetIdOk()
 		rackCapacity, _ = rack.GetCapacityOk()
-		rackType, _ = rack.GetTypeOk()
+
+		if rt, ok := rack.GetTypeOk(); ok && rt != nil {
+			rtStr := string(*rt)
+			rackType = &rtStr
+		}
 	}
 
 	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool
@@ -391,7 +395,11 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 	if rack, ok := result.GetRackOk(); ok {
 		rackId, _ = rack.GetIdOk()
 		rackCapacity, _ = rack.GetCapacityOk()
-		rackType, _ = rack.GetTypeOk()
+
+		if rt, ok := rack.GetTypeOk(); ok && rt != nil {
+			rtStr := string(*rt)
+			rackType = &rtStr
+		}
 	}
 
 	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool

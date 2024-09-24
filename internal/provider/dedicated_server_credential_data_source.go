@@ -14,24 +14,24 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &dataSource{}
-	_ datasource.DataSourceWithConfigure = &dataSource{}
+	_ datasource.DataSource              = &dedicatedServerCredentialDataSource{}
+	_ datasource.DataSourceWithConfigure = &dedicatedServerCredentialDataSource{}
 )
 
-type dataSource struct {
+type dedicatedServerCredentialDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type model struct {
+type dedicatedServerCredentialDataSourceModel struct {
 	DedicatedServerID types.String `tfsdk:"dedicated_server_id"`
 	Username          types.String `tfsdk:"username"`
 	Password          types.String `tfsdk:"password"`
 	Type              types.String `tfsdk:"type"`
 }
 
-func (d *dataSource) authContext(ctx context.Context) context.Context {
+func (d *dedicatedServerCredentialDataSource) authContext(ctx context.Context) context.Context {
 	return context.WithValue(
 		ctx,
 		dedicatedServer.ContextAPIKeys,
@@ -41,7 +41,7 @@ func (d *dataSource) authContext(ctx context.Context) context.Context {
 	)
 }
 
-func (d *dataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dedicatedServerCredentialDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -72,11 +72,11 @@ func (d *dataSource) Configure(ctx context.Context, req datasource.ConfigureRequ
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *dataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *dedicatedServerCredentialDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
 }
 
-func (d *dataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServerCredentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"dedicated_server_id": schema.StringAttribute{
@@ -103,8 +103,8 @@ func (d *dataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp 
 	}
 }
 
-func (d *dataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data model
+func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dedicatedServerCredentialDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -112,7 +112,7 @@ func (d *dataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	}
 
 	serverID := data.DedicatedServerID.ValueString()
-	credType := data.Type.ValueString()
+	credType := dedicatedServer.CredentialType(data.Type.ValueString())
 	username := data.Username.ValueString()
 
 	credential, _, err := d.client.GetServerCredential(d.authContext(ctx), serverID, credType, username).Execute()
@@ -130,5 +130,5 @@ func (d *dataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func NewDedicatedServerCredentialDataSource() datasource.DataSource {
-	return &dataSource{}
+	return &dedicatedServerCredentialDataSource{}
 }
