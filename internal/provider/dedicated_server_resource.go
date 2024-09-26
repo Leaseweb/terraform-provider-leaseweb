@@ -3,12 +3,22 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
@@ -26,35 +36,33 @@ type dedicatedServerResource struct {
 }
 
 type dedicatedServerResourceData struct {
-	Id                                 types.String `tfsdk:"id"`
-	AssetId                            types.String `tfsdk:"asset_id"`
-	SerialNumber                       types.String `tfsdk:"serial_number"`
-	ContractId                         types.String `tfsdk:"contract_id"`
-	RackId                             types.String `tfsdk:"rack_id"`
-	RackCapacity                       types.String `tfsdk:"rack_capacity"`
-	RackType                           types.String `tfsdk:"rack_type"`
-	IsAutomationFeatureAvailable       types.Bool   `tfsdk:"is_automation_feature_available"`
-	IsIpmiRebootFeatureAvailable       types.Bool   `tfsdk:"is_ipmi_reboot_feature_available"`
-	IsPowerCycleFeatureAvailable       types.Bool   `tfsdk:"is_power_cycle_feature_available"`
-	IsPrivateNetworkFeatureAvailable   types.Bool   `tfsdk:"is_private_network_feature_available"`
-	IsRemoteManagementFeatureAvailable types.Bool   `tfsdk:"is_remote_management_feature_available"`
-	LocationRack                       types.String `tfsdk:"location_rack"`
-	LocationSite                       types.String `tfsdk:"location_site"`
-	LocationSuite                      types.String `tfsdk:"location_suite"`
-	LocationUnit                       types.String `tfsdk:"location_unit"`
-	PublicMac                          types.String `tfsdk:"public_mac"`
-	PublicIp                           types.String `tfsdk:"public_ip"`
-	PublicGateway                      types.String `tfsdk:"public_gateway"`
-	InternalMac                        types.String `tfsdk:"internal_mac"`
-	InternalIp                         types.String `tfsdk:"internal_ip"`
-	InternalGateway                    types.String `tfsdk:"internal_gateway"`
-	RemoteMac                          types.String `tfsdk:"remote_mac"`
-	RemoteIp                           types.String `tfsdk:"remote_ip"`
-	RemoteGateway                      types.String `tfsdk:"remote_gateway"`
-	RamSize                            types.Int32  `tfsdk:"ram_size"`
-	RamUnit                            types.String `tfsdk:"ram_unit"`
-	CpuQuantity                        types.Int32  `tfsdk:"cpu_quantity"`
-	CpuType                            types.String `tfsdk:"cpu_type"`
+	ID                           types.String `tfsdk:"id"`
+	Reference                    types.String `tfsdk:"reference"`
+	ReverseLookup                types.String `tfsdk:"reverse_lookup"`
+	DHCPLease                    types.String `tfsdk:"dhcp_lease"`
+	PoweredOn                    types.Bool   `tfsdk:"powered_on"`
+	PublicNetworkInterfaceOpened types.Bool   `tfsdk:"public_network_interface_opened"`
+	PublicIpNullRouted           types.Bool   `tfsdk:"public_ip_null_routed"`
+	PublicIp                     types.String `tfsdk:"public_ip"`
+	RemoteManagementIp           types.String `tfsdk:"remote_management_ip"`
+	InternalMac                  types.String `tfsdk:"internal_mac"`
+	Location                     types.Object `tfsdk:"location"`
+}
+
+type dedicatedServerLocationResourceData struct {
+	Rack  types.String `tfsdk:"rack"`
+	Site  types.String `tfsdk:"site"`
+	Suite types.String `tfsdk:"suite"`
+	Unit  types.String `tfsdk:"unit"`
+}
+
+func (l dedicatedServerLocationResourceData) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"rack":  types.StringType,
+		"site":  types.StringType,
+		"suite": types.StringType,
+		"unit":  types.StringType,
+	}
 }
 
 func NewDedicatedServerResource() resource.Resource {
@@ -105,134 +113,114 @@ func (d *dedicatedServerResource) Configure(ctx context.Context, req resource.Co
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerResource) Schema(
-	_ context.Context,
-	_ resource.SchemaRequest,
-	resp *resource.SchemaResponse,
-) {
+func (d *dedicatedServerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The unique identifier of the server.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"asset_id": schema.StringAttribute{
+			"reference": schema.StringAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "The Asset Id of the server.",
+				Description: "Reference of server.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
 			},
-			"serial_number": schema.StringAttribute{
+			"reverse_lookup": schema.StringAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "Serial number of server.",
+				Description: "The reverse lookup associated with the dedicated server public IP.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"contract_id": schema.StringAttribute{
+			"dhcp_lease": schema.StringAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "The unique identifier of the contract.",
+				Description: "The URL of PXE boot the dedicated server is booting from.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"rack_id": schema.StringAttribute{
+			"powered_on": schema.BoolAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "The Id of the rack.",
+				Description: "Whether the dedicated server is powered on or not.",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"rack_capacity": schema.StringAttribute{
+			"public_network_interface_opened": schema.BoolAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "The capacity of the rack.",
+				Description: "Whether the public network interface of the dedicated server is opened or not.",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"rack_type": schema.StringAttribute{
+			"public_ip_null_routed": schema.BoolAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "The type of the rack.",
-			},
-			"is_automation_feature_available": schema.BoolAttribute{
-				Computed:    true,
-				Description: "To check if automation feature is available for the server.",
-			},
-			"is_ipmi_reboot_feature_available": schema.BoolAttribute{
-				Computed:    true,
-				Description: "To check if ipmi_reboot feature is available for the server.",
-			},
-			"is_power_cycle_feature_available": schema.BoolAttribute{
-				Computed:    true,
-				Description: "To check if power_cycle feature is available for the server.",
-			},
-			"is_private_network_feature_available": schema.BoolAttribute{
-				Computed:    true,
-				Description: "To check if private network feature is available for the server.",
-			},
-			"is_remote_management_feature_available": schema.BoolAttribute{
-				Computed:    true,
-				Description: "To check if remote management feature is available for the server.",
-			},
-			"location_rack": schema.StringAttribute{
-				Computed: true,
-			},
-			"location_site": schema.StringAttribute{
-				Computed:    true,
-				Description: "The site of the location.",
-			},
-			"location_suite": schema.StringAttribute{
-				Computed:    true,
-				Description: "The suite of the location.",
-			},
-			"location_unit": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unit of the location.",
-			},
-			"public_mac": schema.StringAttribute{
-				Computed:    true,
-				Description: "Public mac address.",
+				Description: "Whether the public IP of the dedicated server is null routed or not.",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"public_ip": schema.StringAttribute{
 				Computed:    true,
-				Description: "Public ip address.",
+				Description: "The public IP of the dedicated server.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"public_gateway": schema.StringAttribute{
+			"remote_management_ip": schema.StringAttribute{
 				Computed:    true,
-				Description: "Public gateway.",
+				Description: "The remote management IP of the dedicated server.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"internal_mac": schema.StringAttribute{
 				Computed:    true,
-				Description: "Internal mac address.",
+				Description: "The MAC address of the interface connected to internal private network.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"internal_ip": schema.StringAttribute{
-				Computed:    true,
-				Description: "Internal ip address.",
-			},
-			"internal_gateway": schema.StringAttribute{
-				Computed:    true,
-				Description: "Internal gateway.",
-			},
-			"remote_mac": schema.StringAttribute{
-				Computed:    true,
-				Description: "Remote mac address.",
-			},
-			"remote_ip": schema.StringAttribute{
-				Computed:    true,
-				Description: "Remote ip address.",
-			},
-			"remote_gateway": schema.StringAttribute{
-				Computed:    true,
-				Description: "Remote gateway.",
-			},
-			"ram_size": schema.Int32Attribute{
-				Computed:    true,
-				Description: "The size of the ram.",
-			},
-			"ram_unit": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unit of the ram.",
-			},
-			"cpu_quantity": schema.Int32Attribute{
-				Computed:    true,
-				Description: "The quantity of the cpu.",
-			},
-			"cpu_type": schema.StringAttribute{
-				Computed:    true,
-				Description: "The type of the cpu.",
+			"location": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"rack": schema.StringAttribute{
+						Computed:    true,
+						Description: "the location rack",
+					},
+					"site": schema.StringAttribute{
+						Computed:    true,
+						Description: "the location site",
+					},
+					"suite": schema.StringAttribute{
+						Computed:    true,
+						Description: "the location suite",
+					},
+					"unit": schema.StringAttribute{
+						Computed:    true,
+						Description: "the location unit",
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
-}
-
-func (d *dedicatedServerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	panic("unimplemented")
 }
 
 func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -243,121 +231,10 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	request := d.client.GetServer(d.authContext(ctx), data.Id.ValueString())
-	result, _, err := request.Execute()
+	dedicatedServer, err := d.getServer(ctx, data.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading dedicated server", err.Error())
+		resp.Diagnostics.AddError("Reading dedicated server", err.Error())
 		return
-	}
-
-	var contractId *string
-	if contract, ok := result.GetContractOk(); ok {
-		contractId, _ = contract.GetIdOk()
-	}
-
-	var rackId, rackCapacity, rackType *string
-	if rack, ok := result.GetRackOk(); ok {
-		rackId, _ = rack.GetIdOk()
-		rackCapacity, _ = rack.GetCapacityOk()
-
-		if rt, ok := rack.GetTypeOk(); ok && rt != nil {
-			rtStr := string(*rt)
-			rackType = &rtStr
-		}
-	}
-
-	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool
-	if featureAvailability, ok := result.GetFeatureAvailabilityOk(); ok {
-		automation, _ = featureAvailability.GetAutomationOk()
-		ipmiReboot, _ = featureAvailability.GetIpmiRebootOk()
-		powerCycle, _ = featureAvailability.GetPowerCycleOk()
-		privateNetwork, _ = featureAvailability.GetPrivateNetworkOk()
-		remoteManagement, _ = featureAvailability.GetRemoteManagementOk()
-	}
-
-	var locationRack, locationSite, locationSuite, locationUnit *string
-	if location, ok := result.GetLocationOk(); ok {
-		locationRack, _ = location.GetRackOk()
-		locationSite, _ = location.GetSiteOk()
-		locationSuite, _ = location.GetSuiteOk()
-		locationUnit, _ = location.GetUnitOk()
-	}
-
-	var publicMac, publicIp, publicGateway *string
-	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
-		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
-			publicMac, _ = publicNetworkInterface.GetMacOk()
-			publicIp, _ = publicNetworkInterface.GetIpOk()
-			publicGateway, _ = publicNetworkInterface.GetGatewayOk()
-		}
-	}
-
-	var internalMac, internalIp, internalGateway *string
-	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
-		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
-			internalMac, _ = internalNetworkInterface.GetMacOk()
-			internalIp, _ = internalNetworkInterface.GetIpOk()
-			internalGateway, _ = internalNetworkInterface.GetGatewayOk()
-		}
-	}
-
-	var remoteMac, remoteIp, remoteGateway *string
-	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
-		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
-			remoteMac, _ = remoteNetworkInterface.GetMacOk()
-			remoteIp, _ = remoteNetworkInterface.GetIpOk()
-			remoteGateway, _ = remoteNetworkInterface.GetGatewayOk()
-		}
-	}
-
-	var ramSize *int32
-	var ramUnit *string
-	if specs, ok := result.GetSpecsOk(); ok {
-		if ram, ok := specs.GetRamOk(); ok {
-			ramSize, _ = ram.GetSizeOk()
-			ramUnit, _ = ram.GetUnitOk()
-		}
-	}
-
-	var cpuQuantity *int32
-	var cpuType *string
-	if specs, ok := result.GetSpecsOk(); ok {
-		if cpu, ok := specs.GetCpuOk(); ok {
-			cpuQuantity, _ = cpu.GetQuantityOk()
-			cpuType, _ = cpu.GetTypeOk()
-		}
-	}
-
-	dedicatedServer := dedicatedServerResourceData{
-		Id:                                 types.StringValue(result.GetId()),
-		AssetId:                            types.StringValue(result.GetAssetId()),
-		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
-		ContractId:                         types.StringPointerValue(contractId),
-		RackId:                             types.StringPointerValue(rackId),
-		RackCapacity:                       types.StringPointerValue(rackCapacity),
-		RackType:                           types.StringPointerValue(rackType),
-		IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
-		IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
-		IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
-		IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
-		IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
-		LocationRack:                       types.StringPointerValue(locationRack),
-		LocationSite:                       types.StringPointerValue(locationSite),
-		LocationSuite:                      types.StringPointerValue(locationSuite),
-		LocationUnit:                       types.StringPointerValue(locationUnit),
-		PublicMac:                          types.StringPointerValue(publicMac),
-		PublicIp:                           types.StringPointerValue(publicIp),
-		PublicGateway:                      types.StringPointerValue(publicGateway),
-		InternalMac:                        types.StringPointerValue(internalMac),
-		InternalIp:                         types.StringPointerValue(internalIp),
-		InternalGateway:                    types.StringPointerValue(internalGateway),
-		RemoteMac:                          types.StringPointerValue(remoteMac),
-		RemoteIp:                           types.StringPointerValue(remoteIp),
-		RemoteGateway:                      types.StringPointerValue(remoteGateway),
-		RamSize:                            types.Int32PointerValue(ramSize),
-		RamUnit:                            types.StringPointerValue(ramUnit),
-		CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
-		CpuType:                            types.StringPointerValue(cpuType),
 	}
 
 	diags = resp.State.Set(ctx, &dedicatedServer)
@@ -373,136 +250,278 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 		resp,
 	)
 
-	request := d.client.GetServer(d.authContext(ctx), req.ID)
-	result, _, err := request.Execute()
+	dedicatedServer, err := d.getServer(ctx, req.ID)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error importing dedicated server with id: %q",
-				req.ID,
-			),
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("Importing dedicated server", err.Error())
 		return
 	}
 
-	var contractId *string
-	if contract, ok := result.GetContractOk(); ok {
-		contractId, _ = contract.GetIdOk()
-	}
-
-	var rackId, rackCapacity, rackType *string
-	if rack, ok := result.GetRackOk(); ok {
-		rackId, _ = rack.GetIdOk()
-		rackCapacity, _ = rack.GetCapacityOk()
-
-		if rt, ok := rack.GetTypeOk(); ok && rt != nil {
-			rtStr := string(*rt)
-			rackType = &rtStr
-		}
-	}
-
-	var automation, ipmiReboot, powerCycle, privateNetwork, remoteManagement *bool
-	if featureAvailability, ok := result.GetFeatureAvailabilityOk(); ok {
-		automation, _ = featureAvailability.GetAutomationOk()
-		ipmiReboot, _ = featureAvailability.GetIpmiRebootOk()
-		powerCycle, _ = featureAvailability.GetPowerCycleOk()
-		privateNetwork, _ = featureAvailability.GetPrivateNetworkOk()
-		remoteManagement, _ = featureAvailability.GetRemoteManagementOk()
-	}
-
-	var locationRack, locationSite, locationSuite, locationUnit *string
-	if location, ok := result.GetLocationOk(); ok {
-		locationRack, _ = location.GetRackOk()
-		locationSite, _ = location.GetSiteOk()
-		locationSuite, _ = location.GetSuiteOk()
-		locationUnit, _ = location.GetUnitOk()
-	}
-
-	var publicMac, publicIp, publicGateway *string
-	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
-		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
-			publicMac, _ = publicNetworkInterface.GetMacOk()
-			publicIp, _ = publicNetworkInterface.GetIpOk()
-			publicGateway, _ = publicNetworkInterface.GetGatewayOk()
-		}
-	}
-
-	var internalMac, internalIp, internalGateway *string
-	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
-		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
-			internalMac, _ = internalNetworkInterface.GetMacOk()
-			internalIp, _ = internalNetworkInterface.GetIpOk()
-			internalGateway, _ = internalNetworkInterface.GetGatewayOk()
-		}
-	}
-
-	var remoteMac, remoteIp, remoteGateway *string
-	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
-		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
-			remoteMac, _ = remoteNetworkInterface.GetMacOk()
-			remoteIp, _ = remoteNetworkInterface.GetIpOk()
-			remoteGateway, _ = remoteNetworkInterface.GetGatewayOk()
-		}
-	}
-
-	var ramSize *int32
-	var ramUnit *string
-	if specs, ok := result.GetSpecsOk(); ok {
-		if ram, ok := specs.GetRamOk(); ok {
-			ramSize, _ = ram.GetSizeOk()
-			ramUnit, _ = ram.GetUnitOk()
-		}
-	}
-
-	var cpuQuantity *int32
-	var cpuType *string
-	if specs, ok := result.GetSpecsOk(); ok {
-		if cpu, ok := specs.GetCpuOk(); ok {
-			cpuQuantity, _ = cpu.GetQuantityOk()
-			cpuType, _ = cpu.GetTypeOk()
-		}
-	}
-
-	data := dedicatedServerResourceData{
-		Id:                                 types.StringValue(result.GetId()),
-		AssetId:                            types.StringValue(result.GetAssetId()),
-		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
-		ContractId:                         types.StringPointerValue(contractId),
-		RackId:                             types.StringPointerValue(rackId),
-		RackCapacity:                       types.StringPointerValue(rackCapacity),
-		RackType:                           types.StringPointerValue(rackType),
-		IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
-		IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
-		IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
-		IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
-		IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
-		LocationRack:                       types.StringPointerValue(locationRack),
-		LocationSite:                       types.StringPointerValue(locationSite),
-		LocationSuite:                      types.StringPointerValue(locationSuite),
-		LocationUnit:                       types.StringPointerValue(locationUnit),
-		PublicMac:                          types.StringPointerValue(publicMac),
-		PublicIp:                           types.StringPointerValue(publicIp),
-		PublicGateway:                      types.StringPointerValue(publicGateway),
-		InternalMac:                        types.StringPointerValue(internalMac),
-		InternalIp:                         types.StringPointerValue(internalIp),
-		InternalGateway:                    types.StringPointerValue(internalGateway),
-		RemoteMac:                          types.StringPointerValue(remoteMac),
-		RemoteIp:                           types.StringPointerValue(remoteIp),
-		RemoteGateway:                      types.StringPointerValue(remoteGateway),
-		RamSize:                            types.Int32PointerValue(ramSize),
-		RamUnit:                            types.StringPointerValue(ramUnit),
-		CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
-		CpuType:                            types.StringPointerValue(cpuType),
-	}
-	diags := resp.State.Set(ctx, data)
+	diags := resp.State.Set(ctx, dedicatedServer)
 	resp.Diagnostics.Append(diags...)
 }
 
 func (d *dedicatedServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan dedicatedServerResourceData
+	planDiags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(planDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var state dedicatedServerResourceData
+	stateDiags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(stateDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Updating reference
+	if !plan.Reference.IsNull() && !plan.Reference.IsUnknown() {
+		ropts := dedicatedServer.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
+		referenceRequest := d.client.UpdateServerReference(d.authContext(ctx), state.ID.ValueString()).UpdateServerReferenceOpts(*ropts)
+		_, err := referenceRequest.Execute()
+		if err != nil {
+			summary := fmt.Sprintf("Error updating dedicated server reference with id: %q", plan.ID.ValueString())
+			resp.Diagnostics.AddError(summary, err.Error())
+			return
+		}
+		state.Reference = plan.Reference
+	}
+
+	// Updating Power status
+	if !plan.PoweredOn.IsNull() && !plan.PoweredOn.IsUnknown() {
+		if plan.PoweredOn.ValueBool() {
+			request := d.client.PowerServerOn(d.authContext(ctx), state.ID.ValueString())
+			_, err := request.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error powering on for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		} else {
+			request := d.client.PowerServerOff(d.authContext(ctx), state.ID.ValueString())
+			_, err := request.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error powering off for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		}
+		state.PoweredOn = plan.PoweredOn
+	}
+
+	// Updateing Reverse Lookup
+	if !plan.ReverseLookup.IsNull() && !plan.ReverseLookup.IsUnknown() {
+		iopts := dedicatedServer.NewUpdateIpProfileOpts()
+		iopts.ReverseLookup = plan.ReverseLookup.ValueStringPointer()
+		ipRequest := d.client.UpdateIpProfile(d.authContext(ctx), state.ID.ValueString(), state.PublicIp.ValueString()).UpdateIpProfileOpts(*iopts)
+		_, _, err := ipRequest.Execute()
+		if err != nil {
+			summary := fmt.Sprintf("Error updating dedicated server reverse lookup with id: %q", state.ID.ValueString())
+			resp.Diagnostics.AddError(summary, err.Error())
+			return
+		}
+		state.ReverseLookup = plan.ReverseLookup
+	}
+
+	// Updating an IP null routing
+	if !plan.PublicIpNullRouted.IsNull() && !plan.PublicIpNullRouted.IsUnknown() {
+		if plan.PublicIpNullRouted.ValueBool() {
+			nullRoutedRequest := d.client.NullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIp.ValueString())
+			_, _, err := nullRoutedRequest.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error null routing an IP for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		} else {
+			nullRoutedRequest := d.client.RemoveNullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIp.ValueString())
+			_, _, err := nullRoutedRequest.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error remove null routing an IP for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		}
+		state.PublicIpNullRouted = plan.PublicIpNullRouted
+	}
+
+	// Updating dhcp lease
+	if !plan.DHCPLease.IsNull() && !plan.DHCPLease.IsUnknown() {
+		if plan.DHCPLease.ValueString() != "" {
+			opts := dedicatedServer.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
+			dhcpRequest := d.client.CreateServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).CreateServerDhcpReservationOpts(*opts)
+			_, err := dhcpRequest.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error creating a DHCP reservation for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		} else {
+			dhcpRequest := d.client.DeleteServerDhcpReservation(d.authContext(ctx), state.ID.ValueString())
+			_, err := dhcpRequest.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error deleting DHCP reservation for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		}
+		state.DHCPLease = plan.DHCPLease
+	}
+
+	// Updating network interface status
+	if !plan.PublicNetworkInterfaceOpened.IsNull() && !plan.PublicNetworkInterfaceOpened.IsUnknown() {
+		if plan.PublicNetworkInterfaceOpened.ValueBool() {
+			request := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC)
+			_, err := request.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error opening public network interface for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		} else {
+			request := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC)
+			_, err := request.Execute()
+			if err != nil {
+				summary := fmt.Sprintf("Error closing public network interface for dedicated server: %q", state.ID.ValueString())
+				resp.Diagnostics.AddError(summary, err.Error())
+				return
+			}
+		}
+		state.PublicNetworkInterfaceOpened = plan.PublicNetworkInterfaceOpened
+	}
+
+	stateDiags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(stateDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (d *dedicatedServerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	panic("unimplemented")
 }
 
 func (d *dedicatedServerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	panic("unimplemented")
+}
+
+func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string) (*dedicatedServerResourceData, error) {
+
+	// Getting server info
+	serverRequest := d.client.GetServer(d.authContext(ctx), serverID)
+	serverResult, _, err := serverRequest.Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error reading dedicated server with id: %q - %s", serverID, err.Error())
+	}
+
+	var publicIp string
+	var publicIpNullRouted *bool
+	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
+		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
+			publicIpPart := strings.Split(publicNetworkInterface.GetIp(), "/")
+			ip := net.ParseIP(publicIpPart[0])
+			if ip != nil {
+				publicIp = ip.String()
+			}
+			publicIpNullRouted, _ = publicNetworkInterface.GetNullRoutedOk()
+		}
+	}
+
+	var reference string
+	if contract, ok := serverResult.GetContractOk(); ok {
+		reference = contract.GetReference()
+	}
+
+	var internalMac string
+	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
+		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
+			internalMac = internalNetworkInterface.GetMac()
+		}
+	}
+
+	var remoteManagementIp string
+	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
+		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
+			remoteManagementIpPart := strings.Split(remoteNetworkInterface.GetIp(), "/")
+			ip := net.ParseIP(remoteManagementIpPart[0])
+			if ip != nil {
+				remoteManagementIp = ip.String()
+			}
+		}
+	}
+
+	serverLocation := serverResult.GetLocation()
+	l := dedicatedServerLocationResourceData{
+		Rack:  types.StringValue(serverLocation.GetRack()),
+		Site:  types.StringValue(serverLocation.GetSite()),
+		Suite: types.StringValue(serverLocation.GetSuite()),
+		Unit:  types.StringValue(serverLocation.GetUnit()),
+	}
+	location, digs := types.ObjectValueFrom(ctx, l.AttributeTypes(), l)
+	if digs.HasError() {
+		return nil, fmt.Errorf("error reading dedicated server location with id: %q", serverID)
+	}
+
+	// Getting server power info
+	powerRequest := d.client.GetServerPowerStatus(d.authContext(ctx), serverID)
+	powerResult, _, err := powerRequest.Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error reading dedicated server power status with id: %q - %s", serverID, err.Error())
+	}
+	pdu := powerResult.GetPdu()
+	ipmi := powerResult.GetIpmi()
+	poweredOn := pdu.GetStatus() != "off" && ipmi.GetStatus() != "off"
+
+	// Getting server public network interface info
+	var publicNetworkOpened *bool
+	networkRequest := d.client.GetNetworkInterface(d.authContext(ctx), serverID, dedicatedServer.NETWORKTYPE_PUBLIC)
+	networkResult, networkResponse, err := networkRequest.Execute()
+	if err != nil && networkResponse.StatusCode != http.StatusNotFound {
+		return nil, fmt.Errorf("error reading dedicated server network interface with id: %q - %s", serverID, err.Error())
+	} else {
+		if _, ok := networkResult.GetStatusOk(); ok {
+			isStatusOpen := networkResult.GetStatus() == "open"
+			publicNetworkOpened = &isStatusOpen
+		}
+	}
+
+	// Getting server DHCP info
+	dhcpRequest := d.client.GetServerDhcpReservationList(d.authContext(ctx), serverID)
+	dhcpResult, _, err := dhcpRequest.Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error reading dedicated server DHCP with id: %q - %s", serverID, err.Error())
+	}
+	var dhcpLease string
+	if len(dhcpResult.GetLeases()) != 0 {
+		leases := dhcpResult.GetLeases()
+		dhcpLease = leases[0].GetBootfile()
+	}
+
+	// Getting server public IP info
+	var reverseLookup string
+	if publicIp != "" {
+		ipRequest := d.client.GetServerIp(d.authContext(ctx), serverID, publicIp)
+		ipResult, _, err := ipRequest.Execute()
+		if err != nil {
+			return nil, fmt.Errorf("error reading dedicated server IP details with id: %q - %s", serverID, err.Error())
+		}
+		reverseLookup = ipResult.GetReverseLookup()
+	}
+
+	dedicatedServer := dedicatedServerResourceData{
+		ID:                           types.StringValue(serverResult.GetId()),
+		Reference:                    types.StringValue(reference),
+		ReverseLookup:                types.StringValue(reverseLookup),
+		DHCPLease:                    types.StringValue(dhcpLease),
+		PoweredOn:                    types.BoolValue(poweredOn),
+		PublicNetworkInterfaceOpened: types.BoolPointerValue(publicNetworkOpened),
+		PublicIpNullRouted:           types.BoolPointerValue(publicIpNullRouted),
+		PublicIp:                     types.StringValue(publicIp),
+		RemoteManagementIp:           types.StringValue(remoteManagementIp),
+		InternalMac:                  types.StringValue(internalMac),
+		Location:                     location,
+	}
+
+	return &dedicatedServer, nil
 }
