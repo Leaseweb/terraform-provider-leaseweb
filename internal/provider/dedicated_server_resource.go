@@ -42,10 +42,10 @@ type dedicatedServerResourceData struct {
 	DHCPLease                    types.String `tfsdk:"dhcp_lease"`
 	PoweredOn                    types.Bool   `tfsdk:"powered_on"`
 	PublicNetworkInterfaceOpened types.Bool   `tfsdk:"public_network_interface_opened"`
-	PublicIpNullRouted           types.Bool   `tfsdk:"public_ip_null_routed"`
-	PublicIp                     types.String `tfsdk:"public_ip"`
-	RemoteManagementIp           types.String `tfsdk:"remote_management_ip"`
-	InternalMac                  types.String `tfsdk:"internal_mac"`
+	PublicIPNullRouted           types.Bool   `tfsdk:"public_ip_null_routed"`
+	PublicIP                     types.String `tfsdk:"public_ip"`
+	RemoteManagementIP           types.String `tfsdk:"remote_management_ip"`
+	InternalMAC                  types.String `tfsdk:"internal_mac"`
 	Location                     types.Object `tfsdk:"location"`
 }
 
@@ -278,8 +278,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	// Updating reference
 	if !plan.Reference.IsNull() && !plan.Reference.IsUnknown() {
 		ropts := dedicatedServer.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
-		referenceRequest := d.client.UpdateServerReference(d.authContext(ctx), state.ID.ValueString()).UpdateServerReferenceOpts(*ropts)
-		_, err := referenceRequest.Execute()
+		_, err := d.client.UpdateServerReference(d.authContext(ctx), state.ID.ValueString()).UpdateServerReferenceOpts(*ropts).Execute()
 		if err != nil {
 			summary := fmt.Sprintf("Error updating dedicated server reference with id: %q", plan.ID.ValueString())
 			resp.Diagnostics.AddError(summary, err.Error())
@@ -311,11 +310,11 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Updateing Reverse Lookup
-	if !plan.ReverseLookup.IsNull() && !plan.ReverseLookup.IsUnknown() {
+	isPublicIPExists := !state.PublicIP.IsNull() && !state.PublicIP.IsUnknown() && state.PublicIP.ValueString() != ""
+	if !plan.ReverseLookup.IsNull() && !plan.ReverseLookup.IsUnknown() && isPublicIPExists {
 		iopts := dedicatedServer.NewUpdateIpProfileOpts()
 		iopts.ReverseLookup = plan.ReverseLookup.ValueStringPointer()
-		ipRequest := d.client.UpdateIpProfile(d.authContext(ctx), state.ID.ValueString(), state.PublicIp.ValueString()).UpdateIpProfileOpts(*iopts)
-		_, _, err := ipRequest.Execute()
+		_, _, err := d.client.UpdateIpProfile(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).UpdateIpProfileOpts(*iopts).Execute()
 		if err != nil {
 			summary := fmt.Sprintf("Error updating dedicated server reverse lookup with id: %q", state.ID.ValueString())
 			resp.Diagnostics.AddError(summary, err.Error())
@@ -325,41 +324,37 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Updating an IP null routing
-	if !plan.PublicIpNullRouted.IsNull() && !plan.PublicIpNullRouted.IsUnknown() {
-		if plan.PublicIpNullRouted.ValueBool() {
-			nullRoutedRequest := d.client.NullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIp.ValueString())
-			_, _, err := nullRoutedRequest.Execute()
+	if plan.PublicIPNullRouted != state.PublicIPNullRouted && isPublicIPExists {
+		if plan.PublicIPNullRouted.ValueBool() {
+			_, _, err := d.client.NullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error null routing an IP for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Error null routing an IP for dedicated server: %q and IP: %q", state.ID.ValueString(), state.PublicIP.ValueString())
 				resp.Diagnostics.AddError(summary, err.Error())
 				return
 			}
 		} else {
-			nullRoutedRequest := d.client.RemoveNullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIp.ValueString())
-			_, _, err := nullRoutedRequest.Execute()
+			_, _, err := d.client.RemoveNullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error remove null routing an IP for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Error remove null routing an IP for dedicated server: %q and IP: %q", state.ID.ValueString(), state.PublicIP.ValueString())
 				resp.Diagnostics.AddError(summary, err.Error())
 				return
 			}
 		}
-		state.PublicIpNullRouted = plan.PublicIpNullRouted
+		state.PublicIPNullRouted = plan.PublicIPNullRouted
 	}
 
 	// Updating dhcp lease
 	if !plan.DHCPLease.IsNull() && !plan.DHCPLease.IsUnknown() {
 		if plan.DHCPLease.ValueString() != "" {
 			opts := dedicatedServer.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
-			dhcpRequest := d.client.CreateServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).CreateServerDhcpReservationOpts(*opts)
-			_, err := dhcpRequest.Execute()
+			_, err := d.client.CreateServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).CreateServerDhcpReservationOpts(*opts).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error creating a DHCP reservation for dedicated server: %q", state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, err.Error())
 				return
 			}
 		} else {
-			dhcpRequest := d.client.DeleteServerDhcpReservation(d.authContext(ctx), state.ID.ValueString())
-			_, err := dhcpRequest.Execute()
+			_, err := d.client.DeleteServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error deleting DHCP reservation for dedicated server: %q", state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, err.Error())
@@ -370,18 +365,16 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Updating network interface status
-	if !plan.PublicNetworkInterfaceOpened.IsNull() && !plan.PublicNetworkInterfaceOpened.IsUnknown() {
+	if plan.PublicNetworkInterfaceOpened != state.PublicNetworkInterfaceOpened {
 		if plan.PublicNetworkInterfaceOpened.ValueBool() {
-			request := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC)
-			_, err := request.Execute()
+			_, err := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error opening public network interface for dedicated server: %q", state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, err.Error())
 				return
 			}
 		} else {
-			request := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC)
-			_, err := request.Execute()
+			_, err := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error closing public network interface for dedicated server: %q", state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, err.Error())
@@ -409,22 +402,21 @@ func (d *dedicatedServerResource) Delete(ctx context.Context, req resource.Delet
 func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string) (*dedicatedServerResourceData, error) {
 
 	// Getting server info
-	serverRequest := d.client.GetServer(d.authContext(ctx), serverID)
-	serverResult, _, err := serverRequest.Execute()
+	serverResult, _, err := d.client.GetServer(d.authContext(ctx), serverID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error reading dedicated server with id: %q - %s", serverID, err.Error())
 	}
 
-	var publicIp string
-	var publicIpNullRouted *bool
+	var publicIP string
+	var publicIPNullRouted *bool
 	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
 		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
-			publicIpPart := strings.Split(publicNetworkInterface.GetIp(), "/")
-			ip := net.ParseIP(publicIpPart[0])
+			publicIPPart := strings.Split(publicNetworkInterface.GetIp(), "/")
+			ip := net.ParseIP(publicIPPart[0])
 			if ip != nil {
-				publicIp = ip.String()
+				publicIP = ip.String()
 			}
-			publicIpNullRouted, _ = publicNetworkInterface.GetNullRoutedOk()
+			publicIPNullRouted, _ = publicNetworkInterface.GetNullRoutedOk()
 		}
 	}
 
@@ -433,20 +425,20 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 		reference = contract.GetReference()
 	}
 
-	var internalMac string
+	var internalMAC string
 	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
 		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
-			internalMac = internalNetworkInterface.GetMac()
+			internalMAC = internalNetworkInterface.GetMac()
 		}
 	}
 
-	var remoteManagementIp string
+	var remoteManagementIP string
 	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
 		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
-			remoteManagementIpPart := strings.Split(remoteNetworkInterface.GetIp(), "/")
-			ip := net.ParseIP(remoteManagementIpPart[0])
+			remoteManagementIPPart := strings.Split(remoteNetworkInterface.GetIp(), "/")
+			ip := net.ParseIP(remoteManagementIPPart[0])
 			if ip != nil {
-				remoteManagementIp = ip.String()
+				remoteManagementIP = ip.String()
 			}
 		}
 	}
@@ -464,8 +456,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	}
 
 	// Getting server power info
-	powerRequest := d.client.GetServerPowerStatus(d.authContext(ctx), serverID)
-	powerResult, _, err := powerRequest.Execute()
+	powerResult, _, err := d.client.GetServerPowerStatus(d.authContext(ctx), serverID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error reading dedicated server power status with id: %q - %s", serverID, err.Error())
 	}
@@ -474,21 +465,19 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	poweredOn := pdu.GetStatus() != "off" && ipmi.GetStatus() != "off"
 
 	// Getting server public network interface info
-	var publicNetworkOpened *bool
+	var publicNetworkOpened bool
 	networkRequest := d.client.GetNetworkInterface(d.authContext(ctx), serverID, dedicatedServer.NETWORKTYPE_PUBLIC)
 	networkResult, networkResponse, err := networkRequest.Execute()
 	if err != nil && networkResponse.StatusCode != http.StatusNotFound {
 		return nil, fmt.Errorf("error reading dedicated server network interface with id: %q - %s", serverID, err.Error())
 	} else {
 		if _, ok := networkResult.GetStatusOk(); ok {
-			isStatusOpen := networkResult.GetStatus() == "open"
-			publicNetworkOpened = &isStatusOpen
+			publicNetworkOpened = networkResult.GetStatus() == "open"
 		}
 	}
 
 	// Getting server DHCP info
-	dhcpRequest := d.client.GetServerDhcpReservationList(d.authContext(ctx), serverID)
-	dhcpResult, _, err := dhcpRequest.Execute()
+	dhcpResult, _, err := d.client.GetServerDhcpReservationList(d.authContext(ctx), serverID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error reading dedicated server DHCP with id: %q - %s", serverID, err.Error())
 	}
@@ -500,9 +489,8 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 
 	// Getting server public IP info
 	var reverseLookup string
-	if publicIp != "" {
-		ipRequest := d.client.GetServerIp(d.authContext(ctx), serverID, publicIp)
-		ipResult, _, err := ipRequest.Execute()
+	if publicIP != "" {
+		ipResult, _, err := d.client.GetServerIp(d.authContext(ctx), serverID, publicIP).Execute()
 		if err != nil {
 			return nil, fmt.Errorf("error reading dedicated server IP details with id: %q - %s", serverID, err.Error())
 		}
@@ -515,11 +503,11 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 		ReverseLookup:                types.StringValue(reverseLookup),
 		DHCPLease:                    types.StringValue(dhcpLease),
 		PoweredOn:                    types.BoolValue(poweredOn),
-		PublicNetworkInterfaceOpened: types.BoolPointerValue(publicNetworkOpened),
-		PublicIpNullRouted:           types.BoolPointerValue(publicIpNullRouted),
-		PublicIp:                     types.StringValue(publicIp),
-		RemoteManagementIp:           types.StringValue(remoteManagementIp),
-		InternalMac:                  types.StringValue(internalMac),
+		PublicNetworkInterfaceOpened: types.BoolValue(publicNetworkOpened),
+		PublicIPNullRouted:           types.BoolPointerValue(publicIPNullRouted),
+		PublicIP:                     types.StringValue(publicIP),
+		RemoteManagementIP:           types.StringValue(remoteManagementIP),
+		InternalMAC:                  types.StringValue(internalMAC),
 		Location:                     location,
 	}
 
