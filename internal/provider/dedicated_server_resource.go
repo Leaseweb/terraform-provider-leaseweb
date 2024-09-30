@@ -15,7 +15,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -127,9 +126,6 @@ func (d *dedicatedServerResource) Schema(_ context.Context, _ resource.SchemaReq
 				Optional:    true,
 				Computed:    true,
 				Description: "Reference of server.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -138,41 +134,26 @@ func (d *dedicatedServerResource) Schema(_ context.Context, _ resource.SchemaReq
 				Optional:    true,
 				Computed:    true,
 				Description: "The reverse lookup associated with the dedicated server public IP.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"dhcp_lease": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The URL of PXE boot the dedicated server is booting from.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"powered_on": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Whether the dedicated server is powered on or not.",
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"public_network_interface_opened": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Whether the public network interface of the dedicated server is opened or not.",
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"public_ip_null_routed": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Whether the public IP of the dedicated server is null routed or not.",
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"public_ip": schema.StringAttribute{
 				Computed:    true,
@@ -324,7 +305,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Updating an IP null routing
-	if plan.PublicIPNullRouted != state.PublicIPNullRouted && isPublicIPExists {
+	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicIPNullRouted != state.PublicIPNullRouted && isPublicIPExists {
 		if plan.PublicIPNullRouted.ValueBool() {
 			_, _, err := d.client.NullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
@@ -365,7 +346,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Updating network interface status
-	if plan.PublicNetworkInterfaceOpened != state.PublicNetworkInterfaceOpened {
+	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicNetworkInterfaceOpened != state.PublicNetworkInterfaceOpened {
 		if plan.PublicNetworkInterfaceOpened.ValueBool() {
 			_, err := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
 			if err != nil {
@@ -408,7 +389,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	}
 
 	var publicIP string
-	var publicIPNullRouted *bool
+	var publicIPNullRouted bool
 	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
 		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
 			publicIPPart := strings.Split(publicNetworkInterface.GetIp(), "/")
@@ -416,7 +397,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 			if ip != nil {
 				publicIP = ip.String()
 			}
-			publicIPNullRouted, _ = publicNetworkInterface.GetNullRoutedOk()
+			publicIPNullRouted = publicNetworkInterface.GetNullRouted()
 		}
 	}
 
@@ -504,7 +485,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 		DHCPLease:                    types.StringValue(dhcpLease),
 		PoweredOn:                    types.BoolValue(poweredOn),
 		PublicNetworkInterfaceOpened: types.BoolValue(publicNetworkOpened),
-		PublicIPNullRouted:           types.BoolPointerValue(publicIPNullRouted),
+		PublicIPNullRouted:           types.BoolValue(publicIPNullRouted),
 		PublicIP:                     types.StringValue(publicIP),
 		RemoteManagementIP:           types.StringValue(remoteManagementIP),
 		InternalMAC:                  types.StringValue(internalMAC),
