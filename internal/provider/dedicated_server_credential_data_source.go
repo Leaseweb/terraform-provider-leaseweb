@@ -115,12 +115,12 @@ func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req data
 	credType := dedicatedServer.CredentialType(data.Type.ValueString())
 	username := data.Username.ValueString()
 
-	credential, _, err := d.client.GetServerCredential(d.authContext(ctx), serverID, credType, username).Execute()
+	credential, response, err := d.client.GetServerCredential(d.authContext(ctx), serverID, credType, username).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf("Error reading data dedicated_server_credential for server %q", serverID),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}

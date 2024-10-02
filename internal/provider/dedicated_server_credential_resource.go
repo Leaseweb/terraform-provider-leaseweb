@@ -135,7 +135,7 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 		data.Username.ValueString(),
 	)
 	request := d.client.CreateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString()).CreateServerCredentialOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -143,7 +143,7 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 				data.Username.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
@@ -170,7 +170,7 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 	}
 
 	request := d.client.GetServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -178,7 +178,7 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 				data.Username.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
@@ -208,7 +208,7 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 		data.Password.ValueString(),
 	)
 	request := d.client.UpdateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString()).UpdateServerCredentialOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -216,7 +216,7 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 				data.Username.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
@@ -243,7 +243,7 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 	}
 
 	request := d.client.DeleteServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
-	_, err := request.Execute()
+	response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -251,7 +251,7 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 				data.Username.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}

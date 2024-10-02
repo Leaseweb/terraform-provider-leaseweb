@@ -105,14 +105,14 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	request := d.client.GetServer(d.authContext(ctx), data.Id.ValueString())
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
 				"Error reading dedicated server with id: %q",
 				data.Id.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}

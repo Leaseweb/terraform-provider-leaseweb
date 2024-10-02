@@ -115,9 +115,9 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 
 	var Ids []types.String
 
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading dedicated servers", err.Error())
+		resp.Diagnostics.AddError("Error reading dedicated servers", getHttpErrorMessage(response, err))
 		return
 	}
 	for _, server := range result.GetServers() {

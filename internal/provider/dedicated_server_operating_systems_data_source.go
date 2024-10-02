@@ -88,9 +88,9 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 		request = request.ControlPanelId(data.ControlPanelId.ValueString())
 	}
 	// NOTE: we show only latest 50 items.
-	result, _, err := request.Limit(50).Execute()
+	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading control panels", err.Error())
+		resp.Diagnostics.AddError("Error reading control panels", getHttpErrorMessage(response, err))
 		return
 	}
 

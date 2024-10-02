@@ -141,14 +141,14 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		data.Unit.ValueString(),
 	)
 	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
 				"Error creating data traffic notification setting with dedicated_server_id: %q",
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
@@ -176,7 +176,7 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	}
 
 	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -184,7 +184,7 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 				data.Id.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
@@ -217,7 +217,7 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		data.Unit.ValueString(),
 	)
 	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -225,7 +225,7 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 				data.Id.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
@@ -253,7 +253,7 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 	}
 
 	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
-	_, err := request.Execute()
+	response, err := request.Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf(
@@ -261,7 +261,7 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 				data.Id.ValueString(),
 				data.DedicatedServerId.ValueString(),
 			),
-			err.Error(),
+			getHttpErrorMessage(response, err),
 		)
 		return
 	}
