@@ -14,7 +14,7 @@ import (
 func TestGetHttpErrorMessage(t *testing.T) {
 
 	t.Run("error must return if response is nil", func(t *testing.T) {
-		message := getHttpErrorMessage(nil, errors.New("error content"))
+		message := NewError(nil, errors.New("error content")).Error()
 		assert.Equal(t, "error content", message)
 	})
 
@@ -23,7 +23,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 500,
 			Body:       nil,
 		}
-		message := getHttpErrorMessage(resp, errors.New("error content"))
+		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "error content", message)
 	})
 
@@ -32,7 +32,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 200,
 			Body:       io.NopCloser(bytes.NewBufferString("body message")),
 		}
-		message := getHttpErrorMessage(resp, errors.New("error content"))
+		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "error content", message)
 	})
 
@@ -41,7 +41,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString("body message")),
 		}
-		message := getHttpErrorMessage(resp, errors.New("error content"))
+		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "error content", message)
 	})
 
@@ -51,7 +51,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
 		}
-		message := getHttpErrorMessage(resp, errors.New("error content"))
+		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "error content", message)
 	})
 
@@ -61,7 +61,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
 		}
-		message := getHttpErrorMessage(resp, errors.New("error content"))
+		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "this is error message", message)
 	})
 
@@ -71,7 +71,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
 		}
-		message := getHttpErrorMessage(resp, errors.New("error content"))
+		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "map[a:b c:d]", message)
 	})
 }

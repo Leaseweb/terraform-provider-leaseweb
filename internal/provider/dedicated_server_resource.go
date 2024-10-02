@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -214,7 +215,9 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 
 	dedicatedServer, err := d.getServer(ctx, data.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Reading dedicated server", err.Error())
+		summary := "Reading dedicated server"
+		resp.Diagnostics.AddError(summary, NewError(nil, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(nil, err).Error()))
 		return
 	}
 
@@ -233,7 +236,9 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 
 	dedicatedServer, err := d.getServer(ctx, req.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("Importing dedicated server", err.Error())
+		summary := "Importing dedicated server"
+		resp.Diagnostics.AddError(summary, NewError(nil, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(nil, err).Error()))
 		return
 	}
 
@@ -262,7 +267,8 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		response, err := d.client.UpdateServerReference(d.authContext(ctx), state.ID.ValueString()).UpdateServerReferenceOpts(*ropts).Execute()
 		if err != nil {
 			summary := fmt.Sprintf("Error updating dedicated server reference with id: %q", plan.ID.ValueString())
-			resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+			resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+			tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 			return
 		}
 		state.Reference = plan.Reference
@@ -275,7 +281,8 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			response, err := request.Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error powering on for dedicated server: %q", state.ID.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		} else {
@@ -283,7 +290,8 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			response, err := request.Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error powering off for dedicated server: %q", state.ID.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		}
@@ -298,7 +306,8 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		_, response, err := d.client.UpdateIpProfile(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).UpdateIpProfileOpts(*iopts).Execute()
 		if err != nil {
 			summary := fmt.Sprintf("Error updating dedicated server reverse lookup with id: %q", state.ID.ValueString())
-			resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+			resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+			tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 			return
 		}
 		state.ReverseLookup = plan.ReverseLookup
@@ -310,14 +319,16 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			_, response, err := d.client.NullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error null routing an IP for dedicated server: %q and IP: %q", state.ID.ValueString(), state.PublicIP.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		} else {
 			_, response, err := d.client.RemoveNullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error remove null routing an IP for dedicated server: %q and IP: %q", state.ID.ValueString(), state.PublicIP.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		}
@@ -331,14 +342,16 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			response, err := d.client.CreateServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).CreateServerDhcpReservationOpts(*opts).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error creating a DHCP reservation for dedicated server: %q", state.ID.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		} else {
 			response, err := d.client.DeleteServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error deleting DHCP reservation for dedicated server: %q", state.ID.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		}
@@ -351,14 +364,16 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			response, err := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error opening public network interface for dedicated server: %q", state.ID.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		} else {
 			response, err := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error closing public network interface for dedicated server: %q", state.ID.ValueString())
-				resp.Diagnostics.AddError(summary, getHttpErrorMessage(response, err))
+				resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 				return
 			}
 		}
@@ -385,7 +400,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	// Getting server info
 	serverResult, serverResponse, err := d.client.GetServer(d.authContext(ctx), serverID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error reading dedicated server with id: %q - %s", serverID, getHttpErrorMessage(serverResponse, err))
+		return nil, fmt.Errorf("error reading dedicated server with id: %q - %s", serverID, NewError(serverResponse, err).Error())
 	}
 
 	var publicIP string
@@ -439,7 +454,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	// Getting server power info
 	powerResult, powerResponse, err := d.client.GetServerPowerStatus(d.authContext(ctx), serverID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error reading dedicated server power status with id: %q - %s", serverID, getHttpErrorMessage(powerResponse, err))
+		return nil, fmt.Errorf("error reading dedicated server power status with id: %q - %s", serverID, NewError(powerResponse, err).Error())
 	}
 	pdu := powerResult.GetPdu()
 	ipmi := powerResult.GetIpmi()
@@ -450,7 +465,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	networkRequest := d.client.GetNetworkInterface(d.authContext(ctx), serverID, dedicatedServer.NETWORKTYPE_PUBLIC)
 	networkResult, networkResponse, err := networkRequest.Execute()
 	if err != nil && networkResponse.StatusCode != http.StatusNotFound {
-		return nil, fmt.Errorf("error reading dedicated server network interface with id: %q - %s", serverID, getHttpErrorMessage(networkResponse, err))
+		return nil, fmt.Errorf("error reading dedicated server network interface with id: %q - %s", serverID, NewError(networkResponse, err).Error())
 	} else {
 		if _, ok := networkResult.GetStatusOk(); ok {
 			publicNetworkOpened = networkResult.GetStatus() == "open"
@@ -460,7 +475,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	// Getting server DHCP info
 	dhcpResult, dhcpResponse, err := d.client.GetServerDhcpReservationList(d.authContext(ctx), serverID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error reading dedicated server DHCP with id: %q - %s", serverID, getHttpErrorMessage(dhcpResponse, err))
+		return nil, fmt.Errorf("error reading dedicated server DHCP with id: %q - %s", serverID, NewError(dhcpResponse, err).Error())
 	}
 	var dhcpLease string
 	if len(dhcpResult.GetLeases()) != 0 {
@@ -473,7 +488,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	if publicIP != "" {
 		ipResult, ipResponse, err := d.client.GetServerIp(d.authContext(ctx), serverID, publicIP).Execute()
 		if err != nil {
-			return nil, fmt.Errorf("error reading dedicated server IP details with id: %q - %s", serverID, getHttpErrorMessage(ipResponse, err))
+			return nil, fmt.Errorf("error reading dedicated server IP details with id: %q - %s", serverID, NewError(ipResponse, err).Error())
 		}
 		reverseLookup = ipResult.GetReverseLookup()
 	}

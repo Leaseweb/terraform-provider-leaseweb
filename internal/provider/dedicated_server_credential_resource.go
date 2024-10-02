@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -137,14 +138,9 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 	request := d.client.CreateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString()).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error creating credential with username: %q and dedicated_server_id: %q",
-				data.Username.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			getHttpErrorMessage(response, err),
-		)
+		summary := fmt.Sprintf("Error creating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -172,14 +168,9 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 	request := d.client.GetServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error reading credential with username: %q and dedicated_server_id: %q",
-				data.Username.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			getHttpErrorMessage(response, err),
-		)
+		summary := fmt.Sprintf("Error reading credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -210,14 +201,9 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	request := d.client.UpdateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString()).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error updating credential with username: %q and dedicated_server_id: %q",
-				data.Username.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			getHttpErrorMessage(response, err),
-		)
+		summary := fmt.Sprintf("Error updating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -245,14 +231,9 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 	request := d.client.DeleteServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
 	response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error deleting credential with username: %q and dedicated_server_id: %q",
-				data.Username.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			getHttpErrorMessage(response, err),
-		)
+		summary := fmt.Sprintf("Error deleting credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 }

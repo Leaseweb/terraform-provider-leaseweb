@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
@@ -99,7 +100,9 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading control panels", getHttpErrorMessage(response, err))
+		summary := "Error reading control panels"
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 

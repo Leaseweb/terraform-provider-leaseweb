@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
@@ -368,10 +369,9 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID),
-			getHttpErrorMessage(response, err),
-		)
+		summary := fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID)
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
