@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -141,15 +142,11 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		data.Unit.ValueString(),
 	)
 	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error creating data traffic notification setting with dedicated_server_id: %q",
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error(),
-		)
+		summary := fmt.Sprintf("Error creating data traffic notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -176,16 +173,11 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	}
 
 	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error reading data traffic notification setting with id: %q and dedicated_server_id: %q",
-				data.Id.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error(),
-		)
+		summary := fmt.Sprintf("Error reading data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -217,16 +209,11 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		data.Unit.ValueString(),
 	)
 	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error updating data traffic notification setting with id: %q and dedicated_server_id: %q",
-				data.Id.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error(),
-		)
+		summary := fmt.Sprintf("Error updating data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -253,16 +240,11 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 	}
 
 	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
-	_, err := request.Execute()
+	response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error deleting data traffic notification setting with id: %q and dedicated_server_id: %q",
-				data.Id.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error(),
-		)
+		summary := fmt.Sprintf("Error deleting data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 }

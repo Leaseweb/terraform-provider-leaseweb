@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
@@ -88,9 +89,11 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 		request = request.ControlPanelId(data.ControlPanelId.ValueString())
 	}
 	// NOTE: we show only latest 50 items.
-	result, _, err := request.Limit(50).Execute()
+	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading control panels", err.Error())
+		summary := "Error reading control panels"
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
@@ -115,9 +116,11 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 
 	var Ids []types.String
 
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading dedicated servers", err.Error())
+		summary := "Error reading dedicated servers"
+		resp.Diagnostics.AddError("Error reading dedicated servers", NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 	for _, server := range result.GetServers() {

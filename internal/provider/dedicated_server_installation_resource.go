@@ -2,9 +2,7 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -20,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
@@ -370,10 +369,9 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID),
-			extractErrorMessage(response, err),
-		)
+		summary := fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID)
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -442,22 +440,4 @@ func valueInt32OrNil(s basetypes.Int32Value) *int32 {
 		return nil
 	}
 	return s.ValueInt32Pointer()
-}
-
-func extractErrorMessage(resp *http.Response, err error) string {
-	if resp == nil || resp.Body == nil || resp.StatusCode < 400 {
-		return err.Error()
-	}
-
-	defer resp.Body.Close() // Ensure the body is closed
-	var errorResponse map[string]interface{}
-
-	// Attempt to decode the response body as JSON
-	if err := json.NewDecoder(resp.Body).Decode(&errorResponse); err == nil {
-		if errorMessage, ok := errorResponse["errorMessage"]; ok {
-			return fmt.Sprintf("%v", errorMessage)
-		}
-	}
-
-	return err.Error()
 }

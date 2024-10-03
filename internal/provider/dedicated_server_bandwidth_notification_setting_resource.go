@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -141,14 +142,11 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 		data.Unit.ValueString(),
 	)
 	request := b.client.CreateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString()).BandwidthNotificationSettingOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error creating bandwidth notification setting with dedicated_server_id: %q",
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error())
+		summary := fmt.Sprintf("Error creating bandwidth notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -175,15 +173,11 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 	}
 
 	request := b.client.GetServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error reading bandwidth notification setting with id: %q and dedicated_server_id: %q",
-				data.Id.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error())
+		summary := fmt.Sprintf("Error reading bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -215,15 +209,11 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 		data.Unit.ValueString(),
 	)
 	request := b.client.UpdateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).BandwidthNotificationSettingOpts(*opts)
-	result, _, err := request.Execute()
+	result, response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error updating bandwidth notification setting with id: %q and dedicated_server_id: %q",
-				data.Id.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error())
+		summary := fmt.Sprintf("Error updating bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
@@ -250,15 +240,11 @@ func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req r
 	}
 
 	request := b.client.DeleteServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
-	_, err := request.Execute()
+	response, err := request.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf(
-				"Error deleting bandwidth notification setting with id: %q and dedicated_server_id: %q",
-				data.Id.ValueString(),
-				data.DedicatedServerId.ValueString(),
-			),
-			err.Error())
+		summary := fmt.Sprintf("Error deleting bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 }

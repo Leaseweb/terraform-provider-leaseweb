@@ -3,10 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
@@ -85,19 +87,22 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 
 	var controlPanels []controlPanel
 	var result *dedicatedServer.ControlPanelList
+	var response *http.Response
 	var err error
 
 	// NOTE: we show only latest 50 items.
 	if !data.OperatingSystemId.IsNull() && !data.OperatingSystemId.IsUnknown() {
 		request := d.client.GetControlPanelListByOperatingSystemId(d.authContext(ctx), data.OperatingSystemId.ValueString()).Limit(50)
-		result, _, err = request.Execute()
+		result, response, err = request.Execute()
 	} else {
 		request := d.client.GetControlPanelList(d.authContext(ctx)).Limit(50)
-		result, _, err = request.Execute()
+		result, response, err = request.Execute()
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading control panels", err.Error())
+		summary := "Error reading control panels"
+		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
 		return
 	}
 
