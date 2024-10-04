@@ -21,7 +21,6 @@ type AutoScalingGroup struct {
 	CpuThreshold  types.Int64  `tfsdk:"cpu_threshold"`
 	WarmupTime    types.Int64  `tfsdk:"warmup_time"`
 	CooldownTime  types.Int64  `tfsdk:"cooldown_time"`
-	LoadBalancer  types.Object `tfsdk:"load_balancer"`
 }
 
 func (a AutoScalingGroup) AttributeTypes() map[string]attr.Type {
@@ -41,6 +40,5 @@ func (a AutoScalingGroup) AttributeTypes() map[string]attr.Type {
 		"cpu_threshold":  types.Int64Type,
 		"warmup_time":    types.Int64Type,
 		"cooldown_time":  types.Int64Type,
-		"load_balancer":  types.ObjectType{AttrTypes: LoadBalancer{}.AttributeTypes()},
 	}
 }

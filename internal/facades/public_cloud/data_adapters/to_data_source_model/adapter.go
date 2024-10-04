@@ -200,10 +200,6 @@ func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *mode
 		CooldownTime: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.CooldownTime,
 		),
-		LoadBalancer: shared.AdaptNullableDomainEntityToDatasourceModel(
-			autoScalingGroup.LoadBalancer,
-			adaptLoadBalancer,
-		),
 	}
 }
 
@@ -237,26 +233,12 @@ func adaptLoadBalancer(loadBalancer public_cloud.LoadBalancer) *model.LoadBalanc
 func adaptLoadBalancerConfiguration(configuration public_cloud.LoadBalancerConfiguration) *model.LoadBalancerConfiguration {
 	return &model.LoadBalancerConfiguration{
 		Balance: basetypes.NewStringValue(configuration.Balance.String()),
-		HealthCheck: shared.AdaptNullableDomainEntityToDatasourceModel(
-			configuration.HealthCheck,
-			adaptHealthCheck,
-		),
 		StickySession: shared.AdaptNullableDomainEntityToDatasourceModel(
 			configuration.StickySession,
 			adaptStickySession,
 		),
 		XForwardedFor: basetypes.NewBoolValue(configuration.XForwardedFor),
 		IdleTimeout:   basetypes.NewInt64Value(int64(configuration.IdleTimeout)),
-		TargetPort:    basetypes.NewInt64Value(int64(configuration.TargetPort)),
-	}
-}
-
-func adaptHealthCheck(healthCheck public_cloud.HealthCheck) *model.HealthCheck {
-	return &model.HealthCheck{
-		Method: basetypes.NewStringValue(healthCheck.Method.String()),
-		Uri:    basetypes.NewStringValue(healthCheck.Uri),
-		Host:   shared.AdaptNullableStringToStringValue(healthCheck.Host),
-		Port:   basetypes.NewInt64Value(int64(healthCheck.Port)),
 	}
 }
 

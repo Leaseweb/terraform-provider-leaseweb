@@ -25,6 +25,7 @@ func TestNewInstance(t *testing.T) {
 			"productType",
 			false,
 			true,
+			false,
 			*rootDiskSize,
 			instanceType,
 			enum.StorageTypeCentral,
@@ -41,6 +42,7 @@ func TestNewInstance(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.False(t, got.HasPublicIpv4)
 		assert.True(t, got.HasPrivateNetwork)
+		assert.False(t, got.HasUserData)
 		assert.Equal(t, instanceType, got.Type)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
@@ -75,6 +77,7 @@ func TestNewInstance(t *testing.T) {
 			"",
 			false,
 			true,
+			false,
 			value_object.RootDiskSize{},
 			InstanceType{},
 			enum.StorageTypeCentral,

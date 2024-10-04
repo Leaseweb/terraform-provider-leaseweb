@@ -53,14 +53,14 @@ func TestNewLoadBalancer(t *testing.T) {
 				Reference:      &reference,
 				StartedAt:      &startedAt,
 				PrivateNetwork: &PrivateNetwork{Id: "privateNetworkId"},
-				Configuration:  &LoadBalancerConfiguration{TargetPort: 54},
+				Configuration:  &LoadBalancerConfiguration{Balance: enum.BalanceRoundRobin},
 			},
 		)
 
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
-		assert.Equal(t, 54, got.Configuration.TargetPort)
+		assert.Equal(t, enum.BalanceRoundRobin, got.Configuration.Balance)
 	})
 
 }

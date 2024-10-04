@@ -32,7 +32,6 @@ func Test_adaptInstance(t *testing.T) {
 	id := "id"
 	sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
 	autoScalingGroupId := "autoScalingGroupId"
-	loadBalancerId := "loadBalancerId"
 
 	instance := generateDomainInstance()
 	instance.Id = id
@@ -41,7 +40,6 @@ func Test_adaptInstance(t *testing.T) {
 	instance.Reference = &reference
 	instance.SshKey = sshKeyValueObject
 	instance.AutoScalingGroup.Id = autoScalingGroupId
-	instance.AutoScalingGroup.LoadBalancer.Id = loadBalancerId
 	instance.Region = public_cloud.Region{Name: "region"}
 
 	got := adaptInstance(instance)
@@ -52,6 +50,7 @@ func Test_adaptInstance(t *testing.T) {
 	assert.Equal(t, "productType", got.ProductType.ValueString())
 	assert.False(t, got.HasPublicIpv4.ValueBool())
 	assert.True(t, got.HasPrivateNetwork.ValueBool())
+	assert.False(t, got.HasUserData.ValueBool())
 	assert.Equal(t, "lsw.c3.large", got.Type.Name.ValueString())
 	assert.Equal(t, int64(55), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
@@ -68,11 +67,6 @@ func Test_adaptInstance(t *testing.T) {
 	)
 	assert.Equal(t, "isoId", got.Iso.Id.ValueString())
 	assert.Equal(t, "id", got.PrivateNetwork.Id.ValueString())
-	assert.Equal(
-		t,
-		loadBalancerId,
-		got.AutoScalingGroup.LoadBalancer.Id.ValueString(),
-	)
 }
 
 func Test_adaptResources(t *testing.T) {
@@ -251,10 +245,8 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 		enum.BalanceSource,
 		false,
 		1,
-		2,
 		public_cloud.OptionalLoadBalancerConfigurationOptions{
 			StickySession: &public_cloud.StickySession{MaxLifeTime: 32},
-			HealthCheck:   &public_cloud.HealthCheck{Method: enum.MethodGet},
 		},
 	)
 
@@ -262,27 +254,8 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 
 	assert.Equal(t, int64(32), got.StickySession.MaxLifeTime.ValueInt64())
 	assert.Equal(t, "source", got.Balance.ValueString())
-	assert.Equal(t, "GET", got.HealthCheck.Method.ValueString())
 	assert.False(t, got.XForwardedFor.ValueBool())
 	assert.Equal(t, int64(1), got.IdleTimeout.ValueInt64())
-	assert.Equal(t, int64(2), got.TargetPort.ValueInt64())
-}
-
-func Test_adaptHealthCheck(t *testing.T) {
-	host := "host"
-	healthCheck := public_cloud.NewHealthCheck(
-		"method",
-		"uri",
-		22,
-		public_cloud.OptionalHealthCheckValues{Host: &host},
-	)
-
-	got := adaptHealthCheck(healthCheck)
-
-	assert.Equal(t, "method", got.Method.ValueString())
-	assert.Equal(t, "uri", got.Uri.ValueString())
-	assert.Equal(t, host, got.Host.ValueString())
-	assert.Equal(t, int64(22), got.Port.ValueInt64())
 }
 
 func Test_adaptStickySession(t *testing.T) {
@@ -448,43 +421,6 @@ func generateDomainInstance() public_cloud.Instance {
 		"subnet",
 	)
 
-	stickySession := public_cloud.NewStickySession(true, 5)
-
-	host := "host"
-	healthCheck := public_cloud.NewHealthCheck(
-		enum.MethodGet,
-		"uri",
-		22,
-		public_cloud.OptionalHealthCheckValues{Host: &host},
-	)
-
-	loadBalancerConfiguration := public_cloud.NewLoadBalancerConfiguration(
-		enum.BalanceSource,
-		false,
-		5,
-		6,
-		public_cloud.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &stickySession,
-			HealthCheck:   &healthCheck,
-		},
-	)
-
-	loadBalancer := public_cloud.NewLoadBalancer(
-		"",
-		public_cloud.InstanceType{Name: "type"},
-		resources,
-		public_cloud.Region{Name: "loadBalancerRegion"},
-		enum.StateCreating,
-		*contract,
-		public_cloud.Ips{ip},
-		public_cloud.OptionalLoadBalancerValues{
-			Reference:      &reference,
-			StartedAt:      &startedAt,
-			PrivateNetwork: &privateNetwork,
-			Configuration:  &loadBalancerConfiguration,
-		},
-	)
-
 	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
 		"reference",
 	)
@@ -515,7 +451,6 @@ func generateDomainInstance() public_cloud.Instance {
 			CpuThreshold:  &autoScalingCpuThreshold,
 			WarmupTime:    &autoScalingWarmupTime,
 			CoolDownTime:  &autoScalingCooldownTime,
-			LoadBalancer:  &loadBalancer,
 		})
 
 	return public_cloud.NewInstance(
@@ -527,6 +462,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"productType",
 		false,
 		true,
+		false,
 		*rootDiskSize,
 		public_cloud.InstanceType{Name: "lsw.c3.large"},
 		enum.StorageTypeCentral,

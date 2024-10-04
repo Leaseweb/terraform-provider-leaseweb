@@ -76,6 +76,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.True(t, got.HasPublicIpv4)
 		assert.False(t, got.HasPrivateNetwork)
+		assert.False(t, got.HasUserData)
 		assert.Equal(t, 6, got.RootDiskSize.Value)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
@@ -351,7 +352,6 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		warmupTime := int32(4)
 		cooldownTime := int32(5)
 		desiredAmount := int32(6)
-		loadBalancerId := "loadBalancerId"
 
 		sdkAutoScalingGroup := sdk.NewAutoScalingGroupDetails(
 			instanceId,
@@ -369,11 +369,7 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 			*sdk.NewNullableInt32(&cpuThreshold),
 			*sdk.NewNullableInt32(&warmupTime),
 			*sdk.NewNullableInt32(&cooldownTime),
-			*sdk.NewNullableLoadBalancer(&sdk.LoadBalancer{
-				Id:    loadBalancerId,
-				State: sdk.STATE_CREATING,
-				Type:  sdk.TYPENAME_M3_LARGE,
-			}),
+			[]sdk.TargetGroup{},
 		)
 
 		got, err := AdaptAutoScalingGroupDetails(*sdkAutoScalingGroup)
@@ -394,7 +390,6 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		assert.Equal(t, 3, *got.CpuThreshold)
 		assert.Equal(t, 4, *got.WarmupTime)
 		assert.Equal(t, 5, *got.CooldownTime)
-		assert.Equal(t, loadBalancerId, got.LoadBalancer.Id)
 	})
 
 	t.Run("invalid type returns error", func(t *testing.T) {
@@ -432,23 +427,6 @@ func Test_adaptAutoScalingGroupDetails(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "characters long")
 	})
-
-	t.Run("invalid loadBalancer returns error", func(t *testing.T) {
-		_, err := AdaptAutoScalingGroupDetails(
-			sdk.AutoScalingGroupDetails{
-				Id:        instanceId,
-				Type:      "MANUAL",
-				State:     "SCALING",
-				Reference: "reference",
-				LoadBalancer: *sdk.NewNullableLoadBalancer(
-					&sdk.LoadBalancer{State: "tralala"},
-				),
-			},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
 }
 
 func Test_adaptStickySession(t *testing.T) {
@@ -462,69 +440,27 @@ func Test_adaptStickySession(t *testing.T) {
 
 }
 
-func Test_adaptHealthCheck(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		host := "host"
-
-		sdkHealthCheck := sdk.NewHealthCheck(
-			"GET",
-			"uri",
-			*sdk.NewNullableString(&host),
-			22,
-		)
-
-		got, err := adaptHealthCheck(*sdkHealthCheck)
-
-		assert.NoError(t, err)
-		assert.Equal(t, enum.MethodGet, got.Method)
-		assert.Equal(t, "uri", got.Uri)
-		assert.Equal(t, "host", *got.Host)
-		assert.Equal(t, 22, got.Port)
-	})
-
-	t.Run("invalid method returns error", func(t *testing.T) {
-		_, err := adaptHealthCheck(sdk.HealthCheck{Method: "tralala"})
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-}
-
 func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		sdkLoadBalancerConfiguration := sdk.NewLoadBalancerConfiguration(
 			*sdk.NewNullableStickySession(&sdk.StickySession{MaxLifeTime: 44}),
 			"roundrobin",
-			*sdk.NewNullableHealthCheck(&sdk.HealthCheck{Method: "GET"}),
-			true, 1, 2)
+			true,
+			1,
+		)
 
 		got, err := adaptLoadBalancerConfiguration(*sdkLoadBalancerConfiguration)
 
 		assert.NoError(t, err)
 		assert.Equal(t, 44, got.StickySession.MaxLifeTime)
 		assert.Equal(t, enum.BalanceRoundRobin, got.Balance)
-		assert.Equal(t, enum.MethodGet, got.HealthCheck.Method)
 		assert.True(t, got.XForwardedFor)
+		assert.Equal(t, 1, got.IdleTimeout)
 	})
 
 	t.Run("invalid balance returns error", func(t *testing.T) {
 		_, err := adaptLoadBalancerConfiguration(
 			sdk.LoadBalancerConfiguration{Balance: "tralala"},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid HealthCheck returns error", func(t *testing.T) {
-		_, err := adaptLoadBalancerConfiguration(
-			sdk.LoadBalancerConfiguration{
-				Balance: sdk.BALANCE_ROUNDROBIN,
-				HealthCheck: *sdk.NewNullableHealthCheck(
-					&sdk.HealthCheck{Method: "tralala"},
-				),
-			},
 		)
 
 		assert.Error(t, err)
@@ -551,7 +487,6 @@ func TestAdaptLoadBalancerDetails(t *testing.T) {
 			got.Contract.BillingFrequency,
 		)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, 22, got.Configuration.TargetPort)
 		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
 	})
 
@@ -670,6 +605,7 @@ func TestAdaptInstance(t *testing.T) {
 		assert.Equal(t, "productType", got.ProductType)
 		assert.True(t, got.HasPublicIpv4)
 		assert.False(t, got.HasPrivateNetwork)
+		assert.False(t, got.HasUserData)
 		assert.Equal(t, 6, got.RootDiskSize.Value)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
@@ -1015,6 +951,7 @@ func generateInstanceDetails(
 		"productType",
 		true,
 		false,
+		false,
 		6,
 		sdk.STORAGETYPE_CENTRAL,
 		sdk.Contract{
@@ -1059,6 +996,7 @@ func generateInstance(
 		"productType",
 		true,
 		false,
+		false,
 		6,
 		sdk.STORAGETYPE_CENTRAL,
 		sdk.Contract{
@@ -1094,8 +1032,7 @@ func generateLoadBalancerDetails(startedAt *time.Time) sdk.LoadBalancerDetails {
 		}},
 		"region",
 		*sdk.NewNullableLoadBalancerConfiguration(&sdk.LoadBalancerConfiguration{
-			TargetPort: 22,
-			Balance:    "roundrobin",
+			Balance: "roundrobin",
 		}),
 		*sdk.NewNullableAutoScalingGroup(nil),
 		*sdk.NewNullablePrivateNetwork(

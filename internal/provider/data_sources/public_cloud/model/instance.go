@@ -14,6 +14,7 @@ type Instance struct {
 	ProductType         types.String      `tfsdk:"product_type"`
 	HasPublicIpv4       types.Bool        `tfsdk:"has_public_ipv4"`
 	HasPrivateNetwork   types.Bool        `tfsdk:"has_private_network"`
+	HasUserData         types.Bool        `tfsdk:"has_user_data"`
 	Type                InstanceType      `tfsdk:"type"`
 	RootDiskSize        types.Int64       `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String      `tfsdk:"root_disk_storage_type"`

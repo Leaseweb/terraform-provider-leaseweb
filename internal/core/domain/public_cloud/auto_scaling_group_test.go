@@ -42,7 +42,6 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		assert.Nil(t, got.CpuThreshold)
 		assert.Nil(t, got.WarmupTime)
 		assert.Nil(t, got.CooldownTime)
-		assert.Nil(t, got.LoadBalancer)
 	})
 
 	t.Run("optional values are set", func(t *testing.T) {
@@ -74,7 +73,6 @@ func TestNewAutoScalingGroup(t *testing.T) {
 				CpuThreshold:  &cpuThreshold,
 				WarmupTime:    &WarmupTime,
 				CoolDownTime:  &CoolDownTime,
-				LoadBalancer:  &LoadBalancer{Region: Region{Name: "loadBalancerRegion"}},
 			})
 
 		assert.Equal(t, desiredAmount, *got.DesiredAmount)
@@ -85,7 +83,6 @@ func TestNewAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, cpuThreshold, *got.CpuThreshold)
 		assert.Equal(t, WarmupTime, *got.WarmupTime)
 		assert.Equal(t, CoolDownTime, *got.CooldownTime)
-		assert.Equal(t, Region{Name: "loadBalancerRegion"}, got.LoadBalancer.Region)
 	})
 
 }
