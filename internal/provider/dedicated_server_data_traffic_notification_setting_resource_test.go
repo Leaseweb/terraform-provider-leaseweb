@@ -49,7 +49,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 						),
 					),
 				},
-				// Update and Read testing
+				// UpdateReference and Read testing
 				{
 					Config: providerConfig + `
 resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {

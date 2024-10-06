@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/instances"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance"
 )
 
@@ -169,7 +170,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		instance.NewInstanceResource,
-		NewDedicatedServerResource,
+		dedicatedserver.NewDedicatedServerResource,
 		NewDedicatedServerCredentialResource,
 		NewDataTrafficNotificationSettingResource,
 		NewBandwidthNotificationSettingResource,

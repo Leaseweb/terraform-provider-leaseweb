@@ -44,7 +44,7 @@ resource "leaseweb_dedicated_server_credential" "test" {
 						),
 					),
 				},
-				// Update and Read testing
+				// UpdateReference and Read testing
 				{
 					Config: providerConfig + `
 resource "leaseweb_dedicated_server_credential" "test" {
