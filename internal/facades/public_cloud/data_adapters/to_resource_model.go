@@ -1,5 +1,5 @@
 // Package to_resource_model implements adapters to convert domain entities to resource models.
-package to_resource_model
+package data_adapters
 
 import (
 	"context"

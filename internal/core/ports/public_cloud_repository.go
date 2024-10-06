@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
 
@@ -11,7 +11,7 @@ import (
 type PublicCloudRepository interface {
 	// GetAllInstances Retrieve all instances from the public cloud api.
 	GetAllInstances(ctx context.Context) (
-		public_cloud.Instances,
+		[]publicCloud.GetInstanceListResult,
 		*shared.RepositoryError,
 	)
 
@@ -19,19 +19,20 @@ type PublicCloudRepository interface {
 	GetInstance(
 		id string,
 		ctx context.Context,
-	) (*public_cloud.Instance, *shared.RepositoryError)
+	) (*publicCloud.InstanceDetails, *shared.RepositoryError)
 
 	// CreateInstance creates a new instance in the public cloud api.
 	CreateInstance(
-		instance public_cloud.Instance,
+		opts publicCloud.LaunchInstanceOpts,
 		ctx context.Context,
-	) (*public_cloud.Instance, *shared.RepositoryError)
+	) (*publicCloud.Instance, *shared.RepositoryError)
 
 	// UpdateInstance updates an instance in the public cloud api.
 	UpdateInstance(
-		instance public_cloud.Instance,
+		opts publicCloud.UpdateInstanceOpts,
+		id string,
 		ctx context.Context,
-	) (*public_cloud.Instance, *shared.RepositoryError)
+	) (*publicCloud.InstanceDetails, *shared.RepositoryError)
 
 	// DeleteInstance deletes an instance in the public cloud api.
 	DeleteInstance(id string, ctx context.Context) *shared.RepositoryError
@@ -40,31 +41,31 @@ type PublicCloudRepository interface {
 	GetAutoScalingGroup(
 		id string,
 		ctx context.Context,
-	) (*public_cloud.AutoScalingGroup, *shared.RepositoryError)
+	) (*publicCloud.AutoScalingGroupDetails, *shared.RepositoryError)
 
 	// GetLoadBalancer gets load balancer details from the public cloud api.
 	GetLoadBalancer(
 		id string,
 		ctx context.Context,
-	) (*public_cloud.LoadBalancer, *shared.RepositoryError)
+	) (*publicCloud.LoadBalancerDetails, *shared.RepositoryError)
 
 	// GetAvailableInstanceTypesForUpdate gets all possible instances types an instance is allowed to upgrade to from the public cloud api.
 	GetAvailableInstanceTypesForUpdate(
 		id string,
 		ctx context.Context,
-	) (public_cloud.InstanceTypes, *shared.RepositoryError)
+	) ([]publicCloud.InstanceTypes, *shared.RepositoryError)
 
 	// GetRegions gets a list of all regions from the public cloud api.
 	GetRegions(
 		ctx context.Context,
-	) (public_cloud.Regions, *shared.RepositoryError)
+	) ([]publicCloud.GetRegionListResult, *shared.RepositoryError)
 
 	// GetInstanceTypesForRegion gets all instance types for a specific region.
 	GetInstanceTypesForRegion(
 		region string,
 		ctx context.Context,
-	) (public_cloud.InstanceTypes, *shared.RepositoryError)
+	) ([]publicCloud.InstanceTypes, *shared.RepositoryError)
 
 	// GetAllImages gets all available images.
-	GetAllImages(ctx context.Context) (public_cloud.Images, *shared.RepositoryError)
+	GetAllImages(ctx context.Context) ([]publicCloud.GetImageListResult, *shared.RepositoryError)
 }

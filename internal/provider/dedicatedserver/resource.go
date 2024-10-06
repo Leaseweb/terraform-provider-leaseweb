@@ -32,7 +32,11 @@ func NewDedicatedServerResource() terraformResource.Resource {
 	return &dedicatedServerResource{}
 }
 
-func (d *dedicatedServerResource) Metadata(_ context.Context, req terraformResource.MetadataRequest, resp *terraformResource.MetadataResponse) {
+func (d *dedicatedServerResource) Metadata(
+	_ context.Context,
+	req terraformResource.MetadataRequest,
+	resp *terraformResource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
 }
 
@@ -46,7 +50,11 @@ func (d *dedicatedServerResource) authContext(ctx context.Context) context.Conte
 	)
 }
 
-func (d *dedicatedServerResource) Configure(ctx context.Context, req terraformResource.ConfigureRequest, resp *terraformResource.ConfigureResponse) {
+func (d *dedicatedServerResource) Configure(
+	ctx context.Context,
+	req terraformResource.ConfigureRequest,
+	resp *terraformResource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -76,7 +84,11 @@ func (d *dedicatedServerResource) Configure(ctx context.Context, req terraformRe
 	d.client = provider.NewClient(configuration.Host)
 }
 
-func (d *dedicatedServerResource) ImportState(ctx context.Context, req terraformResource.ImportStateRequest, resp *terraformResource.ImportStateResponse) {
+func (d *dedicatedServerResource) ImportState(
+	ctx context.Context,
+	req terraformResource.ImportStateRequest,
+	resp *terraformResource.ImportStateResponse,
+) {
 
 	terraformResource.ImportStatePassthroughID(
 		ctx,
@@ -95,15 +107,26 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req terraform
 	resp.Diagnostics.Append(diags...)
 }
 
-func (d *dedicatedServerResource) Create(ctx context.Context, req terraformResource.CreateRequest, resp *terraformResource.CreateResponse) {
+func (d *dedicatedServerResource) Create(
+	ctx context.Context,
+	req terraformResource.CreateRequest,
+	resp *terraformResource.CreateResponse,
+) {
 	panic("unimplemented")
 }
 
-func (d *dedicatedServerResource) Delete(ctx context.Context, req terraformResource.DeleteRequest, resp *terraformResource.DeleteResponse) {
+func (d *dedicatedServerResource) Delete(
+	ctx context.Context,
+	req terraformResource.DeleteRequest,
+	resp *terraformResource.DeleteResponse,
+) {
 	panic("unimplemented")
 }
 
-func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string) (*DedicatedServerModel, error) {
+func (d *dedicatedServerResource) getServer(
+	ctx context.Context,
+	serverID string,
+) (*DedicatedServerModel, error) {
 
 	// Getting server info
 	serverResult, _, err := d.client.GetServer(d.authContext(ctx), serverID).Execute()

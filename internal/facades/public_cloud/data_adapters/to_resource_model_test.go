@@ -1,4 +1,4 @@
-package to_resource_model
+package data_adapters
 
 import (
 	"context"

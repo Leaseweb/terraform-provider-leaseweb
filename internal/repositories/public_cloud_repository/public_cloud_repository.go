@@ -7,9 +7,6 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_domain_entity"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository/data_adapters/to_sdk_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/sdk"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 )
@@ -22,30 +19,8 @@ type Optional struct {
 
 // PublicCloudRepository fulfills contract for ports.PublicCloudRepository.
 type PublicCloudRepository struct {
-	publicCLoudAPI       sdk.PublicCloudApi
-	token                string
-	adaptInstanceDetails func(
-		sdkInstance publicCloud.InstanceDetails,
-	) (*public_cloud.Instance, error)
-	adaptInstance func(
-		sdkInstance publicCloud.Instance,
-	) (*public_cloud.Instance, error)
-	adaptAutoScalingGroupDetails func(
-		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-	) (*public_cloud.AutoScalingGroup, error)
-	adaptLoadBalancerDetails func(
-		sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
-	) (*public_cloud.LoadBalancer, error)
-	adaptToLaunchInstanceOpts func(instance public_cloud.Instance) (
-		*publicCloud.LaunchInstanceOpts, error)
-	adaptToUpdateInstanceOpts func(instance public_cloud.Instance) (
-		*publicCloud.UpdateInstanceOpts, error)
-	adaptRegion       func(sdkRegion publicCloud.Region) public_cloud.Region
-	adaptInstanceType func(sdkInstanceType publicCloud.InstanceType) (
-		*public_cloud.InstanceType,
-		error,
-	)
-	adaptImageDetails func(sdkImage publicCloud.ImageDetails) public_cloud.Image
+	publicCLoudAPI sdk.PublicCloudApi
+	token          string
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -60,10 +35,10 @@ func (p PublicCloudRepository) authContext(ctx context.Context) context.Context 
 }
 
 func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
-	public_cloud.Instances,
+	[]publicCloud.GetInstanceListResult,
 	*shared.RepositoryError,
 ) {
-	var instances public_cloud.Instances
+	var instances []publicCloud.GetInstanceListResult
 
 	request := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx))
 
@@ -86,14 +61,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 			return nil, shared.NewSdkError("GetAllInstances", err, response)
 		}
 
-		for _, sdkInstance := range result.Instances {
-			instance, err := p.adaptInstance(sdkInstance)
-			if err != nil {
-				return nil, shared.NewGeneralError("GetAllInstances", err)
-			}
-
-			instances = append(instances, *instance)
-		}
+		instances = append(instances, *result)
 
 		if !pagination.CanIncrement() {
 			break
@@ -111,7 +79,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 func (p PublicCloudRepository) GetInstance(
 	id string,
 	ctx context.Context,
-) (*public_cloud.Instance, *shared.RepositoryError) {
+) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
 	sdkInstance, response, err := p.publicCLoudAPI.GetInstance(
 		p.authContext(ctx),
 		id,
@@ -125,22 +93,13 @@ func (p PublicCloudRepository) GetInstance(
 		)
 	}
 
-	instance, err := p.adaptInstanceDetails(*sdkInstance)
-	if err != nil {
-		return nil, shared.NewSdkError(
-			fmt.Sprintf("GetInstance %q", id),
-			err,
-			response,
-		)
-	}
-
-	return instance, nil
+	return sdkInstance, nil
 }
 
 func (p PublicCloudRepository) GetAutoScalingGroup(
 	id string,
 	ctx context.Context,
-) (*public_cloud.AutoScalingGroup, *shared.RepositoryError) {
+) (*publicCloud.AutoScalingGroupDetails, *shared.RepositoryError) {
 	sdkAutoScalingGroupDetails, response, err := p.publicCLoudAPI.GetAutoScalingGroup(
 		p.authContext(ctx),
 		id,
@@ -153,25 +112,13 @@ func (p PublicCloudRepository) GetAutoScalingGroup(
 		)
 	}
 
-	autoScalingGroup, err := p.adaptAutoScalingGroupDetails(
-		*sdkAutoScalingGroupDetails,
-	)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			fmt.Sprintf("GetAutoScalingGroup %q", id),
-			err,
-		)
-	}
-
-	return autoScalingGroup, nil
+	return sdkAutoScalingGroupDetails, nil
 }
 
 func (p PublicCloudRepository) GetLoadBalancer(
 	id string,
 	ctx context.Context,
-) (*public_cloud.LoadBalancer, *shared.RepositoryError) {
-	var loadBalancer *public_cloud.LoadBalancer
-
+) (*publicCloud.LoadBalancerDetails, *shared.RepositoryError) {
 	sdkLoadBalancerDetails, response, err := p.publicCLoudAPI.GetLoadBalancer(
 		p.authContext(ctx),
 		id,
@@ -184,33 +131,17 @@ func (p PublicCloudRepository) GetLoadBalancer(
 		)
 	}
 
-	loadBalancer, err = p.adaptLoadBalancerDetails(*sdkLoadBalancerDetails)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			fmt.Sprintf("getLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
-			err,
-		)
-	}
-
-	return loadBalancer, nil
+	return sdkLoadBalancerDetails, nil
 }
 
 func (p PublicCloudRepository) CreateInstance(
-	instance public_cloud.Instance,
+	opts publicCloud.LaunchInstanceOpts,
 	ctx context.Context,
-) (*public_cloud.Instance, *shared.RepositoryError) {
-
-	launchInstanceOpts, err := p.adaptToLaunchInstanceOpts(instance)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			"CreateInstance",
-			err,
-		)
-	}
+) (*publicCloud.Instance, *shared.RepositoryError) {
 
 	sdkLaunchedInstance, response, err := p.publicCLoudAPI.
 		LaunchInstance(p.authContext(ctx)).
-		LaunchInstanceOpts(*launchInstanceOpts).Execute()
+		LaunchInstanceOpts(opts).Execute()
 
 	if err != nil {
 		return nil, shared.NewSdkError(
@@ -220,49 +151,28 @@ func (p PublicCloudRepository) CreateInstance(
 		)
 	}
 
-	launchedInstance, err := p.adaptInstance(*sdkLaunchedInstance)
-
-	if err != nil {
-		return nil, shared.NewGeneralError("CreateInstance", err)
-	}
-
-	return launchedInstance, nil
+	return sdkLaunchedInstance, nil
 }
 
 func (p PublicCloudRepository) UpdateInstance(
-	instance public_cloud.Instance,
+	opts publicCloud.UpdateInstanceOpts,
+	id string,
 	ctx context.Context,
-) (*public_cloud.Instance, *shared.RepositoryError) {
-
-	updateInstanceOpts, err := p.adaptToUpdateInstanceOpts(instance)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			fmt.Sprintf("UpdateInstance %q", instance.Id),
-			err,
-		)
-	}
+) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
 
 	sdkUpdatedInstance, response, err := p.publicCLoudAPI.UpdateInstance(
 		p.authContext(ctx),
-		instance.Id,
-	).UpdateInstanceOpts(*updateInstanceOpts).Execute()
+		id,
+	).UpdateInstanceOpts(opts).Execute()
 	if err != nil {
 		return nil, shared.NewSdkError(
-			fmt.Sprintf("UpdateInstance %q", instance.Id),
+			fmt.Sprintf("UpdateInstance %q", id),
 			err,
 			response,
 		)
 	}
 
-	updatedInstance, err := p.adaptInstanceDetails(*sdkUpdatedInstance)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			fmt.Sprintf("UpdateInstance %q", instance.Id),
-			err,
-		)
-	}
-
-	return updatedInstance, nil
+	return sdkUpdatedInstance, nil
 }
 
 func (p PublicCloudRepository) DeleteInstance(
@@ -287,8 +197,8 @@ func (p PublicCloudRepository) DeleteInstance(
 func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
-) (public_cloud.InstanceTypes, *shared.RepositoryError) {
-	var instanceTypes public_cloud.InstanceTypes
+) ([]publicCloud.InstanceTypes, *shared.RepositoryError) {
+	var instanceTypes []publicCloud.InstanceTypes
 
 	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(
 		p.authContext(ctx),
@@ -302,26 +212,15 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 		)
 	}
 
-	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
-		instanceType, err := p.adaptInstanceType(sdkInstanceType)
-		if err != nil {
-			return nil, shared.NewSdkError(
-				fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
-				err,
-				response,
-			)
-		}
-		instanceTypes = append(instanceTypes, *instanceType)
-	}
-
+	instanceTypes = append(instanceTypes, *sdkInstanceTypes)
 	return instanceTypes, nil
 }
 
 func (p PublicCloudRepository) GetRegions(ctx context.Context) (
-	public_cloud.Regions,
+	[]publicCloud.GetRegionListResult,
 	*shared.RepositoryError,
 ) {
-	var regions public_cloud.Regions
+	var regions []publicCloud.GetRegionListResult
 
 	request := p.publicCLoudAPI.GetRegionList(p.authContext(ctx))
 
@@ -344,11 +243,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 			return nil, shared.NewSdkError("GetRegions", err, response)
 		}
 
-		for _, sdkRegion := range result.Regions {
-			region := p.adaptRegion(sdkRegion)
-
-			regions = append(regions, region)
-		}
+		regions = append(regions, *result)
 
 		if !pagination.CanIncrement() {
 			break
@@ -366,8 +261,8 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
-) (public_cloud.InstanceTypes, *shared.RepositoryError) {
-	var instanceTypes public_cloud.InstanceTypes
+) ([]publicCloud.InstanceTypes, *shared.RepositoryError) {
+	var instanceTypes []publicCloud.InstanceTypes
 
 	request := p.publicCLoudAPI.GetInstanceTypeList(p.authContext(ctx)).
 		Region(publicCloud.RegionName(region))
@@ -399,18 +294,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 			)
 		}
 
-		for _, sdkInstanceType := range result.InstanceTypes {
-			instanceType, err := p.adaptInstanceType(sdkInstanceType)
-			if err != nil {
-				return nil, shared.NewSdkError(
-					"GetInstanceTypesForRegion",
-					err,
-					response,
-				)
-			}
-
-			instanceTypes = append(instanceTypes, *instanceType)
-		}
+		instanceTypes = append(instanceTypes, *result)
 
 		if !pagination.CanIncrement() {
 			break
@@ -426,10 +310,10 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 }
 
 func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
-	public_cloud.Images,
+	[]publicCloud.GetImageListResult,
 	*shared.RepositoryError,
 ) {
-	var images public_cloud.Images
+	var images []publicCloud.GetImageListResult
 
 	request := p.publicCLoudAPI.GetImageList(p.authContext(ctx))
 
@@ -452,10 +336,7 @@ func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
 			return nil, shared.NewSdkError("GetAllImages", err, response)
 		}
 
-		for _, sdkImage := range result.Images {
-			image := p.adaptImageDetails(sdkImage)
-			images = append(images, image)
-		}
+		images = append(images, *result)
 
 		if !pagination.CanIncrement() {
 			break
@@ -486,16 +367,7 @@ func NewPublicCloudRepository(
 	client := *publicCloud.NewAPIClient(configuration)
 
 	return PublicCloudRepository{
-		publicCLoudAPI:               client.PublicCloudAPI,
-		token:                        token,
-		adaptInstanceDetails:         to_domain_entity.AdaptInstanceDetails,
-		adaptInstance:                to_domain_entity.AdaptInstance,
-		adaptAutoScalingGroupDetails: to_domain_entity.AdaptAutoScalingGroupDetails,
-		adaptLoadBalancerDetails:     to_domain_entity.AdaptLoadBalancerDetails,
-		adaptInstanceType:            to_domain_entity.AdaptInstanceType,
-		adaptRegion:                  to_domain_entity.AdaptRegion,
-		adaptImageDetails:            to_domain_entity.AdaptImageDetails,
-		adaptToLaunchInstanceOpts:    to_sdk_model.AdaptToLaunchInstanceOpts,
-		adaptToUpdateInstanceOpts:    to_sdk_model.AdaptToUpdateInstanceOpts,
+		publicCLoudAPI: client.PublicCloudAPI,
+		token:          token,
 	}
 }
