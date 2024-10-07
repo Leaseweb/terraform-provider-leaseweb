@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/customerror"
 )
 
 var (
@@ -120,8 +121,8 @@ func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req data
 
 	if err != nil {
 		summary := fmt.Sprintf("Error reading data dedicated_server_credential for server %q", serverID)
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, customerror.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, customerror.NewError(response, err).Error()))
 		return
 	}
 

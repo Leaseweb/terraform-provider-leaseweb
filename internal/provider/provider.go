@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/instances"
+	dedicatedserverdatasource "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver/datasource"
+	controlpanels "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver/datasource/control_panels"
+	dedicatedserverresource "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver/resource"
+	bandwidthnotificationsetting "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver/resource/bandwidth_notification_setting"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance"
 )
 
@@ -158,9 +162,9 @@ func (p *leasewebProvider) Configure(
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		instances.NewInstancesDataSource,
-		NewDedicatedServerDataSource,
+		dedicatedserverdatasource.New,
 		NewDedicatedServersDataSource,
-		NewDedicatedServerControlPanelsDataSource,
+		controlpanels.New,
 		NewDedicatedServerOperatingSystemsDataSource,
 		NewDedicatedServerCredentialDataSource,
 	}
@@ -169,10 +173,10 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		instance.NewInstanceResource,
-		NewDedicatedServerResource,
+		dedicatedserverresource.New,
 		NewDedicatedServerCredentialResource,
 		NewDataTrafficNotificationSettingResource,
-		NewBandwidthNotificationSettingResource,
+		bandwidthnotificationsetting.New,
 		NewDedicatedServerInstallationResource,
 	}
 }
