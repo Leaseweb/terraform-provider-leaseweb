@@ -35,10 +35,10 @@ func (p PublicCloudRepository) authContext(ctx context.Context) context.Context 
 }
 
 func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
-	[]publicCloud.GetInstanceListResult,
+	[]publicCloud.Instance,
 	*shared.RepositoryError,
 ) {
-	var instances []publicCloud.GetInstanceListResult
+	var instances []publicCloud.Instance
 
 	request := p.publicCLoudAPI.GetInstanceList(p.authContext(ctx))
 
@@ -61,7 +61,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 			return nil, shared.NewSdkError("GetAllInstances", err, response)
 		}
 
-		instances = append(instances, *result)
+		instances = append(instances, result.GetInstances()...)
 
 		if !pagination.CanIncrement() {
 			break
@@ -217,10 +217,10 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 }
 
 func (p PublicCloudRepository) GetRegions(ctx context.Context) (
-	[]publicCloud.GetRegionListResult,
+	[]publicCloud.Region,
 	*shared.RepositoryError,
 ) {
-	var regions []publicCloud.GetRegionListResult
+	var regions []publicCloud.Region
 
 	request := p.publicCLoudAPI.GetRegionList(p.authContext(ctx))
 
@@ -243,7 +243,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 			return nil, shared.NewSdkError("GetRegions", err, response)
 		}
 
-		regions = append(regions, *result)
+		regions = append(regions, result.GetRegions()...)
 
 		if !pagination.CanIncrement() {
 			break
@@ -310,10 +310,10 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 }
 
 func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
-	[]publicCloud.GetImageListResult,
+	[]publicCloud.ImageDetails,
 	*shared.RepositoryError,
 ) {
-	var images []publicCloud.GetImageListResult
+	var images []publicCloud.ImageDetails
 
 	request := p.publicCLoudAPI.GetImageList(p.authContext(ctx))
 
@@ -336,7 +336,7 @@ func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
 			return nil, shared.NewSdkError("GetAllImages", err, response)
 		}
 
-		images = append(images, *result)
+		images = append(images, result.GetImages()...)
 
 		if !pagination.CanIncrement() {
 			break
