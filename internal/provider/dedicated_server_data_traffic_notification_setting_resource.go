@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/customerror"
 	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
 )
 
@@ -145,8 +146,8 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating data traffic notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, customerror.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, customerror.NewError(response, err).Error()))
 		return
 	}
 
@@ -176,8 +177,8 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, customerror.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, customerror.NewError(response, err).Error()))
 		return
 	}
 
@@ -211,9 +212,9 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error updating data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		summary := fmt.Sprintf("Error updatings data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		resp.Diagnostics.AddError(summary, customerror.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, customerror.NewError(response, err).Error()))
 		return
 	}
 
@@ -243,8 +244,8 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, customerror.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, customerror.NewError(response, err).Error()))
 		return
 	}
 }

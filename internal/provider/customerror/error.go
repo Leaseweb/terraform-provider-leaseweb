@@ -1,4 +1,4 @@
-package provider
+package customerror
 
 import (
 	"encoding/json"

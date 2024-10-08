@@ -1,11 +1,10 @@
-package provider
+package controlpanels
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/customerror"
 )
 
 var (
@@ -101,8 +101,8 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 
 	if err != nil {
 		summary := "Error reading control panels"
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, customerror.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, customerror.NewError(response, err).Error()))
 		return
 	}
 
@@ -125,32 +125,6 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"control_panels": schema.ListNestedAttribute{
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:    true,
-							Description: "Id of the control panel.",
-						},
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of the control panel.",
-						},
-					},
-				},
-			},
-			"operating_system_id": schema.StringAttribute{
-				Optional:    true,
-				Description: "Filter control panels by operating system id.",
-			},
-		},
-	}
-}
-
-func NewDedicatedServerControlPanelsDataSource() datasource.DataSource {
+func New() datasource.DataSource {
 	return &dedicatedServerControlPanelsDataSource{}
 }
