@@ -73,6 +73,7 @@ func AdaptInstance(
 		sdkInstance.GetProductType(),
 		sdkInstance.GetHasPublicIpV4(),
 		sdkInstance.GetIncludesPrivateNetwork(),
+		sdkInstance.GetHasUserData(),
 		*rootDiskSize,
 		domainEntity.InstanceType{Name: string(sdkInstance.GetType())},
 		rootDiskStorageType,
@@ -158,6 +159,7 @@ func AdaptInstanceDetails(sdkInstanceDetails sdkModel.InstanceDetails) (
 		sdkInstanceDetails.GetProductType(),
 		sdkInstanceDetails.GetHasPublicIpV4(),
 		sdkInstanceDetails.GetIncludesPrivateNetwork(),
+		sdkInstanceDetails.GetHasUserData(),
 		*rootDiskSize,
 		domainEntity.InstanceType{Name: string(sdkInstanceDetails.GetType())},
 		rootDiskStorageType,
@@ -360,8 +362,6 @@ func AdaptAutoScalingGroupDetails(sdkAutoScalingGroup sdkModel.AutoScalingGroupD
 	*domainEntity.AutoScalingGroup,
 	error,
 ) {
-	var loadBalancer *domainEntity.LoadBalancer
-
 	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
 		string(sdkAutoScalingGroup.GetType()),
 	)
@@ -383,14 +383,6 @@ func AdaptAutoScalingGroupDetails(sdkAutoScalingGroup sdkModel.AutoScalingGroupD
 		return nil, fmt.Errorf("adaptAutoScalingGroupDetails: %w", err)
 	}
 
-	sdkLoadBalancer, _ := sdkAutoScalingGroup.GetLoadBalancerOk()
-	if sdkLoadBalancer != nil {
-		loadBalancer, err = adaptLoadBalancer(*sdkLoadBalancer)
-		if err != nil {
-			return nil, fmt.Errorf("adaptAutoScalingGroupDetails: %w", err)
-		}
-	}
-
 	options := domainEntity.AutoScalingGroupOptions{
 		DesiredAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.DesiredAmount),
 		MinimumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MinimumAmount),
@@ -400,7 +392,6 @@ func AdaptAutoScalingGroupDetails(sdkAutoScalingGroup sdkModel.AutoScalingGroupD
 		StartsAt:      shared.AdaptNullableTimeToValue(sdkAutoScalingGroup.StartsAt),
 		EndsAt:        shared.AdaptNullableTimeToValue(sdkAutoScalingGroup.EndsAt),
 		WarmupTime:    shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.WarmupTime),
-		LoadBalancer:  loadBalancer,
 	}
 
 	autoScalingGroup := domainEntity.NewAutoScalingGroup(
@@ -506,27 +497,16 @@ func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration sdkModel.LoadBa
 		return nil, fmt.Errorf("adaptLoadBalancerConfiguration: %w", err)
 	}
 
-	options := domainEntity.OptionalLoadBalancerConfigurationOptions{
-		HealthCheck: nil,
-	}
+	options := domainEntity.OptionalLoadBalancerConfigurationOptions{}
 	if sdkLoadBalancerConfiguration.StickySession.Get() != nil {
 		stickySession := adaptStickySession(*sdkLoadBalancerConfiguration.StickySession.Get())
 		options.StickySession = &stickySession
-	}
-	if sdkLoadBalancerConfiguration.HealthCheck.Get() != nil {
-		healthCheck, err := adaptHealthCheck(*sdkLoadBalancerConfiguration.HealthCheck.Get())
-		if err != nil {
-			return nil, fmt.Errorf("adaptLoadBalancerConfiguration: %w", err)
-		}
-
-		options.HealthCheck = healthCheck
 	}
 
 	configuration := domainEntity.NewLoadBalancerConfiguration(
 		balance,
 		sdkLoadBalancerConfiguration.GetXForwardedFor(),
 		int(sdkLoadBalancerConfiguration.GetIdleTimeOut()),
-		int(sdkLoadBalancerConfiguration.GetTargetPort()),
 		options,
 	)
 
@@ -538,27 +518,6 @@ func adaptStickySession(sdkStickySession sdkModel.StickySession) domainEntity.St
 		sdkStickySession.GetEnabled(),
 		int(sdkStickySession.GetMaxLifeTime()),
 	)
-}
-
-func adaptHealthCheck(sdkHealthCheck sdkModel.HealthCheck) (
-	*domainEntity.HealthCheck,
-	error,
-) {
-	method, err := enum.NewMethod(sdkHealthCheck.GetMethod())
-	if err != nil {
-		return nil, fmt.Errorf("adaptHealthCheck: %w", err)
-	}
-
-	healthCheck := domainEntity.NewHealthCheck(
-		method,
-		sdkHealthCheck.GetUri(),
-		int(sdkHealthCheck.GetPort()),
-		domainEntity.OptionalHealthCheckValues{
-			Host: shared.AdaptNullableStringToValue(sdkHealthCheck.Host),
-		},
-	)
-
-	return &healthCheck, nil
 }
 
 func AdaptInstanceType(sdkInstanceType sdkModel.InstanceType) (

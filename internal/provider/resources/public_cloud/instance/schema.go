@@ -78,7 +78,8 @@ func (i *instanceResource) Schema(
 						Computed: true,
 					},
 					"custom": schema.BoolAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "Standard or Custom image",
 					},
 					"market_apps": schema.ListAttribute{
 						Computed:    true,
@@ -116,6 +117,9 @@ func (i *instanceResource) Schema(
 				Computed: true,
 			},
 			"has_private_network": schema.BoolAttribute{
+				Computed: true,
+			},
+			"has_user_data": schema.BoolAttribute{
 				Computed: true,
 			},
 			"type": sharedSchemas.InstanceType(true),
@@ -239,115 +243,6 @@ func (i *instanceResource) Schema(
 					"cooldown_time": schema.Int64Attribute{
 						Computed:    true,
 						Description: "Only for \"CPU_BASED\" auto scaling group. Cool-down time in seconds for new instances",
-					},
-					"load_balancer": schema.SingleNestedAttribute{
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"id": schema.StringAttribute{
-								Computed:    true,
-								Description: "The load balancer unique identifier",
-							},
-							"type": sharedSchemas.InstanceType(false),
-							"resources": schema.SingleNestedAttribute{
-								Attributes: map[string]schema.Attribute{
-									"cpu": schema.SingleNestedAttribute{
-										Description: "Number of cores",
-										Computed:    true,
-										Attributes: map[string]schema.Attribute{
-											"value": schema.Int64Attribute{Computed: true},
-											"unit":  schema.StringAttribute{Computed: true},
-										},
-									},
-									"memory": schema.SingleNestedAttribute{
-										Description: "Total memory in GiB",
-										Computed:    true,
-										Attributes: map[string]schema.Attribute{
-											"value": schema.Float64Attribute{Computed: true},
-											"unit":  schema.StringAttribute{Computed: true},
-										},
-									},
-									"public_network_speed": schema.SingleNestedAttribute{
-										Description: "Public network speed in Gbps",
-										Computed:    true,
-										Attributes: map[string]schema.Attribute{
-											"value": schema.Int64Attribute{Computed: true},
-											"unit":  schema.StringAttribute{Computed: true},
-										},
-									},
-									"private_network_speed": schema.SingleNestedAttribute{
-										Description: "Private network speed in Gbps",
-										Computed:    true,
-										Attributes: map[string]schema.Attribute{
-											"value": schema.Int64Attribute{Computed: true},
-											"unit":  schema.StringAttribute{Computed: true},
-										},
-									},
-								},
-								Description: "Available resources",
-								Computed:    true,
-							},
-							"region": sharedSchemas.ResourceRegion(false, warningError),
-							"reference": schema.StringAttribute{
-								Computed:    true,
-								Description: "The identifying name set to the load balancer",
-							},
-							"state": schema.StringAttribute{
-								Computed:    true,
-								Description: "The load balancers current state",
-							},
-							"contract": sharedSchemas.Contract(false, facade),
-							"started_at": schema.StringAttribute{
-								Computed:    true,
-								Description: "Date and time when the load balancer was started for the first time, right after launching it",
-							},
-							"ips":             sharedSchemas.Ips(),
-							"private_network": sharedSchemas.Network(),
-							"load_balancer_configuration": schema.SingleNestedAttribute{
-								Computed: true,
-								Attributes: map[string]schema.Attribute{
-									"balance": schema.StringAttribute{
-										Computed: true,
-									},
-									"health_check": schema.SingleNestedAttribute{
-										Computed: true,
-										Attributes: map[string]schema.Attribute{
-											"method": schema.StringAttribute{
-												Computed: true,
-											},
-											"uri": schema.StringAttribute{
-												Computed: true,
-											},
-											"host": schema.StringAttribute{
-												Computed: true,
-											},
-											"port": schema.Int64Attribute{
-												Computed: true,
-											},
-										},
-									},
-									"sticky_session": schema.SingleNestedAttribute{
-										Computed: true,
-										Attributes: map[string]schema.Attribute{
-											"enabled": schema.BoolAttribute{
-												Computed: true,
-											},
-											"max_life_time": schema.Int64Attribute{
-												Computed: true,
-											},
-										},
-									},
-									"x_forwarded_for": schema.BoolAttribute{
-										Computed: true,
-									},
-									"idle_timeout": schema.Int64Attribute{
-										Computed: true,
-									},
-									"target_port": schema.Int64Attribute{
-										Computed: true,
-									},
-								},
-							},
-						},
 					},
 				},
 			},

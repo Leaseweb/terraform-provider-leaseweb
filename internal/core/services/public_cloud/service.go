@@ -175,20 +175,7 @@ func (srv *Service) getAutoScalingGroup(
 		)
 	}
 
-	// Get loadBalancerDetails.
-	if autoScalingGroup.LoadBalancer != nil {
-		loadBalancer, err := srv.getLoadBalancer(
-			autoScalingGroup.LoadBalancer.Id,
-			ctx,
-		)
-		if err != nil {
-			return nil, errors.NewError("getAutoScalingGroup", *err)
-		}
-		autoScalingGroup.LoadBalancer = loadBalancer
-	}
-
 	srv.cachedAutoScalingGroups.Set(id, *autoScalingGroup)
-
 	return autoScalingGroup, nil
 }
 

@@ -214,6 +214,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"productType",
 		false,
 		true,
+		false,
 		*rootDiskSize,
 		public_cloud.InstanceType{Name: "lsw.m3.xlarge"},
 		enum.StorageTypeCentral,

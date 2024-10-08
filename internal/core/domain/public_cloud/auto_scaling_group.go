@@ -23,7 +23,6 @@ type AutoScalingGroup struct {
 	CpuThreshold  *int
 	WarmupTime    *int
 	CooldownTime  *int
-	LoadBalancer  *LoadBalancer
 }
 
 type AutoScalingGroupOptions struct {
@@ -35,7 +34,6 @@ type AutoScalingGroupOptions struct {
 	CpuThreshold  *int
 	WarmupTime    *int
 	CoolDownTime  *int
-	LoadBalancer  *LoadBalancer
 }
 
 func NewAutoScalingGroup(
@@ -67,7 +65,6 @@ func NewAutoScalingGroup(
 	autoScalingGroup.CpuThreshold = options.CpuThreshold
 	autoScalingGroup.WarmupTime = options.WarmupTime
 	autoScalingGroup.CooldownTime = options.CoolDownTime
-	autoScalingGroup.LoadBalancer = options.LoadBalancer
 
 	return autoScalingGroup
 }

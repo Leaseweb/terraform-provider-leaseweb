@@ -199,24 +199,6 @@ func Test_adaptResources(t *testing.T) {
 	)
 }
 
-func Test_adaptHealthCheck(t *testing.T) {
-	host := "host"
-	healthCheck := public_cloud.NewHealthCheck(
-		enum.MethodGet,
-		"uri",
-		22,
-		public_cloud.OptionalHealthCheckValues{Host: &host},
-	)
-
-	got, err := adaptHealthCheck(context.TODO(), healthCheck)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "GET", got.Method.ValueString())
-	assert.Equal(t, "uri", got.Uri.ValueString())
-	assert.Equal(t, host, got.Host.ValueString())
-	assert.Equal(t, int64(22), got.Port.ValueInt64())
-}
-
 func Test_adaptStickySession(t *testing.T) {
 	stickySession := public_cloud.NewStickySession(false, 1)
 
@@ -228,15 +210,12 @@ func Test_adaptStickySession(t *testing.T) {
 }
 
 func Test_adaptLoadBalancerConfiguration(t *testing.T) {
-
 	loadBalancerConfiguration := public_cloud.NewLoadBalancerConfiguration(
 		enum.BalanceSource,
 		false,
 		5,
-		6,
 		public_cloud.OptionalLoadBalancerConfigurationOptions{
 			StickySession: &public_cloud.StickySession{MaxLifeTime: 5},
-			HealthCheck:   &public_cloud.HealthCheck{Method: enum.MethodHead},
 		},
 	)
 
@@ -249,7 +228,6 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 	assert.Equal(t, "source", got.Balance.ValueString())
 	assert.False(t, got.XForwardedFor.ValueBool())
 	assert.Equal(t, int64(5), got.IdleTimeout.ValueInt64())
-	assert.Equal(t, int64(6), got.TargetPort.ValueInt64())
 
 	stickySession := model.StickySession{}
 	got.StickySession.As(
@@ -258,14 +236,6 @@ func Test_adaptLoadBalancerConfiguration(t *testing.T) {
 		basetypes.ObjectAsOptions{},
 	)
 	assert.Equal(t, int64(5), stickySession.MaxLifeTime.ValueInt64())
-
-	healthCheck := model.HealthCheck{}
-	got.HealthCheck.As(
-		context.TODO(),
-		&healthCheck,
-		basetypes.ObjectAsOptions{},
-	)
-	assert.Equal(t, "HEAD", healthCheck.Method.ValueString())
 }
 
 func Test_adaptDdos(t *testing.T) {
@@ -440,6 +410,7 @@ func TestAdaptInstance(t *testing.T) {
 	assert.Equal(t, "productType", got.ProductType.ValueString())
 	assert.False(t, got.HasPublicIpv4.ValueBool())
 	assert.True(t, got.HasPrivateNetwork.ValueBool())
+	assert.False(t, got.HasUserData.ValueBool())
 	assert.Equal(t, int64(32), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
 	assert.Equal(
@@ -520,7 +491,6 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 	cooldownTime := 6
 	id := "id"
 	reference, _ := value_object.NewAutoScalingGroupReference("reference")
-	loadBalancerId := "loadBalancerId"
 
 	autoScalingGroup := public_cloud.NewAutoScalingGroup(
 		id,
@@ -539,10 +509,6 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 			CpuThreshold:  &cpuThreshold,
 			WarmupTime:    &warmupTime,
 			CoolDownTime:  &cooldownTime,
-			LoadBalancer: &public_cloud.LoadBalancer{
-				Id:        loadBalancerId,
-				StartedAt: &time.Time{},
-			},
 		},
 	)
 
@@ -586,14 +552,6 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 	assert.Equal(t, int64(4), got.CpuThreshold.ValueInt64())
 	assert.Equal(t, int64(5), got.WarmupTime.ValueInt64())
 	assert.Equal(t, int64(6), got.CooldownTime.ValueInt64())
-
-	loadBalancer := model.LoadBalancer{}
-	got.LoadBalancer.As(
-		context.TODO(),
-		&loadBalancer,
-		basetypes.ObjectAsOptions{},
-	)
-	assert.Equal(t, loadBalancerId, loadBalancer.Id.ValueString())
 }
 
 func generateDomainInstance() public_cloud.Instance {
@@ -692,27 +650,6 @@ func generateDomainInstance() public_cloud.Instance {
 		"subnet",
 	)
 
-	stickySession := public_cloud.NewStickySession(true, 5)
-
-	host := "host"
-	healthCheck := public_cloud.NewHealthCheck(
-		enum.MethodGet,
-		"uri",
-		22,
-		public_cloud.OptionalHealthCheckValues{Host: &host},
-	)
-
-	loadBalancerConfiguration := public_cloud.NewLoadBalancerConfiguration(
-		enum.BalanceSource,
-		false,
-		5,
-		6,
-		public_cloud.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &stickySession,
-			HealthCheck:   &healthCheck,
-		},
-	)
-
 	loadBalancerCpu := public_cloud.NewCpu(45, "loadBalancerCpuUnit")
 	loadBalancerMemory := public_cloud.NewMemory(2, "loadBalancerMemoryUnit")
 	loadBalancerPrivateNetworkSpeed := public_cloud.NewNetworkSpeed(
@@ -756,22 +693,6 @@ func generateDomainInstance() public_cloud.Instance {
 		public_cloud.OptionalInstanceTypeValues{StorageTypes: &instanceTypeStorageTypes},
 	)
 
-	loadBalancer := public_cloud.NewLoadBalancer(
-		"",
-		instanceType,
-		resources,
-		public_cloud.Region{Name: "region"},
-		enum.StateCreating,
-		*contract,
-		public_cloud.Ips{ip},
-		public_cloud.OptionalLoadBalancerValues{
-			Reference:      &reference,
-			StartedAt:      &startedAt,
-			PrivateNetwork: &privateNetwork,
-			Configuration:  &loadBalancerConfiguration,
-		},
-	)
-
 	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
 		"reference",
 	)
@@ -802,7 +723,6 @@ func generateDomainInstance() public_cloud.Instance {
 			CpuThreshold:  &autoScalingCpuThreshold,
 			WarmupTime:    &autoScalingWarmupTime,
 			CoolDownTime:  &autoScalingCooldownTime,
-			LoadBalancer:  &loadBalancer,
 		})
 
 	return public_cloud.NewInstance(
@@ -814,6 +734,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"productType",
 		false,
 		true,
+		false,
 		*rootDiskSize,
 		instanceType,
 		enum.StorageTypeCentral,

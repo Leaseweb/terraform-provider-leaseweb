@@ -28,7 +28,7 @@ func NewSdkError(
 		err: sdkError,
 	}
 
-	// Convert the returned json to an ErrorResponse struct.
+	// Convert the returned JSON to an ErrorResponse struct.
 	if sdkHttpResponse != nil {
 		buf := new(strings.Builder)
 		_, err := io.Copy(buf, sdkHttpResponse.Body)

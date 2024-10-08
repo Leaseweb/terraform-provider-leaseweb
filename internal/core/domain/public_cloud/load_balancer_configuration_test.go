@@ -13,17 +13,14 @@ func TestNewLoadBalancerConfiguration(t *testing.T) {
 			enum.BalanceRoundRobin,
 			false,
 			1,
-			2,
 			OptionalLoadBalancerConfigurationOptions{},
 		)
 
 		assert.Equal(t, enum.BalanceRoundRobin, got.Balance)
 		assert.False(t, got.XForwardedFor)
 		assert.Equal(t, 1, got.IdleTimeout)
-		assert.Equal(t, 2, got.TargetPort)
 
 		assert.Nil(t, got.StickySession)
-		assert.Nil(t, got.HealthCheck)
 	})
 
 	t.Run("optional options are set", func(t *testing.T) {
@@ -31,15 +28,12 @@ func TestNewLoadBalancerConfiguration(t *testing.T) {
 			enum.BalanceRoundRobin,
 			false,
 			1,
-			2,
 			OptionalLoadBalancerConfigurationOptions{
 				StickySession: &StickySession{MaxLifeTime: 4},
-				HealthCheck:   &HealthCheck{Uri: "uri"},
 			},
 		)
 
 		assert.Equal(t, 4, got.StickySession.MaxLifeTime)
-		assert.Equal(t, "uri", got.HealthCheck.Uri)
 	})
 
 }

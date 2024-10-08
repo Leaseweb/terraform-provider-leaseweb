@@ -600,8 +600,7 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 
 		returnedLoadBalancer := public_cloud.LoadBalancer{Id: loadBalancerId}
 		returnedAutoScalingGroup := public_cloud.AutoScalingGroup{
-			Id:           autoScalingGroupId,
-			LoadBalancer: &public_cloud.LoadBalancer{},
+			Id: autoScalingGroupId,
 		}
 
 		service := New(&repositorySpy{
@@ -610,9 +609,7 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 		})
 
 		want := &public_cloud.AutoScalingGroup{
-			Id: autoScalingGroupId, LoadBalancer: &public_cloud.LoadBalancer{
-				Id: loadBalancerId,
-			},
+			Id: autoScalingGroupId,
 		}
 
 		got, err := service.getAutoScalingGroup("", context.TODO())
@@ -630,28 +627,6 @@ func TestService_getAutoScalingGroup(t *testing.T) {
 						"",
 						errors.New("some error"),
 					),
-				},
-			)
-
-			_, err := service.getAutoScalingGroup("", context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run(
-		"loadBalancer errors bubble up",
-		func(t *testing.T) {
-			service := New(
-				&repositorySpy{
-					getLoadBalancerError: sharedRepository.NewGeneralError(
-						"",
-						errors.New("some error"),
-					),
-					autoScalingGroup: &public_cloud.AutoScalingGroup{
-						LoadBalancer: &public_cloud.LoadBalancer{},
-					},
 				},
 			)
 

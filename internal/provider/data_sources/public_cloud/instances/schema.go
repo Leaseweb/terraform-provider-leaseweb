@@ -109,6 +109,9 @@ func (d *instancesDataSource) Schema(
 						"has_private_network": schema.BoolAttribute{
 							Computed: true,
 						},
+						"has_user_data": schema.BoolAttribute{
+							Computed: true,
+						},
 						"type": public_cloud.InstanceType(false),
 						"root_disk_size": schema.Int64Attribute{
 							Computed:    true,
@@ -198,78 +201,6 @@ func (d *instancesDataSource) Schema(
 								"cooldown_time": schema.Int64Attribute{
 									Computed:    true,
 									Description: "Only for \"CPU_BASED\" auto scaling group. Cool-down time in seconds for new instances",
-								},
-								"load_balancer": schema.SingleNestedAttribute{
-									Computed: true,
-									Attributes: map[string]schema.Attribute{
-										"id": schema.StringAttribute{
-											Computed:    true,
-											Description: "The load balancer unique identifier",
-										},
-										"type":      public_cloud.InstanceType(false),
-										"resources": public_cloud.Resources(),
-										"region":    public_cloud.DataSourceRegion(),
-										"reference": schema.StringAttribute{
-											Computed:    true,
-											Description: "The identifying name set to the load balancer",
-										},
-										"state": schema.StringAttribute{
-											Computed:    true,
-											Description: "The load balancers current state",
-										},
-										"contract": public_cloud.Contract(false, publicCloudFacade),
-										"started_at": schema.StringAttribute{
-											Computed:    true,
-											Description: "Date and time when the load balancer was started for the first time, right after launching it",
-										},
-										"ips":             public_cloud.Ips(),
-										"private_network": public_cloud.Network(),
-										"load_balancer_configuration": schema.SingleNestedAttribute{
-											Computed: true,
-											Attributes: map[string]schema.Attribute{
-												"balance": schema.StringAttribute{
-													Computed: true,
-												},
-												"health_check": schema.SingleNestedAttribute{
-													Computed: true,
-													Attributes: map[string]schema.Attribute{
-														"method": schema.StringAttribute{
-															Computed: true,
-														},
-														"uri": schema.StringAttribute{
-															Computed: true,
-														},
-														"host": schema.StringAttribute{
-															Computed: true,
-														},
-														"port": schema.Int64Attribute{
-															Computed: true,
-														},
-													},
-												},
-												"sticky_session": schema.SingleNestedAttribute{
-													Computed: true,
-													Attributes: map[string]schema.Attribute{
-														"enabled": schema.BoolAttribute{
-															Computed: true,
-														},
-														"max_life_time": schema.Int64Attribute{
-															Computed: true,
-														},
-													},
-												},
-												"x_forwarded_for": schema.BoolAttribute{
-													Computed: true,
-												},
-												"idle_timeout": schema.Int64Attribute{
-													Computed: true,
-												},
-												"target_port": schema.Int64Attribute{
-													Computed: true,
-												},
-											},
-										},
-									},
 								},
 							},
 						},

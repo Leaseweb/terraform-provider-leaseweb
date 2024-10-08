@@ -340,16 +340,6 @@ func adaptAutoScalingGroup(
 	autoScalingGroup public_cloud.AutoScalingGroup,
 ) (*model.AutoScalingGroup, error) {
 
-	loadBalancer, loadBalancerDiags := shared.AdaptNullableDomainEntityToResourceObject(
-		autoScalingGroup.LoadBalancer,
-		model.LoadBalancer{}.AttributeTypes(),
-		ctx,
-		adaptLoadBalancer,
-	)
-	if loadBalancerDiags != nil {
-		return nil, loadBalancerDiags
-	}
-
 	region, diags := shared.AdaptDomainEntityToResourceObject(
 		autoScalingGroup.Region,
 		model.Region{}.AttributeTypes(),
@@ -398,7 +388,6 @@ func adaptAutoScalingGroup(
 		CooldownTime: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.CooldownTime,
 		),
-		LoadBalancer: loadBalancer,
 	}, nil
 }
 
@@ -503,16 +492,6 @@ func adaptLoadBalancerConfiguration(
 	configuration public_cloud.LoadBalancerConfiguration,
 ) (*model.LoadBalancerConfiguration, error) {
 
-	healthCheckObject, diags := shared.AdaptNullableDomainEntityToResourceObject(
-		configuration.HealthCheck,
-		model.HealthCheck{}.AttributeTypes(),
-		ctx,
-		adaptHealthCheck,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
 	stickySessionObject, diags := shared.AdaptNullableDomainEntityToResourceObject(
 		configuration.StickySession,
 		model.StickySession{}.AttributeTypes(),
@@ -525,24 +504,9 @@ func adaptLoadBalancerConfiguration(
 
 	return &model.LoadBalancerConfiguration{
 		Balance:       basetypes.NewStringValue(configuration.Balance.String()),
-		HealthCheck:   healthCheckObject,
 		StickySession: stickySessionObject,
 		XForwardedFor: basetypes.NewBoolValue(configuration.XForwardedFor),
 		IdleTimeout:   basetypes.NewInt64Value(int64(configuration.IdleTimeout)),
-		TargetPort:    basetypes.NewInt64Value(int64(configuration.TargetPort)),
-	}, nil
-}
-
-func adaptHealthCheck(
-	ctx context.Context,
-	healthCheck public_cloud.HealthCheck,
-) (*model.HealthCheck, error) {
-
-	return &model.HealthCheck{
-		Method: basetypes.NewStringValue(string(healthCheck.Method)),
-		Uri:    basetypes.NewStringValue(healthCheck.Uri),
-		Host:   shared.AdaptNullableStringToStringValue(healthCheck.Host),
-		Port:   basetypes.NewInt64Value(int64(healthCheck.Port)),
 	}, nil
 }
 

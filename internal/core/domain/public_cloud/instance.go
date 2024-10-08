@@ -30,6 +30,7 @@ type Instance struct {
 	ProductType         string
 	HasPublicIpv4       bool
 	HasPrivateNetwork   bool
+	HasUserData         bool
 	Type                InstanceType
 	RootDiskStorageType enum.StorageType
 	RootDiskSize        value_object.RootDiskSize
@@ -104,6 +105,7 @@ func NewInstance(
 	productType string,
 	hasPublicIpv4 bool,
 	hasPrivateNetwork bool,
+	hasUserData bool,
 	rootDiskSize value_object.RootDiskSize,
 	instanceType InstanceType,
 	rootDiskStorageType enum.StorageType,
@@ -120,6 +122,7 @@ func NewInstance(
 		ProductType:         productType,
 		HasPublicIpv4:       hasPublicIpv4,
 		HasPrivateNetwork:   hasPrivateNetwork,
+		HasUserData:         hasUserData,
 		Type:                instanceType,
 		RootDiskStorageType: rootDiskStorageType,
 		RootDiskSize:        rootDiskSize,

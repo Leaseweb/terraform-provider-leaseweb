@@ -15,6 +15,7 @@ type Instance struct {
 	ProductType         types.String `tfsdk:"product_type"`
 	HasPublicIpv4       types.Bool   `tfsdk:"has_public_ipv4"`
 	HasPrivateNetwork   types.Bool   `tfsdk:"has_private_network"`
+	HasUserData         types.Bool   `tfsdk:"has_user_data"`
 	Type                types.Object `tfsdk:"type"`
 	RootDiskSize        types.Int64  `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String `tfsdk:"root_disk_storage_type"`
@@ -46,6 +47,7 @@ func (i Instance) AttributeTypes() map[string]attr.Type {
 		"product_type":        types.StringType,
 		"has_public_ipv4":     types.BoolType,
 		"has_private_network": types.BoolType,
+		"has_user_data":       types.BoolType,
 		"type": types.ObjectType{
 			AttrTypes: InstanceType{}.AttributeTypes(),
 		},
