@@ -21,7 +21,7 @@ type ReasonInstanceCannotBeTerminated string
 
 type Instance struct {
 	Id                  string
-	Region              Region
+	Region              string
 	Reference           *string
 	StartedAt           *time.Time
 	Resources           Resources
@@ -31,7 +31,7 @@ type Instance struct {
 	HasPublicIpv4       bool
 	HasPrivateNetwork   bool
 	HasUserData         bool
-	Type                InstanceType
+	Type                string
 	RootDiskStorageType enum.StorageType
 	RootDiskSize        value_object.RootDiskSize
 	Ips                 Ips
@@ -98,7 +98,7 @@ type OptionalUpdateInstanceValues struct {
 // NewInstance creates a new instance with all supported options.
 func NewInstance(
 	id string,
-	region Region,
+	region string,
 	resources Resources,
 	image Image,
 	state enum.State,
@@ -107,7 +107,7 @@ func NewInstance(
 	hasPrivateNetwork bool,
 	hasUserData bool,
 	rootDiskSize value_object.RootDiskSize,
-	instanceType InstanceType,
+	instanceType string,
 	rootDiskStorageType enum.StorageType,
 	ips Ips,
 	contract Contract,
@@ -160,8 +160,8 @@ func NewCreateInstance(
 	}
 
 	instance := Instance{
-		Region:              Region{Name: region},
-		Type:                InstanceType{Name: instanceType},
+		Region:              region,
+		Type:                instanceType,
 		RootDiskStorageType: rootDiskStorageType,
 		Image:               Image{Id: imageId},
 		Contract: Contract{
@@ -200,7 +200,7 @@ func NewUpdateInstance(
 				msg: fmt.Sprintf("instance type %q is not allowed", *options.Type),
 			}
 		}
-		instance.Type = InstanceType{Name: *options.Type}
+		instance.Type = *options.Type
 	}
 
 	if options.ContractType != nil {

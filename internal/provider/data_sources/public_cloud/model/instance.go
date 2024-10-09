@@ -6,7 +6,7 @@ import (
 
 type Instance struct {
 	Id                  types.String      `tfsdk:"id"`
-	Region              Region            `tfsdk:"region"`
+	Region              types.String      `tfsdk:"region"`
 	Reference           types.String      `tfsdk:"reference"`
 	Resources           Resources         `tfsdk:"resources"`
 	Image               Image             `tfsdk:"image"`
@@ -15,7 +15,7 @@ type Instance struct {
 	HasPublicIpv4       types.Bool        `tfsdk:"has_public_ipv4"`
 	HasPrivateNetwork   types.Bool        `tfsdk:"has_private_network"`
 	HasUserData         types.Bool        `tfsdk:"has_user_data"`
-	Type                InstanceType      `tfsdk:"type"`
+	Type                types.String      `tfsdk:"type"`
 	RootDiskSize        types.Int64       `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String      `tfsdk:"root_disk_storage_type"`
 	Ips                 []Ip              `tfsdk:"ips"`
@@ -23,6 +23,5 @@ type Instance struct {
 	Contract            Contract          `tfsdk:"contract"`
 	MarketAppId         types.String      `tfsdk:"market_app_id"`
 	AutoScalingGroup    *AutoScalingGroup `tfsdk:"auto_scaling_group"`
-	Iso                 *Iso              `tfsdk:"iso"`
 	PrivateNetwork      *PrivateNetwork   `tfsdk:"private_network"`
 }

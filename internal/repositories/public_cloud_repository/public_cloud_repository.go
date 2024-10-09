@@ -30,22 +30,10 @@ type PublicCloudRepository struct {
 	adaptInstance func(
 		sdkInstance publicCloud.Instance,
 	) (*public_cloud.Instance, error)
-	adaptAutoScalingGroupDetails func(
-		sdkAutoScalingGroup publicCloud.AutoScalingGroupDetails,
-	) (*public_cloud.AutoScalingGroup, error)
-	adaptLoadBalancerDetails func(
-		sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
-	) (*public_cloud.LoadBalancer, error)
 	adaptToLaunchInstanceOpts func(instance public_cloud.Instance) (
 		*publicCloud.LaunchInstanceOpts, error)
 	adaptToUpdateInstanceOpts func(instance public_cloud.Instance) (
 		*publicCloud.UpdateInstanceOpts, error)
-	adaptRegion       func(sdkRegion publicCloud.Region) public_cloud.Region
-	adaptInstanceType func(sdkInstanceType publicCloud.InstanceType) (
-		*public_cloud.InstanceType,
-		error,
-	)
-	adaptImageDetails func(sdkImage publicCloud.ImageDetails) public_cloud.Image
 }
 
 // Injects the authentication token into the context for the sdk.
@@ -135,64 +123,6 @@ func (p PublicCloudRepository) GetInstance(
 	}
 
 	return instance, nil
-}
-
-func (p PublicCloudRepository) GetAutoScalingGroup(
-	id string,
-	ctx context.Context,
-) (*public_cloud.AutoScalingGroup, *shared.RepositoryError) {
-	sdkAutoScalingGroupDetails, response, err := p.publicCLoudAPI.GetAutoScalingGroup(
-		p.authContext(ctx),
-		id,
-	).Execute()
-	if err != nil {
-		return nil, shared.NewSdkError(
-			fmt.Sprintf("GetAutoScalingGroup %q", id),
-			err,
-			response,
-		)
-	}
-
-	autoScalingGroup, err := p.adaptAutoScalingGroupDetails(
-		*sdkAutoScalingGroupDetails,
-	)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			fmt.Sprintf("GetAutoScalingGroup %q", id),
-			err,
-		)
-	}
-
-	return autoScalingGroup, nil
-}
-
-func (p PublicCloudRepository) GetLoadBalancer(
-	id string,
-	ctx context.Context,
-) (*public_cloud.LoadBalancer, *shared.RepositoryError) {
-	var loadBalancer *public_cloud.LoadBalancer
-
-	sdkLoadBalancerDetails, response, err := p.publicCLoudAPI.GetLoadBalancer(
-		p.authContext(ctx),
-		id,
-	).Execute()
-	if err != nil {
-		return nil, shared.NewSdkError(
-			fmt.Sprintf("getLoadBalancer %q", id),
-			err,
-			response,
-		)
-	}
-
-	loadBalancer, err = p.adaptLoadBalancerDetails(*sdkLoadBalancerDetails)
-	if err != nil {
-		return nil, shared.NewGeneralError(
-			fmt.Sprintf("getLoadBalancer %q", sdkLoadBalancerDetails.GetId()),
-			err,
-		)
-	}
-
-	return loadBalancer, nil
 }
 
 func (p PublicCloudRepository) CreateInstance(
@@ -303,15 +233,7 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	}
 
 	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
-		instanceType, err := p.adaptInstanceType(sdkInstanceType)
-		if err != nil {
-			return nil, shared.NewSdkError(
-				fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
-				err,
-				response,
-			)
-		}
-		instanceTypes = append(instanceTypes, *instanceType)
+		instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
 	}
 
 	return instanceTypes, nil
@@ -345,9 +267,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 		}
 
 		for _, sdkRegion := range result.Regions {
-			region := p.adaptRegion(sdkRegion)
-
-			regions = append(regions, region)
+			regions = append(regions, string(sdkRegion.Name))
 		}
 
 		if !pagination.CanIncrement() {
@@ -400,16 +320,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 		}
 
 		for _, sdkInstanceType := range result.InstanceTypes {
-			instanceType, err := p.adaptInstanceType(sdkInstanceType)
-			if err != nil {
-				return nil, shared.NewSdkError(
-					"GetInstanceTypesForRegion",
-					err,
-					response,
-				)
-			}
-
-			instanceTypes = append(instanceTypes, *instanceType)
+			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
 		}
 
 		if !pagination.CanIncrement() {
@@ -423,51 +334,6 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	}
 
 	return instanceTypes, nil
-}
-
-func (p PublicCloudRepository) GetAllImages(ctx context.Context) (
-	public_cloud.Images,
-	*shared.RepositoryError,
-) {
-	var images public_cloud.Images
-
-	request := p.publicCLoudAPI.GetImageList(p.authContext(ctx))
-
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, shared.NewSdkError("GetAllImages", err, response)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := shared.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
-	for {
-		result, response, err := request.Execute()
-		if err != nil {
-			return nil, shared.NewSdkError("GetAllImages", err, response)
-		}
-
-		for _, sdkImage := range result.Images {
-			image := p.adaptImageDetails(sdkImage)
-			images = append(images, image)
-		}
-
-		if !pagination.CanIncrement() {
-			break
-		}
-
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, shared.NewSdkError("GetAllImages", err, response)
-		}
-	}
-
-	return images, nil
 }
 
 func NewPublicCloudRepository(
@@ -486,16 +352,11 @@ func NewPublicCloudRepository(
 	client := *publicCloud.NewAPIClient(configuration)
 
 	return PublicCloudRepository{
-		publicCLoudAPI:               client.PublicCloudAPI,
-		token:                        token,
-		adaptInstanceDetails:         to_domain_entity.AdaptInstanceDetails,
-		adaptInstance:                to_domain_entity.AdaptInstance,
-		adaptAutoScalingGroupDetails: to_domain_entity.AdaptAutoScalingGroupDetails,
-		adaptLoadBalancerDetails:     to_domain_entity.AdaptLoadBalancerDetails,
-		adaptInstanceType:            to_domain_entity.AdaptInstanceType,
-		adaptRegion:                  to_domain_entity.AdaptRegion,
-		adaptImageDetails:            to_domain_entity.AdaptImageDetails,
-		adaptToLaunchInstanceOpts:    to_sdk_model.AdaptToLaunchInstanceOpts,
-		adaptToUpdateInstanceOpts:    to_sdk_model.AdaptToUpdateInstanceOpts,
+		publicCLoudAPI:            client.PublicCloudAPI,
+		token:                     token,
+		adaptInstanceDetails:      to_domain_entity.AdaptInstanceDetails,
+		adaptInstance:             to_domain_entity.AdaptInstance,
+		adaptToLaunchInstanceOpts: to_sdk_model.AdaptToLaunchInstanceOpts,
+		adaptToUpdateInstanceOpts: to_sdk_model.AdaptToUpdateInstanceOpts,
 	}
 }

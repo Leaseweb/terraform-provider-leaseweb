@@ -66,9 +66,9 @@ func TestAdaptInstanceDetails(t *testing.T) {
 			"5d7f8262-d77f-4476-8da8-6a84f8f2ae8d",
 			got.Id,
 		)
-		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type.String())
+		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
-		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
+		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
@@ -340,251 +340,6 @@ func Test_adaptPrivateNetwork(t *testing.T) {
 	assert.Equal(t, "subnet", got.Subnet)
 }
 
-func Test_adaptAutoScalingGroupDetails(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		createdAt := time.Now()
-		updatedAt := time.Now()
-		startsAt := time.Now()
-		endsAt := time.Now()
-		minimumAmount := int32(1)
-		maximumAmount := int32(2)
-		cpuThreshold := int32(3)
-		warmupTime := int32(4)
-		cooldownTime := int32(5)
-		desiredAmount := int32(6)
-
-		sdkAutoScalingGroup := sdk.NewAutoScalingGroupDetails(
-			instanceId,
-			"MANUAL",
-			"SCALING",
-			*sdk.NewNullableInt32(&desiredAmount),
-			"region",
-			"reference",
-			createdAt,
-			updatedAt,
-			*sdk.NewNullableTime(&startsAt),
-			*sdk.NewNullableTime(&endsAt),
-			*sdk.NewNullableInt32(&minimumAmount),
-			*sdk.NewNullableInt32(&maximumAmount),
-			*sdk.NewNullableInt32(&cpuThreshold),
-			*sdk.NewNullableInt32(&warmupTime),
-			*sdk.NewNullableInt32(&cooldownTime),
-			[]sdk.TargetGroup{},
-		)
-
-		got, err := AdaptAutoScalingGroupDetails(*sdkAutoScalingGroup)
-
-		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
-		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
-		assert.Equal(t, 6, *got.DesiredAmount)
-		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
-		assert.Equal(t, "reference", got.Reference.String())
-		assert.Equal(t, createdAt, got.CreatedAt)
-		assert.Equal(t, updatedAt, got.UpdatedAt)
-		assert.Equal(t, startsAt, *got.StartsAt)
-		assert.Equal(t, endsAt, *got.EndsAt)
-		assert.Equal(t, 1, *got.MinimumAmount)
-		assert.Equal(t, 2, *got.MaximumAmount)
-		assert.Equal(t, 3, *got.CpuThreshold)
-		assert.Equal(t, 4, *got.WarmupTime)
-		assert.Equal(t, 5, *got.CooldownTime)
-	})
-
-	t.Run("invalid type returns error", func(t *testing.T) {
-		_, err := AdaptAutoScalingGroupDetails(
-			sdk.AutoScalingGroupDetails{Id: instanceId, Type: "tralala"},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid state returns error", func(t *testing.T) {
-		_, err := AdaptAutoScalingGroupDetails(
-			sdk.AutoScalingGroupDetails{
-				Id:    instanceId,
-				Type:  sdk.AUTOSCALINGGROUPTYPE_CPU_BASED,
-				State: "tralala",
-			},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid reference returns error", func(t *testing.T) {
-		_, err := AdaptAutoScalingGroupDetails(
-			sdk.AutoScalingGroupDetails{
-				Id:        instanceId,
-				Type:      "MANUAL",
-				State:     "SCALING",
-				Reference: "........................................................................................................................................................................................................................................................................",
-			},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "characters long")
-	})
-}
-
-func Test_adaptStickySession(t *testing.T) {
-	got := adaptStickySession(sdk.StickySession{
-		Enabled:     false,
-		MaxLifeTime: 20,
-	})
-
-	assert.False(t, got.Enabled)
-	assert.Equal(t, 20, got.MaxLifeTime)
-
-}
-
-func Test_adaptLoadBalancerConfiguration(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		sdkLoadBalancerConfiguration := sdk.NewLoadBalancerConfiguration(
-			*sdk.NewNullableStickySession(&sdk.StickySession{MaxLifeTime: 44}),
-			"roundrobin",
-			true,
-			1,
-		)
-
-		got, err := adaptLoadBalancerConfiguration(*sdkLoadBalancerConfiguration)
-
-		assert.NoError(t, err)
-		assert.Equal(t, 44, got.StickySession.MaxLifeTime)
-		assert.Equal(t, enum.BalanceRoundRobin, got.Balance)
-		assert.True(t, got.XForwardedFor)
-		assert.Equal(t, 1, got.IdleTimeout)
-	})
-
-	t.Run("invalid balance returns error", func(t *testing.T) {
-		_, err := adaptLoadBalancerConfiguration(
-			sdk.LoadBalancerConfiguration{Balance: "tralala"},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-}
-
-func TestAdaptLoadBalancerDetails(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		startedAt := time.Now()
-		sdkLoadBalancer := generateLoadBalancerDetails(&startedAt)
-
-		got, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
-
-		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type.String())
-		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
-		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
-		assert.Equal(t, enum.StateCreating, got.State)
-		assert.Equal(
-			t,
-			enum.ContractBillingFrequencyOne,
-			got.Contract.BillingFrequency,
-		)
-		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
-	})
-
-	t.Run("invalid state returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancerDetails(nil)
-		sdkLoadBalancer.State = "tralala"
-
-		_, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid contract returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancerDetails(nil)
-		sdkLoadBalancer.Contract.BillingFrequency = 55
-
-		_, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "55")
-	})
-
-	t.Run("invalid ips returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancerDetails(nil)
-		sdkLoadBalancer.Ips = []sdk.IpDetails{{NetworkType: "tralala"}}
-
-		_, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid configuration returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancerDetails(nil)
-		sdkLoadBalancer.Configuration.Get().Balance = "tralala"
-
-		_, err := AdaptLoadBalancerDetails(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-}
-
-func TestAdaptInstanceType(t *testing.T) {
-	t.Run("required values are set", func(t *testing.T) {
-		got, err := AdaptInstanceType(
-			sdk.InstanceType{
-				Name:      "name",
-				Resources: sdk.Resources{Cpu: sdk.Cpu{Unit: "cpu"}},
-				Prices:    sdk.Prices{Currency: "currency"},
-			},
-		)
-		want := domain.InstanceType{
-			Name:      "name",
-			Resources: domain.Resources{Cpu: domain.Cpu{Unit: "cpu"}},
-			Prices:    domain.Prices{Currency: "currency"},
-		}
-
-		assert.NoError(t, err)
-		assert.Equal(t, want, *got)
-	})
-
-	t.Run("optional values are set", func(t *testing.T) {
-		got, err := AdaptInstanceType(
-			sdk.InstanceType{
-				StorageTypes: []sdk.StorageType{
-					sdk.STORAGETYPE_CENTRAL,
-				},
-			},
-		)
-		want := domain.InstanceType{
-			StorageTypes: &domain.StorageTypes{enum.StorageTypeCentral},
-		}
-
-		assert.NoError(t, err)
-		assert.Equal(t, want, *got)
-	})
-
-	t.Run("invalid storageType returns an error", func(t *testing.T) {
-		_, err := AdaptInstanceType(
-			sdk.InstanceType{
-				StorageTypes: []sdk.StorageType{"tralala"},
-			},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-}
-
-func TestAdaptRegion(t *testing.T) {
-	got := AdaptRegion(sdk.Region{Name: "name", Location: "location"})
-	want := domain.Region{Name: "name", Location: "location"}
-
-	assert.Equal(t, want, got)
-}
-
 func TestAdaptInstance(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		startedAt := time.Now()
@@ -595,9 +350,9 @@ func TestAdaptInstance(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, "lsw.m3.large", got.Type.String())
+		assert.Equal(t, "lsw.m3.large", got.Type)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
-		assert.Equal(t, domain.Region{Name: "region"}, got.Region)
+		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
@@ -690,13 +445,11 @@ func Test_adaptImage(t *testing.T) {
 
 		got := adaptImage(*sdkImage)
 		want := domain.Image{
-			Id:           "UBUNTU_24_04_64BIT",
-			Name:         "name",
-			Family:       "family",
-			Flavour:      "flavour",
-			Custom:       false,
-			MarketApps:   []string{},
-			StorageTypes: []string{},
+			Id:      "UBUNTU_24_04_64BIT",
+			Name:    "name",
+			Family:  "family",
+			Flavour: "flavour",
+			Custom:  false,
 		}
 
 		assert.Equal(t, want, got)
@@ -775,13 +528,7 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
 		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
 		assert.Equal(t, 6, *got.DesiredAmount)
-		assert.Equal(
-			t,
-			domain.Region{
-				Name: "region",
-			},
-			got.Region,
-		)
+		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", got.Reference.String())
 		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, updatedAt, got.UpdatedAt)
@@ -829,105 +576,6 @@ func TestAdaptAutoScalingGroup(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "characters long")
 	})
-}
-
-func Test_adaptLoadBalancer(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		startedAt := time.Now()
-		sdkLoadBalancer := generateLoadBalancer(&startedAt)
-
-		got, err := adaptLoadBalancer(sdkLoadBalancer)
-
-		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type.String())
-		assert.Equal(t, "unit", got.Resources.Cpu.Unit)
-		assert.Equal(t, enum.StateCreating, got.State)
-	})
-
-	t.Run("invalid state returns error", func(t *testing.T) {
-		sdkLoadBalancer := generateLoadBalancer(nil)
-		sdkLoadBalancer.State = "tralala"
-
-		_, err := adaptLoadBalancer(sdkLoadBalancer)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-}
-
-func Test_adaptStorageTypes(t *testing.T) {
-	t.Run("sdk storageTypes are adapted correctly", func(t *testing.T) {
-		sdkStorageTypes := []sdk.StorageType{
-			sdk.STORAGETYPE_CENTRAL,
-			sdk.STORAGETYPE_LOCAL,
-		}
-		got, err := adaptStorageTypes(sdkStorageTypes)
-		want := domain.StorageTypes{
-			enum.StorageTypeCentral, enum.StorageTypeLocal,
-		}
-
-		assert.NoError(t, err)
-		assert.Equal(t, want, *got)
-	})
-
-	t.Run(
-		"error bubbles up when local storageType cannot be created",
-		func(t *testing.T) {
-			sdkStorageTypes := []sdk.StorageType{"tralala"}
-			got, err := adaptStorageTypes(sdkStorageTypes)
-
-			assert.Nil(t, got)
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
-		},
-	)
-}
-
-func Test_adaptPrice(t *testing.T) {
-	sdkPrice := sdk.NewPrice("1", "2")
-	got := adaptPrice(*sdkPrice)
-
-	want := domain.Price{
-		HourlyPrice:  "1",
-		MonthlyPrice: "2",
-	}
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptStorage(t *testing.T) {
-	sdkStorage := sdk.NewStorage(
-		sdk.Price{HourlyPrice: "1"},
-		sdk.Price{HourlyPrice: "2"},
-	)
-	got := adaptStorage(*sdkStorage)
-
-	want := domain.Storage{
-		Local:   domain.Price{HourlyPrice: "1"},
-		Central: domain.Price{HourlyPrice: "2"},
-	}
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptPrices(t *testing.T) {
-	sdkPrices := sdk.NewPrices(
-		"currency",
-		"symbol",
-		sdk.Price{HourlyPrice: "1"},
-		sdk.Storage{Central: sdk.Price{HourlyPrice: "2"}},
-	)
-	got := adaptPrices(*sdkPrices)
-
-	want := domain.Prices{
-		Currency:       "currency",
-		CurrencySymbol: "symbol",
-		Compute:        domain.Price{HourlyPrice: "1"},
-		Storage:        domain.Storage{Central: domain.Price{HourlyPrice: "2"}},
-	}
-
-	assert.Equal(t, want, got)
 }
 
 func generateInstanceDetails(
@@ -1014,113 +662,4 @@ func generateInstance(
 			{Ip: "1.2.3.4", NetworkType: sdk.NETWORKTYPE_PUBLIC},
 		},
 	)
-}
-
-func generateLoadBalancerDetails(startedAt *time.Time) sdk.LoadBalancerDetails {
-	reference := "reference"
-
-	return *sdk.NewLoadBalancerDetails(
-		instanceId,
-		"lsw.m3.large",
-		sdk.Resources{Cpu: sdk.Cpu{Unit: "unit"}},
-		*sdk.NewNullableString(&reference),
-		"CREATING",
-		*sdk.NewNullableTime(startedAt),
-		[]sdk.IpDetails{{
-			Ip:          "1.2.3.4",
-			NetworkType: sdk.NETWORKTYPE_PUBLIC,
-		}},
-		"region",
-		*sdk.NewNullableLoadBalancerConfiguration(&sdk.LoadBalancerConfiguration{
-			Balance: "roundrobin",
-		}),
-		*sdk.NewNullableAutoScalingGroup(nil),
-		*sdk.NewNullablePrivateNetwork(
-			&sdk.PrivateNetwork{PrivateNetworkId: "privateNetworkId"},
-		),
-		sdk.Contract{
-			BillingFrequency: 1,
-			Type:             sdk.CONTRACTTYPE_MONTHLY,
-			State:            sdk.CONTRACTSTATE_ACTIVE,
-			Term:             sdk.CONTRACTTERM__1,
-		},
-	)
-}
-
-func generateLoadBalancer(startedAt *time.Time) sdk.LoadBalancer {
-	reference := "reference"
-
-	return *sdk.NewLoadBalancer(
-		instanceId,
-		"lsw.m3.large",
-		sdk.Resources{Cpu: sdk.Cpu{Unit: "unit"}},
-		*sdk.NewNullableString(&reference),
-		sdk.STATE_CREATING,
-		*sdk.NewNullableTime(startedAt),
-	)
-}
-
-func TestAdaptImageDetails(t *testing.T) {
-	state := "state"
-	stateReason := "stateReason"
-	createdAt := time.Now()
-	updatedAt := time.Now()
-	version := "version"
-	architecture := "architecture"
-	regionName, _ := sdk.NewRegionNameFromValue("eu-west-3")
-	var minDiskSize int32 = 1
-
-	sdkImageDetails := sdk.NewImageDetails(
-		"id",
-		"name",
-		"family",
-		"flavour",
-		false,
-		*sdk.NewNullableStorageSize(
-			sdk.NewStorageSize(float32(1), "unit"),
-		),
-		*sdk.NewNullableString(&state),
-		*sdk.NewNullableString(&stateReason),
-		*sdk.NewNullableRegionName(regionName),
-		*sdk.NewNullableTime(&createdAt),
-		*sdk.NewNullableTime(&updatedAt),
-		*sdk.NewNullableString(&version),
-		*sdk.NewNullableString(&architecture),
-		[]string{"marketApp"},
-		[]string{"storageType"},
-		*sdk.NewNullableInt32(&minDiskSize),
-	)
-
-	got := AdaptImageDetails(*sdkImageDetails)
-
-	want := domain.Image{
-		Id:           "id",
-		Name:         "name",
-		Version:      &version,
-		Family:       "family",
-		Flavour:      "flavour",
-		Architecture: &architecture,
-		State:        &state,
-		StateReason:  &stateReason,
-		Region: &domain.Region{
-			Name: "eu-west-3",
-		},
-		CreatedAt:    &createdAt,
-		UpdatedAt:    &updatedAt,
-		Custom:       false,
-		StorageSize:  &domain.StorageSize{Size: 1, Unit: "unit"},
-		MarketApps:   []string{"marketApp"},
-		StorageTypes: []string{"storageType"},
-	}
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptStorageSize(t *testing.T) {
-	sdkStorageSize := sdk.NewStorageSize(1, "unit")
-
-	got := adaptStorageSize(*sdkStorageSize)
-	want := domain.StorageSize{Size: 1, Unit: "unit"}
-
-	assert.Equal(t, want, got)
 }

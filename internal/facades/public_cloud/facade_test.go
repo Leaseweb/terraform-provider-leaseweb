@@ -138,7 +138,7 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 		image, _ := basetypes.NewObjectValue(
 			model.Image{}.AttributeTypes(),
 			map[string]attr.Value{
-				"Id": basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+				"PrivateNetworkId": basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			},
 		)
 
@@ -151,23 +151,9 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 			},
 		)
 
-		instanceType, _ := basetypes.NewObjectValue(
-			model.InstanceType{}.AttributeTypes(),
-			map[string]attr.Value{
-				"Name": basetypes.NewStringValue("lsw.m5a.4xlarge"),
-			},
-		)
-
-		region, _ := basetypes.NewObjectValue(
-			model.Region{}.AttributeTypes(),
-			map[string]attr.Value{
-				"Name": basetypes.NewStringValue("region"),
-			},
-		)
-
 		instance := model.Instance{
-			Region:              region,
-			Type:                instanceType,
+			Region:              basetypes.NewStringValue("region"),
+			Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
 			RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
 			Image:               image,
 			Contract:            contract,
@@ -323,7 +309,7 @@ func TestPublicCloudFacade_DeleteInstance(t *testing.T) {
 
 func TestPublicCloudFacade_DoesRegionExist(t *testing.T) {
 	t.Run("returns true if region exists", func(t *testing.T) {
-		want := public_cloud.Regions{{Name: "region"}}
+		want := public_cloud.Regions{"region"}
 
 		spy := &serviceSpy{getRegions: want}
 		facade := PublicCloudFacade{publicCloudService: spy}
@@ -339,7 +325,7 @@ func TestPublicCloudFacade_DoesRegionExist(t *testing.T) {
 	})
 
 	t.Run("returns false if region does not exist", func(t *testing.T) {
-		want := public_cloud.Regions{{Name: "region"}}
+		want := public_cloud.Regions{"region"}
 
 		spy := &serviceSpy{getRegions: want}
 		facade := PublicCloudFacade{publicCloudService: spy}
@@ -514,7 +500,7 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 		instanceOpts := public_cloud.Instance{}
 		updatedInstance := public_cloud.Instance{}
 		currentInstance := public_cloud.Instance{
-			Type: public_cloud.InstanceType{Name: "instanceTypeName"},
+			Type: "instanceTypeName",
 		}
 
 		spy := serviceSpy{
@@ -563,7 +549,7 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 		func(t *testing.T) {
 			spy := serviceSpy{
 				getInstance: &public_cloud.Instance{
-					Type: public_cloud.InstanceType{Name: "instanceTypeName"},
+					Type: "instanceTypeName",
 				},
 			}
 			facade := NewPublicCloudFacade(&spy)
@@ -597,7 +583,7 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 					errors.New("some error"),
 				),
 				getInstance: &public_cloud.Instance{
-					Type: public_cloud.InstanceType{Name: "instanceTypeName"},
+					Type: "instanceTypeName",
 				},
 			}
 			facade := NewPublicCloudFacade(&spy)
@@ -628,7 +614,7 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 			spy := serviceSpy{
 				updatedInstance: &public_cloud.Instance{},
 				getInstance: &public_cloud.Instance{
-					Type: public_cloud.InstanceType{Name: "instanceTypeName"},
+					Type: "instanceTypeName",
 				},
 			}
 			facade := PublicCloudFacade{
@@ -823,8 +809,10 @@ func TestPublicCloudFacade_IsInstanceTypeAvailableForRegion(t *testing.T) {
 	t.Run(
 		"return true when instanceType is available for region",
 		func(t *testing.T) {
-			spy := serviceSpy{getAvailableInstanceTypesForRegion: public_cloud.InstanceTypes{
-				public_cloud.InstanceType{Name: "tralala"}},
+			spy := serviceSpy{
+				getAvailableInstanceTypesForRegion: public_cloud.InstanceTypes{
+					"tralala",
+				},
 			}
 			facade := NewPublicCloudFacade(&spy)
 
@@ -843,8 +831,8 @@ func TestPublicCloudFacade_IsInstanceTypeAvailableForRegion(t *testing.T) {
 	t.Run(
 		"return true when instanceType is not available for region",
 		func(t *testing.T) {
-			spy := serviceSpy{getAvailableInstanceTypesForRegion: public_cloud.InstanceTypes{
-				public_cloud.InstanceType{Name: "piet"}},
+			spy := serviceSpy{
+				getAvailableInstanceTypesForRegion: public_cloud.InstanceTypes{"piet"},
 			}
 			facade := NewPublicCloudFacade(&spy)
 
@@ -922,7 +910,7 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 		"returns true if instanceType is in availableInstanceTypes",
 		func(t *testing.T) {
 			spy := &serviceSpy{
-				instanceTypesForUpdate: public_cloud.InstanceTypes{{Name: "tralala"}},
+				instanceTypesForUpdate: public_cloud.InstanceTypes{"tralala"},
 			}
 			facade := PublicCloudFacade{publicCloudService: spy}
 
@@ -943,7 +931,7 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 		"returns false if instanceType cannot be used with instance",
 		func(t *testing.T) {
 			spy := &serviceSpy{
-				instanceTypesForUpdate: public_cloud.InstanceTypes{{Name: "piet"}},
+				instanceTypesForUpdate: public_cloud.InstanceTypes{"piet"},
 			}
 			facade := PublicCloudFacade{publicCloudService: spy}
 

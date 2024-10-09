@@ -49,32 +49,6 @@ func AdaptToCreateInstanceOpts(
 		)
 	}
 
-	instanceType := model.InstanceType{}
-	instanceTypeDiags := instanceResourceModel.Type.As(
-		ctx,
-		&instanceType,
-		basetypes.ObjectAsOptions{},
-	)
-	if instanceTypeDiags != nil {
-		return nil, shared.ReturnError(
-			"AdaptToCreateInstanceOpts",
-			instanceTypeDiags,
-		)
-	}
-
-	region := model.Region{}
-	regionDiags := instanceResourceModel.Region.As(
-		ctx,
-		&region,
-		basetypes.ObjectAsOptions{},
-	)
-	if regionDiags != nil {
-		return nil, shared.ReturnError(
-			"AdaptToCreateInstanceOpts",
-			regionDiags,
-		)
-	}
-
 	rootDiskStorageType, err := enum.NewStorageType(
 		instanceResourceModel.RootDiskStorageType.ValueString(),
 	)
@@ -136,8 +110,8 @@ func AdaptToCreateInstanceOpts(
 	}
 
 	createInstanceOpts, err := public_cloud.NewCreateInstance(
-		region.Name.ValueString(),
-		instanceType.Name.ValueString(),
+		instanceResourceModel.Region.ValueString(),
+		instanceResourceModel.Type.ValueString(),
 		rootDiskStorageType,
 		image.Id.ValueString(),
 		contractType,
@@ -199,19 +173,6 @@ func AdaptToUpdateInstanceOpts(
 		)
 	}
 
-	instanceType := model.InstanceType{}
-	diags = instanceResourceModel.Type.As(
-		ctx,
-		&instanceType,
-		basetypes.ObjectAsOptions{},
-	)
-	if diags.HasError() {
-		return nil, shared.ReturnError(
-			"AdaptToUpdateInstanceOpts",
-			diags,
-		)
-	}
-
 	if contract.Type.ValueString() != "" {
 		contractType, err := enum.NewContractType(contract.Type.ValueString())
 		if err != nil {
@@ -247,8 +208,8 @@ func AdaptToUpdateInstanceOpts(
 		optionalValues.BillingFrequency = &billingFrequency
 	}
 
-	if instanceType.Name.ValueString() != "" {
-		instanceTypeOpt := instanceType.Name.ValueString()
+	if instanceResourceModel.Type.ValueString() != "" {
+		instanceTypeOpt := instanceResourceModel.Type.ValueString()
 		optionalValues.Type = &instanceTypeOpt
 	}
 

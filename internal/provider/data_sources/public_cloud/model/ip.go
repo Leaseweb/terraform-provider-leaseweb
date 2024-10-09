@@ -12,5 +12,4 @@ type Ip struct {
 	MainIp        types.Bool   `tfsdk:"main_ip"`
 	NetworkType   types.String `tfsdk:"network_type"`
 	ReverseLookup types.String `tfsdk:"reverse_lookup"`
-	Ddos          *Ddos        `tfsdk:"ddos"`
 }

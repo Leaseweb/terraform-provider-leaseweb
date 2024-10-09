@@ -9,7 +9,7 @@ type AutoScalingGroup struct {
 	Type          types.String `tfsdk:"type"`
 	State         types.String `tfsdk:"state"`
 	DesiredAmount types.Int64  `tfsdk:"desired_amount"`
-	Region        Region       `tfsdk:"region"`
+	Region        types.String `tfsdk:"region"`
 	Reference     types.String `tfsdk:"reference"`
 	CreatedAt     types.String `tfsdk:"created_at"`
 	UpdatedAt     types.String `tfsdk:"updated_at"`
