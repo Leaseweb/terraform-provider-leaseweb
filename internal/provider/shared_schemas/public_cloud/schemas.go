@@ -126,7 +126,26 @@ func InstanceType(required bool) schema.SingleNestedAttribute {
 	}
 }
 
-func Ips() schema.ListNestedAttribute {
+func DataSourceIps() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"ip":            schema.StringAttribute{Computed: true},
+				"prefix_length": schema.StringAttribute{Computed: true},
+				"version":       schema.Int64Attribute{Computed: true},
+				"null_routed":   schema.BoolAttribute{Computed: true},
+				"main_ip":       schema.BoolAttribute{Computed: true},
+				"network_type": schema.StringAttribute{
+					Computed: true,
+				},
+				"reverse_lookup": schema.StringAttribute{Computed: true},
+			},
+		},
+	}
+}
+
+func ResourceIps() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
@@ -217,21 +236,6 @@ func Network() schema.SingleNestedAttribute {
 			},
 			"subnet": schema.StringAttribute{
 				Computed: true,
-			},
-		},
-	}
-}
-
-func DataSourceRegion() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Computed: true,
-		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
-				Computed: true,
-			},
-			"location": schema.StringAttribute{
-				Computed:    true,
-				Description: "The city where the region is located",
 			},
 		},
 	}

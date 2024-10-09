@@ -159,7 +159,7 @@ func (i *instanceResource) Schema(
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"ips": sharedSchemas.Ips(),
+			"ips": sharedSchemas.ResourceIps(),
 			"started_at": schema.StringAttribute{
 				Computed:    true,
 				Description: "Date and time when the instance was started for the first time, right after launching it",

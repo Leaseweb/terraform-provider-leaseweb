@@ -2,7 +2,6 @@
 package to_data_source_model
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
@@ -23,7 +22,7 @@ func AdaptInstances(domainInstances public_cloud.Instances) model.Instances {
 func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 	instance := model.Instance{
 		Id:     basetypes.NewStringValue(domainInstance.Id),
-		Region: *adaptRegion(domainInstance.Region),
+		Region: basetypes.NewStringValue(domainInstance.Region.String()),
 		Reference: shared.AdaptNullableStringToStringValue(
 			domainInstance.Reference,
 		),
@@ -37,7 +36,7 @@ func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 		HasPrivateNetwork: basetypes.NewBoolValue(
 			domainInstance.HasPrivateNetwork,
 		),
-		Type: adaptInstanceType(domainInstance.Type),
+		Type: basetypes.NewStringValue(domainInstance.Type.String()),
 		RootDiskSize: basetypes.NewInt64Value(
 			int64(domainInstance.RootDiskSize.Value),
 		),
@@ -56,10 +55,6 @@ func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 		AutoScalingGroup: shared.AdaptNullableDomainEntityToDatasourceModel(
 			domainInstance.AutoScalingGroup,
 			adaptAutoScalingGroup,
-		),
-		Iso: shared.AdaptNullableDomainEntityToDatasourceModel(
-			domainInstance.Iso,
-			adaptIso,
 		),
 		PrivateNetwork: shared.AdaptNullableDomainEntityToDatasourceModel(
 			domainInstance.PrivateNetwork,
@@ -111,37 +106,11 @@ func adaptNetworkSpeed(networkSpeed public_cloud.NetworkSpeed) model.NetworkSpee
 
 func adaptImage(domainImage public_cloud.Image) model.Image {
 	image := model.Image{
-		Id:           basetypes.NewStringValue(domainImage.Id),
-		Name:         basetypes.NewStringValue(domainImage.Name),
-		Version:      shared.AdaptNullableStringToStringValue(domainImage.Version),
-		Family:       basetypes.NewStringValue(domainImage.Family),
-		Flavour:      basetypes.NewStringValue(domainImage.Flavour),
-		Architecture: shared.AdaptNullableStringToStringValue(domainImage.Architecture),
-		State:        shared.AdaptNullableStringToStringValue(domainImage.State),
-		StateReason:  shared.AdaptNullableStringToStringValue(domainImage.StateReason),
-		Region: shared.AdaptNullableDomainEntityToDatasourceModel(
-			domainImage.Region,
-			adaptRegion,
-		),
-		CreatedAt: shared.AdaptNullableTimeToStringValue(domainImage.CreatedAt),
-		UpdatedAt: shared.AdaptNullableTimeToStringValue(domainImage.UpdatedAt),
-		Custom:    shared.AdaptBoolToBoolValue(domainImage.Custom),
-		StorageSize: shared.AdaptNullableDomainEntityToDatasourceModel(
-			domainImage.StorageSize,
-			adaptStorageSize,
-		),
-	}
-
-	for _, marketApp := range domainImage.MarketApps {
-		image.MarketApps = append(
-			image.MarketApps, types.StringValue(marketApp),
-		)
-	}
-
-	for _, storageType := range domainImage.StorageTypes {
-		image.StorageTypes = append(
-			image.StorageTypes, types.StringValue(storageType),
-		)
+		Id:      basetypes.NewStringValue(domainImage.Id),
+		Name:    basetypes.NewStringValue(domainImage.Name),
+		Family:  basetypes.NewStringValue(domainImage.Family),
+		Flavour: basetypes.NewStringValue(domainImage.Flavour),
+		Custom:  shared.AdaptBoolToBoolValue(domainImage.Custom),
 	}
 
 	return image
@@ -169,7 +138,7 @@ func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *mode
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.DesiredAmount,
 		),
-		Region: *adaptRegion(autoScalingGroup.Region),
+		Region: basetypes.NewStringValue(autoScalingGroup.Region.String()),
 		Reference: basetypes.NewStringValue(
 			autoScalingGroup.Reference.String(),
 		),
@@ -203,64 +172,11 @@ func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *mode
 	}
 }
 
-func adaptLoadBalancer(loadBalancer public_cloud.LoadBalancer) *model.LoadBalancer {
-	var ips []model.Ip
-	for _, ip := range loadBalancer.Ips {
-		ips = append(ips, adaptIp(ip))
-	}
-
-	return &model.LoadBalancer{
-		Id:        basetypes.NewStringValue(loadBalancer.Id),
-		Type:      adaptInstanceType(loadBalancer.Type),
-		Resources: adaptResources(loadBalancer.Resources),
-		Region:    *adaptRegion(loadBalancer.Region),
-		Reference: shared.AdaptNullableStringToStringValue(loadBalancer.Reference),
-		State:     basetypes.NewStringValue(string(loadBalancer.State)),
-		Contract:  adaptContract(loadBalancer.Contract),
-		StartedAt: shared.AdaptNullableTimeToStringValue(loadBalancer.StartedAt),
-		Ips:       ips,
-		LoadBalancerConfiguration: shared.AdaptNullableDomainEntityToDatasourceModel(
-			loadBalancer.Configuration,
-			adaptLoadBalancerConfiguration,
-		),
-		PrivateNetwork: shared.AdaptNullableDomainEntityToDatasourceModel(
-			loadBalancer.PrivateNetwork,
-			adaptPrivateNetwork,
-		),
-	}
-}
-
-func adaptLoadBalancerConfiguration(configuration public_cloud.LoadBalancerConfiguration) *model.LoadBalancerConfiguration {
-	return &model.LoadBalancerConfiguration{
-		Balance: basetypes.NewStringValue(configuration.Balance.String()),
-		StickySession: shared.AdaptNullableDomainEntityToDatasourceModel(
-			configuration.StickySession,
-			adaptStickySession,
-		),
-		XForwardedFor: basetypes.NewBoolValue(configuration.XForwardedFor),
-		IdleTimeout:   basetypes.NewInt64Value(int64(configuration.IdleTimeout)),
-	}
-}
-
-func adaptStickySession(stickySession public_cloud.StickySession) *model.StickySession {
-	return &model.StickySession{
-		Enabled:     basetypes.NewBoolValue(stickySession.Enabled),
-		MaxLifeTime: basetypes.NewInt64Value(int64(stickySession.MaxLifeTime)),
-	}
-}
-
 func adaptPrivateNetwork(privateNetwork public_cloud.PrivateNetwork) *model.PrivateNetwork {
 	return &model.PrivateNetwork{
 		Id:     basetypes.NewStringValue(privateNetwork.Id),
 		Status: basetypes.NewStringValue(privateNetwork.Status),
 		Subnet: basetypes.NewStringValue(privateNetwork.Subnet),
-	}
-}
-
-func adaptIso(iso public_cloud.Iso) *model.Iso {
-	return &model.Iso{
-		Id:   basetypes.NewStringValue(iso.Id),
-		Name: basetypes.NewStringValue(iso.Name),
 	}
 }
 
@@ -273,67 +189,5 @@ func adaptIp(ip public_cloud.Ip) model.Ip {
 		MainIp:        basetypes.NewBoolValue(ip.MainIp),
 		NetworkType:   basetypes.NewStringValue(string(ip.NetworkType)),
 		ReverseLookup: shared.AdaptNullableStringToStringValue(ip.ReverseLookup),
-		Ddos: shared.AdaptNullableDomainEntityToDatasourceModel(
-			ip.Ddos,
-			adaptDdos,
-		),
-	}
-}
-
-func adaptDdos(ddos public_cloud.Ddos) *model.Ddos {
-	return &model.Ddos{
-		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
-		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
-	}
-}
-
-func adaptStorageSize(storageSize public_cloud.StorageSize) *model.StorageSize {
-	return &model.StorageSize{
-		Size: basetypes.NewFloat64Value(storageSize.Size),
-		Unit: basetypes.NewStringValue(storageSize.Unit),
-	}
-}
-
-func adaptInstanceType(domainInstanceType public_cloud.InstanceType) model.InstanceType {
-	instanceType := model.InstanceType{
-		Name:      basetypes.NewStringValue(domainInstanceType.Name),
-		Resources: adaptResources(domainInstanceType.Resources),
-		Prices:    adaptPrices(domainInstanceType.Prices),
-	}
-
-	if domainInstanceType.StorageTypes != nil {
-		instanceType.StorageTypes = domainInstanceType.StorageTypes.ToArray()
-	}
-
-	return instanceType
-}
-
-func adaptPrices(prices public_cloud.Prices) model.Prices {
-	return model.Prices{
-		Currency:       basetypes.NewStringValue(prices.Currency),
-		CurrencySymbol: basetypes.NewStringValue(prices.CurrencySymbol),
-		Compute:        adaptPrice(prices.Compute),
-		Storage:        adaptStorage(prices.Storage),
-	}
-}
-
-func adaptPrice(price public_cloud.Price) model.Price {
-	return model.Price{
-		HourlyPrice:  basetypes.NewStringValue(price.HourlyPrice),
-		MonthlyPrice: basetypes.NewStringValue(price.MonthlyPrice),
-	}
-}
-
-func adaptStorage(storage public_cloud.Storage) model.Storage {
-	return model.Storage{
-		Local:   adaptPrice(storage.Local),
-		Central: adaptPrice(storage.Central),
-	}
-}
-
-func adaptRegion(region public_cloud.Region) *model.Region {
-	return &model.Region{
-		Name:     basetypes.NewStringValue(region.Name),
-		Location: basetypes.NewStringValue(region.Location),
 	}
 }
