@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
@@ -19,6 +18,8 @@ func AdaptInstance(
 	plan := model.Instance{}
 
 	plan.Id = basetypes.NewStringValue(instance.Id)
+	plan.Region = basetypes.NewStringValue(instance.Region.String())
+	plan.Type = basetypes.NewStringValue(instance.Type.String())
 	plan.Reference = shared.AdaptNullableStringToStringValue(instance.Reference)
 	plan.State = basetypes.NewStringValue(string(instance.State))
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
@@ -119,28 +120,6 @@ func AdaptInstance(
 	}
 	plan.Ips = ips
 
-	instanceType, err := shared.AdaptDomainEntityToResourceObject(
-		instance.Type,
-		model.InstanceType{}.AttributeTypes(),
-		ctx,
-		adaptInstanceType,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstance: %w", err)
-	}
-	plan.Type = instanceType
-
-	region, err := shared.AdaptDomainEntityToResourceObject(
-		instance.Region,
-		model.Region{}.AttributeTypes(),
-		ctx,
-		adaptRegion,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstance: %w", err)
-	}
-	plan.Region = region
-
 	return &plan, nil
 }
 
@@ -150,66 +129,11 @@ func adaptImage(
 ) (*model.Image, error) {
 	plan := &model.Image{}
 
-	marketApps, marketAppsDiags := basetypes.NewListValueFrom(
-		ctx,
-		types.StringType,
-		image.MarketApps,
-	)
-	if marketAppsDiags != nil {
-		return nil, shared.ReturnError(
-			"adaptImage",
-			marketAppsDiags,
-		)
-	}
-
-	storageTypes, storageTypesDiags := basetypes.NewListValueFrom(
-		ctx,
-		types.StringType,
-		image.StorageTypes,
-	)
-	if storageTypesDiags != nil {
-		return nil, shared.ReturnError(
-			"adaptImage",
-			storageTypesDiags,
-		)
-	}
-
-	storageSize, err := shared.AdaptNullableDomainEntityToResourceObject(
-		image.StorageSize,
-		model.StorageSize{}.AttributeTypes(),
-		ctx,
-		adaptStorageSize,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstance: %w", err)
-	}
-	plan.StorageSize = storageSize
-
-	region, err := shared.AdaptNullableDomainEntityToResourceObject(
-		image.Region,
-		model.Region{}.AttributeTypes(),
-		ctx,
-		adaptRegion,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptImage: %w", err)
-	}
-	plan.Region = region
-
 	plan.Id = basetypes.NewStringValue(image.Id)
 	plan.Name = basetypes.NewStringValue(image.Name)
-	plan.Version = shared.AdaptNullableStringToStringValue(image.Version)
 	plan.Family = basetypes.NewStringValue(image.Family)
 	plan.Flavour = basetypes.NewStringValue(image.Flavour)
-	plan.Architecture = shared.AdaptNullableStringToStringValue(image.Architecture)
-	plan.State = shared.AdaptNullableStringToStringValue(image.State)
-	plan.StateReason = shared.AdaptNullableStringToStringValue(image.StateReason)
-	plan.CreatedAt = shared.AdaptNullableTimeToStringValue(image.CreatedAt)
-	plan.UpdatedAt = shared.AdaptNullableTimeToStringValue(image.UpdatedAt)
 	plan.Custom = shared.AdaptBoolToBoolValue(image.Custom)
-
-	plan.MarketApps = marketApps
-	plan.StorageTypes = storageTypes
 
 	return plan, nil
 }
@@ -245,9 +169,9 @@ func adaptPrivateNetwork(
 	privateNetwork public_cloud.PrivateNetwork,
 ) (*model.PrivateNetwork, error) {
 	return &model.PrivateNetwork{
-		Id:     basetypes.NewStringValue(privateNetwork.Id),
-		Status: basetypes.NewStringValue(privateNetwork.Status),
-		Subnet: basetypes.NewStringValue(privateNetwork.Subnet),
+		PrivateNetworkId: basetypes.NewStringValue(privateNetwork.Id),
+		Status:           basetypes.NewStringValue(privateNetwork.Status),
+		Subnet:           basetypes.NewStringValue(privateNetwork.Subnet),
 	}, nil
 }
 
@@ -339,17 +263,6 @@ func adaptAutoScalingGroup(
 	ctx context.Context,
 	autoScalingGroup public_cloud.AutoScalingGroup,
 ) (*model.AutoScalingGroup, error) {
-
-	region, diags := shared.AdaptDomainEntityToResourceObject(
-		autoScalingGroup.Region,
-		model.Region{}.AttributeTypes(),
-		ctx,
-		adaptRegion,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
 	return &model.AutoScalingGroup{
 		Id:    basetypes.NewStringValue(autoScalingGroup.Id),
 		Type:  basetypes.NewStringValue(string(autoScalingGroup.Type)),
@@ -357,7 +270,7 @@ func adaptAutoScalingGroup(
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.DesiredAmount,
 		),
-		Region: region,
+		Region: basetypes.NewStringValue(autoScalingGroup.Region.String()),
 		Reference: basetypes.NewStringValue(
 			autoScalingGroup.Reference.String(),
 		),
@@ -388,136 +301,6 @@ func adaptAutoScalingGroup(
 		CooldownTime: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.CooldownTime,
 		),
-	}, nil
-}
-
-func adaptLoadBalancer(
-	ctx context.Context,
-	loadBalancer public_cloud.LoadBalancer,
-) (*model.LoadBalancer, error) {
-
-	resources, diags := shared.AdaptDomainEntityToResourceObject(
-		loadBalancer.Resources,
-		model.Resources{}.AttributeTypes(),
-		ctx,
-		adaptResources,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	contract, diags := shared.AdaptDomainEntityToResourceObject(
-		loadBalancer.Contract,
-		model.Contract{}.AttributeTypes(),
-		ctx,
-		adaptContract,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	instanceType, diags := shared.AdaptDomainEntityToResourceObject(
-		loadBalancer.Type,
-		model.InstanceType{}.AttributeTypes(),
-		ctx,
-		adaptInstanceType,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	configuration, diags := shared.AdaptNullableDomainEntityToResourceObject(
-		loadBalancer.Configuration,
-		model.LoadBalancerConfiguration{}.AttributeTypes(),
-		ctx,
-		adaptLoadBalancerConfiguration,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	privateNetwork, diags := shared.AdaptNullableDomainEntityToResourceObject(
-		loadBalancer.PrivateNetwork,
-		model.PrivateNetwork{}.AttributeTypes(),
-		ctx,
-		adaptPrivateNetwork,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	ips, diags := shared.AdaptEntitiesToListValue(
-		loadBalancer.Ips,
-		model.Ip{}.AttributeTypes(),
-		ctx,
-		adaptIp,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	region, diags := shared.AdaptDomainEntityToResourceObject(
-		loadBalancer.Region,
-		model.Region{}.AttributeTypes(),
-		ctx,
-		adaptRegion,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	return &model.LoadBalancer{
-		Id:        basetypes.NewStringValue(loadBalancer.Id),
-		Type:      instanceType,
-		Resources: resources,
-		Region:    region,
-		Reference: shared.AdaptNullableStringToStringValue(
-			loadBalancer.Reference,
-		),
-		State: basetypes.NewStringValue(
-			loadBalancer.State.String(),
-		),
-		Contract: contract,
-		StartedAt: basetypes.NewStringValue(
-			loadBalancer.StartedAt.String(),
-		),
-		LoadBalancerConfiguration: configuration,
-		PrivateNetwork:            privateNetwork,
-		Ips:                       ips,
-	}, nil
-}
-
-func adaptLoadBalancerConfiguration(
-	ctx context.Context,
-	configuration public_cloud.LoadBalancerConfiguration,
-) (*model.LoadBalancerConfiguration, error) {
-
-	stickySessionObject, diags := shared.AdaptNullableDomainEntityToResourceObject(
-		configuration.StickySession,
-		model.StickySession{}.AttributeTypes(),
-		ctx,
-		adaptStickySession,
-	)
-	if diags != nil {
-		return nil, diags
-	}
-
-	return &model.LoadBalancerConfiguration{
-		Balance:       basetypes.NewStringValue(configuration.Balance.String()),
-		StickySession: stickySessionObject,
-		XForwardedFor: basetypes.NewBoolValue(configuration.XForwardedFor),
-		IdleTimeout:   basetypes.NewInt64Value(int64(configuration.IdleTimeout)),
-	}, nil
-}
-
-func adaptStickySession(
-	ctx context.Context,
-	stickySession public_cloud.StickySession,
-) (*model.StickySession, error) {
-
-	return &model.StickySession{
-		Enabled:     basetypes.NewBoolValue(stickySession.Enabled),
-		MaxLifeTime: basetypes.NewInt64Value(int64(stickySession.MaxLifeTime)),
 	}, nil
 }
 
@@ -553,138 +336,5 @@ func adaptDdos(ctx context.Context, ddos public_cloud.Ddos) (*model.Ddos, error)
 	return &model.Ddos{
 		DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
 		ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
-	}, nil
-}
-
-func adaptStorageSize(
-	ctx context.Context,
-	storageSize public_cloud.StorageSize,
-) (*model.StorageSize, error) {
-	return &model.StorageSize{
-		Size: basetypes.NewFloat64Value(storageSize.Size),
-		Unit: basetypes.NewStringValue(storageSize.Unit),
-	}, nil
-}
-
-func adaptInstanceType(
-	ctx context.Context,
-	instanceType public_cloud.InstanceType,
-) (*model.InstanceType, error) {
-	resources, err := shared.AdaptDomainEntityToResourceObject(
-		instanceType.Resources,
-		model.Resources{}.AttributeTypes(),
-		ctx,
-		adaptResources,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstanceType: %w", err)
-	}
-
-	prices, err := shared.AdaptDomainEntityToResourceObject(
-		instanceType.Prices,
-		model.Prices{}.AttributeTypes(),
-		ctx,
-		adaptPrices,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("AdaptInstanceType: %w", err)
-	}
-
-	storageTypes, storageTypesDiags := basetypes.NewListValueFrom(
-		ctx,
-		types.StringType,
-		instanceType.StorageTypes,
-	)
-	if storageTypesDiags != nil {
-		return nil, shared.ReturnError(
-			"adaptInstanceType",
-			storageTypesDiags,
-		)
-	}
-
-	return &model.InstanceType{
-		Name:         basetypes.NewStringValue(instanceType.Name),
-		Resources:    resources,
-		Prices:       prices,
-		StorageTypes: storageTypes,
-	}, nil
-}
-
-func adaptPrices(
-	ctx context.Context,
-	prices public_cloud.Prices,
-) (*model.Prices, error) {
-	compute, err := shared.AdaptDomainEntityToResourceObject(
-		prices.Compute,
-		model.Price{}.AttributeTypes(),
-		ctx,
-		adaptPrice,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptPrices: %w", err)
-	}
-
-	storage, err := shared.AdaptDomainEntityToResourceObject(
-		prices.Storage,
-		model.Storage{}.AttributeTypes(),
-		ctx,
-		adaptStorage,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptPrices: %w", err)
-	}
-
-	return &model.Prices{
-		Currency:       basetypes.NewStringValue(prices.Currency),
-		CurrencySymbol: basetypes.NewStringValue(prices.CurrencySymbol),
-		Compute:        compute,
-		Storage:        storage,
-	}, nil
-}
-
-func adaptPrice(ctx context.Context, price public_cloud.Price) (*model.Price, error) {
-	return &model.Price{
-		HourlyPrice:  basetypes.NewStringValue(price.HourlyPrice),
-		MonthlyPrice: basetypes.NewStringValue(price.MonthlyPrice),
-	}, nil
-}
-
-func adaptStorage(
-	ctx context.Context,
-	storage public_cloud.Storage,
-) (*model.Storage, error) {
-	local, err := shared.AdaptDomainEntityToResourceObject(
-		storage.Local,
-		model.Price{}.AttributeTypes(),
-		ctx,
-		adaptPrice,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptStorage: %w", err)
-	}
-
-	central, err := shared.AdaptDomainEntityToResourceObject(
-		storage.Central,
-		model.Price{}.AttributeTypes(),
-		ctx,
-		adaptPrice,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptStorage: %w", err)
-	}
-
-	return &model.Storage{
-		Local:   local,
-		Central: central,
-	}, nil
-}
-
-func adaptRegion(
-	ctx context.Context,
-	region public_cloud.Region,
-) (*model.Region, error) {
-	return &model.Region{
-		Name:     basetypes.NewStringValue(region.Name),
-		Location: basetypes.NewStringValue(region.Location),
 	}, nil
 }

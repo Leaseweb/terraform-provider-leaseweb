@@ -385,27 +385,14 @@ func generateInstanceModel(
 		instanceTypeName = &defaultInstanceTypeName
 	}
 
-	storageSize, _ := types.ObjectValueFrom(
-		context.TODO(),
-		model.StorageSize{}.AttributeTypes(),
-		model.StorageSize{
-			Size: basetypes.NewFloat64Value(123),
-		},
-	)
-
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
 		model.Image{}.AttributeTypes(),
 		model.Image{
-			Id:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
-			Name:         basetypes.NewStringUnknown(),
-			Version:      basetypes.NewStringUnknown(),
-			Family:       basetypes.NewStringUnknown(),
-			Flavour:      basetypes.NewStringUnknown(),
-			MarketApps:   basetypes.NewListUnknown(types.StringType),
-			StorageTypes: basetypes.NewListUnknown(types.StringType),
-			StorageSize:  storageSize,
-			Region:       basetypes.NewObjectNull(model.Region{}.AttributeTypes()),
+			Id:      basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			Name:    basetypes.NewStringUnknown(),
+			Family:  basetypes.NewStringUnknown(),
+			Flavour: basetypes.NewStringUnknown(),
 		},
 	)
 
@@ -423,32 +410,10 @@ func generateInstanceModel(
 		},
 	)
 
-	instanceType, _ := types.ObjectValueFrom(
-		context.TODO(),
-		model.InstanceType{}.AttributeTypes(),
-		model.InstanceType{
-			Name: basetypes.NewStringValue(*instanceTypeName),
-			Resources: basetypes.NewObjectUnknown(
-				model.Resources{}.AttributeTypes(),
-			),
-			Prices:       basetypes.NewObjectUnknown(model.Prices{}.AttributeTypes()),
-			StorageTypes: basetypes.NewListUnknown(types.StringType),
-		},
-	)
-
-	region, _ := types.ObjectValueFrom(
-		context.TODO(),
-		model.Region{}.AttributeTypes(),
-		model.Region{
-			Name:     basetypes.NewStringValue("region"),
-			Location: basetypes.NewStringUnknown(),
-		},
-	)
-
 	instance := model.Instance{
 		Id:                  basetypes.NewStringValue("id"),
-		Region:              region,
-		Type:                instanceType,
+		Region:              basetypes.NewStringValue("region"),
+		Type:                basetypes.NewStringValue(*instanceTypeName),
 		RootDiskStorageType: basetypes.NewStringValue(*rootDiskStorageType),
 		RootDiskSize:        basetypes.NewInt64Value(int64(*rootDiskSize)),
 		Image:               image,

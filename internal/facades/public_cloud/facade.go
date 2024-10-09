@@ -7,7 +7,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
@@ -68,12 +67,8 @@ func (p PublicCloudFacade) CreateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	var region resourceModel.Region
-
-	plan.Region.As(ctx, &region, basetypes.ObjectAsOptions{})
-
 	availableInstanceTypes, serviceError := p.publicCloudService.GetAvailableInstanceTypesForRegion(
-		region.Name.ValueString(),
+		plan.Region.ValueString(),
 		ctx,
 	)
 	if serviceError != nil {

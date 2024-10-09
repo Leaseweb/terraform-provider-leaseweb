@@ -138,7 +138,7 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 		image, _ := basetypes.NewObjectValue(
 			model.Image{}.AttributeTypes(),
 			map[string]attr.Value{
-				"Id": basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+				"PrivateNetworkId": basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			},
 		)
 
@@ -151,23 +151,9 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 			},
 		)
 
-		instanceType, _ := basetypes.NewObjectValue(
-			model.InstanceType{}.AttributeTypes(),
-			map[string]attr.Value{
-				"Name": basetypes.NewStringValue("lsw.m5a.4xlarge"),
-			},
-		)
-
-		region, _ := basetypes.NewObjectValue(
-			model.Region{}.AttributeTypes(),
-			map[string]attr.Value{
-				"Name": basetypes.NewStringValue("region"),
-			},
-		)
-
 		instance := model.Instance{
-			Region:              region,
-			Type:                instanceType,
+			Region:              basetypes.NewStringValue("region"),
+			Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
 			RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
 			Image:               image,
 			Contract:            contract,

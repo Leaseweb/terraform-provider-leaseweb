@@ -8,12 +8,8 @@ resource "leaseweb_public_cloud_instance" "example" {
   image = {
     id = "UBUNTU_22_04_64BIT"
   }
-  reference = "my webserver"
-  region = {
-    name = "eu-west-3"
-  }
+  reference              = "my webserver"
+  region                 = "eu-west-3"
   root_disk_storage_type = "CENTRAL"
-  type = {
-    name = "lsw.m3.large"
-  }
+  type                   = "lsw.m3.large"
 }

@@ -126,7 +126,7 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String)
+- `private_network_id` (String)
 - `status` (String)
 - `subnet` (String)
 

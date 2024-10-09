@@ -83,7 +83,22 @@ func (d *instancesDataSource) Schema(
 							Computed:    true,
 							Description: "The root disk's storage type",
 						},
-						"ips": public_cloud.DataSourceIps(),
+						"ips": schema.ListNestedAttribute{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"ip":            schema.StringAttribute{Computed: true},
+									"prefix_length": schema.StringAttribute{Computed: true},
+									"version":       schema.Int64Attribute{Computed: true},
+									"null_routed":   schema.BoolAttribute{Computed: true},
+									"main_ip":       schema.BoolAttribute{Computed: true},
+									"network_type": schema.StringAttribute{
+										Computed: true,
+									},
+									"reverse_lookup": schema.StringAttribute{Computed: true},
+								},
+							},
+						},
 						"started_at": schema.StringAttribute{
 							Computed:    true,
 							Description: "Date and time when the instance was started for the first time, right after launching it",

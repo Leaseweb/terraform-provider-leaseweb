@@ -16,65 +16,33 @@ import (
 var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
 
 func Test_adaptImage(t *testing.T) {
-	var marketApps []string
-	var storageTypes []string
-	var region model.Region
-
-	state := "state"
-	stateReason := "stateReason"
-	createdAt := time.Now()
-	updatedAt := time.Now()
-	version := "version"
-	architecture := "architecture"
-
 	image := public_cloud.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
-		&version,
+		nil,
 		"family",
 		"flavour",
-		&architecture,
-		&state,
-		&stateReason,
-		&public_cloud.Region{Name: "region"},
-		&createdAt,
-		&updatedAt,
+		nil,
+		nil,
+		nil,
+		&public_cloud.Region{},
+		nil,
+		nil,
 		false,
-		&public_cloud.StorageSize{Unit: "unit"},
-		[]string{"one"},
-		[]string{"storageType"},
+		&public_cloud.StorageSize{},
+		[]string{},
+		[]string{},
 	)
 
 	got, err := adaptImage(context.TODO(), image)
 
 	assert.NoError(t, err)
 
-	got.MarketApps.ElementsAs(context.TODO(), &marketApps, false)
-	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
-	got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
-
 	assert.Equal(t, "UBUNTU_20_04_64BIT", got.Id.ValueString())
 	assert.Equal(t, "name", got.Name.ValueString())
-	assert.Equal(t, "version", got.Version.ValueString())
 	assert.Equal(t, "family", got.Family.ValueString())
 	assert.Equal(t, "flavour", got.Flavour.ValueString())
-	assert.Equal(t, "architecture", got.Architecture.ValueString())
-	assert.Equal(t, "state", got.State.ValueString())
-	assert.Equal(t, "stateReason", got.StateReason.ValueString())
-	assert.Equal(t, "region", region.Name.ValueString())
-	assert.Equal(t, createdAt.String(), got.CreatedAt.ValueString())
-	assert.Equal(t, updatedAt.String(), got.UpdatedAt.ValueString())
 	assert.False(t, got.Custom.ValueBool())
-
-	assert.Len(t, marketApps, 1)
-	assert.Equal(t, "one", marketApps[0])
-
-	assert.Len(t, storageTypes, 1)
-	assert.Equal(t, "storageType", storageTypes[0])
-
-	storageSize := model.StorageSize{}
-	got.StorageSize.As(context.TODO(), &storageSize, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "unit", storageSize.Unit.ValueString())
 }
 
 func Test_AdaptContract(t *testing.T) {
@@ -124,7 +92,7 @@ func Test_adaptPrivateNetwork(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.PrivateNetworkId.ValueString())
 	assert.Equal(t, "status", got.Status.ValueString())
 	assert.Equal(t, "subnet", got.Subnet.ValueString())
 }
@@ -199,45 +167,6 @@ func Test_adaptResources(t *testing.T) {
 	)
 }
 
-func Test_adaptStickySession(t *testing.T) {
-	stickySession := public_cloud.NewStickySession(false, 1)
-
-	got, err := adaptStickySession(context.TODO(), stickySession)
-
-	assert.Nil(t, err)
-	assert.False(t, got.Enabled.ValueBool())
-	assert.Equal(t, int64(1), got.MaxLifeTime.ValueInt64())
-}
-
-func Test_adaptLoadBalancerConfiguration(t *testing.T) {
-	loadBalancerConfiguration := public_cloud.NewLoadBalancerConfiguration(
-		enum.BalanceSource,
-		false,
-		5,
-		public_cloud.OptionalLoadBalancerConfigurationOptions{
-			StickySession: &public_cloud.StickySession{MaxLifeTime: 5},
-		},
-	)
-
-	got, err := adaptLoadBalancerConfiguration(
-		context.TODO(),
-		loadBalancerConfiguration,
-	)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "source", got.Balance.ValueString())
-	assert.False(t, got.XForwardedFor.ValueBool())
-	assert.Equal(t, int64(5), got.IdleTimeout.ValueInt64())
-
-	stickySession := model.StickySession{}
-	got.StickySession.As(
-		context.TODO(),
-		&stickySession,
-		basetypes.ObjectAsOptions{},
-	)
-	assert.Equal(t, int64(5), stickySession.MaxLifeTime.ValueInt64())
-}
-
 func Test_adaptDdos(t *testing.T) {
 	ddos := public_cloud.NewDdos(
 		"detectionProfile",
@@ -288,95 +217,8 @@ func Test_adaptIp(t *testing.T) {
 	assert.Equal(t, "protection-type", ddos.ProtectionType.ValueString())
 }
 
-func Test_adaptLoadBalancer(t *testing.T) {
-	t.Run("loadBalancer Conversion works", func(t *testing.T) {
-		var region model.Region
-
-		reference := "reference"
-		startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
-		id := "id"
-
-		loadBalancer := public_cloud.NewLoadBalancer(
-			id,
-			public_cloud.InstanceType{Name: "instanceType"},
-			public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "cpu"}},
-			public_cloud.Region{Name: "region"},
-			enum.StateCreating,
-			public_cloud.Contract{BillingFrequency: enum.ContractBillingFrequencySix},
-			public_cloud.Ips{{Ip: "1.2.3.4"}},
-			public_cloud.OptionalLoadBalancerValues{
-				Reference:      &reference,
-				StartedAt:      &startedAt,
-				PrivateNetwork: &public_cloud.PrivateNetwork{Id: "privateNetworkId"},
-				Configuration: &public_cloud.LoadBalancerConfiguration{
-					Balance: enum.BalanceSource,
-				},
-			},
-		)
-
-		got, err := adaptLoadBalancer(
-			context.TODO(),
-			loadBalancer,
-		)
-		got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
-
-		assert.NoError(t, err)
-
-		assert.Equal(t, id, got.Id.ValueString())
-		assert.Equal(
-			t,
-			"{\"unit\":\"cpu\",\"value\":0}",
-			got.Resources.Attributes()["cpu"].String(),
-		)
-		assert.Equal(t, "region", region.Name.ValueString())
-		assert.Equal(t, "reference", got.Reference.ValueString())
-		assert.Equal(t, "CREATING", got.State.ValueString())
-
-		assert.Equal(
-			t,
-			"6",
-			got.Contract.Attributes()["billing_frequency"].String(),
-		)
-
-		assert.Equal(
-			t,
-			"2019-09-08 00:00:00 +0000 UTC",
-			got.StartedAt.ValueString(),
-		)
-
-		var ips []model.Ip
-		got.Ips.ElementsAs(context.TODO(), &ips, false)
-		assert.Equal(t, "1.2.3.4", ips[0].Ip.ValueString())
-
-		loadBalancerConfiguration := model.LoadBalancerConfiguration{}
-		got.LoadBalancerConfiguration.As(
-			context.TODO(),
-			&loadBalancerConfiguration,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(t, "source", loadBalancerConfiguration.Balance.ValueString())
-
-		privateNetwork := model.PrivateNetwork{}
-		got.PrivateNetwork.As(
-			context.TODO(),
-			&privateNetwork,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(t, "privateNetworkId", privateNetwork.Id.ValueString())
-
-		instanceType := model.InstanceType{}
-		got.Type.As(
-			context.TODO(),
-			&instanceType,
-			basetypes.ObjectAsOptions{},
-		)
-		assert.Equal(t, "instanceType", instanceType.Name.ValueString())
-	})
-}
-
 func TestAdaptInstance(t *testing.T) {
 	var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS9qDokehBM+OhgrgyTWssaREYPDHsRjq7Ldv/8kTdK9i+f9HMi/BTskZrd5npFtO2gfSgFxeUALcqNDcjpXvQJxLUShNFmtxPtQLKlreyWB1r8mcAQBC/jrWD5I+mTZ7uCs4CNV4L0eLv8J1w=="
-	var region model.Region
 
 	startedAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	marketAppId := "marketAppId"
@@ -402,10 +244,8 @@ func TestAdaptInstance(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
-
 	assert.Equal(t, id, got.Id.ValueString())
-	assert.Equal(t, "region", region.Name.ValueString())
+	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "productType", got.ProductType.ValueString())
 	assert.False(t, got.HasPublicIpv4.ValueBool())
@@ -420,6 +260,7 @@ func TestAdaptInstance(t *testing.T) {
 	)
 	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
+	assert.Equal(t, "instanceType", got.Type.ValueString())
 
 	image := model.Image{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
@@ -442,7 +283,7 @@ func TestAdaptInstance(t *testing.T) {
 	assert.Equal(
 		t,
 		"privateNetworkId",
-		privateNetwork.Id.ValueString(),
+		privateNetwork.PrivateNetworkId.ValueString(),
 	)
 
 	autoScalingGroup := model.AutoScalingGroup{}
@@ -468,17 +309,11 @@ func TestAdaptInstance(t *testing.T) {
 	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "cpu", cpu.Unit.ValueString())
 
-	instanceType := model.InstanceType{}
-	got.Type.As(context.TODO(), &instanceType, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "instanceType", instanceType.Name.ValueString())
-
 	// TODO Enable SSH key support
 	//assert.Equal(t, sshKey, got.SshKey.ValueString())
 }
 
 func Test_adaptAutoScalingGroup(t *testing.T) {
-	var region model.Region
-
 	desiredAmount := 1
 	createdAt, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	updatedAt, _ := time.Parse(time.RFC3339, "2020-09-08T00:00:00Z")
@@ -519,13 +354,11 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	got.Region.As(context.TODO(), &region, basetypes.ObjectAsOptions{})
-
 	assert.Equal(t, id, got.Id.ValueString())
 	assert.Equal(t, "type", got.Type.ValueString())
 	assert.Equal(t, "state", got.State.ValueString())
 	assert.Equal(t, int64(1), got.DesiredAmount.ValueInt64())
-	assert.Equal(t, "region", region.Name.ValueString())
+	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(
 		t,
@@ -750,115 +583,4 @@ func generateDomainInstance() public_cloud.Instance {
 			AutoScalingGroup: &autoScalingGroup,
 		},
 	)
-}
-
-func Test_adaptStorageSize(t *testing.T) {
-	got, err := adaptStorageSize(
-		context.TODO(),
-		public_cloud.StorageSize{
-			Size: 2,
-			Unit: "unit",
-		},
-	)
-
-	assert.NoError(t, err)
-	assert.Equal(t, float64(2), got.Size.ValueFloat64())
-	assert.Equal(t, "unit", got.Unit.ValueString())
-}
-
-func Test_adaptPrice(t *testing.T) {
-	price := public_cloud.NewPrice("1", "2")
-	got, err := adaptPrice(context.TODO(), price)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "1", got.HourlyPrice.ValueString())
-	assert.Equal(t, "2", got.MonthlyPrice.ValueString())
-}
-
-func Test_adaptStorage(t *testing.T) {
-	storage := public_cloud.NewStorage(
-		public_cloud.Price{HourlyPrice: "1"},
-		public_cloud.Price{HourlyPrice: "3"},
-	)
-	got, err := adaptStorage(context.TODO(), storage)
-
-	assert.NoError(t, err)
-
-	local := model.Price{}
-	got.Local.As(context.TODO(), &local, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "1", local.HourlyPrice.ValueString())
-
-	central := model.Price{}
-	got.Central.As(context.TODO(), &central, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "3", central.HourlyPrice.ValueString())
-}
-
-func Test_adaptPrices(t *testing.T) {
-	prices := public_cloud.NewPrices(
-		"currency",
-		"currencySymbol",
-		public_cloud.Price{HourlyPrice: "1"},
-		public_cloud.Storage{Central: public_cloud.Price{HourlyPrice: "3"}},
-	)
-	got, err := adaptPrices(context.TODO(), prices)
-
-	assert.NoError(t, err)
-
-	assert.Equal(t, "currency", got.Currency.ValueString())
-	assert.Equal(t, "currencySymbol", got.CurrencySymbol.ValueString())
-
-	compute := model.Price{}
-	got.Compute.As(context.TODO(), &compute, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "1", compute.HourlyPrice.ValueString())
-
-	storage := model.Storage{}
-	got.Storage.As(context.TODO(), &storage, basetypes.ObjectAsOptions{})
-	storageCentral := model.Price{}
-	storage.Central.As(
-		context.TODO(),
-		&storageCentral,
-		basetypes.ObjectAsOptions{},
-	)
-	assert.Equal(t, "3", storageCentral.HourlyPrice.ValueString())
-}
-
-func Test_adaptInstanceType(t *testing.T) {
-	var storageTypes []string
-
-	instanceType := public_cloud.NewInstanceType(
-		"name",
-		public_cloud.Resources{Cpu: public_cloud.Cpu{Unit: "unit"}},
-		public_cloud.Prices{Currency: "currency"},
-		public_cloud.OptionalInstanceTypeValues{
-			StorageTypes: &public_cloud.StorageTypes{"storageType"},
-		},
-	)
-
-	got, err := adaptInstanceType(context.TODO(), instanceType)
-
-	assert.NoError(t, err)
-
-	assert.Equal(t, "name", got.Name.ValueString())
-
-	resources := model.Resources{}
-	got.Resources.As(context.TODO(), &resources, basetypes.ObjectAsOptions{})
-	cpu := model.Cpu{}
-	resources.Cpu.As(context.TODO(), &cpu, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "unit", cpu.Unit.ValueString())
-
-	prices := model.Prices{}
-	got.Prices.As(context.TODO(), &prices, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "currency", prices.Currency.ValueString())
-
-	got.StorageTypes.ElementsAs(context.TODO(), &storageTypes, false)
-	assert.Equal(t, []string{"storageType"}, storageTypes)
-}
-
-func Test_adaptRegion(t *testing.T) {
-	entityRegion := public_cloud.NewRegion("name", "location")
-	got, err := adaptRegion(context.TODO(), entityRegion)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "name", got.Name.ValueString())
-	assert.Equal(t, "location", got.Location.ValueString())
 }
