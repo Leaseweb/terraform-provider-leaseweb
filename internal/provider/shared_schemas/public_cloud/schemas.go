@@ -51,6 +51,52 @@ func Contract(
 	required bool,
 	facade facade.PublicCloudFacade,
 ) schema.SingleNestedAttribute {
+	if required {
+		return schema.SingleNestedAttribute{
+			Computed: !required,
+			Required: required,
+			Attributes: map[string]schema.Attribute{
+				"billing_frequency": schema.Int64Attribute{
+					Computed:    !required,
+					Required:    required,
+					Description: "The billing frequency (in months). Valid options are " + facade.GetBillingFrequencies().Markdown(),
+					Validators: []validator.Int64{
+						int64validator.OneOf(facade.GetBillingFrequencies().ToInt64()...),
+					},
+				},
+				"term": schema.Int64Attribute{
+					Computed:    !required,
+					Required:    required,
+					Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + facade.GetContractTerms().Markdown(),
+					Validators: []validator.Int64{
+						int64validator.OneOf(facade.GetContractTerms().ToInt64()...),
+					},
+				},
+				"type": schema.StringAttribute{
+					Computed:    !required,
+					Required:    required,
+					Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
+					Validators: []validator.String{
+						stringvalidator.OneOf(facade.GetContractTypes()...),
+					},
+				},
+				"state": schema.StringAttribute{
+					Computed: true,
+				},
+				"ends_at": schema.StringAttribute{Computed: true},
+				"renewals_at": schema.StringAttribute{
+					Computed:    true,
+					Description: "Date when the contract will be automatically renewed",
+				},
+				"created_at": schema.StringAttribute{
+					Computed:    true,
+					Description: "Date when the contract was created",
+				},
+			},
+			Validators: []validator.Object{customValidator.ContractTermIsValid()},
+		}
+	}
+
 	return schema.SingleNestedAttribute{
 		Computed: !required,
 		Required: required,
@@ -78,15 +124,6 @@ func Contract(
 				Validators: []validator.String{
 					stringvalidator.OneOf(facade.GetContractTypes()...),
 				},
-			},
-			"ends_at": schema.StringAttribute{Computed: true},
-			"renewals_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "Date when the contract will be automatically renewed",
-			},
-			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "Date when the contract was created",
 			},
 			"state": schema.StringAttribute{
 				Computed: true,

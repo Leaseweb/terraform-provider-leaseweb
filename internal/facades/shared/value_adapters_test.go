@@ -396,29 +396,33 @@ func ExampleAdaptNullableStringToStringValue_second() {
 }
 
 func ExampleAdaptNullableDomainEntityToDatasourceModel() {
-	cpu := public_cloud.NewCpu(4, "GHz")
+	image := public_cloud.NewImage(
+		"imageId",
+		"",
+		"",
+		"",
+		false,
+	)
 
 	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
-		&cpu,
-		func(cpu public_cloud.Cpu) *dataSourceModel.Cpu {
-			return &dataSourceModel.Cpu{
-				Value: basetypes.NewInt64Value(int64(cpu.Value)),
-				Unit:  basetypes.NewStringValue(cpu.Unit),
+		&image,
+		func(image public_cloud.Image) *dataSourceModel.Image {
+			return &dataSourceModel.Image{
+				Id: basetypes.NewStringValue(image.Id),
 			}
 		},
 	)
 
 	fmt.Println(datasourceModel)
-	// Output: &{4 "GHz"}
+	// Output: &{"imageId"}
 }
 
 func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
 	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
 		nil,
-		func(cpu public_cloud.Cpu) *dataSourceModel.Cpu {
-			return &dataSourceModel.Cpu{
-				Value: basetypes.NewInt64Value(int64(cpu.Value)),
-				Unit:  basetypes.NewStringValue(cpu.Unit),
+		func(image public_cloud.Image) *dataSourceModel.Image {
+			return &dataSourceModel.Image{
+				Id: basetypes.NewStringValue(image.Id),
 			}
 		},
 	)
