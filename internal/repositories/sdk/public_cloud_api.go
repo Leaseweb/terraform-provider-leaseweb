@@ -15,16 +15,6 @@ type PublicCloudApi interface {
 		instanceId string,
 	) publicCloud.ApiGetInstanceRequest
 
-	GetAutoScalingGroup(
-		ctx context.Context,
-		autoScalingGroupId string,
-	) publicCloud.ApiGetAutoScalingGroupRequest
-
-	GetLoadBalancer(
-		ctx context.Context,
-		loadBalancerId string,
-	) publicCloud.ApiGetLoadBalancerRequest
-
 	LaunchInstance(ctx context.Context) publicCloud.ApiLaunchInstanceRequest
 
 	UpdateInstance(
@@ -45,6 +35,4 @@ type PublicCloudApi interface {
 	GetRegionList(ctx context.Context) publicCloud.ApiGetRegionListRequest
 
 	GetInstanceTypeList(ctx context.Context) publicCloud.ApiGetInstanceTypeListRequest
-
-	GetImageList(ctx context.Context) publicCloud.ApiGetImageListRequest
 }

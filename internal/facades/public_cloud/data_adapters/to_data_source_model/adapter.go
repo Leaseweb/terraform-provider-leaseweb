@@ -22,7 +22,7 @@ func AdaptInstances(domainInstances public_cloud.Instances) model.Instances {
 func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 	instance := model.Instance{
 		Id:     basetypes.NewStringValue(domainInstance.Id),
-		Region: basetypes.NewStringValue(domainInstance.Region.String()),
+		Region: basetypes.NewStringValue(domainInstance.Region),
 		Reference: shared.AdaptNullableStringToStringValue(
 			domainInstance.Reference,
 		),
@@ -36,7 +36,7 @@ func adaptInstance(domainInstance public_cloud.Instance) model.Instance {
 		HasPrivateNetwork: basetypes.NewBoolValue(
 			domainInstance.HasPrivateNetwork,
 		),
-		Type: basetypes.NewStringValue(domainInstance.Type.String()),
+		Type: basetypes.NewStringValue(domainInstance.Type),
 		RootDiskSize: basetypes.NewInt64Value(
 			int64(domainInstance.RootDiskSize.Value),
 		),
@@ -138,7 +138,7 @@ func adaptAutoScalingGroup(autoScalingGroup public_cloud.AutoScalingGroup) *mode
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.DesiredAmount,
 		),
-		Region: basetypes.NewStringValue(autoScalingGroup.Region.String()),
+		Region: basetypes.NewStringValue(autoScalingGroup.Region),
 		Reference: basetypes.NewStringValue(
 			autoScalingGroup.Reference.String(),
 		),

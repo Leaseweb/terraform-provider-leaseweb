@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
@@ -34,8 +33,8 @@ func TestAdaptToCreateInstanceOpts(t *testing.T) {
 		)
 
 		assert.NoError(t, err)
-		assert.Equal(t, public_cloud.Region{Name: "region"}, got.Region)
-		assert.Equal(t, "lsw.m5a.4xlarge", got.Type.String())
+		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, "lsw.m5a.4xlarge", got.Type)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "UBUNTU_20_04_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -306,7 +305,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 		)
 
 		assert.Nil(t, diags)
-		assert.Equal(t, string(publicCloud.TYPENAME_M5A_4XLARGE), got.Type.String())
+		assert.Equal(t, string(publicCloud.TYPENAME_M5A_4XLARGE), got.Type)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermThree, got.Contract.Term)
 		assert.Equal(

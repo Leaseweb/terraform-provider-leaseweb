@@ -11,7 +11,7 @@ type AutoScalingGroup struct {
 	Id            string
 	Type          enum.AutoScalingGroupType
 	State         enum.AutoScalingGroupState
-	Region        Region
+	Region        string
 	Reference     value_object.AutoScalingGroupReference
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -40,7 +40,7 @@ func NewAutoScalingGroup(
 	id string,
 	autoScalingGroupType enum.AutoScalingGroupType,
 	state enum.AutoScalingGroupState,
-	region Region,
+	region string,
 	reference value_object.AutoScalingGroupReference,
 	createdAt time.Time,
 	updatedAt time.Time,

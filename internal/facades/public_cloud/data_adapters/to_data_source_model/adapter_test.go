@@ -37,7 +37,7 @@ func Test_adaptInstance(t *testing.T) {
 	instance.Reference = &reference
 	instance.SshKey = sshKeyValueObject
 	instance.AutoScalingGroup.Id = autoScalingGroupId
-	instance.Region = public_cloud.Region{Name: "region"}
+	instance.Region = "region"
 
 	got := adaptInstance(instance)
 
@@ -108,30 +108,12 @@ func Test_adaptMemory(t *testing.T) {
 }
 
 func Test_adaptImage(t *testing.T) {
-	state := "state"
-	stateReason := "stateReason"
-	region := public_cloud.Region{Name: "region"}
-	createdAt := time.Now()
-	updatedAt := time.Now()
-	architecture := "architecture"
-	version := "version"
-
 	image := public_cloud.NewImage(
 		"id",
 		"name",
-		&version,
 		"family",
 		"flavour",
-		&architecture,
-		&state,
-		&stateReason,
-		&region,
-		&createdAt,
-		&updatedAt,
 		false,
-		&public_cloud.StorageSize{Unit: "unit"},
-		[]string{"one"},
-		[]string{"storageType"},
 	)
 
 	got := adaptImage(image)
@@ -236,32 +218,12 @@ func generateDomainInstance() public_cloud.Instance {
 		privateNetworkSpeed,
 	)
 
-	state := "state"
-	stateReason := "stateReason"
-	region := public_cloud.Region{Name: "region"}
-	createdAt := time.Now()
-	updatedAt := time.Now()
-	architecture := "architecture"
-	version := "version"
-
-	storageSize := public_cloud.NewStorageSize(5, "storageSizeUnit")
-
 	image := public_cloud.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
-		&version,
 		"family",
 		"flavour",
-		&architecture,
-		&state,
-		&stateReason,
-		&region,
-		&createdAt,
-		&updatedAt,
 		false,
-		&storageSize,
-		[]string{"one"},
-		[]string{"storageType"},
 	)
 
 	rootDiskSize, _ := value_object.NewRootDiskSize(55)
@@ -330,7 +292,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"",
 		"type",
 		"state",
-		public_cloud.Region{Name: "autoScalingGroupRegion"},
+		"autoScalingGroupRegion",
 		*autoScalingGroupReference,
 		autoScalingGroupCreatedAt,
 		autoScalingGroupUpdatedAt,
@@ -347,7 +309,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	return public_cloud.NewInstance(
 		"",
-		public_cloud.Region{Name: "region"},
+		"region",
 		resources,
 		image,
 		enum.StateCreating,
@@ -356,7 +318,7 @@ func generateDomainInstance() public_cloud.Instance {
 		true,
 		false,
 		*rootDiskSize,
-		public_cloud.InstanceType{Name: "lsw.c3.large"},
+		"lsw.c3.large",
 		enum.StorageTypeCentral,
 		public_cloud.Ips{ip},
 		*contract,

@@ -77,7 +77,7 @@ func (p PublicCloudFacade) CreateInstance(
 
 	createInstanceOpts, err := p.adaptToCreateInstanceOpts(
 		plan,
-		availableInstanceTypes.ToArray(),
+		availableInstanceTypes,
 		ctx,
 	)
 	if err != nil {
@@ -154,8 +154,8 @@ func (p PublicCloudFacade) UpdateInstance(
 
 	updateInstanceOpts, conversionError := p.adaptToUpdateInstanceOpts(
 		plan,
-		availableInstanceTypes.ToArray(),
-		instance.Type.Name,
+		availableInstanceTypes,
+		instance.Type,
 		ctx,
 	)
 	if conversionError != nil {
@@ -272,10 +272,10 @@ func (p PublicCloudFacade) DoesRegionExist(
 	}
 
 	if regions.Contains(region) {
-		return true, regions.ToArray(), nil
+		return true, regions, nil
 	}
 
-	return false, regions.ToArray(), nil
+	return false, regions, nil
 }
 
 // IsInstanceTypeAvailableForRegion checks if the instanceType is available for the region.
@@ -295,7 +295,7 @@ func (p PublicCloudFacade) IsInstanceTypeAvailableForRegion(
 		)
 	}
 
-	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
+	return instanceTypes.Contains(instanceType), instanceTypes, nil
 }
 
 // CanInstanceTypeBeUsedWithInstance checks
@@ -313,10 +313,7 @@ func (p PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 		instanceId,
 		ctx,
 	)
-	instanceTypes = append(
-		instanceTypes,
-		public_cloud.InstanceType{Name: currentInstanceType},
-	)
+	instanceTypes = append(instanceTypes, currentInstanceType)
 
 	if serviceErr != nil {
 		return false, nil, shared.NewFromServicesError(
@@ -325,7 +322,7 @@ func (p PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 		)
 	}
 
-	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
+	return instanceTypes.Contains(instanceType), instanceTypes, nil
 }
 
 // CanInstanceBeTerminated determines whether an instance can be terminated.

@@ -19,19 +19,9 @@ func Test_adaptImage(t *testing.T) {
 	image := public_cloud.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
-		nil,
 		"family",
 		"flavour",
-		nil,
-		nil,
-		nil,
-		&public_cloud.Region{},
-		nil,
-		nil,
 		false,
-		&public_cloud.StorageSize{},
-		[]string{},
-		[]string{},
 	)
 
 	got, err := adaptImage(context.TODO(), image)
@@ -238,7 +228,7 @@ func TestAdaptInstance(t *testing.T) {
 	instance.PrivateNetwork.Id = "privateNetworkId"
 	instance.AutoScalingGroup.Id = autoScalingGroupId
 	instance.Resources.Cpu.Unit = "cpu"
-	instance.Type.Name = "instanceType"
+	instance.Type = "instanceType"
 
 	got, err := AdaptInstance(instance, context.TODO())
 
@@ -331,7 +321,7 @@ func Test_adaptAutoScalingGroup(t *testing.T) {
 		id,
 		"type",
 		"state",
-		public_cloud.Region{Name: "region"},
+		"region",
 		*reference,
 		createdAt,
 		updatedAt,
@@ -406,32 +396,12 @@ func generateDomainInstance() public_cloud.Instance {
 		privateNetworkSpeed,
 	)
 
-	state := "state"
-	stateReason := "stateReason"
-	region := public_cloud.Region{Name: "region"}
-	createdAt := time.Now()
-	updatedAt := time.Now()
-	version := "version"
-	architecture := "architecture"
-
-	storageSize := public_cloud.NewStorageSize(1, "unit")
-
 	image := public_cloud.NewImage(
 		"UBUNTU_20_04_64BIT",
 		"name",
-		&version,
 		"family",
 		"flavour",
-		&architecture,
-		&state,
-		&stateReason,
-		&region,
-		&createdAt,
-		&updatedAt,
 		false,
-		&storageSize,
-		[]string{"one"},
-		[]string{"storageType"},
 	)
 
 	rootDiskSize, _ := value_object.NewRootDiskSize(55)
@@ -483,49 +453,6 @@ func generateDomainInstance() public_cloud.Instance {
 		"subnet",
 	)
 
-	loadBalancerCpu := public_cloud.NewCpu(45, "loadBalancerCpuUnit")
-	loadBalancerMemory := public_cloud.NewMemory(2, "loadBalancerMemoryUnit")
-	loadBalancerPrivateNetworkSpeed := public_cloud.NewNetworkSpeed(
-		55,
-		"loadBalancerPrivateNetworkSpeedUnit",
-	)
-	loadBalancerPublicNetworkSpeed := public_cloud.NewNetworkSpeed(
-		56,
-		"loadBalancerPublicNetworkSpeedUnit",
-	)
-	instanceTypeResources := public_cloud.NewResources(
-		loadBalancerCpu,
-		loadBalancerMemory,
-		loadBalancerPrivateNetworkSpeed,
-		loadBalancerPublicNetworkSpeed,
-	)
-	instanceTypePricesCompute := public_cloud.NewPrice("5", "6")
-	instanceTypePricesStorageLocal := public_cloud.NewPrice(
-		"7",
-		"8",
-	)
-	instanceTypePricesStorageCenral := public_cloud.NewPrice(
-		"23",
-		"4",
-	)
-	instanceTypePricesStorage := public_cloud.NewStorage(
-		instanceTypePricesStorageLocal,
-		instanceTypePricesStorageCenral,
-	)
-	instanceTypePrices := public_cloud.NewPrices(
-		"currency",
-		"currencySymbol",
-		instanceTypePricesCompute,
-		instanceTypePricesStorage,
-	)
-	instanceTypeStorageTypes := public_cloud.StorageTypes{"storageType"}
-	instanceType := public_cloud.NewInstanceType(
-		"instanceType",
-		instanceTypeResources,
-		instanceTypePrices,
-		public_cloud.OptionalInstanceTypeValues{StorageTypes: &instanceTypeStorageTypes},
-	)
-
 	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
 		"reference",
 	)
@@ -543,7 +470,7 @@ func generateDomainInstance() public_cloud.Instance {
 		"",
 		"type",
 		"state",
-		public_cloud.Region{Name: "autoScalingGroupRegion"},
+		"autoScalingGroupRegion",
 		*autoScalingGroupReference,
 		autoScalingGroupCreatedAt,
 		autoScalingGroupUpdatedAt,
@@ -560,7 +487,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	return public_cloud.NewInstance(
 		"",
-		public_cloud.Region{Name: "region"},
+		"region",
 		resources,
 		image,
 		enum.StateCreating,
@@ -569,7 +496,7 @@ func generateDomainInstance() public_cloud.Instance {
 		true,
 		false,
 		*rootDiskSize,
-		instanceType,
+		"instanceType",
 		enum.StorageTypeCentral,
 		public_cloud.Ips{ip},
 		*contract,

@@ -18,8 +18,8 @@ func AdaptInstance(
 	plan := model.Instance{}
 
 	plan.Id = basetypes.NewStringValue(instance.Id)
-	plan.Region = basetypes.NewStringValue(instance.Region.String())
-	plan.Type = basetypes.NewStringValue(instance.Type.String())
+	plan.Region = basetypes.NewStringValue(instance.Region)
+	plan.Type = basetypes.NewStringValue(instance.Type)
 	plan.Reference = shared.AdaptNullableStringToStringValue(instance.Reference)
 	plan.State = basetypes.NewStringValue(string(instance.State))
 	plan.ProductType = basetypes.NewStringValue(instance.ProductType)
@@ -270,7 +270,7 @@ func adaptAutoScalingGroup(
 		DesiredAmount: shared.AdaptNullableIntToInt64Value(
 			autoScalingGroup.DesiredAmount,
 		),
-		Region: basetypes.NewStringValue(autoScalingGroup.Region.String()),
+		Region: basetypes.NewStringValue(autoScalingGroup.Region),
 		Reference: basetypes.NewStringValue(
 			autoScalingGroup.Reference.String(),
 		),
