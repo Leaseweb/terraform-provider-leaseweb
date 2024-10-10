@@ -36,18 +36,6 @@ type PublicCloudRepository interface {
 	// DeleteInstance deletes an instance in the public cloud api.
 	DeleteInstance(id string, ctx context.Context) *shared.RepositoryError
 
-	// GetAutoScalingGroup Get autoScalingGroup details from the public cloud api.
-	GetAutoScalingGroup(
-		id string,
-		ctx context.Context,
-	) (*public_cloud.AutoScalingGroup, *shared.RepositoryError)
-
-	// GetLoadBalancer gets load balancer details from the public cloud api.
-	GetLoadBalancer(
-		id string,
-		ctx context.Context,
-	) (*public_cloud.LoadBalancer, *shared.RepositoryError)
-
 	// GetAvailableInstanceTypesForUpdate gets all possible instances types an instance is allowed to upgrade to from the public cloud api.
 	GetAvailableInstanceTypesForUpdate(
 		id string,
@@ -64,7 +52,4 @@ type PublicCloudRepository interface {
 		region string,
 		ctx context.Context,
 	) (public_cloud.InstanceTypes, *shared.RepositoryError)
-
-	// GetAllImages gets all available images.
-	GetAllImages(ctx context.Context) (public_cloud.Images, *shared.RepositoryError)
 }

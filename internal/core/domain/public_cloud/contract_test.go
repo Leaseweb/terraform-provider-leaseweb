@@ -10,16 +10,12 @@ import (
 
 func TestNewContract(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		renewalsAt := time.Now()
-		createdAt := time.Now()
 		endsAt := time.Now()
 
 		got, err := NewContract(
 			enum.ContractBillingFrequencySix,
 			enum.ContractTermThree,
 			enum.ContractTypeMonthly,
-			renewalsAt,
-			createdAt,
 			enum.ContractStateActive,
 			&endsAt,
 		)
@@ -32,8 +28,6 @@ func TestNewContract(t *testing.T) {
 		)
 		assert.Equal(t, enum.ContractTermThree, got.Term)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Type)
-		assert.Equal(t, renewalsAt, got.RenewalsAt)
-		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, enum.ContractStateActive, got.State)
 		assert.Equal(t, endsAt, *got.EndsAt)
 	})
@@ -45,8 +39,6 @@ func TestNewContract(t *testing.T) {
 				enum.ContractBillingFrequencySix,
 				enum.ContractTermZero,
 				enum.ContractTypeMonthly,
-				time.Now(),
-				time.Now(),
 				enum.ContractStateActive,
 				nil,
 			)
@@ -62,8 +54,6 @@ func TestNewContract(t *testing.T) {
 				enum.ContractBillingFrequencySix,
 				enum.ContractTermThree,
 				enum.ContractTypeHourly,
-				time.Now(),
-				time.Now(),
 				enum.ContractStateActive,
 				nil,
 			)
@@ -71,5 +61,4 @@ func TestNewContract(t *testing.T) {
 			assert.ErrorIs(t, err, ErrContractTermMustBeZero)
 		},
 	)
-
 }

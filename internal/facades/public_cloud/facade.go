@@ -5,9 +5,7 @@ import (
 	"context"
 	"errors"
 	"log"
-	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
@@ -68,12 +66,8 @@ func (p PublicCloudFacade) CreateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	var region resourceModel.Region
-
-	plan.Region.As(ctx, &region, basetypes.ObjectAsOptions{})
-
 	availableInstanceTypes, serviceError := p.publicCloudService.GetAvailableInstanceTypesForRegion(
-		region.Name.ValueString(),
+		plan.Region.ValueString(),
 		ctx,
 	)
 	if serviceError != nil {
@@ -82,7 +76,7 @@ func (p PublicCloudFacade) CreateInstance(
 
 	createInstanceOpts, err := p.adaptToCreateInstanceOpts(
 		plan,
-		availableInstanceTypes.ToArray(),
+		availableInstanceTypes,
 		ctx,
 	)
 	if err != nil {
@@ -159,8 +153,8 @@ func (p PublicCloudFacade) UpdateInstance(
 
 	updateInstanceOpts, conversionError := p.adaptToUpdateInstanceOpts(
 		plan,
-		availableInstanceTypes.ToArray(),
-		instance.Type.Name,
+		availableInstanceTypes,
+		instance.Type,
 		ctx,
 	)
 	if conversionError != nil {
@@ -243,8 +237,6 @@ func (p PublicCloudFacade) ValidateContractTerm(
 		enum.ContractBillingFrequencySix,
 		contractTermEnum,
 		contractTypeEnum,
-		time.Now(),
-		time.Now(),
 		enum.ContractStateActive,
 		nil,
 	)
@@ -277,10 +269,10 @@ func (p PublicCloudFacade) DoesRegionExist(
 	}
 
 	if regions.Contains(region) {
-		return true, regions.ToArray(), nil
+		return true, regions, nil
 	}
 
-	return false, regions.ToArray(), nil
+	return false, regions, nil
 }
 
 // IsInstanceTypeAvailableForRegion checks if the instanceType is available for the region.
@@ -300,7 +292,7 @@ func (p PublicCloudFacade) IsInstanceTypeAvailableForRegion(
 		)
 	}
 
-	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
+	return instanceTypes.Contains(instanceType), instanceTypes, nil
 }
 
 // CanInstanceTypeBeUsedWithInstance checks
@@ -318,10 +310,7 @@ func (p PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 		instanceId,
 		ctx,
 	)
-	instanceTypes = append(
-		instanceTypes,
-		public_cloud.InstanceType{Name: currentInstanceType},
-	)
+	instanceTypes = append(instanceTypes, currentInstanceType)
 
 	if serviceErr != nil {
 		return false, nil, shared.NewFromServicesError(
@@ -330,7 +319,7 @@ func (p PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 		)
 	}
 
-	return instanceTypes.ContainsName(instanceType), instanceTypes.ToArray(), nil
+	return instanceTypes.Contains(instanceType), instanceTypes, nil
 }
 
 // CanInstanceBeTerminated determines whether an instance can be terminated.

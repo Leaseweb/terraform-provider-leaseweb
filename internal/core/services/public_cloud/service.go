@@ -14,21 +14,14 @@ import (
 type Service struct {
 	publicCloudRepository ports.PublicCloudRepository
 
-	cachedInstanceTypes     synced_map.SyncedMap[string, public_cloud.InstanceTypes]
-	cachedImages            synced_map.SyncedMap[string, public_cloud.Image]
-	cachedRegions           synced_map.SyncedMap[string, public_cloud.Regions]
-	cachedAutoScalingGroups synced_map.SyncedMap[string, public_cloud.AutoScalingGroup]
-	cachedLoadBalancers     synced_map.SyncedMap[string, public_cloud.LoadBalancer]
+	cachedInstanceTypes synced_map.SyncedMap[string, public_cloud.InstanceTypes]
+	cachedRegions       synced_map.SyncedMap[string, public_cloud.Regions]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
 	public_cloud.Instances,
 	*errors.ServiceError,
 ) {
-	var detailedInstances public_cloud.Instances
-	resultChan := make(chan public_cloud.Instance)
-	errorChan := make(chan *errors.ServiceError)
-
 	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
 	if err != nil {
 		return public_cloud.Instances{}, errors.NewFromRepositoryError(
@@ -37,29 +30,7 @@ func (srv *Service) GetAllInstances(ctx context.Context) (
 		)
 	}
 
-	for _, instance := range instances {
-		go func(id string) {
-			detailedInstance, err := srv.GetInstance(id, ctx)
-			if err != nil {
-				errorChan <- err
-				return
-			}
-			resultChan <- *detailedInstance
-		}(instance.Id)
-	}
-
-	for i := 0; i < len(instances); i++ {
-		select {
-		case err := <-errorChan:
-			return public_cloud.Instances{}, err
-		case res := <-resultChan:
-			detailedInstances = append(detailedInstances, res)
-		}
-	}
-
-	// Order the results as the channel result order is unpredictable.
-	detailedInstances.OrderById()
-	return detailedInstances, nil
+	return instances, nil
 }
 
 func (srv *Service) GetInstance(
@@ -71,7 +42,7 @@ func (srv *Service) GetInstance(
 		return nil, errors.NewFromRepositoryError("GetInstance", *err)
 	}
 
-	return srv.populateMissingInstanceAttributes(*instance, ctx)
+	return instance, nil
 }
 
 func (srv *Service) CreateInstance(
@@ -102,7 +73,7 @@ func (srv *Service) UpdateInstance(
 		return nil, errors.NewFromRepositoryError("UpdateInstance", *err)
 	}
 
-	return srv.populateMissingInstanceAttributes(*updatedInstance, ctx)
+	return updatedInstance, nil
 }
 
 func (srv *Service) DeleteInstance(
@@ -154,127 +125,6 @@ func (srv *Service) GetRegions(ctx context.Context) (
 	return regions, nil
 }
 
-// Get autoScalingGroupDetails.
-func (srv *Service) getAutoScalingGroup(
-	id string,
-	ctx context.Context,
-) (*public_cloud.AutoScalingGroup, *errors.ServiceError) {
-	cachedAutoScalingGroup, ok := srv.cachedAutoScalingGroups.Get(id)
-	if ok {
-		return &cachedAutoScalingGroup, nil
-	}
-
-	autoScalingGroup, err := srv.publicCloudRepository.GetAutoScalingGroup(
-		id,
-		ctx,
-	)
-	if err != nil {
-		return nil, errors.NewFromRepositoryError(
-			"getAutoScalingGroup",
-			*err,
-		)
-	}
-
-	srv.cachedAutoScalingGroups.Set(id, *autoScalingGroup)
-	return autoScalingGroup, nil
-}
-
-func (srv *Service) getLoadBalancer(
-	id string,
-	ctx context.Context,
-) (*public_cloud.LoadBalancer, *errors.ServiceError) {
-	cachedLoadBalancer, ok := srv.cachedLoadBalancers.Get(id)
-	if ok {
-		return &cachedLoadBalancer, nil
-	}
-
-	loadBalancer, err := srv.publicCloudRepository.GetLoadBalancer(id, ctx)
-	if err != nil {
-		return nil, errors.NewFromRepositoryError(
-			"getLoadBalancer",
-			*err,
-		)
-	}
-
-	srv.cachedLoadBalancers.Set(id, *loadBalancer)
-
-	return loadBalancer, nil
-}
-
-// Get imageDetails.
-func (srv *Service) getImage(
-	id string,
-	ctx context.Context,
-) (*public_cloud.Image, *errors.ServiceError) {
-	cachedImage, ok := srv.cachedImages.Get(id)
-	if ok {
-		return &cachedImage, nil
-	}
-
-	images, err := srv.publicCloudRepository.GetAllImages(ctx)
-	if err != nil {
-		return nil, errors.NewFromRepositoryError(
-			"getImage",
-			*err,
-		)
-	}
-
-	for _, image := range images {
-		srv.cachedImages.Set(image.Id, image)
-	}
-
-	image, imageErr := images.FilterById(id)
-	if imageErr != nil {
-		return nil, errors.NewError(
-			"getImage",
-			imageErr,
-		)
-	}
-
-	return image, nil
-}
-
-// Populate instance with missing details.
-func (srv *Service) populateMissingInstanceAttributes(
-	instance public_cloud.Instance,
-	ctx context.Context,
-) (*public_cloud.Instance, *errors.ServiceError) {
-	if instance.AutoScalingGroup != nil {
-		autoScalingGroup, err := srv.getAutoScalingGroup(
-			instance.AutoScalingGroup.Id,
-			ctx,
-		)
-		if err != nil {
-			return nil, err
-		}
-		instance.AutoScalingGroup = autoScalingGroup
-	}
-
-	image, err := srv.getImage(instance.Image.Id, ctx)
-	if err != nil {
-		return nil, err
-	}
-	instance.Image = *image
-
-	region, err := srv.getRegion(instance.Region.Name, ctx)
-	if err != nil {
-		return nil, err
-	}
-	instance.Region = *region
-
-	instanceType, err := srv.getInstanceType(
-		instance.Type.Name,
-		instance.Region.Name,
-		ctx,
-	)
-	if err != nil {
-		return nil, err
-	}
-	instance.Type = *instanceType
-
-	return &instance, nil
-}
-
 func (srv *Service) GetAvailableInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
@@ -300,52 +150,10 @@ func (srv *Service) GetAvailableInstanceTypesForRegion(
 	return instanceTypes, nil
 }
 
-func (srv *Service) getInstanceType(
-	name string,
-	region string,
-	ctx context.Context,
-) (*public_cloud.InstanceType, *errors.ServiceError) {
-
-	instanceTypes, serviceErr := srv.GetAvailableInstanceTypesForRegion(
-		region,
-		ctx,
-	)
-	if serviceErr != nil {
-		return nil, errors.NewError("GetInstanceType", *serviceErr)
-	}
-
-	instanceType, err := instanceTypes.GetByName(name)
-	if err != nil {
-		return nil, errors.NewError("GetInstanceType", err)
-	}
-
-	return instanceType, nil
-}
-
-func (srv *Service) getRegion(
-	name string,
-	ctx context.Context,
-) (*public_cloud.Region, *errors.ServiceError) {
-	regions, err := srv.GetRegions(ctx)
-	if err != nil {
-		return nil, errors.NewError("GetRegion", err)
-	}
-
-	region, regionsErr := regions.GetByName(name)
-	if regionsErr != nil {
-		return nil, errors.NewError("GetRegion", regionsErr)
-	}
-
-	return region, nil
-}
-
 func New(publicCloudRepository ports.PublicCloudRepository) Service {
 	return Service{
-		publicCloudRepository:   publicCloudRepository,
-		cachedInstanceTypes:     synced_map.NewSyncedMap[string, public_cloud.InstanceTypes](),
-		cachedImages:            synced_map.NewSyncedMap[string, public_cloud.Image](),
-		cachedRegions:           synced_map.NewSyncedMap[string, public_cloud.Regions](),
-		cachedAutoScalingGroups: synced_map.NewSyncedMap[string, public_cloud.AutoScalingGroup](),
-		cachedLoadBalancers:     synced_map.NewSyncedMap[string, public_cloud.LoadBalancer](),
+		publicCloudRepository: publicCloudRepository,
+		cachedInstanceTypes:   synced_map.NewSyncedMap[string, public_cloud.InstanceTypes](),
+		cachedRegions:         synced_map.NewSyncedMap[string, public_cloud.Regions](),
 	}
 }
