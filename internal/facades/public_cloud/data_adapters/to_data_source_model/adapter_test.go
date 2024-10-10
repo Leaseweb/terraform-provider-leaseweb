@@ -50,13 +50,7 @@ func Test_adaptInstance(t *testing.T) {
 }
 
 func Test_adaptImage(t *testing.T) {
-	image := public_cloud.NewImage(
-		"id",
-		"",
-		"",
-		"",
-		false,
-	)
+	image := public_cloud.NewImage("id")
 
 	got := adaptImage(image)
 
@@ -64,14 +58,17 @@ func Test_adaptImage(t *testing.T) {
 }
 
 func Test_adaptContract(t *testing.T) {
+	endsAt, _ := time.Parse(
+		"2006-01-02 15:04:05",
+		"2023-12-14 17:09:47",
+	)
+
 	contract, _ := public_cloud.NewContract(
 		enum.ContractBillingFrequencySix,
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,
-		time.Now(),
-		time.Now(),
 		enum.ContractStateActive,
-		nil,
+		&endsAt,
 	)
 
 	got := adaptContract(*contract)
@@ -79,87 +76,31 @@ func Test_adaptContract(t *testing.T) {
 	assert.Equal(t, int64(6), got.BillingFrequency.ValueInt64())
 	assert.Equal(t, int64(3), got.Term.ValueInt64())
 	assert.Equal(t, "MONTHLY", got.Type.ValueString())
+	assert.Equal(t, "2023-12-14 17:09:47 +0000 UTC", got.EndsAt.ValueString())
 	assert.Equal(t, "ACTIVE", got.State.ValueString())
 }
 
 func Test_adaptIp(t *testing.T) {
-
-	ip := public_cloud.NewIp(
-		"Ip",
-		"",
-		46,
-		true,
-		false,
-		enum.NetworkTypeInternal,
-		public_cloud.OptionalIpValues{},
-	)
+	ip := public_cloud.NewIp("127.0.0.1")
 
 	got := adaptIp(ip)
 
-	assert.Equal(t, "Ip", got.Ip.ValueString())
+	assert.Equal(t, "127.0.0.1", got.Ip.ValueString())
 }
 
 func generateDomainInstance() public_cloud.Instance {
-	cpu := public_cloud.NewCpu(1, "cpuUnit")
-	memory := public_cloud.NewMemory(2, "memoryUnit")
-	publicNetworkSpeed := public_cloud.NewNetworkSpeed(
-		3,
-		"publicNetworkSpeedUnit",
-	)
-	privateNetworkSpeed := public_cloud.NewNetworkSpeed(
-		4,
-		"privateNetworkSpeedUnit",
-	)
-
-	resources := public_cloud.NewResources(
-		cpu,
-		memory,
-		publicNetworkSpeed,
-		privateNetworkSpeed,
-	)
-
-	image := public_cloud.NewImage(
-		"UBUNTU_20_04_64BIT",
-		"name",
-		"family",
-		"flavour",
-		false,
-	)
-
+	image := public_cloud.NewImage("UBUNTU_20_04_64BIT")
 	rootDiskSize, _ := value_object.NewRootDiskSize(55)
-
-	reverseLookup := "reverseLookup"
-	ip := public_cloud.NewIp(
-		"1.2.3.4",
-		"prefix-length",
-		46,
-		true,
-		false,
-		"tralala",
-		public_cloud.OptionalIpValues{
-			Ddos:          &public_cloud.Ddos{ProtectionType: "protection-type"},
-			ReverseLookup: &reverseLookup,
-		},
-	)
+	ip := public_cloud.NewIp("1.2.3.4")
 
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
 	)
-	renewalsAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2022-12-14 17:09:47",
-	)
-	contractCreatedAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2021-12-14 17:09:47",
-	)
 	contract, _ := public_cloud.NewContract(
 		enum.ContractBillingFrequencySix,
 		enum.ContractTermThree,
 		enum.ContractTypeMonthly,
-		renewalsAt,
-		contractCreatedAt,
 		enum.ContractStateActive,
 		&endsAt,
 	)
@@ -169,67 +110,21 @@ func generateDomainInstance() public_cloud.Instance {
 	sshKeyValueObject, _ := value_object.NewSshKey(defaultSshKey)
 	startedAt := time.Now()
 
-	privateNetwork := public_cloud.NewPrivateNetwork(
-		"id",
-		"status",
-		"subnet",
-	)
-
-	autoScalingGroupReference, _ := value_object.NewAutoScalingGroupReference(
-		"reference",
-	)
-	autoScalingGroupCreatedAt := time.Now()
-	autoScalingGroupUpdatedAt := time.Now()
-	autoScalingGroupDesiredAmount := 1
-	autoScalingGroupStartsAt := time.Now()
-	autoScalingGroupEndsAt := time.Now()
-	autoScalingMinimumAmount := 2
-	autoScalingMaximumAmount := 3
-	autoScalingCpuThreshold := 4
-	autoScalingWarmupTime := 5
-	autoScalingCooldownTime := 6
-	autoScalingGroup := public_cloud.NewAutoScalingGroup(
-		"",
-		"type",
-		"state",
-		"autoScalingGroupRegion",
-		*autoScalingGroupReference,
-		autoScalingGroupCreatedAt,
-		autoScalingGroupUpdatedAt,
-		public_cloud.AutoScalingGroupOptions{
-			DesiredAmount: &autoScalingGroupDesiredAmount,
-			StartsAt:      &autoScalingGroupStartsAt,
-			EndsAt:        &autoScalingGroupEndsAt,
-			MinimumAmount: &autoScalingMinimumAmount,
-			MaximumAmount: &autoScalingMaximumAmount,
-			CpuThreshold:  &autoScalingCpuThreshold,
-			WarmupTime:    &autoScalingWarmupTime,
-			CoolDownTime:  &autoScalingCooldownTime,
-		})
-
 	return public_cloud.NewInstance(
 		"",
 		"region",
-		resources,
 		image,
 		enum.StateCreating,
-		"productType",
-		false,
-		true,
-		false,
 		*rootDiskSize,
 		"lsw.c3.large",
 		enum.StorageTypeCentral,
 		public_cloud.Ips{ip},
 		*contract,
 		public_cloud.OptionalInstanceValues{
-			Reference:        &reference,
-			Iso:              &public_cloud.Iso{Id: "isoId"},
-			MarketAppId:      &marketAppId,
-			SshKey:           sshKeyValueObject,
-			StartedAt:        &startedAt,
-			PrivateNetwork:   &privateNetwork,
-			AutoScalingGroup: &autoScalingGroup,
+			Reference:   &reference,
+			MarketAppId: &marketAppId,
+			SshKey:      sshKeyValueObject,
+			StartedAt:   &startedAt,
 		},
 	)
 }

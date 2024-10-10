@@ -13,50 +13,9 @@ import (
 var autoScalingGroupId = "90b9f2cc-c655-40ea-b01a-58c00e175c96"
 var instanceId = "5d7f8262-d77f-4476-8da8-6a84f8f2ae8d"
 
-func Test_adaptNetworkSpeed(t *testing.T) {
-	sdkNetworkSpeed := sdk.NewNetworkSpeed(1, "unit")
-	got := adaptNetworkSpeed(*sdkNetworkSpeed)
-
-	assert.Equal(t, 1, got.Value)
-	assert.Equal(t, "unit", got.Unit)
-}
-
-func Test_adaptMemory(t *testing.T) {
-	sdkMemory := sdk.NewMemory(1, "unit")
-	got := adaptMemory(*sdkMemory)
-
-	assert.Equal(t, float64(1), got.Value)
-	assert.Equal(t, "unit", got.Unit)
-}
-
-func Test_adaptCpu(t *testing.T) {
-	sdkCpu := sdk.NewCpu(1, "unit")
-	got := adaptCpu(*sdkCpu)
-
-	assert.Equal(t, 1, got.Value)
-	assert.Equal(t, "unit", got.Unit)
-}
-
-func Test_adaptResources(t *testing.T) {
-	sdkResources := sdk.NewResources(
-		sdk.Cpu{Unit: "cpu"},
-		sdk.Memory{Unit: "memory"},
-		sdk.NetworkSpeed{Unit: "publicNetworkSpeed"},
-		sdk.NetworkSpeed{Unit: "privateNetworkSpeed"},
-	)
-
-	got := adaptResources(*sdkResources)
-
-	assert.Equal(t, "cpu", got.Cpu.Unit)
-	assert.Equal(t, "memory", got.Memory.Unit)
-	assert.Equal(t, "publicNetworkSpeed", got.PublicNetworkSpeed.Unit)
-	assert.Equal(t, "privateNetworkSpeed", got.PrivateNetworkSpeed.Unit)
-}
-
 func TestAdaptInstanceDetails(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		startedAt := time.Now()
-		sdkInstance := generateInstanceDetails(t, &startedAt)
+		sdkInstance := generateInstanceDetails(t)
 
 		got, err := AdaptInstanceDetails(sdkInstance)
 
@@ -67,16 +26,10 @@ func TestAdaptInstanceDetails(t *testing.T) {
 			got.Id,
 		)
 		assert.Equal(t, string(sdk.TYPENAME_M3_LARGE), got.Type)
-		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", *got.Reference)
-		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
 		assert.Equal(t, enum.StateRunning, got.State)
-		assert.Equal(t, "productType", got.ProductType)
-		assert.True(t, got.HasPublicIpv4)
-		assert.False(t, got.HasPrivateNetwork)
-		assert.False(t, got.HasUserData)
 		assert.Equal(t, 6, got.RootDiskSize.Value)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
@@ -84,15 +37,12 @@ func TestAdaptInstanceDetails(t *testing.T) {
 			enum.ContractBillingFrequencyOne,
 			got.Contract.BillingFrequency,
 		)
-		assert.Equal(t, "isoId", got.Iso.Id)
-		assert.Equal(t, "privateNetworkId", got.PrivateNetwork.Id)
 		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id)
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
+		sdkInstance := generateInstanceDetails(t)
 		sdkInstance.State = "tralala"
 
 		_, err := AdaptInstanceDetails(sdkInstance)
@@ -101,7 +51,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 	})
 
 	t.Run("invalid rootDiskSize returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
+		sdkInstance := generateInstanceDetails(t)
 		sdkInstance.RootDiskSize = 5000
 
 		_, err := AdaptInstanceDetails(sdkInstance)
@@ -111,7 +61,7 @@ func TestAdaptInstanceDetails(t *testing.T) {
 	})
 
 	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
+		sdkInstance := generateInstanceDetails(t)
 		sdkInstance.RootDiskStorageType = "tralala"
 
 		_, err := AdaptInstanceDetails(sdkInstance)
@@ -120,18 +70,8 @@ func TestAdaptInstanceDetails(t *testing.T) {
 		assert.ErrorContains(t, err, "tralala")
 	})
 
-	t.Run("invalid ip returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
-		sdkInstance.Ips = []sdk.IpDetails{{NetworkType: "tralala"}}
-
-		_, err := AdaptInstanceDetails(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("invalid contract returns error", func(t *testing.T) {
-		sdkInstance := generateInstanceDetails(t, nil)
+		sdkInstance := generateInstanceDetails(t)
 		sdkInstance.Contract.BillingFrequency = 55
 
 		_, err := AdaptInstanceDetails(sdkInstance)
@@ -141,107 +81,56 @@ func TestAdaptInstanceDetails(t *testing.T) {
 	})
 }
 
-func Test_adaptDdos(t *testing.T) {
-	got := adaptDdos(sdk.Ddos{
-		DetectionProfile: "detectionProfile",
-		ProtectionType:   "protectionType",
-	})
-
-	assert.Equal(t, "detectionProfile", got.DetectionProfile)
-	assert.Equal(t, "protectionType", got.ProtectionType)
-}
-
 func Test_adaptIpDetails(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		reverseLookup := "reverseLookup"
+	sdkIp := sdk.NewIpDetails(
+		"1.2.3.4",
+		"",
+		5,
+		true,
+		false,
+		sdk.NETWORKTYPE_INTERNAL,
+		*sdk.NewNullableString(nil),
+		*sdk.NewNullableDdos(nil),
+	)
 
-		sdkIp := sdk.NewIpDetails(
-			"1.2.3.4",
-			"prefixLength",
-			5,
-			true,
-			false,
-			sdk.NETWORKTYPE_INTERNAL,
-			*sdk.NewNullableString(&reverseLookup),
-			*sdk.NewNullableDdos(
-				&sdk.Ddos{DetectionProfile: "detectionProfile"},
-			),
-		)
+	got := adaptIpDetails(*sdkIp)
 
-		got, err := adaptIpDetails(*sdkIp)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "1.2.3.4", got.Ip)
-		assert.Equal(t, "prefixLength", got.PrefixLength)
-		assert.Equal(t, 5, got.Version)
-		assert.True(t, got.NullRouted)
-		assert.False(t, got.MainIp)
-		assert.Equal(t, enum.NetworkTypeInternal, got.NetworkType)
-		assert.Equal(t, "reverseLookup", *got.ReverseLookup)
-		assert.Equal(t, "detectionProfile", got.Ddos.DetectionProfile)
-	})
-
-	t.Run("error returned for invalid networkType", func(t *testing.T) {
-		_, err := adaptIpDetails(sdk.IpDetails{NetworkType: "tralala"})
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
+	assert.Equal(t, "1.2.3.4", got.Ip)
 }
 
 func Test_adaptIpsDetails(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		got, err := adaptIpsDetails([]sdk.IpDetails{{
-			Ip:          "1.2.3.4",
-			NetworkType: sdk.NETWORKTYPE_PUBLIC,
+		got := adaptIpsDetails([]sdk.IpDetails{{
+			Ip: "1.2.3.4",
 		}})
 
-		assert.NoError(t, err)
 		assert.Len(t, got, 1)
 		assert.Equal(t, "1.2.3.4", got[0].Ip)
-	})
-
-	t.Run("error returned for invalid ip", func(t *testing.T) {
-		_, err := adaptIps([]sdk.Ip{{NetworkType: "tralala"}})
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
 func Test_adaptIps(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		got, err := adaptIps([]sdk.Ip{{
-			Ip:          "1.2.3.4",
-			NetworkType: sdk.NETWORKTYPE_PUBLIC,
+		got := adaptIps([]sdk.Ip{{
+			Ip: "1.2.3.4",
 		}})
 
-		assert.NoError(t, err)
 		assert.Len(t, got, 1)
 		assert.Equal(t, "1.2.3.4", got[0].Ip)
-	})
-
-	t.Run("error returned for invalid ip", func(t *testing.T) {
-		_, err := adaptIps([]sdk.Ip{{NetworkType: "tralala"}})
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 }
 
 func Test_adaptContract(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		endsAt := time.Now()
-		renewalsAt := time.Now()
-		createdAt := time.Now()
 
 		sdkContract := sdk.NewContract(
 			0,
 			1,
 			sdk.CONTRACTTYPE_MONTHLY,
 			*sdk.NewNullableTime(&endsAt),
-			renewalsAt,
-			createdAt,
+			time.Now(),
+			time.Now(),
 			sdk.CONTRACTSTATE_ACTIVE,
 		)
 
@@ -252,8 +141,6 @@ func Test_adaptContract(t *testing.T) {
 		assert.Equal(t, enum.ContractTermOne, got.Term)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Type)
 		assert.Equal(t, endsAt, *got.EndsAt)
-		assert.Equal(t, renewalsAt, got.RenewalsAt)
-		assert.Equal(t, createdAt, got.CreatedAt)
 		assert.Equal(t, enum.ContractStateActive, got.State)
 	})
 
@@ -321,46 +208,19 @@ func Test_adaptContract(t *testing.T) {
 
 }
 
-func Test_adaptIso(t *testing.T) {
-	got := adaptIso(*sdk.NewIso("id", "name"))
-
-	assert.Equal(t, "id", got.Id)
-	assert.Equal(t, "name", got.Name)
-}
-
-func Test_adaptPrivateNetwork(t *testing.T) {
-	got := adaptPrivateNetwork(*sdk.NewPrivateNetwork(
-		"id",
-		"status",
-		"subnet",
-	))
-
-	assert.Equal(t, "id", got.Id)
-	assert.Equal(t, "status", got.Status)
-	assert.Equal(t, "subnet", got.Subnet)
-}
-
 func TestAdaptInstance(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
-		startedAt := time.Now()
-
-		sdkInstance := generateInstance(t, &startedAt)
+		sdkInstance := generateInstance(t)
 
 		got, err := AdaptInstance(sdkInstance)
 
 		assert.NoError(t, err)
 		assert.Equal(t, instanceId, got.Id)
 		assert.Equal(t, "lsw.m3.large", got.Type)
-		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "reference", *got.Reference)
-		assert.Equal(t, startedAt, *got.StartedAt)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
 		assert.Equal(t, enum.StateRunning, got.State)
-		assert.Equal(t, "productType", got.ProductType)
-		assert.True(t, got.HasPublicIpv4)
-		assert.False(t, got.HasPrivateNetwork)
-		assert.False(t, got.HasUserData)
 		assert.Equal(t, 6, got.RootDiskSize.Value)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(
@@ -370,11 +230,10 @@ func TestAdaptInstance(t *testing.T) {
 		)
 		assert.Equal(t, "CENTOS_7_64BIT", got.Image.Id)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
-		assert.Equal(t, autoScalingGroupId, got.AutoScalingGroup.Id)
 	})
 
 	t.Run("invalid state returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
+		sdkInstance := generateInstance(t)
 		sdkInstance.State = "tralala"
 
 		_, err := AdaptInstance(sdkInstance)
@@ -383,7 +242,7 @@ func TestAdaptInstance(t *testing.T) {
 	})
 
 	t.Run("invalid rootDiskSize returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
+		sdkInstance := generateInstance(t)
 		sdkInstance.RootDiskSize = 5000
 
 		_, err := AdaptInstance(sdkInstance)
@@ -393,7 +252,7 @@ func TestAdaptInstance(t *testing.T) {
 	})
 
 	t.Run("invalid rootDiskStorageType returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
+		sdkInstance := generateInstance(t)
 		sdkInstance.RootDiskStorageType = "tralala"
 
 		_, err := AdaptInstance(sdkInstance)
@@ -402,18 +261,8 @@ func TestAdaptInstance(t *testing.T) {
 		assert.ErrorContains(t, err, "tralala")
 	})
 
-	t.Run("invalid ip returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
-		sdkInstance.Ips = []sdk.Ip{{NetworkType: "tralala"}}
-
-		_, err := AdaptInstance(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("invalid contract returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
+		sdkInstance := generateInstance(t)
 		sdkInstance.Contract.BillingFrequency = 55
 
 		_, err := AdaptInstance(sdkInstance)
@@ -421,35 +270,21 @@ func TestAdaptInstance(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "55")
 	})
-
-	t.Run("invalid autoScalingGroup returns error", func(t *testing.T) {
-		sdkInstance := generateInstance(t, nil)
-		sdkInstance.AutoScalingGroup.Get().Type = "tralala"
-
-		_, err := AdaptInstance(sdkInstance)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
 }
 
 func Test_adaptImage(t *testing.T) {
 	t.Run("values are set", func(t *testing.T) {
 		sdkImage := sdk.NewImage(
 			"UBUNTU_24_04_64BIT",
-			"name",
-			"family",
-			"flavour",
+			"",
+			"",
+			"",
 			false,
 		)
 
 		got := adaptImage(*sdkImage)
 		want := domain.Image{
-			Id:      "UBUNTU_24_04_64BIT",
-			Name:    "name",
-			Family:  "family",
-			Flavour: "flavour",
-			Custom:  false,
+			Id: "UBUNTU_24_04_64BIT",
 		}
 
 		assert.Equal(t, want, got)
@@ -457,131 +292,22 @@ func Test_adaptImage(t *testing.T) {
 }
 
 func Test_adaptIp(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		reverseLookup := "reverseLookup"
+	sdkIp := sdk.NewIp(
+		"1.2.3.4",
+		"",
+		5,
+		true,
+		false,
+		sdk.NETWORKTYPE_INTERNAL,
+		*sdk.NewNullableString(nil),
+	)
 
-		sdkIp := sdk.NewIp(
-			"1.2.3.4",
-			"prefixLength",
-			5,
-			true,
-			false,
-			sdk.NETWORKTYPE_INTERNAL,
-			*sdk.NewNullableString(&reverseLookup),
-		)
+	got := adaptIp(*sdkIp)
 
-		got, err := adaptIp(*sdkIp)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "1.2.3.4", got.Ip)
-		assert.Equal(t, "prefixLength", got.PrefixLength)
-		assert.Equal(t, 5, got.Version)
-		assert.True(t, got.NullRouted)
-		assert.False(t, got.MainIp)
-		assert.Equal(t, enum.NetworkTypeInternal, got.NetworkType)
-		assert.Equal(t, "reverseLookup", *got.ReverseLookup)
-	})
-
-	t.Run("error returned for invalid networkType", func(t *testing.T) {
-		_, err := adaptIpDetails(sdk.IpDetails{NetworkType: "tralala"})
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
+	assert.Equal(t, "1.2.3.4", got.Ip)
 }
 
-func TestAdaptAutoScalingGroup(t *testing.T) {
-	t.Run("values are set", func(t *testing.T) {
-		createdAt := time.Now()
-		updatedAt := time.Now()
-		startsAt := time.Now()
-		endsAt := time.Now()
-		minimumAmount := int32(1)
-		maximumAmount := int32(2)
-		cpuThreshold := int32(3)
-		warmupTime := int32(4)
-		cooldownTime := int32(5)
-		desiredAmount := int32(6)
-
-		sdkAutoScalingGroup := sdk.NewAutoScalingGroup(
-			instanceId,
-			"MANUAL",
-			"SCALING",
-			*sdk.NewNullableInt32(&desiredAmount),
-			"region",
-			"reference",
-			createdAt,
-			updatedAt,
-			*sdk.NewNullableTime(&startsAt),
-			*sdk.NewNullableTime(&endsAt),
-			*sdk.NewNullableInt32(&minimumAmount),
-			*sdk.NewNullableInt32(&maximumAmount),
-			*sdk.NewNullableInt32(&cpuThreshold),
-			*sdk.NewNullableInt32(&warmupTime),
-			*sdk.NewNullableInt32(&cooldownTime),
-		)
-
-		got, err := adaptAutoScalingGroup(*sdkAutoScalingGroup)
-
-		assert.NoError(t, err)
-		assert.Equal(t, instanceId, got.Id)
-		assert.Equal(t, enum.AutoScalingCpuTypeManual, got.Type)
-		assert.Equal(t, enum.AutoScalingGroupStateScaling, got.State)
-		assert.Equal(t, 6, *got.DesiredAmount)
-		assert.Equal(t, "region", got.Region)
-		assert.Equal(t, "reference", got.Reference.String())
-		assert.Equal(t, createdAt, got.CreatedAt)
-		assert.Equal(t, updatedAt, got.UpdatedAt)
-		assert.Equal(t, startsAt, *got.StartsAt)
-		assert.Equal(t, endsAt, *got.EndsAt)
-		assert.Equal(t, 1, *got.MinimumAmount)
-		assert.Equal(t, 2, *got.MaximumAmount)
-		assert.Equal(t, 3, *got.CpuThreshold)
-		assert.Equal(t, 4, *got.WarmupTime)
-		assert.Equal(t, 5, *got.CooldownTime)
-	})
-
-	t.Run("invalid type returns error", func(t *testing.T) {
-		_, err := adaptAutoScalingGroup(
-			sdk.AutoScalingGroup{Id: instanceId, Type: "tralala"},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid state returns error", func(t *testing.T) {
-		_, err := adaptAutoScalingGroup(
-			sdk.AutoScalingGroup{
-				Id:    instanceId,
-				Type:  sdk.AUTOSCALINGGROUPTYPE_CPU_BASED,
-				State: "tralala",
-			},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
-	t.Run("invalid reference returns error", func(t *testing.T) {
-		_, err := adaptAutoScalingGroup(
-			sdk.AutoScalingGroup{
-				Id:        instanceId,
-				Type:      "MANUAL",
-				State:     "SCALING",
-				Reference: "........................................................................................................................................................................................................................................................................",
-			},
-		)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "characters long")
-	})
-}
-
-func generateInstanceDetails(
-	t *testing.T,
-	startedAt *time.Time,
-) sdk.InstanceDetails {
+func generateInstanceDetails(t *testing.T) sdk.InstanceDetails {
 	t.Helper()
 
 	reference := "reference"
@@ -593,7 +319,7 @@ func generateInstanceDetails(
 		sdk.Resources{Cpu: sdk.Cpu{Unit: "cpu"}},
 		"region",
 		*sdk.NewNullableString(&reference),
-		*sdk.NewNullableTime(startedAt),
+		*sdk.NewNullableTime(nil),
 		*sdk.NewNullableString(&marketAppId),
 		sdk.STATE_RUNNING,
 		"productType",
@@ -623,10 +349,7 @@ func generateInstanceDetails(
 	)
 }
 
-func generateInstance(
-	t *testing.T,
-	startedAt *time.Time,
-) sdk.Instance {
+func generateInstance(t *testing.T) sdk.Instance {
 	t.Helper()
 
 	reference := "reference"
@@ -638,7 +361,7 @@ func generateInstance(
 		sdk.Resources{Cpu: sdk.Cpu{Unit: "cpu"}},
 		"region",
 		*sdk.NewNullableString(&reference),
-		*sdk.NewNullableTime(startedAt),
+		*sdk.NewNullableTime(nil),
 		*sdk.NewNullableString(&marketAppId),
 		sdk.STATE_RUNNING,
 		"productType",

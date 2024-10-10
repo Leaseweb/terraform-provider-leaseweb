@@ -64,9 +64,10 @@ func adaptContract(contract public_cloud.Contract) model.Contract {
 		BillingFrequency: basetypes.NewInt64Value(
 			int64(contract.BillingFrequency),
 		),
-		Term:  basetypes.NewInt64Value(int64(contract.Term)),
-		Type:  basetypes.NewStringValue(string(contract.Type)),
-		State: basetypes.NewStringValue(string(contract.State)),
+		Term:   basetypes.NewInt64Value(int64(contract.Term)),
+		Type:   basetypes.NewStringValue(string(contract.Type)),
+		EndsAt: shared.AdaptNullableTimeToStringValue(contract.EndsAt),
+		State:  basetypes.NewStringValue(string(contract.State)),
 	}
 }
 

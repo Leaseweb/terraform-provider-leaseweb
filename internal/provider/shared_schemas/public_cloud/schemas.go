@@ -42,6 +42,7 @@ func Contract(
 					stringvalidator.OneOf(facade.GetContractTypes()...),
 				},
 			},
+			"ends_at": schema.StringAttribute{Computed: true},
 			"state": schema.StringAttribute{
 				Computed: true,
 			},

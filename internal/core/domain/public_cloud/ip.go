@@ -1,45 +1,11 @@
 package public_cloud
 
-import (
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
-)
-
 type Ip struct {
-	Ip            string
-	PrefixLength  string
-	Version       int
-	NullRouted    bool
-	MainIp        bool
-	NetworkType   enum.NetworkType
-	ReverseLookup *string
-	Ddos          *Ddos
+	Ip string
 }
 
-type OptionalIpValues struct {
-	Ddos          *Ddos
-	ReverseLookup *string
-}
-
-func NewIp(
-	ip string,
-	prefixLength string,
-	version int,
-	nullRouted bool,
-	mainIp bool,
-	networkType enum.NetworkType,
-	options OptionalIpValues,
-) Ip {
-	ipObject := Ip{
-		Ip:           ip,
-		PrefixLength: prefixLength,
-		Version:      version,
-		NullRouted:   nullRouted,
-		MainIp:       mainIp,
-		NetworkType:  networkType,
+func NewIp(ip string) Ip {
+	return Ip{
+		Ip: ip,
 	}
-
-	ipObject.Ddos = options.Ddos
-	ipObject.ReverseLookup = options.ReverseLookup
-
-	return ipObject
 }

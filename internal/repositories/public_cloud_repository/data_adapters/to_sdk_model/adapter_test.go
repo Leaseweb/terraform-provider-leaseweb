@@ -208,13 +208,8 @@ func generateDomainInstance() public_cloud.Instance {
 	return public_cloud.NewInstance(
 		"",
 		"region",
-		public_cloud.Resources{},
 		public_cloud.Image{},
 		enum.StateCreating,
-		"productType",
-		false,
-		true,
-		false,
 		*rootDiskSize,
 		"lsw.m3.xlarge",
 		enum.StorageTypeCentral,

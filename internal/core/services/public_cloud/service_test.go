@@ -21,19 +21,15 @@ type repositorySpy struct {
 	instanceDetails                 map[string]*public_cloud.Instance
 	createdInstance                 *public_cloud.Instance
 	updatedInstance                 *public_cloud.Instance
-	autoScalingGroup                *public_cloud.AutoScalingGroup
 	availableInstanceTypesForUpdate public_cloud.InstanceTypes
 	regions                         public_cloud.Regions
 	instanceTypesForRegion          public_cloud.InstanceTypes
-	images                          public_cloud.Images
 
 	passedGetAvailableInstanceTypesForUpdateId string
-	passedGetAutoScalingGroupId                string
 	passedGetInstanceId                        string
 	passedDeleteInstanceId                     string
 	passedGetInstanceTypesForRegionRegion      string
 
-	getAutoScalingGroupError                *sharedRepository.RepositoryError
 	getAllInstancesError                    *sharedRepository.RepositoryError
 	getInstanceError                        *sharedRepository.RepositoryError
 	createInstanceError                     *sharedRepository.RepositoryError
@@ -45,11 +41,9 @@ type repositorySpy struct {
 
 	getInstanceTypesForRegionSleep time.Duration
 	getRegionsSleep                time.Duration
-	getAutoScalingGroupSleep       time.Duration
 
 	getInstanceTypesForRegionCount int
 	getRegionsCount                int
-	getAutoScalingGroupCount       int
 }
 
 func (r *repositorySpy) GetInstanceTypesForRegion(
@@ -80,18 +74,6 @@ func (r *repositorySpy) GetAvailableInstanceTypesForUpdate(
 	r.passedGetAvailableInstanceTypesForUpdateId = id
 
 	return r.availableInstanceTypesForUpdate, r.getAvailableInstanceTypesForUpdateError
-}
-
-func (r *repositorySpy) GetAutoScalingGroup(
-	id string,
-	ctx context.Context,
-) (*public_cloud.AutoScalingGroup, *sharedRepository.RepositoryError) {
-	time.Sleep(r.getAutoScalingGroupSleep)
-
-	r.passedGetAutoScalingGroupId = id
-	r.getAutoScalingGroupCount++
-
-	return r.autoScalingGroup, r.getAutoScalingGroupError
 }
 
 func (r *repositorySpy) GetAllInstances(ctx context.Context) (
@@ -135,9 +117,6 @@ func (r *repositorySpy) DeleteInstance(
 
 func newRepositorySpy() repositorySpy {
 	return repositorySpy{
-		images: public_cloud.Images{
-			public_cloud.Image{Id: "imageId"},
-		},
 		instanceTypesForRegion:         public_cloud.InstanceTypes{"instanceType"},
 		getInstanceTypesForRegionSleep: 0,
 		regions:                        public_cloud.Regions{"region"},

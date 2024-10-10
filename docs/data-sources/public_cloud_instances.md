@@ -52,6 +52,7 @@ Read-Only:
   - *3*
   - *6*
   - *12*
+- `ends_at` (String)
 - `state` (String)
 - `term` (Number) Contract term (in months). Used only when type is *MONTHLY*. Valid options are 
   - *0*

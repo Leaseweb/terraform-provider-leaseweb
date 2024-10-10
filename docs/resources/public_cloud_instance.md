@@ -74,6 +74,7 @@ Required:
 
 Read-Only:
 
+- `ends_at` (String)
 - `state` (String)
 
 

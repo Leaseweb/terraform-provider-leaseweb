@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
@@ -396,13 +395,7 @@ func ExampleAdaptNullableStringToStringValue_second() {
 }
 
 func ExampleAdaptNullableDomainEntityToDatasourceModel() {
-	image := public_cloud.NewImage(
-		"imageId",
-		"",
-		"",
-		"",
-		false,
-	)
+	image := public_cloud.NewImage("imageId")
 
 	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
 		&image,
@@ -432,13 +425,7 @@ func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
 }
 
 func ExampleAdaptNullableDomainEntityToResourceObject() {
-	image := public_cloud.NewImage(
-		"imageId",
-		"",
-		"",
-		"",
-		false,
-	)
+	image := public_cloud.NewImage("imageId")
 
 	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
 		&image,
@@ -477,13 +464,7 @@ func ExampleAdaptNullableDomainEntityToResourceObject_second() {
 
 func ExampleAdaptDomainEntityToResourceObject() {
 	datasourceModel, _ := AdaptDomainEntityToResourceObject(
-		public_cloud.NewImage(
-			"imageId",
-			"",
-			"",
-			"",
-			false,
-		),
+		public_cloud.NewImage("imageId"),
 		map[string]attr.Type{
 			"id": types.StringType,
 		},
@@ -501,15 +482,7 @@ func ExampleAdaptDomainEntityToResourceObject() {
 
 func ExampleAdaptEntitiesToListValue() {
 	listValue, _ := AdaptEntitiesToListValue(
-		public_cloud.Ips{public_cloud.NewIp(
-			"1.2.3.4",
-			"",
-			2,
-			false,
-			true,
-			enum.NetworkTypeInternal,
-			public_cloud.OptionalIpValues{},
-		)},
+		public_cloud.Ips{public_cloud.NewIp("1.2.3.4")},
 		map[string]attr.Type{
 			"ip": types.StringType,
 		},
