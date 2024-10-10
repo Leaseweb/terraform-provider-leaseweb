@@ -432,39 +432,41 @@ func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
 }
 
 func ExampleAdaptNullableDomainEntityToResourceObject() {
-	iso := public_cloud.NewIso("id", "name")
+	image := public_cloud.NewImage(
+		"imageId",
+		"",
+		"",
+		"",
+		false,
+	)
 
 	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
-		&iso,
+		&image,
 		map[string]attr.Type{
-			"id":   types.StringType,
-			"name": types.StringType,
+			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, iso public_cloud.Iso) (*model.Iso, error) {
-			return &model.Iso{
-				Id:   basetypes.NewStringValue(iso.Id),
-				Name: basetypes.NewStringValue(iso.Name),
+		func(ctx context.Context, image public_cloud.Image) (*model.Image, error) {
+			return &model.Image{
+				Id: basetypes.NewStringValue(image.Id),
 			}, nil
 		},
 	)
 
 	fmt.Println(datasourceModel)
-	// Output: {"id":"id","name":"name"}
+	// Output: {"id":"imageId"}
 }
 
 func ExampleAdaptNullableDomainEntityToResourceObject_second() {
 	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
 		nil,
 		map[string]attr.Type{
-			"id":   types.StringType,
-			"name": types.StringType,
+			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, iso public_cloud.Iso) (*model.Iso, error) {
-			return &model.Iso{
-				Id:   basetypes.NewStringValue(iso.Id),
-				Name: basetypes.NewStringValue(iso.Name),
+		func(ctx context.Context, image public_cloud.Image) (*model.Image, error) {
+			return &model.Image{
+				Id: basetypes.NewStringValue(image.Id),
 			}, nil
 		},
 	)
@@ -474,31 +476,34 @@ func ExampleAdaptNullableDomainEntityToResourceObject_second() {
 }
 
 func ExampleAdaptDomainEntityToResourceObject() {
-
 	datasourceModel, _ := AdaptDomainEntityToResourceObject(
-		public_cloud.NewIso("id", "name"),
+		public_cloud.NewImage(
+			"imageId",
+			"",
+			"",
+			"",
+			false,
+		),
 		map[string]attr.Type{
-			"id":   types.StringType,
-			"name": types.StringType,
+			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, iso public_cloud.Iso) (*model.Iso, error) {
-			return &model.Iso{
-				Id:   basetypes.NewStringValue(iso.Id),
-				Name: basetypes.NewStringValue(iso.Name),
+		func(ctx context.Context, image public_cloud.Image) (*model.Image, error) {
+			return &model.Image{
+				Id: basetypes.NewStringValue(image.Id),
 			}, nil
 		},
 	)
 
 	fmt.Println(datasourceModel)
-	// Output: {"id":"id","name":"name"}
+	// Output: {"id":"imageId"}
 }
 
 func ExampleAdaptEntitiesToListValue() {
 	listValue, _ := AdaptEntitiesToListValue(
 		public_cloud.Ips{public_cloud.NewIp(
 			"1.2.3.4",
-			"prefixLength",
+			"",
 			2,
 			false,
 			true,
@@ -506,44 +511,18 @@ func ExampleAdaptEntitiesToListValue() {
 			public_cloud.OptionalIpValues{},
 		)},
 		map[string]attr.Type{
-			"ip":             types.StringType,
-			"prefix_length":  types.StringType,
-			"version":        types.Int64Type,
-			"null_routed":    types.BoolType,
-			"main_ip":        types.BoolType,
-			"network_type":   types.StringType,
-			"reverse_lookup": types.StringType,
-			"ddos":           types.ObjectType{AttrTypes: model.Ddos{}.AttributeTypes()},
+			"ip": types.StringType,
 		},
 		context.TODO(),
 		func(ctx context.Context, entity public_cloud.Ip) (*model.Ip, error) {
-			ddos, _ := AdaptNullableDomainEntityToResourceObject(
-				entity.Ddos,
-				model.Ddos{}.AttributeTypes(),
-				ctx,
-				func(ctx context.Context, ddos public_cloud.Ddos) (*model.Ddos, error) {
-					return &model.Ddos{
-						DetectionProfile: basetypes.NewStringValue(ddos.DetectionProfile),
-						ProtectionType:   basetypes.NewStringValue(ddos.ProtectionType),
-					}, nil
-				},
-			)
-
 			return &model.Ip{
-				Ip:            basetypes.NewStringValue(entity.Ip),
-				PrefixLength:  basetypes.NewStringValue(entity.PrefixLength),
-				Version:       basetypes.NewInt64Value(int64(entity.Version)),
-				NullRouted:    basetypes.NewBoolValue(entity.NullRouted),
-				MainIp:        basetypes.NewBoolValue(entity.MainIp),
-				NetworkType:   basetypes.NewStringValue(string(entity.NetworkType)),
-				ReverseLookup: basetypes.NewStringPointerValue(entity.ReverseLookup),
-				Ddos:          ddos,
+				Ip: basetypes.NewStringValue(entity.Ip),
 			}, nil
 		},
 	)
 
 	fmt.Println(listValue)
-	// Output: [{"ddos":<null>,"ip":"1.2.3.4","main_ip":true,"network_type":"INTERNAL","null_routed":false,"prefix_length":"prefixLength","reverse_lookup":<null>,"version":2}]
+	// Output: [{"ip":"1.2.3.4"}]
 }
 
 func ExampleAdaptStringPointerValueToNullableString() {
