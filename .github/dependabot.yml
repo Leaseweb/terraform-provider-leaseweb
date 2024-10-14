@@ -11,7 +11,9 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "docker"
-    directory: "/"
+    directories:
+      - "/docker/golang"
+      - "/docker/node"
     schedule:
       interval: "daily"
   - package-ecosystem: "github-actions"
