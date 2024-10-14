@@ -14,11 +14,10 @@ var sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzYaxPkDpS
 func TestNewInstance(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		rootDiskSize, _ := value_object.NewRootDiskSize(5)
-		instanceType := InstanceType{Name: "instanceType"}
 
 		got := NewInstance(
 			"id",
-			Region{Name: "region"},
+			"region",
 			Resources{Cpu: Cpu{Unit: "cpu"}},
 			Image{Name: "image"},
 			enum.StateRunning,
@@ -27,7 +26,7 @@ func TestNewInstance(t *testing.T) {
 			true,
 			false,
 			*rootDiskSize,
-			instanceType,
+			"instanceType",
 			enum.StorageTypeCentral,
 			Ips{{Ip: "1.2.3.4"}},
 			Contract{BillingFrequency: enum.ContractBillingFrequencyOne},
@@ -35,7 +34,7 @@ func TestNewInstance(t *testing.T) {
 		)
 
 		assert.Equal(t, "id", got.Id)
-		assert.Equal(t, Region{Name: "region"}, got.Region)
+		assert.Equal(t, "region", got.Region)
 		assert.Equal(t, "cpu", got.Resources.Cpu.Unit)
 		assert.Equal(t, "image", got.Image.Name)
 		assert.Equal(t, enum.StateRunning, got.State)
@@ -43,7 +42,7 @@ func TestNewInstance(t *testing.T) {
 		assert.False(t, got.HasPublicIpv4)
 		assert.True(t, got.HasPrivateNetwork)
 		assert.False(t, got.HasUserData)
-		assert.Equal(t, instanceType, got.Type)
+		assert.Equal(t, "instanceType", got.Type)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "1.2.3.4", got.Ips[0].Ip)
 		assert.Equal(
@@ -70,7 +69,7 @@ func TestNewInstance(t *testing.T) {
 
 		got := NewInstance(
 			"",
-			Region{},
+			"",
 			Resources{},
 			Image{},
 			enum.StateRunning,
@@ -79,7 +78,7 @@ func TestNewInstance(t *testing.T) {
 			true,
 			false,
 			value_object.RootDiskSize{},
-			InstanceType{},
+			"",
 			enum.StorageTypeCentral,
 			Ips{},
 			Contract{},
@@ -91,7 +90,7 @@ func TestNewInstance(t *testing.T) {
 				StartedAt:      &startedAt,
 				PrivateNetwork: &PrivateNetwork{Id: "privateNetworkId"},
 				AutoScalingGroup: &AutoScalingGroup{
-					Region: Region{Name: "autoScalingGroupRegion"},
+					Region: "autoScalingGroupRegion",
 				},
 			},
 		)
@@ -110,11 +109,7 @@ func TestNewInstance(t *testing.T) {
 			got.SshKey.String(),
 		)
 		assert.Equal(t, startedAt, *got.StartedAt)
-		assert.Equal(
-			t,
-			Region{Name: "autoScalingGroupRegion"},
-			got.AutoScalingGroup.Region,
-		)
+		assert.Equal(t, "autoScalingGroupRegion", got.AutoScalingGroup.Region)
 	})
 }
 
@@ -134,8 +129,8 @@ func TestNewCreateInstance(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		assert.Equal(t, Region{Name: "region"}, got.Region)
-		assert.Equal(t, "instanceType", got.Type.Name)
+		assert.Equal(t, "region", got.Region)
+		assert.Equal(t, "instanceType", got.Type)
 		assert.Equal(t, enum.StorageTypeCentral, got.RootDiskStorageType)
 		assert.Equal(t, "ALMALINUX_8_64BIT", got.Image.Id)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
@@ -258,7 +253,7 @@ func TestNewUpdateInstance(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		assert.Equal(t, instanceType, got.Type.Name)
+		assert.Equal(t, instanceType, got.Type)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, enum.ContractTypeMonthly, got.Contract.Type)
 		assert.Equal(t, enum.ContractTermSix, got.Contract.Term)

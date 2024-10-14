@@ -14,7 +14,7 @@ func AdaptToLaunchInstanceOpts(instance public_cloud.Instance) (
 	error,
 ) {
 	instanceTypeName, err := publicCloud.NewTypeNameFromValue(
-		instance.Type.String(),
+		instance.Type,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("AdaptToLaunchInstanceOpts: %w", err)
@@ -49,7 +49,7 @@ func AdaptToLaunchInstanceOpts(instance public_cloud.Instance) (
 	}
 
 	launchInstanceOpts := publicCloud.NewLaunchInstanceOpts(
-		publicCloud.RegionName(instance.Region.Name),
+		publicCloud.RegionName(instance.Region),
 		*instanceTypeName,
 		instance.Image.Id,
 		*contractType,
@@ -81,9 +81,9 @@ func AdaptToUpdateInstanceOpts(instance public_cloud.Instance) (
 		updateInstanceOpts.RootDiskSize = &rootDiskSize
 	}
 
-	if instance.Type.String() != "" {
+	if instance.Type != "" {
 		instanceTypeName, err := publicCloud.NewTypeNameFromValue(
-			instance.Type.String(),
+			instance.Type,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("AdaptToUpdateInstanceOpts: %w", err)

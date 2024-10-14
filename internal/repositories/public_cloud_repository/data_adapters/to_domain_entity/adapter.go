@@ -66,7 +66,7 @@ func AdaptInstance(
 
 	instance := domainEntity.NewInstance(
 		sdkInstance.GetId(),
-		domainEntity.Region{Name: string(sdkInstance.GetRegion())},
+		string(sdkInstance.GetRegion()),
 		adaptResources(sdkInstance.GetResources()),
 		adaptImage(sdkInstance.GetImage()),
 		state,
@@ -75,7 +75,7 @@ func AdaptInstance(
 		sdkInstance.GetIncludesPrivateNetwork(),
 		sdkInstance.GetHasUserData(),
 		*rootDiskSize,
-		domainEntity.InstanceType{Name: string(sdkInstance.GetType())},
+		string(sdkInstance.GetType()),
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -152,7 +152,7 @@ func AdaptInstanceDetails(sdkInstanceDetails sdkModel.InstanceDetails) (
 
 	instance := domainEntity.NewInstance(
 		sdkInstanceDetails.GetId(),
-		domainEntity.Region{Name: string(sdkInstanceDetails.GetRegion())},
+		string(sdkInstanceDetails.GetRegion()),
 		adaptResources(sdkInstanceDetails.GetResources()),
 		adaptImage(sdkInstanceDetails.GetImage()),
 		state,
@@ -161,7 +161,7 @@ func AdaptInstanceDetails(sdkInstanceDetails sdkModel.InstanceDetails) (
 		sdkInstanceDetails.GetIncludesPrivateNetwork(),
 		sdkInstanceDetails.GetHasUserData(),
 		*rootDiskSize,
-		domainEntity.InstanceType{Name: string(sdkInstanceDetails.GetType())},
+		string(sdkInstanceDetails.GetType()),
 		rootDiskStorageType,
 		ips,
 		*contract,
@@ -201,19 +201,9 @@ func adaptImage(sdkImage sdkModel.Image) domainEntity.Image {
 	return domainEntity.NewImage(
 		sdkImage.GetId(),
 		sdkImage.GetName(),
-		nil,
 		sdkImage.GetFamily(),
 		sdkImage.GetFlavour(),
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
 		sdkImage.GetCustom(),
-		nil,
-		[]string{},
-		[]string{},
 	)
 }
 
@@ -357,238 +347,6 @@ func adaptPrivateNetwork(sdkPrivateNetwork sdkModel.PrivateNetwork) domainEntity
 	}
 }
 
-// AdaptAutoScalingGroupDetails adapts publicCloud.AutoScalingGroupDetails to public_cloud.AutoScalingGroup.
-func AdaptAutoScalingGroupDetails(sdkAutoScalingGroup sdkModel.AutoScalingGroupDetails) (
-	*domainEntity.AutoScalingGroup,
-	error,
-) {
-	autoScalingGroupType, err := enum.NewAutoScalingGroupType(
-		string(sdkAutoScalingGroup.GetType()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptAutoScalingGroupDetails: %w", err)
-	}
-
-	state, err := enum.NewAutoScalingGroupState(
-		string(sdkAutoScalingGroup.GetState()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptAutoScalingGroupDetails: %w", err)
-	}
-
-	reference, err := value_object.NewAutoScalingGroupReference(
-		sdkAutoScalingGroup.GetReference(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptAutoScalingGroupDetails: %w", err)
-	}
-
-	options := domainEntity.AutoScalingGroupOptions{
-		DesiredAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.DesiredAmount),
-		MinimumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MinimumAmount),
-		MaximumAmount: shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.MaximumAmount),
-		CpuThreshold:  shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.CpuThreshold),
-		CoolDownTime:  shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.CooldownTime),
-		StartsAt:      shared.AdaptNullableTimeToValue(sdkAutoScalingGroup.StartsAt),
-		EndsAt:        shared.AdaptNullableTimeToValue(sdkAutoScalingGroup.EndsAt),
-		WarmupTime:    shared.AdaptNullableInt32ToValue(sdkAutoScalingGroup.WarmupTime),
-	}
-
-	autoScalingGroup := domainEntity.NewAutoScalingGroup(
-		sdkAutoScalingGroup.GetId(),
-		autoScalingGroupType,
-		state,
-		domainEntity.Region{Name: string(sdkAutoScalingGroup.GetRegion())},
-		*reference,
-		sdkAutoScalingGroup.GetCreatedAt(),
-		sdkAutoScalingGroup.GetUpdatedAt(),
-		options,
-	)
-
-	return &autoScalingGroup, nil
-}
-
-// AdaptLoadBalancerDetails adapts publicCloud.LoadBalancerDetails to public_cloud.LoadBalancer.
-func AdaptLoadBalancerDetails(sdkLoadBalancer sdkModel.LoadBalancerDetails) (
-	*domainEntity.LoadBalancer,
-	error,
-) {
-	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
-	if err != nil {
-		return nil, fmt.Errorf("AdaptLoadBalancerDetails: %w", err)
-	}
-
-	contract, err := adaptContract(sdkLoadBalancer.GetContract())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptLoadBalancerDetails: %w", err)
-	}
-
-	ips, err := adaptIpsDetails(sdkLoadBalancer.GetIps())
-	if err != nil {
-		return nil, fmt.Errorf("AdaptLoadBalancerDetails:  %w", err)
-	}
-
-	options := domainEntity.OptionalLoadBalancerValues{
-		Reference: shared.AdaptNullableStringToValue(sdkLoadBalancer.Reference),
-		StartedAt: shared.AdaptNullableTimeToValue(sdkLoadBalancer.StartedAt),
-	}
-
-	if sdkLoadBalancer.Configuration.Get() != nil {
-		configuration, err := adaptLoadBalancerConfiguration(sdkLoadBalancer.GetConfiguration())
-		if err != nil {
-			return nil, fmt.Errorf("AdaptLoadBalancerDetails:  %w", err)
-		}
-		options.Configuration = configuration
-	}
-
-	if sdkLoadBalancer.PrivateNetwork.Get() != nil {
-		privateNetwork := adaptPrivateNetwork(*sdkLoadBalancer.PrivateNetwork.Get())
-		options.PrivateNetwork = &privateNetwork
-	}
-
-	loadBalancer := domainEntity.NewLoadBalancer(
-		sdkLoadBalancer.GetId(),
-		domainEntity.InstanceType{Name: string(sdkLoadBalancer.GetType())},
-		adaptResources(sdkLoadBalancer.GetResources()),
-		domainEntity.Region{Name: string(sdkLoadBalancer.GetRegion())},
-		state,
-		*contract,
-		ips,
-		options,
-	)
-
-	return &loadBalancer, nil
-}
-
-func adaptLoadBalancer(sdkLoadBalancer sdkModel.LoadBalancer) (
-	*domainEntity.LoadBalancer,
-	error,
-) {
-	state, err := enum.NewState(string(sdkLoadBalancer.GetState()))
-	if err != nil {
-		return nil, fmt.Errorf("adaptLoadBalancer: %w", err)
-	}
-
-	options := domainEntity.OptionalLoadBalancerValues{
-		Reference: shared.AdaptNullableStringToValue(sdkLoadBalancer.Reference),
-		StartedAt: shared.AdaptNullableTimeToValue(sdkLoadBalancer.StartedAt),
-	}
-
-	loadBalancer := domainEntity.NewLoadBalancer(
-		sdkLoadBalancer.GetId(),
-		domainEntity.InstanceType{Name: string(sdkLoadBalancer.GetType())},
-		adaptResources(sdkLoadBalancer.GetResources()),
-		domainEntity.Region{},
-		state,
-		domainEntity.Contract{},
-		domainEntity.Ips{},
-		options,
-	)
-
-	return &loadBalancer, nil
-}
-
-func adaptLoadBalancerConfiguration(sdkLoadBalancerConfiguration sdkModel.LoadBalancerConfiguration) (
-	*domainEntity.LoadBalancerConfiguration,
-	error,
-) {
-	balance, err := enum.NewBalance(string(sdkLoadBalancerConfiguration.GetBalance()))
-	if err != nil {
-		return nil, fmt.Errorf("adaptLoadBalancerConfiguration: %w", err)
-	}
-
-	options := domainEntity.OptionalLoadBalancerConfigurationOptions{}
-	if sdkLoadBalancerConfiguration.StickySession.Get() != nil {
-		stickySession := adaptStickySession(*sdkLoadBalancerConfiguration.StickySession.Get())
-		options.StickySession = &stickySession
-	}
-
-	configuration := domainEntity.NewLoadBalancerConfiguration(
-		balance,
-		sdkLoadBalancerConfiguration.GetXForwardedFor(),
-		int(sdkLoadBalancerConfiguration.GetIdleTimeOut()),
-		options,
-	)
-
-	return &configuration, nil
-}
-
-func adaptStickySession(sdkStickySession sdkModel.StickySession) domainEntity.StickySession {
-	return domainEntity.NewStickySession(
-		sdkStickySession.GetEnabled(),
-		int(sdkStickySession.GetMaxLifeTime()),
-	)
-}
-
-func AdaptInstanceType(sdkInstanceType sdkModel.InstanceType) (
-	*domainEntity.InstanceType,
-	error,
-) {
-	resources := adaptResources(sdkInstanceType.GetResources())
-	prices := adaptPrices(sdkInstanceType.GetPrices())
-
-	optional := domainEntity.OptionalInstanceTypeValues{}
-
-	sdkStorageTypes, _ := sdkInstanceType.GetStorageTypesOk()
-	if sdkStorageTypes != nil {
-		storageTypes, err := adaptStorageTypes(sdkStorageTypes)
-		if err != nil {
-			return nil, fmt.Errorf("AdaptInstanceType: %w", err)
-		}
-		optional.StorageTypes = storageTypes
-	}
-
-	instanceType := domainEntity.NewInstanceType(
-		string(sdkInstanceType.GetName()),
-		resources,
-		prices,
-		optional,
-	)
-
-	return &instanceType, nil
-}
-
-func adaptPrices(sdkPrices sdkModel.Prices) domainEntity.Prices {
-	return domainEntity.NewPrices(
-		sdkPrices.GetCurrency(),
-		sdkPrices.GetCurrencySymbol(),
-		adaptPrice(sdkPrices.GetCompute()),
-		adaptStorage(sdkPrices.GetStorage()),
-	)
-}
-
-func adaptStorage(sdkStorage sdkModel.Storage) domainEntity.Storage {
-	return domainEntity.NewStorage(
-		adaptPrice(sdkStorage.Local),
-		adaptPrice(sdkStorage.Central),
-	)
-}
-
-func adaptPrice(sdkPrice sdkModel.Price) domainEntity.Price {
-	return domainEntity.NewPrice(sdkPrice.GetHourlyPrice(), sdkPrice.GetMonthlyPrice())
-}
-
-func adaptStorageTypes(sdkStorageTypes []sdkModel.StorageType) (
-	*domainEntity.StorageTypes,
-	error,
-) {
-	var storageTypes domainEntity.StorageTypes
-
-	for _, sdkStorageType := range sdkStorageTypes {
-		storageType, err := enum.NewStorageType(string(sdkStorageType))
-		if err != nil {
-			return nil, fmt.Errorf("adaptStorageTypes: %w", err)
-		}
-		storageTypes = append(storageTypes, storageType)
-	}
-
-	return &storageTypes, nil
-}
-
-func AdaptRegion(sdkRegion sdkModel.Region) domainEntity.Region {
-	return domainEntity.NewRegion(string(sdkRegion.GetName()), sdkRegion.GetLocation())
-}
-
 func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
 	*domainEntity.AutoScalingGroup,
 	error,
@@ -626,7 +384,7 @@ func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
 		sdkAutoScalingGroup.GetId(),
 		autoScalingGroupType,
 		state,
-		domainEntity.Region{Name: string(sdkAutoScalingGroup.GetRegion())},
+		string(sdkAutoScalingGroup.GetRegion()),
 		*reference,
 		sdkAutoScalingGroup.GetCreatedAt(),
 		sdkAutoScalingGroup.GetUpdatedAt(),
@@ -634,48 +392,4 @@ func adaptAutoScalingGroup(sdkAutoScalingGroup sdkModel.AutoScalingGroup) (
 	)
 
 	return &autoScalingGroup, nil
-}
-
-// AdaptImageDetails adapts publicCloud.ImageDetails to public_cloud.Image.
-func AdaptImageDetails(sdkImageDetails sdkModel.ImageDetails) domainEntity.Image {
-	var region *domainEntity.Region
-
-	state, _ := sdkImageDetails.GetStateOk()
-	stateReason, _ := sdkImageDetails.GetStateReasonOk()
-	regionName, _ := sdkImageDetails.GetRegionOk()
-	createdAt, _ := sdkImageDetails.GetCreatedAtOk()
-	updatedAt, _ := sdkImageDetails.GetUpdatedAtOk()
-	storageSize := adaptStorageSize(sdkImageDetails.GetStorageSize())
-	version, _ := sdkImageDetails.GetVersionOk()
-	architecture, _ := sdkImageDetails.GetArchitectureOk()
-
-	if regionName != nil {
-		region = &domainEntity.Region{}
-		region.Name = string(*regionName)
-	}
-
-	return domainEntity.NewImage(
-		sdkImageDetails.GetId(),
-		sdkImageDetails.GetName(),
-		version,
-		sdkImageDetails.GetFamily(),
-		sdkImageDetails.GetFlavour(),
-		architecture,
-		state,
-		stateReason,
-		region,
-		createdAt,
-		updatedAt,
-		sdkImageDetails.GetCustom(),
-		&storageSize,
-		sdkImageDetails.GetMarketApps(),
-		sdkImageDetails.GetStorageTypes(),
-	)
-}
-
-func adaptStorageSize(sdkStorageSize sdkModel.StorageSize) domainEntity.StorageSize {
-	return domainEntity.NewStorageSize(
-		float64(sdkStorageSize.GetSize()),
-		sdkStorageSize.GetUnit(),
-	)
 }

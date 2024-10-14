@@ -15,7 +15,7 @@ var defaultSshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDWvBbugarDWMkELKmnzzY
 func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
-		instance.Type = public_cloud.InstanceType{Name: "tralala"}
+		instance.Type = "tralala"
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -61,7 +61,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 
 	t.Run("invalid type returns error", func(t *testing.T) {
 		instance := generateDomainInstance()
-		instance.Type = public_cloud.InstanceType{Name: "tralala"}
+		instance.Type = "tralala"
 
 		_, err := AdaptToLaunchInstanceOpts(instance)
 
@@ -135,7 +135,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 	t.Run("invalid instanceType returns error", func(t *testing.T) {
 
 		_, err := AdaptToUpdateInstanceOpts(
-			public_cloud.Instance{Type: public_cloud.InstanceType{Name: "tralala"}},
+			public_cloud.Instance{Type: "tralala"},
 		)
 
 		assert.ErrorContains(t, err, "tralala")
@@ -207,7 +207,7 @@ func generateDomainInstance() public_cloud.Instance {
 
 	return public_cloud.NewInstance(
 		"",
-		public_cloud.Region{Name: "region"},
+		"region",
 		public_cloud.Resources{},
 		public_cloud.Image{},
 		enum.StateCreating,
@@ -216,7 +216,7 @@ func generateDomainInstance() public_cloud.Instance {
 		true,
 		false,
 		*rootDiskSize,
-		public_cloud.InstanceType{Name: "lsw.m3.xlarge"},
+		"lsw.m3.xlarge",
 		enum.StorageTypeCentral,
 		public_cloud.Ips{},
 		public_cloud.Contract{Type: enum.ContractTypeMonthly},
