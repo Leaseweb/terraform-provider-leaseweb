@@ -15,8 +15,8 @@ importers:
         specifier: 19.5.0
         version: 19.5.0
       '@stoplight/prism-cli':
-        specifier: 5.8.1
-        version: 5.8.1
+        specifier: 5.10.0
+        version: 5.10.0
       husky:
         specifier: 9.1.6
         version: 9.1.6
@@ -152,8 +152,8 @@ packages:
   '@stoplight/json-schema-sampler@0.3.0':
     resolution: {integrity: sha512-G7QImi2xr9+8iPEg0D9YUi1BWhIiiEm19aMb91oWBSdxuhezOAqqRP3XNY6wczHV9jLWW18f+KkghTy9AG0BQA==}
 
-  '@stoplight/json@3.21.0':
-    resolution: {integrity: sha512-5O0apqJ/t4sIevXCO3SBN9AHCEKKR/Zb4gaj7wYe5863jme9g02Q0n/GhM7ZCALkL+vGPTe4ZzTETP8TFtsw3g==}
+  '@stoplight/json@3.21.7':
+    resolution: {integrity: sha512-xcJXgKFqv/uCEgtGlPxy3tPA+4I+ZI4vAuMJ885+ThkTHFVkC+0Fm58lA9NlsyjnkpxFh4YiQWpH+KefHdbA0A==}
     engines: {node: '>=8.3.0'}
 
   '@stoplight/ordered-object-literal@1.0.5':
@@ -164,8 +164,8 @@ packages:
     resolution: {integrity: sha512-lyIc6JUlUA8Ve5ELywPC8I2Sdnh1zc1zmbYgVarhXIp9YeAB0ReeqmGEOWNtlHkbP2DAA1AL65Wfn2ncjK/jtQ==}
     engines: {node: '>=8'}
 
-  '@stoplight/prism-cli@5.8.1':
-    resolution: {integrity: sha512-GePFIKpHZRnp2UpesxdJuaYG98Pt4zQhF9Q7TBcDvP3o3Dg+8VBdOweJXYs6qJVxJublR7jzVF+zR+J9rr4VZw==}
+  '@stoplight/prism-cli@5.10.0':
+    resolution: {integrity: sha512-U7XMCAlXZFh2GPvzpZeMJ4u5V47ncYxgIxbLy4Y8rjsBCKWKQqqUCFoENXDub2O6ibZKSQctIvO0HiMZlIWERw==}
     engines: {node: '>=18.20.1'}
     hasBin: true
 
@@ -173,12 +173,12 @@ packages:
     resolution: {integrity: sha512-fmH7n6e0thzOGcD5uZBu/Xx1iFNfpc9ACTxPie+lFD54SJ214M2FIFXD7kV+NCFlC+w5OFw+lJRaYM859uMnAg==}
     engines: {node: '>=18.20.1'}
 
-  '@stoplight/prism-http-server@5.8.1':
-    resolution: {integrity: sha512-7IXx0GpeOrbMosYEsC/oh2r1KWW3ZDFo61XyXJKIhiCqUtcPgLbafONfp5h6a7Dk3RPhJEXGQXXdBSxZ3vSuUQ==}
+  '@stoplight/prism-http-server@5.10.0':
+    resolution: {integrity: sha512-7sdMNzBY4+/96fLQn7/LR6ItDfNwcvCY9XCWrpruWeq5fHJHrb5OynpHvZs9vHcTpZNITBs/sgmukXn35wB5Sw==}
     engines: {node: '>=18.20.1'}
 
-  '@stoplight/prism-http@5.8.1':
-    resolution: {integrity: sha512-2tTybBTyQtMrLkn+yBOkwivI0MobW77Pfgwc9M0rhAFpM46Zx1gxOG7LIaVIucyAwCwk6X+8wU/ZW/5tm4i+gQ==}
+  '@stoplight/prism-http@5.10.0':
+    resolution: {integrity: sha512-OlWSv9XobxkNu4D1xfDfwjMSETrw4wNFkWcbKzQmepNERqJ6uuWDDjkIR2f1F7SYU61ElwhaXf1bA9dlze6U6g==}
     engines: {node: '>=18.20.1'}
 
   '@stoplight/types@13.20.0':
@@ -737,8 +737,8 @@ packages:
   json-schema-compare@0.2.2:
     resolution: {integrity: sha512-c4WYmDKyJXhs7WWvAWm3uIYnfyWFoIp+JEoX34rctVvEkMYCPGhXtvmFFXiffBbxfZsvQ0RNnV5H7GvDF5HCqQ==}
 
-  json-schema-faker@0.5.3:
-    resolution: {integrity: sha512-BeIrR0+YSrTbAR9dOMnjbFl1MvHyXnq+Wpdw1FpWZDHWKLzK229hZ5huyPcmzFUfVq1ODwf40WdGVoE266UBUg==}
+  json-schema-faker@0.5.6:
+    resolution: {integrity: sha512-u/cFC26/GDxh2vPiAC8B8xVvpXAW+QYtG2mijEbKrimCk8IHtiwQBjCE8TwvowdhALWq9IcdIWZ+/8ocXvdL3Q==}
     hasBin: true
 
   json-schema-ref-parser@6.1.0:
@@ -1522,7 +1522,7 @@ snapshots:
 
   '@stoplight/http-spec@7.1.0':
     dependencies:
-      '@stoplight/json': 3.21.0
+      '@stoplight/json': 3.21.7
       '@stoplight/json-schema-generator': 1.0.2
       '@stoplight/types': 14.1.0
       '@types/json-schema': 7.0.11
@@ -1570,7 +1570,7 @@ snapshots:
       '@types/json-schema': 7.0.15
       json-pointer: 0.6.2
 
-  '@stoplight/json@3.21.0':
+  '@stoplight/json@3.21.7':
     dependencies:
       '@stoplight/ordered-object-literal': 1.0.5
       '@stoplight/path': 1.3.2
@@ -1583,18 +1583,18 @@ snapshots:
 
   '@stoplight/path@1.3.2': {}
 
-  '@stoplight/prism-cli@5.8.1':
+  '@stoplight/prism-cli@5.10.0':
     dependencies:
-      '@stoplight/json': 3.21.0
+      '@stoplight/json': 3.21.7
       '@stoplight/json-schema-ref-parser': 9.2.7
       '@stoplight/prism-core': 5.8.0
-      '@stoplight/prism-http': 5.8.1
-      '@stoplight/prism-http-server': 5.8.1
+      '@stoplight/prism-http': 5.10.0
+      '@stoplight/prism-http-server': 5.10.0
       '@stoplight/types': 14.1.1
       chalk: 4.1.2
       chokidar: 3.6.0
       fp-ts: 2.16.6
-      json-schema-faker: 0.5.3
+      json-schema-faker: 0.5.6
       lodash: 4.17.21
       node-fetch: 2.7.0
       pino: 6.14.0
@@ -1615,10 +1615,10 @@ snapshots:
       pino: 6.14.0
       tslib: 2.6.3
 
-  '@stoplight/prism-http-server@5.8.1':
+  '@stoplight/prism-http-server@5.10.0':
     dependencies:
       '@stoplight/prism-core': 5.8.0
-      '@stoplight/prism-http': 5.8.1
+      '@stoplight/prism-http': 5.10.0
       '@stoplight/types': 14.1.1
       fast-xml-parser: 4.4.0
       fp-ts: 2.16.6
@@ -1633,11 +1633,11 @@ snapshots:
       - encoding
       - supports-color
 
-  '@stoplight/prism-http@5.8.1':
+  '@stoplight/prism-http@5.10.0':
     dependencies:
       '@faker-js/faker': 6.3.1
       '@stoplight/http-spec': 7.1.0
-      '@stoplight/json': 3.21.0
+      '@stoplight/json': 3.21.7
       '@stoplight/json-schema-merge-allof': 0.7.8
       '@stoplight/json-schema-ref-parser': 9.2.7
       '@stoplight/json-schema-sampler': 0.3.0
@@ -1654,7 +1654,7 @@ snapshots:
       fp-ts: 2.16.6
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
-      json-schema-faker: 0.5.3
+      json-schema-faker: 0.5.6
       lodash: 4.17.21
       node-fetch: 2.7.0
       parse-multipart-data: 1.5.0
@@ -1674,7 +1674,7 @@ snapshots:
 
   '@stoplight/types@14.1.0':
     dependencies:
-      '@types/json-schema': 7.0.11
+      '@types/json-schema': 7.0.15
       utility-types: 3.11.0
 
   '@stoplight/types@14.1.1':
@@ -2175,7 +2175,7 @@ snapshots:
     dependencies:
       lodash: 4.17.21
 
-  json-schema-faker@0.5.3:
+  json-schema-faker@0.5.6:
     dependencies:
       json-schema-ref-parser: 6.1.0
       jsonpath-plus: 7.2.0
