@@ -7,20 +7,8 @@ import (
 )
 
 func TestNewImage(t *testing.T) {
-	got := NewImage(
-		"UBUNTU_24_04_64BIT",
-		"name",
-		"family",
-		"flavour",
-		false,
-	)
-	want := Image{
-		Id:      "UBUNTU_24_04_64BIT",
-		Name:    "name",
-		Family:  "family",
-		Flavour: "flavour",
-		Custom:  false,
-	}
+	got := NewImage("UBUNTU_24_04_64BIT")
+	want := Image{Id: "UBUNTU_24_04_64BIT"}
 
 	assert.Equal(t, want, got)
 }

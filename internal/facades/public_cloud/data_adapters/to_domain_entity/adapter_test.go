@@ -388,10 +388,7 @@ func generateInstanceModel(
 		context.TODO(),
 		model.Image{}.AttributeTypes(),
 		model.Image{
-			Id:      basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
-			Name:    basetypes.NewStringUnknown(),
-			Family:  basetypes.NewStringUnknown(),
-			Flavour: basetypes.NewStringUnknown(),
+			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
 
@@ -402,9 +399,6 @@ func generateInstanceModel(
 			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
 			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
-			EndsAt:           basetypes.NewStringUnknown(),
-			RenewalsAt:       basetypes.NewStringUnknown(),
-			CreatedAt:        basetypes.NewStringUnknown(),
 			State:            basetypes.NewStringUnknown(),
 		},
 	)

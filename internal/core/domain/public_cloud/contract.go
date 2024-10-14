@@ -22,8 +22,6 @@ type Contract struct {
 	Term             enum.ContractTerm
 	Type             enum.ContractType
 	EndsAt           *time.Time
-	RenewalsAt       time.Time
-	CreatedAt        time.Time
 	State            enum.ContractState
 }
 
@@ -32,8 +30,6 @@ func NewContract(
 	billingFrequency enum.ContractBillingFrequency,
 	term enum.ContractTerm,
 	contractType enum.ContractType,
-	renewalsAt time.Time,
-	createdAt time.Time,
 	state enum.ContractState,
 	endsAt *time.Time,
 ) (*Contract, error) {
@@ -41,8 +37,6 @@ func NewContract(
 		BillingFrequency: billingFrequency,
 		Term:             term,
 		Type:             contractType,
-		RenewalsAt:       renewalsAt,
-		CreatedAt:        createdAt,
 		State:            state,
 		EndsAt:           endsAt,
 	}

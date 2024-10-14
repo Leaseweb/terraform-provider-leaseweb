@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"time"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
@@ -238,8 +237,6 @@ func (p PublicCloudFacade) ValidateContractTerm(
 		enum.ContractBillingFrequencySix,
 		contractTermEnum,
 		contractTypeEnum,
-		time.Now(),
-		time.Now(),
 		enum.ContractStateActive,
 		nil,
 	)

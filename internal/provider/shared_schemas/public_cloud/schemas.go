@@ -10,43 +10,6 @@ import (
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
 
-func Resources() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Attributes: map[string]schema.Attribute{
-			"cpu": schema.SingleNestedAttribute{
-				Description: "Number of cores",
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					"value": schema.Int64Attribute{Computed: true},
-					"unit":  schema.StringAttribute{Computed: true},
-				}},
-			"memory": schema.SingleNestedAttribute{
-				Description: "Total memory in GiB",
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					"value": schema.Float64Attribute{Computed: true},
-					"unit":  schema.StringAttribute{Computed: true},
-				}},
-			"public_network_speed": schema.SingleNestedAttribute{
-				Description: "Public network speed in Gbps",
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					"value": schema.Int64Attribute{Computed: true},
-					"unit":  schema.StringAttribute{Computed: true},
-				}},
-			"private_network_speed": schema.SingleNestedAttribute{
-				Description: "Private network speed in Gbps",
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					"value": schema.Int64Attribute{Computed: true},
-					"unit":  schema.StringAttribute{Computed: true},
-				}},
-		},
-		Description: "Available resources",
-		Computed:    true,
-	}
-}
-
 func Contract(
 	required bool,
 	facade facade.PublicCloudFacade,
@@ -80,35 +43,10 @@ func Contract(
 				},
 			},
 			"ends_at": schema.StringAttribute{Computed: true},
-			"renewals_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "Date when the contract will be automatically renewed",
-			},
-			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "Date when the contract was created",
-			},
 			"state": schema.StringAttribute{
 				Computed: true,
 			},
 		},
 		Validators: []validator.Object{customValidator.ContractTermIsValid()},
-	}
-}
-
-func Network() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Computed: true,
-		Attributes: map[string]schema.Attribute{
-			"private_network_id": schema.StringAttribute{
-				Computed: true,
-			},
-			"status": schema.StringAttribute{
-				Computed: true,
-			},
-			"subnet": schema.StringAttribute{
-				Computed: true,
-			},
-		},
 	}
 }

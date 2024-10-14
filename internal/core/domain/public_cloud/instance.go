@@ -23,24 +23,15 @@ type Instance struct {
 	Id                  string
 	Region              string
 	Reference           *string
-	StartedAt           *time.Time
-	Resources           Resources
 	Image               Image
 	State               enum.State
-	ProductType         string
-	HasPublicIpv4       bool
-	HasPrivateNetwork   bool
-	HasUserData         bool
 	Type                string
 	RootDiskStorageType enum.StorageType
 	RootDiskSize        value_object.RootDiskSize
 	Ips                 Ips
 	Contract            Contract
-	Iso                 *Iso
 	MarketAppId         *string
-	PrivateNetwork      *PrivateNetwork
 	SshKey              *value_object.SshKey
-	AutoScalingGroup    *AutoScalingGroup
 }
 
 // CanBeTerminated determines if an Instance can be terminated.
@@ -69,13 +60,10 @@ func (i Instance) CanBeTerminated() (bool, *ReasonInstanceCannotBeTerminated) {
 
 // OptionalInstanceValues contains optional supported instance fields.
 type OptionalInstanceValues struct {
-	Reference        *string
-	Iso              *Iso
-	MarketAppId      *string
-	SshKey           *value_object.SshKey
-	StartedAt        *time.Time
-	PrivateNetwork   *PrivateNetwork
-	AutoScalingGroup *AutoScalingGroup
+	Reference   *string
+	MarketAppId *string
+	SshKey      *value_object.SshKey
+	StartedAt   *time.Time
 }
 
 // OptionalCreateInstanceValues contains optional supported fields for instance creation.
@@ -99,13 +87,8 @@ type OptionalUpdateInstanceValues struct {
 func NewInstance(
 	id string,
 	region string,
-	resources Resources,
 	image Image,
 	state enum.State,
-	productType string,
-	hasPublicIpv4 bool,
-	hasPrivateNetwork bool,
-	hasUserData bool,
 	rootDiskSize value_object.RootDiskSize,
 	instanceType string,
 	rootDiskStorageType enum.StorageType,
@@ -116,13 +99,8 @@ func NewInstance(
 	instance := Instance{
 		Id:                  id,
 		Region:              region,
-		Resources:           resources,
 		Image:               image,
 		State:               state,
-		ProductType:         productType,
-		HasPublicIpv4:       hasPublicIpv4,
-		HasPrivateNetwork:   hasPrivateNetwork,
-		HasUserData:         hasUserData,
 		Type:                instanceType,
 		RootDiskStorageType: rootDiskStorageType,
 		RootDiskSize:        rootDiskSize,
@@ -130,13 +108,9 @@ func NewInstance(
 		Contract:            contract,
 	}
 
-	instance.Iso = optional.Iso
 	instance.Reference = optional.Reference
 	instance.MarketAppId = optional.MarketAppId
 	instance.SshKey = optional.SshKey
-	instance.StartedAt = optional.StartedAt
-	instance.PrivateNetwork = optional.PrivateNetwork
-	instance.AutoScalingGroup = optional.AutoScalingGroup
 
 	return instance
 }

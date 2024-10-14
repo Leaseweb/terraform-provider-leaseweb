@@ -49,17 +49,8 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 ### Read-Only
 
-- `auto_scaling_group` (Attributes) (see [below for nested schema](#nestedatt--auto_scaling_group))
-- `has_private_network` (Boolean)
-- `has_public_ipv4` (Boolean)
-- `has_user_data` (Boolean)
 - `id` (String) The instance unique identifier
 - `ips` (Attributes List) (see [below for nested schema](#nestedatt--ips))
-- `iso` (Attributes) (see [below for nested schema](#nestedatt--iso))
-- `private_network` (Attributes) (see [below for nested schema](#nestedatt--private_network))
-- `product_type` (String) The product type
-- `resources` (Attributes) Available resources (see [below for nested schema](#nestedatt--resources))
-- `started_at` (String) Date and time when the instance was started for the first time, right after launching it
 - `state` (String) The instance's current state
 
 <a id="nestedatt--contract"></a>
@@ -83,9 +74,7 @@ Required:
 
 Read-Only:
 
-- `created_at` (String) Date when the contract was created
 - `ends_at` (String)
-- `renewals_at` (String) Date when the contract will be automatically renewed
 - `state` (String)
 
 
@@ -96,123 +85,13 @@ Required:
 
 - `id` (String) Can be either an Operating System or a UUID in case of a Custom Image ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
-Read-Only:
-
-- `custom` (Boolean) Standard or Custom image
-- `family` (String)
-- `flavour` (String)
-- `name` (String)
-
-
-<a id="nestedatt--auto_scaling_group"></a>
-### Nested Schema for `auto_scaling_group`
-
-Read-Only:
-
-- `cooldown_time` (Number) Only for "CPU_BASED" auto scaling group. Cool-down time in seconds for new instances
-- `cpu_threshold` (Number) Only for "CPU_BASED" auto scaling group. The target average CPU utilization for scaling
-- `created_at` (String) Date and time when the Auto Scaling Group was created
-- `desired_amount` (Number) Number of instances that should be running
-- `ends_at` (String) Only for "SCHEDULED" auto scaling group. Date and time (UTC) that the instances need to be terminated
-- `id` (String) The Auto Scaling Group unique identifier
-- `maximum_amount` (Number) Only for "CPU_BASED" auto scaling group. The maximum number of instances that can be running
-- `minimum_amount` (Number) The minimum number of instances that should be running
-- `reference` (String) The identifying name set to the auto scaling group
-- `region` (String)
-- `starts_at` (String) Only for "SCHEDULED" auto scaling group. Date and time (UTC) that the instances need to be launched
-- `state` (String) The Auto Scaling Group's current state.
-- `type` (String) Auto Scaling Group type
-- `updated_at` (String) Date and time when the Auto Scaling Group was updated
-- `warmup_time` (Number) Only for "CPU_BASED" auto scaling group. Warm-up time in seconds for new instances
-
 
 <a id="nestedatt--ips"></a>
 ### Nested Schema for `ips`
 
 Read-Only:
 
-- `ddos` (Attributes) (see [below for nested schema](#nestedatt--ips--ddos))
 - `ip` (String)
-- `main_ip` (Boolean)
-- `network_type` (String)
-- `null_routed` (Boolean)
-- `prefix_length` (String)
-- `reverse_lookup` (String)
-- `version` (Number)
-
-<a id="nestedatt--ips--ddos"></a>
-### Nested Schema for `ips.ddos`
-
-Read-Only:
-
-- `detection_profile` (String)
-- `protection_type` (String)
-
-
-
-<a id="nestedatt--iso"></a>
-### Nested Schema for `iso`
-
-Read-Only:
-
-- `id` (String)
-- `name` (String)
-
-
-<a id="nestedatt--private_network"></a>
-### Nested Schema for `private_network`
-
-Read-Only:
-
-- `private_network_id` (String)
-- `status` (String)
-- `subnet` (String)
-
-
-<a id="nestedatt--resources"></a>
-### Nested Schema for `resources`
-
-Read-Only:
-
-- `cpu` (Attributes) Number of cores (see [below for nested schema](#nestedatt--resources--cpu))
-- `memory` (Attributes) Total memory in GiB (see [below for nested schema](#nestedatt--resources--memory))
-- `private_network_speed` (Attributes) Private network speed in Gbps (see [below for nested schema](#nestedatt--resources--private_network_speed))
-- `public_network_speed` (Attributes) Public network speed in Gbps (see [below for nested schema](#nestedatt--resources--public_network_speed))
-
-<a id="nestedatt--resources--cpu"></a>
-### Nested Schema for `resources.cpu`
-
-Read-Only:
-
-- `unit` (String)
-- `value` (Number)
-
-
-<a id="nestedatt--resources--memory"></a>
-### Nested Schema for `resources.memory`
-
-Read-Only:
-
-- `unit` (String)
-- `value` (Number)
-
-
-<a id="nestedatt--resources--private_network_speed"></a>
-### Nested Schema for `resources.private_network_speed`
-
-Read-Only:
-
-- `unit` (String)
-- `value` (Number)
-
-
-<a id="nestedatt--resources--public_network_speed"></a>
-### Nested Schema for `resources.public_network_speed`
-
-Read-Only:
-
-- `unit` (String)
-- `value` (Number)
 
 ## Import
 

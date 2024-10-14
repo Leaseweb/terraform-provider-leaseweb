@@ -133,16 +133,10 @@ func generateInstanceModel() model.Instance {
 		Id:        basetypes.NewStringUnknown(),
 		Region:    basetypes.NewStringUnknown(),
 		Reference: basetypes.NewStringUnknown(),
-		Resources: basetypes.NewObjectUnknown(
-			model.Resources{}.AttributeTypes(),
-		),
 		Image: basetypes.NewObjectUnknown(
 			model.Image{}.AttributeTypes(),
 		),
 		State:               basetypes.NewStringUnknown(),
-		ProductType:         basetypes.NewStringUnknown(),
-		HasPublicIpv4:       basetypes.NewBoolUnknown(),
-		HasPrivateNetwork:   basetypes.NewBoolUnknown(),
 		Type:                basetypes.NewStringUnknown(),
 		RootDiskSize:        basetypes.NewInt64Unknown(),
 		RootDiskStorageType: basetypes.NewStringUnknown(),
@@ -151,18 +145,10 @@ func generateInstanceModel() model.Instance {
 				AttrTypes: model.Ip{}.AttributeTypes(),
 			},
 		),
-		StartedAt: basetypes.NewStringUnknown(),
 		Contract: basetypes.NewObjectUnknown(
 			model.Contract{}.AttributeTypes(),
 		),
 		MarketAppId: basetypes.NewStringUnknown(),
-		AutoScalingGroup: basetypes.NewObjectUnknown(
-			model.AutoScalingGroup{}.AttributeTypes(),
-		),
-		Iso: basetypes.NewObjectUnknown(model.Iso{}.AttributeTypes()),
-		PrivateNetwork: basetypes.NewObjectUnknown(
-			model.PrivateNetwork{}.AttributeTypes(),
-		),
 		// TODO Enable SSH key support
 		//SshKey: basetypes.NewStringUnknown(),
 	}
