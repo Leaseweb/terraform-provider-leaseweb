@@ -156,9 +156,10 @@ func TestService_GetAllInstances(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getAllInstancesError: shared.NewGeneralError(
+					getAllInstancesError: shared.NewSdkError(
 						"",
 						errors.New("some error"),
+						nil,
 					),
 				},
 			)
@@ -209,9 +210,10 @@ func TestService_GetInstance(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getInstanceError: shared.NewGeneralError(
+					getInstanceError: shared.NewSdkError(
 						"",
 						errors.New("some error"),
+						nil,
 					),
 				},
 			)
@@ -265,9 +267,10 @@ func TestService_LaunchInstance(t *testing.T) {
 	t.Run("passes back error from repository", func(t *testing.T) {
 		instanceService := New(
 			&repositorySpy{
-				launchedInstanceError: shared.NewGeneralError(
+				launchedInstanceError: shared.NewSdkError(
 					"",
 					errors.New("some error"),
+					nil,
 				),
 			},
 		)
@@ -333,9 +336,10 @@ func TestService_UpdateInstance(t *testing.T) {
 	t.Run("passes back error from repository", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
-				updateInstanceError: shared.NewGeneralError(
+				updateInstanceError: shared.NewSdkError(
 					"",
 					errors.New("some error"),
+					nil,
 				),
 			},
 		)
@@ -394,9 +398,10 @@ func TestService_DeleteInstance(t *testing.T) {
 	t.Run("passes back error from repository", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
-				deleteInstanceError: shared.NewGeneralError(
+				deleteInstanceError: shared.NewSdkError(
 					"",
 					errors.New("some error"),
+					nil,
 				),
 			},
 		)
@@ -439,9 +444,10 @@ func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 
 	t.Run("passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
-			getAvailableInstanceTypesForUpdateError: shared.NewGeneralError(
+			getAvailableInstanceTypesForUpdateError: shared.NewSdkError(
 				"",
 				errors.New("some error"),
+				nil,
 			),
 		}
 
@@ -483,9 +489,10 @@ func TestService_GetRegions(t *testing.T) {
 
 	t.Run("passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
-			getRegionsError: shared.NewGeneralError(
+			getRegionsError: shared.NewSdkError(
 				"",
 				errors.New("some error"),
+				nil,
 			),
 		}
 
@@ -539,9 +546,10 @@ func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
 
 	t.Run("errors from repository bubble up", func(t *testing.T) {
 		spy := &repositorySpy{
-			getInstanceTypesForRegionError: shared.NewGeneralError(
+			getInstanceTypesForRegionError: shared.NewSdkError(
 				"",
 				errors.New("some error"),
+				nil,
 			),
 		}
 
@@ -699,9 +707,10 @@ func TestService_CanInstanceBeTerminated(t *testing.T) {
 	t.Run("error from getSdkError bubbles up", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
-				getInstanceError: shared.NewGeneralError(
+				getInstanceError: shared.NewSdkError(
 					"",
 					errors.New("some error"),
+					nil,
 				),
 			},
 		)
@@ -845,9 +854,10 @@ func TestService_DoesRegionExist(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := newRepositorySpy()
-		spy.getRegionsError = shared.NewGeneralError(
+		spy.getRegionsError = shared.NewSdkError(
 			"",
 			errors.New("some error"),
+			nil,
 		)
 
 		service := New(&spy)
@@ -919,9 +929,10 @@ func TestService_IsInstanceTypeAvailableForRegion(t *testing.T) {
 
 	t.Run("errors from service bubble up", func(t *testing.T) {
 		spy := newRepositorySpy()
-		spy.getInstanceTypesForRegionError = shared.NewGeneralError(
+		spy.getInstanceTypesForRegionError = shared.NewSdkError(
 			"",
 			errors.New("some error"),
+			nil,
 		)
 		service := New(&spy)
 
@@ -1001,9 +1012,10 @@ func TestService_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := newRepositorySpy()
-		spy.getAvailableInstanceTypesForUpdateError = shared.NewGeneralError(
+		spy.getAvailableInstanceTypesForUpdateError = shared.NewSdkError(
 			"",
 			errors.New("some error"),
+			nil,
 		)
 
 		service := New(&spy)

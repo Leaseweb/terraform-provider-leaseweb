@@ -48,7 +48,7 @@ func TestNewSdkError(t *testing.T) {
 	})
 
 	t.Run("invalid json does not return error", func(t *testing.T) {
-		err := errors.New("Result")
+		err := errors.New("result")
 		response := http.Response{
 			StatusCode: 500,
 			Body:       io.NopCloser(bytes.NewReader([]byte(""))),
@@ -59,7 +59,7 @@ func TestNewSdkError(t *testing.T) {
 	})
 
 	t.Run("nothing breaks when httpResponse is nil", func(t *testing.T) {
-		err := errors.New("Result")
+		err := errors.New("result")
 
 		got := NewSdkError("prefix", err, nil)
 		assert.Nil(t, got.ErrorResponse)
@@ -73,18 +73,6 @@ func TestRepositoryError_Error(t *testing.T) {
 	got := err.Error()
 
 	assert.Equal(t, want, got)
-}
-
-func TestNewGeneralError(t *testing.T) {
-	err := errors.New("Result")
-
-	got := NewGeneralError("prefix", err)
-	want := RepositoryError{
-		msg: "prefix: Result",
-		err: err,
-	}
-
-	assert.Equal(t, want, *got)
 }
 
 func ExampleNewSdkError() {
@@ -117,14 +105,4 @@ func ExampleNewSdkError() {
 	// Output:
 	// prefix: some error
 	// &{correlationId errorCode errorMessage map[attribute:[error1 error2]]}
-}
-
-func ExampleNewGeneralError() {
-	repositoryError := NewGeneralError(
-		"prefix",
-		errors.New("some error"),
-	)
-
-	fmt.Println(repositoryError)
-	// Output: prefix: some error
 }
