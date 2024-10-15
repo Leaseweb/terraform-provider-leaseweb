@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository/shared"
 )
 
 // FacadeError prints the passed errorResponse as a Terraform error log.
