@@ -1,4 +1,4 @@
-package model
+package datasource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"

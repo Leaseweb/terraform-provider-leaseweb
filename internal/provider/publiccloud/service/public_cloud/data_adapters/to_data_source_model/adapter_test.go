@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func Test_adaptContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := model.Contract{
+	want := datasource.Contract{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
@@ -40,7 +40,7 @@ func Test_adaptIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := model.Ip{
+	want := datasource.Ip{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got := adaptIp(sdkIp)
@@ -55,7 +55,7 @@ func Test_adaptIps(t *testing.T) {
 		},
 	}
 
-	want := []model.Ip{
+	want := []datasource.Ip{
 		{
 			Ip: basetypes.NewStringValue("127.0.0.1"),
 		},
@@ -70,7 +70,7 @@ func Test_adaptImage(t *testing.T) {
 		Id: "imageId",
 	}
 
-	want := model.Image{
+	want := datasource.Image{
 		Id: basetypes.NewStringValue("imageId"),
 	}
 	got := adaptImage(sdkImage)
