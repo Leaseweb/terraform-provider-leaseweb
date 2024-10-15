@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )
 
 var _ validator.String = RegionValidator{}

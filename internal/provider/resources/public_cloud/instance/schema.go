@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
 	sharedSchemas "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared_schemas/public_cloud"
 )
 

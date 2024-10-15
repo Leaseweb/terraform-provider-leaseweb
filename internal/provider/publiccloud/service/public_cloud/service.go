@@ -7,15 +7,15 @@ import (
 	"slices"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_data_source_model"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_opts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_resource_model"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/to_data_source_model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/to_opts"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/to_resource_model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/synced_map"
 )
 
 var ErrContractTermCannotBeZero = fmt.Errorf(
@@ -246,7 +246,7 @@ func (srv *Service) CanInstanceBeTerminated(id string, ctx context.Context) (
 	return true, nil, nil
 }
 
-func (srv *Service) GetBillingFrequencies() shared.IntMarkdownList {
+func (srv *Service) GetBillingFrequencies() service.IntMarkdownList {
 	var convertedBillingFrequencies []int
 	// Have to add 0 manually here, no way round it.
 	convertedBillingFrequencies = append(convertedBillingFrequencies, 0)
@@ -255,17 +255,17 @@ func (srv *Service) GetBillingFrequencies() shared.IntMarkdownList {
 		convertedBillingFrequencies = append(convertedBillingFrequencies, int(billingFrequency))
 	}
 
-	return shared.NewIntMarkdownList(convertedBillingFrequencies)
+	return service.NewIntMarkdownList(convertedBillingFrequencies)
 }
 
-func (srv *Service) GetContractTerms() shared.IntMarkdownList {
+func (srv *Service) GetContractTerms() service.IntMarkdownList {
 	var convertedContractTerms []int
 
 	for _, contractTerm := range publicCloud.AllowedContractTermEnumValues {
 		convertedContractTerms = append(convertedContractTerms, int(contractTerm))
 	}
 
-	return shared.NewIntMarkdownList(convertedContractTerms)
+	return service.NewIntMarkdownList(convertedContractTerms)
 }
 
 func (srv *Service) GetContractTypes() []string {

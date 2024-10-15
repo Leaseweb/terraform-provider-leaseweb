@@ -2,9 +2,9 @@
 package client
 
 import (
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
 )
 
 // ProviderData TODO: Refactor this part, data can be managed directly, not within client.

@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )
 
 var _ validator.String = InstanceTypeValidator{}

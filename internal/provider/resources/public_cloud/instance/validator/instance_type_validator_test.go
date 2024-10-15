@@ -6,7 +6,7 @@ import (
 
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/stretchr/testify/assert"
 )
 

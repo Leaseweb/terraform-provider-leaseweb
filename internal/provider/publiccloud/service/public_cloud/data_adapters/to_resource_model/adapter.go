@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 

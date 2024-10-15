@@ -3,10 +3,10 @@ package contracts
 import (
 	"context"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )
 
 // PublicCloudService gets data associated with public_cloud.
@@ -58,10 +58,10 @@ type PublicCloudService interface {
 	)
 
 	// GetBillingFrequencies returns a list of valid billing frequencies.
-	GetBillingFrequencies() shared.IntMarkdownList
+	GetBillingFrequencies() service.IntMarkdownList
 
 	// GetContractTerms returns a list of valid contract terms.
-	GetContractTerms() shared.IntMarkdownList
+	GetContractTerms() service.IntMarkdownList
 
 	// GetContractTypes returns a list of valid contract types.
 	GetContractTypes() []string

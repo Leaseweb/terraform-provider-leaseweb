@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
+	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/stretchr/testify/assert"
 )
 
