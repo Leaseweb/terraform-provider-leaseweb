@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/shared"
 )
 
 func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.Context) (*resource.Instance, error) {

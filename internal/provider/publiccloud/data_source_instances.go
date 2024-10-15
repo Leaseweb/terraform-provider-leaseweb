@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	datasourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
 	publicCloud "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
@@ -69,7 +70,7 @@ func (d *instancesDataSource) Read(
 ) {
 
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, err := d.client.PublicCloudService.GetAllInstances(ctx)
+	instances, err := d.client.PublicCloudRepository.GetAllInstances(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
@@ -84,7 +85,7 @@ func (d *instancesDataSource) Read(
 		return
 	}
 
-	state := instances
+	state := datasourceModel.NewInstances(instances)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

@@ -8,11 +8,9 @@ import (
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
-	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/to_opts"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/to_resource_model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/to_data_source_model"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/to_opts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/to_resource_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/synced_map"
@@ -34,7 +32,6 @@ var maximumRootDiskSize = 1000
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
 	publicCloudRepository contracts.PublicCloudRepository
-	adaptInstances        func(sdkInstances []publicCloud.Instance) dataSourceModel.Instances
 	adaptInstanceDetails  func(
 		sdkInstance publicCloud.InstanceDetails,
 		ctx context.Context,
@@ -53,21 +50,6 @@ type Service struct {
 	) (*publicCloud.UpdateInstanceOpts, error)
 	cachedInstanceTypes synced_map.SyncedMap[string, []string]
 	cachedRegions       synced_map.SyncedMap[string, []string]
-}
-
-func (srv *Service) GetAllInstances(ctx context.Context) (
-	dataSourceModel.Instances,
-	*errors.ServiceError,
-) {
-	instances, err := srv.publicCloudRepository.GetAllInstances(ctx)
-	if err != nil {
-		return dataSourceModel.Instances{}, errors.NewFromRepositoryError(
-			"GetAllInstances",
-			*err,
-		)
-	}
-
-	return srv.adaptInstances(instances), nil
 }
 
 func (srv *Service) GetInstance(
@@ -383,7 +365,6 @@ func (srv *Service) CanInstanceTypeBeUsedWithInstance(
 func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository:     publicCloudRepository,
-		adaptInstances:            to_data_source_model.AdaptInstances,
 		adaptInstanceDetails:      to_resource_model.AdaptInstanceDetails,
 		adaptInstance:             to_resource_model.AdaptInstance,
 		adaptToLaunchInstanceOpts: to_opts.AdaptToLaunchInstanceOpts,

@@ -128,50 +128,6 @@ func newRepositorySpy() repositorySpy {
 	}
 }
 
-func TestService_GetAllInstances(t *testing.T) {
-	t.Run(
-		"service passes back instances from repository",
-		func(t *testing.T) {
-			want := []publicCloud.Instance{
-				{
-					Id: "instanceId",
-				},
-			}
-
-			spy := newRepositorySpy()
-			spy.instances = want
-
-			service := New(&spy)
-
-			got, err := service.GetAllInstances(context.TODO())
-
-			assert.Nil(t, err)
-			assert.Len(t, got.Instances, 1)
-			assert.Equal(t, "instanceId", got.Instances[0].Id.ValueString())
-		},
-	)
-
-	t.Run(
-		"error from repository getAllInstances bubbles up",
-		func(t *testing.T) {
-			service := New(
-				&repositorySpy{
-					getAllInstancesError: repository.NewSdkError(
-						"",
-						errors.New("some error"),
-						nil,
-					),
-				},
-			)
-
-			_, err := service.GetAllInstances(context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-}
-
 func TestService_GetInstance(t *testing.T) {
 	t.Run("passes back instance from repository", func(t *testing.T) {
 		instanceDetails := generateInstanceDetails()

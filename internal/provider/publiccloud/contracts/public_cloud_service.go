@@ -3,7 +3,6 @@ package contracts
 import (
 	"context"
 
-	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
@@ -11,9 +10,6 @@ import (
 
 // PublicCloudService gets data associated with public_cloud.
 type PublicCloudService interface {
-	// GetAllInstances gets all instances.
-	GetAllInstances(ctx context.Context) (dataSourceModel.Instances, *errors.ServiceError)
-
 	// GetInstance gets a single instance.
 	GetInstance(
 		id string,

@@ -16,8 +16,9 @@ type ProviderData struct {
 
 // The Client handles instantiation of the facades.
 type Client struct {
-	ProviderData       ProviderData
-	PublicCloudService contracts.PublicCloudService
+	ProviderData          ProviderData
+	PublicCloudService    contracts.PublicCloudService
+	PublicCloudRepository contracts.PublicCloudRepository
 }
 
 type Optional struct {
@@ -41,6 +42,7 @@ func NewClient(token string, optional Optional) Client {
 			Host:   optional.Host,
 			Scheme: optional.Scheme,
 		},
-		PublicCloudService: &publicCloudService,
+		PublicCloudService:    &publicCloudService,
+		PublicCloudRepository: publicCloudRepository,
 	}
 }
