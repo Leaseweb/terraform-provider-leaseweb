@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 )
 
 func (i *instanceResource) Update(
@@ -31,7 +31,7 @@ func (i *instanceResource) Update(
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating instance", err.Error())
 
-		logging.FacadeError(
+		logging.ServiceError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,

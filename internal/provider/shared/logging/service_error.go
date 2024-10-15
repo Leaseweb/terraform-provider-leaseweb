@@ -9,8 +9,8 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
 )
 
-// FacadeError prints the passed errorResponse as a Terraform error log.
-func FacadeError(
+// ServiceError prints the passed errorResponse as a Terraform error log.
+func ServiceError(
 	ctx context.Context,
 	errorResponse *repository.ErrorResponse,
 	diags *diag.Diagnostics,

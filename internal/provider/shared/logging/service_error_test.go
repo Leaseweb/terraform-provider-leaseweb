@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFacadeError(t *testing.T) {
+func TestServiceError(t *testing.T) {
 	t.Run("response is set", func(t *testing.T) {
 
 		diags := diag.Diagnostics{}
 
-		FacadeError(
+		ServiceError(
 			context.TODO(),
 			&repository.ErrorResponse{},
 			&diags,
@@ -41,7 +41,7 @@ func TestFacadeError(t *testing.T) {
 		summary := "summary"
 		detail := "detail"
 
-		FacadeError(context.TODO(), nil, &diags, summary, detail)
+		ServiceError(context.TODO(), nil, &diags, summary, detail)
 
 		assert.Equal(
 			t,
