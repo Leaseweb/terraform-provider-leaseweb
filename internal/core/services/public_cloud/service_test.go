@@ -11,7 +11,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,14 +34,14 @@ type repositorySpy struct {
 	passedDeleteInstanceId                     string
 	passedGetInstanceTypesForRegionRegion      string
 
-	getAllInstancesError                    *shared.RepositoryError
-	getInstanceError                        *shared.RepositoryError
-	launchedInstanceError                   *shared.RepositoryError
-	updateInstanceError                     *shared.RepositoryError
-	deleteInstanceError                     *shared.RepositoryError
-	getAvailableInstanceTypesForUpdateError *shared.RepositoryError
-	getRegionsError                         *shared.RepositoryError
-	getInstanceTypesForRegionError          *shared.RepositoryError
+	getAllInstancesError                    *repository.RepositoryError
+	getInstanceError                        *repository.RepositoryError
+	launchedInstanceError                   *repository.RepositoryError
+	updateInstanceError                     *repository.RepositoryError
+	deleteInstanceError                     *repository.RepositoryError
+	getAvailableInstanceTypesForUpdateError *repository.RepositoryError
+	getRegionsError                         *repository.RepositoryError
+	getInstanceTypesForRegionError          *repository.RepositoryError
 
 	getInstanceTypesForRegionSleep time.Duration
 	getRegionsSleep                time.Duration
@@ -53,7 +53,7 @@ type repositorySpy struct {
 func (r *repositorySpy) GetInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
-) ([]string, *shared.RepositoryError) {
+) ([]string, *repository.RepositoryError) {
 	time.Sleep(r.getInstanceTypesForRegionSleep)
 	r.passedGetInstanceTypesForRegionRegion = region
 	r.getInstanceTypesForRegionCount++
@@ -63,7 +63,7 @@ func (r *repositorySpy) GetInstanceTypesForRegion(
 
 func (r *repositorySpy) GetRegions(ctx context.Context) (
 	[]string,
-	*shared.RepositoryError,
+	*repository.RepositoryError,
 ) {
 	time.Sleep(r.getRegionsSleep)
 	r.getRegionsCount++
@@ -74,7 +74,7 @@ func (r *repositorySpy) GetRegions(ctx context.Context) (
 func (r *repositorySpy) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
-) ([]string, *shared.RepositoryError) {
+) ([]string, *repository.RepositoryError) {
 	r.passedGetAvailableInstanceTypesForUpdateId = id
 
 	return r.availableInstanceTypesForUpdate, r.getAvailableInstanceTypesForUpdateError
@@ -82,7 +82,7 @@ func (r *repositorySpy) GetAvailableInstanceTypesForUpdate(
 
 func (r *repositorySpy) GetAllInstances(ctx context.Context) (
 	[]publicCloud.Instance,
-	*shared.RepositoryError,
+	*repository.RepositoryError,
 ) {
 	return r.instances, r.getAllInstancesError
 }
@@ -90,7 +90,7 @@ func (r *repositorySpy) GetAllInstances(ctx context.Context) (
 func (r *repositorySpy) GetInstance(
 	id string,
 	ctx context.Context,
-) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
+) (*publicCloud.InstanceDetails, *repository.RepositoryError) {
 	r.passedGetInstanceId = id
 
 	return r.instanceDetailsById[id], r.getInstanceError
@@ -99,7 +99,7 @@ func (r *repositorySpy) GetInstance(
 func (r *repositorySpy) LaunchInstance(
 	opts publicCloud.LaunchInstanceOpts,
 	ctx context.Context,
-) (*publicCloud.Instance, *shared.RepositoryError) {
+) (*publicCloud.Instance, *repository.RepositoryError) {
 	return r.launchedInstance, r.launchedInstanceError
 }
 
@@ -107,14 +107,14 @@ func (r *repositorySpy) UpdateInstance(
 	id string,
 	opts publicCloud.UpdateInstanceOpts,
 	ctx context.Context,
-) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
+) (*publicCloud.InstanceDetails, *repository.RepositoryError) {
 	return r.updatedInstance, r.updateInstanceError
 }
 
 func (r *repositorySpy) DeleteInstance(
 	id string,
 	ctx context.Context,
-) *shared.RepositoryError {
+) *repository.RepositoryError {
 	r.passedDeleteInstanceId = id
 
 	return r.deleteInstanceError
@@ -156,7 +156,7 @@ func TestService_GetAllInstances(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getAllInstancesError: shared.NewSdkError(
+					getAllInstancesError: repository.NewSdkError(
 						"",
 						errors.New("some error"),
 						nil,
@@ -210,7 +210,7 @@ func TestService_GetInstance(t *testing.T) {
 		func(t *testing.T) {
 			service := New(
 				&repositorySpy{
-					getInstanceError: shared.NewSdkError(
+					getInstanceError: repository.NewSdkError(
 						"",
 						errors.New("some error"),
 						nil,
@@ -267,7 +267,7 @@ func TestService_LaunchInstance(t *testing.T) {
 	t.Run("passes back error from repository", func(t *testing.T) {
 		instanceService := New(
 			&repositorySpy{
-				launchedInstanceError: shared.NewSdkError(
+				launchedInstanceError: repository.NewSdkError(
 					"",
 					errors.New("some error"),
 					nil,
@@ -336,7 +336,7 @@ func TestService_UpdateInstance(t *testing.T) {
 	t.Run("passes back error from repository", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
-				updateInstanceError: shared.NewSdkError(
+				updateInstanceError: repository.NewSdkError(
 					"",
 					errors.New("some error"),
 					nil,
@@ -398,7 +398,7 @@ func TestService_DeleteInstance(t *testing.T) {
 	t.Run("passes back error from repository", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
-				deleteInstanceError: shared.NewSdkError(
+				deleteInstanceError: repository.NewSdkError(
 					"",
 					errors.New("some error"),
 					nil,
@@ -444,7 +444,7 @@ func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 
 	t.Run("passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
-			getAvailableInstanceTypesForUpdateError: shared.NewSdkError(
+			getAvailableInstanceTypesForUpdateError: repository.NewSdkError(
 				"",
 				errors.New("some error"),
 				nil,
@@ -489,7 +489,7 @@ func TestService_GetRegions(t *testing.T) {
 
 	t.Run("passes back error from repository", func(t *testing.T) {
 		spy := &repositorySpy{
-			getRegionsError: shared.NewSdkError(
+			getRegionsError: repository.NewSdkError(
 				"",
 				errors.New("some error"),
 				nil,
@@ -546,7 +546,7 @@ func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
 
 	t.Run("errors from repository bubble up", func(t *testing.T) {
 		spy := &repositorySpy{
-			getInstanceTypesForRegionError: shared.NewSdkError(
+			getInstanceTypesForRegionError: repository.NewSdkError(
 				"",
 				errors.New("some error"),
 				nil,
@@ -707,7 +707,7 @@ func TestService_CanInstanceBeTerminated(t *testing.T) {
 	t.Run("error from getSdkError bubbles up", func(t *testing.T) {
 		service := New(
 			&repositorySpy{
-				getInstanceError: shared.NewSdkError(
+				getInstanceError: repository.NewSdkError(
 					"",
 					errors.New("some error"),
 					nil,
@@ -854,7 +854,7 @@ func TestService_DoesRegionExist(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := newRepositorySpy()
-		spy.getRegionsError = shared.NewSdkError(
+		spy.getRegionsError = repository.NewSdkError(
 			"",
 			errors.New("some error"),
 			nil,
@@ -929,7 +929,7 @@ func TestService_IsInstanceTypeAvailableForRegion(t *testing.T) {
 
 	t.Run("errors from service bubble up", func(t *testing.T) {
 		spy := newRepositorySpy()
-		spy.getInstanceTypesForRegionError = shared.NewSdkError(
+		spy.getInstanceTypesForRegionError = repository.NewSdkError(
 			"",
 			errors.New("some error"),
 			nil,
@@ -1012,7 +1012,7 @@ func TestService_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 
 	t.Run("errors from the service bubble up", func(t *testing.T) {
 		spy := newRepositorySpy()
-		spy.getAvailableInstanceTypesForUpdateError = shared.NewSdkError(
+		spy.getAvailableInstanceTypesForUpdateError = repository.NewSdkError(
 			"",
 			errors.New("some error"),
 			nil,

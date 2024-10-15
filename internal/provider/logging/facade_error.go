@@ -6,13 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
 )
 
 // FacadeError prints the passed errorResponse as a Terraform error log.
 func FacadeError(
 	ctx context.Context,
-	errorResponse *shared.ErrorResponse,
+	errorResponse *repository.ErrorResponse,
 	diags *diag.Diagnostics,
 	summary string,
 	detail string,
