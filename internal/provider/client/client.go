@@ -4,10 +4,10 @@ package client
 import (
 	publiccloudservice "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository"
 )
 
-// TODO: Refactor this part, ProviderData can be managed directly, not within client.
+// ProviderData TODO: Refactor this part, data can be managed directly, not within client.
 type ProviderData struct {
 	ApiKey string
 	Host   *string
@@ -26,9 +26,9 @@ type Optional struct {
 }
 
 func NewClient(token string, optional Optional) Client {
-	publicCloudRepository := public_cloud_repository.NewPublicCloudRepository(
+	publicCloudRepository := repository.NewPublicCloudRepository(
 		token,
-		public_cloud_repository.Optional{
+		repository.Optional{
 			Host:   optional.Host,
 			Scheme: optional.Scheme,
 		},

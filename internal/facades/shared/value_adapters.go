@@ -11,16 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// AdaptNullableIntToInt64Value converts a nullable integer to a Terraform
-// Int64Value.
-func AdaptNullableIntToInt64Value(value *int) basetypes.Int64Value {
-	if value == nil {
-		return basetypes.NewInt64Null()
-	}
-
-	return basetypes.NewInt64Value(int64(*value))
-}
-
 // AdaptNullableTimeToStringValue converts a nullable Time to a Terraform
 // StringValue.
 func AdaptNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
@@ -39,50 +29,6 @@ func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
 	}
 
 	return basetypes.NewStringValue(*value)
-}
-
-// AdaptNullableDomainEntityToDatasourceModel converts a nullable domain entity
-// to a Terraform datasource model.
-func AdaptNullableDomainEntityToDatasourceModel[T interface{}, U interface{}](
-	entity *T,
-	generateModel func(entity T) *U,
-) *U {
-	if entity == nil {
-		return nil
-	}
-
-	return generateModel(*entity)
-}
-
-// AdaptNullableDomainEntityToResourceObject converts a nullable domain entity
-// to a Terraform resource object.
-func AdaptNullableDomainEntityToResourceObject[T any, U any](
-	entity *T,
-	attributeTypes map[string]attr.Type,
-	ctx context.Context,
-	generateResourceObject func(
-		ctx context.Context,
-		entity T,
-	) (*U, error)) (basetypes.ObjectValue, error) {
-	if entity == nil {
-		return types.ObjectNull(attributeTypes), nil
-	}
-
-	resourceObject, err := AdaptDomainEntityToResourceObject(
-		*entity,
-		attributeTypes,
-		ctx,
-		generateResourceObject,
-	)
-
-	if err != nil {
-		return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-			"unable to convert domain entity to resource: %w",
-			err,
-		)
-	}
-
-	return resourceObject, nil
 }
 
 // AdaptDomainEntityToResourceObject converts a domain entity to a Terraform
@@ -179,21 +125,6 @@ func AdaptStringPointerValueToNullableString(value types.String) *string {
 	return value.ValueStringPointer()
 }
 
-// AdaptIntArrayToInt64Array converts an array of integers to an array of
-// int64 values.
-func AdaptIntArrayToInt64Array(items []int) []int64 {
-	var convertedItems []int64
-
-	for _, item := range items {
-		convertedItems = append(
-			convertedItems,
-			int64(item),
-		)
-	}
-
-	return convertedItems
-}
-
 // ReturnError returns the first diagnostics error as a golang Error.
 func ReturnError(functionName string, diags diag.Diagnostics) error {
 	for _, diagError := range diags {
@@ -208,17 +139,17 @@ func ReturnError(functionName string, diags diag.Diagnostics) error {
 	return nil
 }
 
-// AdaptNullableBoolToBoolValue converts a nullable boolean to a Terraform
-// BoolValue.
-func AdaptNullableBoolToBoolValue(value *bool) basetypes.BoolValue {
-	if value == nil {
-		return basetypes.NewBoolNull()
+func AdaptInt64PointerValueToNullableInt32(int64Type types.Int64) *int32 {
+	if int64Type.IsUnknown() {
+		return nil
 	}
 
-	return AdaptBoolToBoolValue(*value)
-}
+	value := int64Type.ValueInt64Pointer()
+	if value == nil {
+		return nil
+	}
 
-// AdaptBoolToBoolValue converts a boolean to a Terraform BoolValue.
-func AdaptBoolToBoolValue(value bool) basetypes.BoolValue {
-	return basetypes.NewBoolValue(value)
+	convertedValue := int32(*value)
+
+	return &convertedValue
 }

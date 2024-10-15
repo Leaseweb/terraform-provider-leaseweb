@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
-	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,41 +21,6 @@ type mockDomainEntity struct {
 
 type mockModel struct {
 	Value string `tfsdk:"value"`
-}
-
-func TestAdaptNullableIntToInt64Value(t *testing.T) {
-	value := 1234
-
-	type args struct {
-		value *int
-	}
-	tests := []struct {
-		name string
-		args args
-		want basetypes.Int64Value
-	}{
-		{
-			name: "value has been set to nil",
-			args: args{value: nil},
-			want: basetypes.NewInt64Null(),
-		},
-		{
-			name: "value has been set",
-			args: args{value: &value},
-			want: basetypes.NewInt64Value(1234),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(
-				t,
-				tt.want,
-				AdaptNullableIntToInt64Value(tt.args.value),
-				"AdaptNullableIntToInt64Value(%v)",
-				tt.args.value,
-			)
-		})
-	}
 }
 
 func TestAdaptNullableTimeToStringValue(t *testing.T) {
@@ -88,80 +52,6 @@ func TestAdaptNullableTimeToStringValue(t *testing.T) {
 			), "AdaptNullableTimeToStringValue(%v)", tt.args.value)
 		})
 	}
-}
-
-func TestAdaptNullableDomainEntityToDatasourceModel(t *testing.T) {
-	entity := mockDomainEntity{}
-	mockGenerator := func(domainEntity mockDomainEntity) *string {
-		value := "tralala"
-		return &value
-	}
-
-	t.Run("value is nil", func(t *testing.T) {
-		got := AdaptNullableDomainEntityToDatasourceModel(nil, mockGenerator)
-		assert.Nil(t, got)
-	})
-	t.Run("value is set", func(t *testing.T) {
-		got := AdaptNullableDomainEntityToDatasourceModel(&entity, mockGenerator)
-		assert.Equal(t, "tralala", *got)
-	})
-}
-
-func TestAdaptNullableDomainEntityToResourceObject(t *testing.T) {
-	entity := mockDomainEntity{}
-
-	t.Run("value is nil", func(t *testing.T) {
-		got, gotDiags := AdaptNullableDomainEntityToResourceObject(
-			nil,
-			map[string]attr.Type{},
-			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-
-				return &mockModel{Value: "tralala"}, nil
-			},
-		)
-		assert.Nil(t, gotDiags)
-		assert.Equal(t, types.ObjectNull(map[string]attr.Type{}), got)
-	})
-
-	t.Run("value is set", func(t *testing.T) {
-		got, gotDiags := AdaptNullableDomainEntityToResourceObject(
-			&entity,
-			map[string]attr.Type{"value": types.StringType},
-			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-
-				return &mockModel{Value: "tralala"}, nil
-			},
-		)
-
-		assert.Nil(t, gotDiags)
-		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
-	})
-
-	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := AdaptNullableDomainEntityToResourceObject(
-			&entity,
-			map[string]attr.Type{},
-			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-				return nil, errors.New("tralala")
-			},
-		)
-
-		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
 }
 
 func TestAdaptDomainEntityToResourceObject(t *testing.T) {
@@ -349,21 +239,6 @@ func TestAdaptStringPointerValueToNullableString(t *testing.T) {
 	})
 }
 
-func ExampleAdaptNullableIntToInt64Value() {
-	nullableInt := 64
-	value := AdaptNullableIntToInt64Value(&nullableInt)
-
-	fmt.Println(value)
-	// Output: 64
-}
-
-func ExampleAdaptNullableIntToInt64Value_second() {
-	value := AdaptNullableIntToInt64Value(nil)
-
-	fmt.Println(value)
-	// Output: <null>
-}
-
 func ExampleAdaptNullableTimeToStringValue() {
 	nullableTime, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	value := AdaptNullableTimeToStringValue(&nullableTime)
@@ -391,74 +266,6 @@ func ExampleAdaptNullableStringToStringValue_second() {
 	value := AdaptNullableStringToStringValue(nil)
 
 	fmt.Println(value)
-	// Output: <null>
-}
-
-func ExampleAdaptNullableDomainEntityToDatasourceModel() {
-	image := public_cloud.NewImage("imageId")
-
-	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
-		&image,
-		func(image public_cloud.Image) *dataSourceModel.Image {
-			return &dataSourceModel.Image{
-				Id: basetypes.NewStringValue(image.Id),
-			}
-		},
-	)
-
-	fmt.Println(datasourceModel)
-	// Output: &{"imageId"}
-}
-
-func ExampleAdaptNullableDomainEntityToDatasourceModel_second() {
-	datasourceModel := AdaptNullableDomainEntityToDatasourceModel(
-		nil,
-		func(image public_cloud.Image) *dataSourceModel.Image {
-			return &dataSourceModel.Image{
-				Id: basetypes.NewStringValue(image.Id),
-			}
-		},
-	)
-
-	fmt.Println(datasourceModel)
-	// Output: <nil>
-}
-
-func ExampleAdaptNullableDomainEntityToResourceObject() {
-	image := public_cloud.NewImage("imageId")
-
-	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
-		&image,
-		map[string]attr.Type{
-			"id": types.StringType,
-		},
-		context.TODO(),
-		func(ctx context.Context, image public_cloud.Image) (*model.Image, error) {
-			return &model.Image{
-				Id: basetypes.NewStringValue(image.Id),
-			}, nil
-		},
-	)
-
-	fmt.Println(datasourceModel)
-	// Output: {"id":"imageId"}
-}
-
-func ExampleAdaptNullableDomainEntityToResourceObject_second() {
-	datasourceModel, _ := AdaptNullableDomainEntityToResourceObject(
-		nil,
-		map[string]attr.Type{
-			"id": types.StringType,
-		},
-		context.TODO(),
-		func(ctx context.Context, image public_cloud.Image) (*model.Image, error) {
-			return &model.Image{
-				Id: basetypes.NewStringValue(image.Id),
-			}, nil
-		},
-	)
-
-	fmt.Println(datasourceModel)
 	// Output: <null>
 }
 
@@ -517,20 +324,6 @@ func ExampleAdaptStringPointerValueToNullableString_second() {
 	// Output: <nil>
 }
 
-func TestAdaptIntArrayToInt64(t *testing.T) {
-	want := []int64{5}
-	got := AdaptIntArrayToInt64Array([]int{5})
-
-	assert.Equal(t, want, got)
-}
-
-func ExampleAdaptIntArrayToInt64Array() {
-	convertedValue := AdaptIntArrayToInt64Array([]int{5})
-
-	fmt.Println(convertedValue)
-	// Output: [5]
-}
-
 func TestReturnError(t *testing.T) {
 	t.Run("diagnostics contain errors", func(t *testing.T) {
 		diags := diag.Diagnostics{}
@@ -562,60 +355,36 @@ func ExampleReturnError() {
 	// Output:  functionName: "summary" "detail"
 }
 
-func TestAdaptNullableBoolToBoolValue(t *testing.T) {
-	t.Run(
-		"returns a boolean when the value is not nil",
-		func(t *testing.T) {
-			value := true
-			got := AdaptNullableBoolToBoolValue(&value)
-
-			assert.True(t, got.ValueBool())
-			assert.False(t, got.IsNull())
-		},
-	)
-
-	t.Run(
-		"returns null when the value is nil",
-		func(t *testing.T) {
-			got := AdaptNullableBoolToBoolValue(nil)
-
-			assert.True(t, got.IsNull())
-		},
-	)
-}
-
-func ExampleAdaptNullableBoolToBoolValue() {
-	value := true
-	adaptedValue := AdaptNullableBoolToBoolValue(&value)
-
-	fmt.Println(adaptedValue)
-	// Output: true
-}
-
-func ExampleAdaptNullableBoolToBoolValue_second() {
-	adaptedValue := AdaptNullableBoolToBoolValue(nil)
-
-	fmt.Println(adaptedValue)
-	// Output: <null>
-}
-
-func TestAdaptBoolToBoolValue(t *testing.T) {
-	t.Run("works with false", func(t *testing.T) {
-		got := AdaptBoolToBoolValue(false)
-
-		assert.False(t, got.ValueBool())
+func TestAdaptInt64PointerValueToNullableInt32(t *testing.T) {
+	t.Run("passing nil returns nil", func(t *testing.T) {
+		got := AdaptInt64PointerValueToNullableInt32(
+			basetypes.NewInt64PointerValue(nil),
+		)
+		assert.Nil(t, got)
 	})
 
-	t.Run("works with true", func(t *testing.T) {
-		got := AdaptBoolToBoolValue(true)
+	t.Run("passing value returns int32 variant", func(t *testing.T) {
+		value := int64(1)
+		int64Value := basetypes.NewInt64PointerValue(&value)
+		got := AdaptInt64PointerValueToNullableInt32(int64Value)
 
-		assert.True(t, got.ValueBool())
+		assert.Equal(t, int32(1), *got)
 	})
 }
 
-func ExampleAdaptBoolToBoolValue() {
-	adaptedValue := AdaptBoolToBoolValue(true)
+func ExampleAdaptInt64PointerValueToNullableInt32() {
+	value := int64(3)
+	int64Value := basetypes.NewInt64PointerValue(&value)
+	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
+
+	fmt.Println(*adaptedValue)
+	// Output: 3
+}
+
+func ExampleAdaptInt64PointerValueToNullableInt32_second() {
+	int64Value := basetypes.NewInt64PointerValue(nil)
+	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
 
 	fmt.Println(adaptedValue)
-	// Output: true
+	// Output: <nil>
 }

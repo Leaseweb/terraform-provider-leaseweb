@@ -14,7 +14,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,9 +23,9 @@ var (
 )
 
 type serviceSpy struct {
-	createInstancePassedInstance *public_cloud.Instance
-	createdInstance              *public_cloud.Instance
-	createInstanceError          *serviceErrors.ServiceError
+	launchInstancePassedInstance *resourceModel.Instance
+	launchedInstance             *resourceModel.Instance
+	launchInstanceError          *serviceErrors.ServiceError
 
 	getRegions      public_cloud.Regions
 	getRegionsError *serviceErrors.ServiceError
@@ -37,33 +37,51 @@ type serviceSpy struct {
 	deleteInstancePassedId string
 	deleteInstanceError    *serviceErrors.ServiceError
 
-	updatedInstancePassedInstance *public_cloud.Instance
-	updatedInstance               *public_cloud.Instance
+	updatedInstancePassedInstance *resourceModel.Instance
+	updatedInstance               *resourceModel.Instance
 	updateInstanceError           *serviceErrors.ServiceError
 
-	getInstances      public_cloud.Instances
+	getInstances      dataSourceModel.Instances
 	getInstancesError *serviceErrors.ServiceError
 
 	getInstancePassedId string
-	getInstance         *public_cloud.Instance
+	getInstance         *resourceModel.Instance
 	getInstanceError    *serviceErrors.ServiceError
 
 	getAvailableInstanceTypesForRegion             public_cloud.InstanceTypes
 	getAvailableInstanceTypesForRegionError        *serviceErrors.ServiceError
 	getAvailableInstanceTypesForRegionPassedRegion string
+
+	canInstanceBeTerminatedError  *serviceErrors.ServiceError
+	canInstanceBeUpdatedPassedId  string
+	canInstanceBeTerminatedReason *public_cloud.ReasonInstanceCannotBeTerminated
+	canInstanceBeTerminated       bool
+}
+
+func (s *serviceSpy) CanInstanceBeTerminated(
+	id string,
+	ctx context.Context,
+) (
+	bool,
+	*public_cloud.ReasonInstanceCannotBeTerminated,
+	*serviceErrors.ServiceError,
+) {
+	s.canInstanceBeUpdatedPassedId = id
+
+	return s.canInstanceBeTerminated, s.canInstanceBeTerminatedReason, s.canInstanceBeTerminatedError
 }
 
 func (s *serviceSpy) GetAvailableInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
-) (public_cloud.InstanceTypes, *serviceErrors.ServiceError) {
+) ([]string, *serviceErrors.ServiceError) {
 	s.getAvailableInstanceTypesForRegionPassedRegion = region
 
 	return s.getAvailableInstanceTypesForRegion, s.getAvailableInstanceTypesForRegionError
 }
 
 func (s *serviceSpy) GetAllInstances(ctx context.Context) (
-	public_cloud.Instances,
+	dataSourceModel.Instances,
 	*serviceErrors.ServiceError,
 ) {
 	return s.getInstances, s.getInstancesError
@@ -72,25 +90,25 @@ func (s *serviceSpy) GetAllInstances(ctx context.Context) (
 func (s *serviceSpy) GetInstance(
 	id string,
 	ctx context.Context,
-) (*public_cloud.Instance, *serviceErrors.ServiceError) {
+) (*resourceModel.Instance, *serviceErrors.ServiceError) {
 	s.getInstancePassedId = id
 
 	return s.getInstance, s.getInstanceError
 }
 
-func (s *serviceSpy) CreateInstance(
-	instance public_cloud.Instance,
+func (s *serviceSpy) LaunchInstance(
+	instance resourceModel.Instance,
 	ctx context.Context,
-) (*public_cloud.Instance, *serviceErrors.ServiceError) {
-	s.createInstancePassedInstance = &instance
+) (*resourceModel.Instance, *serviceErrors.ServiceError) {
+	s.launchInstancePassedInstance = &instance
 
-	return s.createdInstance, s.createInstanceError
+	return s.launchedInstance, s.launchInstanceError
 }
 
 func (s *serviceSpy) UpdateInstance(
-	instance public_cloud.Instance,
+	instance resourceModel.Instance,
 	ctx context.Context,
-) (*public_cloud.Instance, *serviceErrors.ServiceError) {
+) (*resourceModel.Instance, *serviceErrors.ServiceError) {
 	s.updatedInstancePassedInstance = &instance
 
 	return s.updatedInstance, s.updateInstanceError
@@ -108,14 +126,14 @@ func (s *serviceSpy) DeleteInstance(
 func (s *serviceSpy) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
-) (public_cloud.InstanceTypes, *serviceErrors.ServiceError) {
+) ([]string, *serviceErrors.ServiceError) {
 	s.availableInstanceTypesForUpdatePassedId = id
 
 	return s.instanceTypesForUpdate, s.instanceTypesForUpdateError
 }
 
 func (s *serviceSpy) GetRegions(ctx context.Context) (
-	public_cloud.Regions,
+	[]string,
 	*serviceErrors.ServiceError,
 ) {
 	return s.getRegions, s.getRegionsError
@@ -128,22 +146,22 @@ func TestPublicCloudFacadeNewPublicCloudFacade(t *testing.T) {
 	assert.Equal(t, service, facade.publicCloudService)
 }
 
-func TestPublicCloudFacade_CreateInstance(t *testing.T) {
+func TestPublicCloudFacade_LaunchInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
-		want := "id"
-		createdInstance := public_cloud.Instance{Id: want}
+		want := basetypes.NewStringValue("id")
+		launchedInstance := resourceModel.Instance{Id: want}
 
-		service := &serviceSpy{createdInstance: &createdInstance}
+		service := &serviceSpy{launchedInstance: &launchedInstance}
 
 		image, _ := basetypes.NewObjectValue(
-			model.Image{}.AttributeTypes(),
+			resourceModel.Image{}.AttributeTypes(),
 			map[string]attr.Value{
 				"PrivateNetworkId": basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			},
 		)
 
 		contract, _ := basetypes.NewObjectValue(
-			model.Contract{}.AttributeTypes(),
+			resourceModel.Contract{}.AttributeTypes(),
 			map[string]attr.Value{
 				"Type":             basetypes.NewStringValue("MONTHLY"),
 				"Term":             basetypes.NewInt64Value(3),
@@ -151,7 +169,7 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 			},
 		)
 
-		instance := model.Instance{
+		instance := resourceModel.Instance{
 			Region:              basetypes.NewStringValue("region"),
 			Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
 			RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
@@ -160,104 +178,26 @@ func TestPublicCloudFacade_CreateInstance(t *testing.T) {
 		}
 
 		facade := NewPublicCloudFacade(service)
-		facade.adaptToCreateInstanceOpts = func(
-			instance model.Instance,
-			allowedInstanceTypes []string,
-			ctx context.Context,
-		) (*public_cloud.Instance, error) {
-			return &public_cloud.Instance{}, nil
-		}
 
-		got, err := facade.CreateInstance(instance, context.TODO())
+		got, err := facade.LaunchInstance(instance, context.TODO())
 
 		assert.Nil(t, err)
-		assert.Equal(t, want, got.Id.ValueString())
-	})
-
-	t.Run("error is returned if createInstanceOpts fails", func(t *testing.T) {
-		spy := serviceSpy{}
-		facade := NewPublicCloudFacade(&spy)
-		facade.adaptToCreateInstanceOpts = func(
-			instance model.Instance,
-			allowedInstanceTypes []string,
-			ctx context.Context,
-		) (*public_cloud.Instance, error) {
-			return &public_cloud.Instance{}, errors.New("some error")
-		}
-
-		_, err := facade.CreateInstance(model.Instance{}, context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
+		assert.Equal(t, want, got.Id)
 	})
 
 	t.Run(
-		"error is returned if service CreateInstance fails",
+		"error is returned if service LaunchInstance fails",
 		func(t *testing.T) {
 			facade := PublicCloudFacade{
-				adaptToCreateInstanceOpts: func(
-					instance model.Instance,
-					allowedInstanceTypes []string,
-					ctx context.Context,
-				) (*public_cloud.Instance, error) {
-					return &public_cloud.Instance{}, nil
-				},
 				publicCloudService: &serviceSpy{
-					createInstanceError: serviceErrors.NewError(
+					launchInstanceError: serviceErrors.NewError(
 						"",
 						errors.New("some error"),
 					),
 				},
 			}
 
-			_, err := facade.CreateInstance(model.Instance{}, context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run(
-		"error is returned if adaptInstanceToResourceModel fails",
-		func(t *testing.T) {
-			createdInstance := public_cloud.Instance{}
-			service := &serviceSpy{createdInstance: &createdInstance}
-			instance := model.Instance{}
-
-			facade := NewPublicCloudFacade(service)
-			facade.adaptToCreateInstanceOpts = func(
-				instance model.Instance,
-				allowedInstanceTypes []string,
-				ctx context.Context,
-			) (*public_cloud.Instance, error) {
-				return &public_cloud.Instance{}, nil
-			}
-			facade.adaptInstanceToResourceModel = func(
-				instance public_cloud.Instance,
-				ctx context.Context,
-			) (*model.Instance, error) {
-				return nil, errors.New("some error")
-			}
-
-			_, err := facade.CreateInstance(instance, context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run(
-		"error is returned if GetInstanceTypesForRegion fails",
-		func(t *testing.T) {
-			spy := serviceSpy{
-				getAvailableInstanceTypesForRegionError: serviceErrors.NewError(
-					"",
-					errors.New("some error"),
-				),
-			}
-			facade := NewPublicCloudFacade(&spy)
-
-			_, err := facade.CreateInstance(model.Instance{}, context.TODO())
+			_, err := facade.LaunchInstance(resourceModel.Instance{}, context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "some error")
@@ -358,24 +298,17 @@ func TestPublicCloudFacade_DoesRegionExist(t *testing.T) {
 
 func TestPublicCloudFacade_GetInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
-		instanceId := "id"
-		sdkInstance := public_cloud.Instance{Id: instanceId}
+		instanceId := basetypes.NewStringValue("id")
+		sdkInstance := resourceModel.Instance{Id: instanceId}
 
-		want := model.Instance{Id: basetypes.NewStringValue(instanceId)}
+		want := resourceModel.Instance{Id: instanceId}
 
 		spy := serviceSpy{getInstance: &sdkInstance}
 		facade := PublicCloudFacade{
 			publicCloudService: &spy,
-			adaptInstanceToResourceModel: func(
-				instance public_cloud.Instance,
-				ctx context.Context,
-			) (*model.Instance, error) {
-				assert.Equal(t, instanceId, instance.Id)
-				return &want, nil
-			},
 		}
 
-		got, err := facade.GetInstance(instanceId, context.TODO())
+		got, err := facade.GetInstance("id", context.TODO())
 
 		assert.Nil(t, err)
 		assert.Equal(t, want, *got)
@@ -403,29 +336,6 @@ func TestPublicCloudFacade_GetInstance(t *testing.T) {
 		},
 	)
 
-	t.Run(
-		"error is returned if adaptInstanceToResourceModel fails",
-		func(t *testing.T) {
-			sdkInstance := public_cloud.Instance{}
-
-			spy := serviceSpy{getInstance: &sdkInstance}
-			facade := PublicCloudFacade{
-				publicCloudService: &spy,
-				adaptInstanceToResourceModel: func(
-					instance public_cloud.Instance,
-					ctx context.Context,
-				) (*model.Instance, error) {
-					return nil, errors.New("some error")
-				},
-			}
-
-			_, err := facade.GetInstance("", context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
 	t.Run("id is passed to repository", func(t *testing.T) {
 		wanted := "id"
 
@@ -443,7 +353,6 @@ func TestPublicCloudFacade_GetInstance(t *testing.T) {
 func TestPublicCloudFacade_GetAllInstances(t *testing.T) {
 	t.Run("expected instances are returned", func(t *testing.T) {
 		wanted := "id"
-		domainInstances := public_cloud.Instances{{Id: wanted}}
 
 		modelInstances := dataSourceModel.Instances{
 			Instances: []dataSourceModel.Instance{
@@ -451,14 +360,10 @@ func TestPublicCloudFacade_GetAllInstances(t *testing.T) {
 			},
 		}
 
-		spy := &serviceSpy{getInstances: domainInstances}
+		spy := &serviceSpy{getInstances: modelInstances}
 
 		facade := PublicCloudFacade{
 			publicCloudService: spy,
-			adaptInstancesToDataSourceModel: func(instances public_cloud.Instances) dataSourceModel.Instances {
-				assert.Equal(t, wanted, instances[0].Id)
-				return modelInstances
-			},
 		}
 
 		got, err := facade.GetAllInstances(context.TODO())
@@ -490,89 +395,23 @@ func TestPublicCloudFacade_GetAllInstances(t *testing.T) {
 
 func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 	t.Run("expected instance is returned", func(t *testing.T) {
-		createInstanceId := "id"
-
-		plan := model.Instance{
-			Id: basetypes.NewStringValue(createInstanceId),
+		plan := resourceModel.Instance{
+			Id: basetypes.NewStringValue("id"),
 		}
-		want := model.Instance{Id: basetypes.NewStringValue("tralala")}
-
-		instanceOpts := public_cloud.Instance{}
-		updatedInstance := public_cloud.Instance{}
-		currentInstance := public_cloud.Instance{
-			Type: "instanceTypeName",
-		}
+		updatedInstance := resourceModel.Instance{Id: basetypes.NewStringValue("id")}
 
 		spy := serviceSpy{
 			updatedInstance: &updatedInstance,
-			getInstance:     &currentInstance,
 		}
 		facade := PublicCloudFacade{
 			publicCloudService: &spy,
-			adaptToUpdateInstanceOpts: func(
-				instance model.Instance,
-				allowedInstanceTypes []string,
-				currentInstanceType string,
-				ctx context.Context,
-			) (*public_cloud.Instance, error) {
-				assert.Equal(
-					t,
-					createInstanceId,
-					instance.Id.ValueString(),
-					"model is converted into opts",
-				)
-
-				return &instanceOpts, nil
-			},
-			adaptInstanceToResourceModel: func(
-				instance public_cloud.Instance,
-				ctx context.Context,
-			) (*model.Instance, error) {
-				assert.Equal(
-					t,
-					updatedInstance.Id,
-					instance.Id,
-					"instance from repository is converted into model")
-
-				return &want, nil
-			},
 		}
 
 		got, err := facade.UpdateInstance(plan, context.TODO())
 
 		assert.Nil(t, err)
-		assert.Equal(t, want, *got)
+		assert.Equal(t, "id", got.Id.ValueString())
 	})
-
-	t.Run(
-		"error is returned if updatedInstancePassedInstance fails",
-		func(t *testing.T) {
-			spy := serviceSpy{
-				getInstance: &public_cloud.Instance{
-					Type: "instanceTypeName",
-				},
-			}
-			facade := NewPublicCloudFacade(&spy)
-			facade.adaptToUpdateInstanceOpts = func(
-				instance model.Instance,
-				allowedInstanceTypes []string,
-				currentInstanceType string,
-				ctx context.Context,
-			) (*public_cloud.Instance, error) {
-				return &public_cloud.Instance{}, errors.New("some error")
-			}
-
-			_, err := facade.UpdateInstance(
-				model.Instance{
-					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
-				},
-				context.TODO(),
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
 
 	t.Run(
 		"error is returned if service UpdateInstance fails",
@@ -582,111 +421,15 @@ func TestPublicCloudFacade_UpdateInstance(t *testing.T) {
 					"",
 					errors.New("some error"),
 				),
-				getInstance: &public_cloud.Instance{
-					Type: "instanceTypeName",
+				getInstance: &resourceModel.Instance{
+					Type: basetypes.NewStringValue("instanceTypeName"),
 				},
 			}
 			facade := NewPublicCloudFacade(&spy)
-			facade.adaptToUpdateInstanceOpts = func(
-				instance model.Instance,
-				allowedInstanceTypes []string,
-				currentInstanceType string,
-				ctx context.Context,
-			) (*public_cloud.Instance, error) {
-				return &public_cloud.Instance{}, nil
-			}
 
 			_, err := facade.UpdateInstance(
-				model.Instance{
+				resourceModel.Instance{
 					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
-				},
-				context.TODO(),
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run(
-		"error is returned if adaptInstanceToResourceModel fails",
-		func(t *testing.T) {
-			spy := serviceSpy{
-				updatedInstance: &public_cloud.Instance{},
-				getInstance: &public_cloud.Instance{
-					Type: "instanceTypeName",
-				},
-			}
-			facade := PublicCloudFacade{
-				publicCloudService: &spy,
-				adaptToUpdateInstanceOpts: func(
-					instance model.Instance,
-					allowedInstanceTypes []string,
-					currentInstanceType string,
-					ctx context.Context,
-				) (*public_cloud.Instance, error) {
-
-					return &public_cloud.Instance{}, nil
-				},
-				adaptInstanceToResourceModel: func(
-					instance public_cloud.Instance,
-					ctx context.Context,
-				) (*model.Instance, error) {
-					return nil, errors.New("some error")
-				},
-			}
-
-			_, err := facade.UpdateInstance(
-				model.Instance{
-					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
-				},
-				context.TODO(),
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run(
-		"error is returned if GetAvailableInstancesTypesForUpdate fails",
-		func(t *testing.T) {
-			spy := serviceSpy{
-				instanceTypesForUpdateError: serviceErrors.NewError(
-					"",
-					errors.New("some error"),
-				),
-			}
-			facade := NewPublicCloudFacade(&spy)
-
-			_, err := facade.UpdateInstance(
-				model.Instance{
-					Id: basetypes.NewStringValue("5072e822-485a-429a-878f-cfc42f81aca4"),
-				},
-				context.TODO(),
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run(
-		"error is returned if GetInstance fails",
-		func(t *testing.T) {
-			spy := serviceSpy{
-				getInstanceError: serviceErrors.NewError(
-					"",
-					errors.New("some error"),
-				),
-			}
-			facade := NewPublicCloudFacade(&spy)
-
-			_, err := facade.UpdateInstance(
-				model.Instance{
-					Id: basetypes.NewStringValue(
-						"5072e822-485a-429a-878f-cfc42f81aca4",
-					),
 				},
 				context.TODO(),
 			)
@@ -988,7 +731,7 @@ func TestPublicCloudFacade_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 func TestPublicCloudFacade_CanInstanceBeTerminated(t *testing.T) {
 	t.Run("errors from service bubble up", func(t *testing.T) {
 		spy := &serviceSpy{}
-		spy.getInstanceError = serviceErrors.NewError(
+		spy.canInstanceBeTerminatedError = serviceErrors.NewError(
 			"",
 			errors.New("some error"),
 		)
@@ -1003,20 +746,17 @@ func TestPublicCloudFacade_CanInstanceBeTerminated(t *testing.T) {
 
 	t.Run("instanceId is passed to service", func(t *testing.T) {
 		spy := &serviceSpy{}
-		spy.getInstanceError = serviceErrors.NewError(
-			"",
-			errors.New("some error"),
-		)
 		facade := PublicCloudFacade{publicCloudService: spy}
 
 		_, _, _ = facade.CanInstanceBeTerminated("id", context.TODO())
 
-		assert.Equal(t, "id", spy.getInstancePassedId)
+		assert.Equal(t, "id", spy.canInstanceBeUpdatedPassedId)
 	})
 
 	t.Run("instance can be terminated", func(t *testing.T) {
 		spy := &serviceSpy{}
-		spy.getInstance = &public_cloud.Instance{}
+		spy.getInstance = &resourceModel.Instance{}
+		spy.canInstanceBeTerminated = true
 		facade := PublicCloudFacade{publicCloudService: spy}
 
 		val, reason, err := facade.CanInstanceBeTerminated(
@@ -1030,8 +770,11 @@ func TestPublicCloudFacade_CanInstanceBeTerminated(t *testing.T) {
 	})
 
 	t.Run("instance cannot be terminated", func(t *testing.T) {
+		serviceReason := public_cloud.ReasonInstanceCannotBeTerminated("reason")
+
 		spy := &serviceSpy{}
-		spy.getInstance = &public_cloud.Instance{State: enum.StateDestroying}
+		spy.canInstanceBeTerminated = false
+		spy.canInstanceBeTerminatedReason = &serviceReason
 		facade := PublicCloudFacade{publicCloudService: spy}
 
 		val, reason, err := facade.CanInstanceBeTerminated(
@@ -1042,6 +785,6 @@ func TestPublicCloudFacade_CanInstanceBeTerminated(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, val)
 		assert.NotNil(t, reason)
-		assert.Contains(t, *reason, enum.StateDestroying.String())
+		assert.Contains(t, *reason, "reason")
 	})
 }

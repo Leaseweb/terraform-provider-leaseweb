@@ -5,14 +5,12 @@ import (
 	"context"
 	"errors"
 	"log"
+	"slices"
 
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_data_source_model"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_domain_entity"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud/data_adapters/to_resource_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
@@ -25,25 +23,7 @@ type CannotBeTerminatedReason string
 
 // PublicCloudFacade handles all communication between provider & the core.
 type PublicCloudFacade struct {
-	publicCloudService           ports.PublicCloudService
-	adaptInstanceToResourceModel func(
-		instance public_cloud.Instance,
-		ctx context.Context,
-	) (*resourceModel.Instance, error)
-	adaptInstancesToDataSourceModel func(
-		instances public_cloud.Instances,
-	) dataSourceModel.Instances
-	adaptToCreateInstanceOpts func(
-		instance resourceModel.Instance,
-		allowedInstanceTypes []string,
-		ctx context.Context,
-	) (*public_cloud.Instance, error)
-	adaptToUpdateInstanceOpts func(
-		instance resourceModel.Instance,
-		allowedInstanceTypes []string,
-		currentInstanceType string,
-		ctx context.Context,
-	) (*public_cloud.Instance, error)
+	publicCloudService ports.PublicCloudService
 }
 
 // GetAllInstances retrieve all instances.
@@ -56,44 +36,17 @@ func (p PublicCloudFacade) GetAllInstances(ctx context.Context) (
 		return nil, shared.NewFromServicesError("GetAllInstances", err)
 	}
 
-	dataSourceInstances := to_data_source_model.AdaptInstances(instances)
-
-	return &dataSourceInstances, nil
+	return &instances, nil
 }
 
-// CreateInstance creates an instance.
-func (p PublicCloudFacade) CreateInstance(
+// LaunchInstance creates an instance.
+func (p PublicCloudFacade) LaunchInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	availableInstanceTypes, serviceError := p.publicCloudService.GetAvailableInstanceTypesForRegion(
-		plan.Region.ValueString(),
-		ctx,
-	)
-	if serviceError != nil {
-		return nil, shared.NewError("CreateInstance", serviceError)
-	}
-
-	createInstanceOpts, err := p.adaptToCreateInstanceOpts(
-		plan,
-		availableInstanceTypes,
-		ctx,
-	)
+	instance, err := p.publicCloudService.LaunchInstance(plan, ctx)
 	if err != nil {
-		return nil, shared.NewError("CreateInstance", err)
-	}
-
-	createdInstance, serviceErr := p.publicCloudService.CreateInstance(
-		*createInstanceOpts,
-		ctx,
-	)
-	if serviceErr != nil {
-		return nil, shared.NewFromServicesError("CreateInstance", serviceErr)
-	}
-
-	instance, err := p.adaptInstanceToResourceModel(*createdInstance, ctx)
-	if err != nil {
-		return nil, shared.NewError("CreateInstance", err)
+		return nil, shared.NewFromServicesError("LaunchInstance", err)
 	}
 
 	return instance, nil
@@ -104,9 +57,9 @@ func (p PublicCloudFacade) DeleteInstance(
 	id string,
 	ctx context.Context,
 ) *shared.FacadeError {
-	serviceErr := p.publicCloudService.DeleteInstance(id, ctx)
-	if serviceErr != nil {
-		return shared.NewFromServicesError("DeleteInstance", serviceErr)
+	err := p.publicCloudService.DeleteInstance(id, ctx)
+	if err != nil {
+		return shared.NewFromServicesError("DeleteInstance", err)
 	}
 
 	return nil
@@ -117,17 +70,12 @@ func (p PublicCloudFacade) GetInstance(
 	id string,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	instance, serviceErr := p.publicCloudService.GetInstance(id, ctx)
-	if serviceErr != nil {
-		return nil, shared.NewFromServicesError("GetInstance", serviceErr)
-	}
-
-	convertedInstance, err := p.adaptInstanceToResourceModel(*instance, ctx)
+	instance, err := p.publicCloudService.GetInstance(id, ctx)
 	if err != nil {
-		return nil, shared.NewError("GetInstance", err)
+		return nil, shared.NewFromServicesError("GetInstance", err)
 	}
 
-	return convertedInstance, nil
+	return instance, nil
 }
 
 // UpdateInstance updates an instance.
@@ -135,52 +83,15 @@ func (p PublicCloudFacade) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
 ) (*resourceModel.Instance, *shared.FacadeError) {
-	availableInstanceTypes, repositoryErr := p.publicCloudService.GetAvailableInstanceTypesForUpdate(
-		plan.Id.ValueString(),
-		ctx,
-	)
-	if repositoryErr != nil {
-		return nil, shared.NewError("UpdateInstance", repositoryErr)
-	}
-
-	instance, repositoryErr := p.publicCloudService.GetInstance(
-		plan.Id.ValueString(),
-		ctx,
-	)
-	if repositoryErr != nil {
-		return nil, shared.NewError("UpdateInstance", repositoryErr)
-	}
-
-	updateInstanceOpts, conversionError := p.adaptToUpdateInstanceOpts(
-		plan,
-		availableInstanceTypes,
-		instance.Type,
-		ctx,
-	)
-	if conversionError != nil {
-		return nil, shared.NewError("UpdateInstance", conversionError)
-	}
-
-	updatedInstance, updateInstanceErr := p.publicCloudService.UpdateInstance(
-		*updateInstanceOpts,
-		ctx,
-	)
-	if updateInstanceErr != nil {
+	instance, err := p.publicCloudService.UpdateInstance(plan, ctx)
+	if err != nil {
 		return nil, shared.NewFromServicesError(
 			"UpdateInstance",
-			updateInstanceErr,
+			err,
 		)
 	}
 
-	convertedInstance, conversionError := p.adaptInstanceToResourceModel(
-		*updatedInstance,
-		ctx,
-	)
-	if conversionError != nil {
-		return nil, shared.NewError("UpdateInstance", conversionError)
-	}
-
-	return convertedInstance, nil
+	return instance, nil
 }
 
 // GetSshKeyRegularExpression returns regular expression used to validate ssh keys.
@@ -268,7 +179,7 @@ func (p PublicCloudFacade) DoesRegionExist(
 		)
 	}
 
-	if regions.Contains(region) {
+	if slices.Contains(regions, region) {
 		return true, regions, nil
 	}
 
@@ -292,7 +203,7 @@ func (p PublicCloudFacade) IsInstanceTypeAvailableForRegion(
 		)
 	}
 
-	return instanceTypes.Contains(instanceType), instanceTypes, nil
+	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
 }
 
 // CanInstanceTypeBeUsedWithInstance checks
@@ -306,20 +217,20 @@ func (p PublicCloudFacade) CanInstanceTypeBeUsedWithInstance(
 	instanceType string,
 	ctx context.Context,
 ) (bool, []string, error) {
-	instanceTypes, serviceErr := p.publicCloudService.GetAvailableInstanceTypesForUpdate(
+	instanceTypes, err := p.publicCloudService.GetAvailableInstanceTypesForUpdate(
 		instanceId,
 		ctx,
 	)
-	instanceTypes = append(instanceTypes, currentInstanceType)
-
-	if serviceErr != nil {
+	if err != nil {
 		return false, nil, shared.NewFromServicesError(
 			"CanInstanceTypeBeUsedWithInstance",
-			serviceErr,
+			err,
 		)
 	}
 
-	return instanceTypes.Contains(instanceType), instanceTypes, nil
+	instanceTypes = append(instanceTypes, currentInstanceType)
+
+	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
 }
 
 // CanInstanceBeTerminated determines whether an instance can be terminated.
@@ -327,15 +238,16 @@ func (p PublicCloudFacade) CanInstanceBeTerminated(
 	instanceId string,
 	ctx context.Context,
 ) (bool, *CannotBeTerminatedReason, error) {
-
-	instance, err := p.publicCloudService.GetInstance(instanceId, ctx)
+	canBeTerminated, reason, err := p.publicCloudService.CanInstanceBeTerminated(
+		instanceId,
+		ctx,
+	)
 	if err != nil {
-		return false, nil, shared.NewError("CanInstanceBeTerminated", err)
+		return false, nil, shared.NewFromServicesError("CanInstanceBeTerminated", err)
 	}
 
-	canBeTerminated, instanceReason := instance.CanBeTerminated()
-	if instanceReason != nil {
-		reason := CannotBeTerminatedReason(*instanceReason)
+	if reason != nil {
+		reason := CannotBeTerminatedReason(*reason)
 		return canBeTerminated, &reason, nil
 	}
 
@@ -344,10 +256,6 @@ func (p PublicCloudFacade) CanInstanceBeTerminated(
 
 func NewPublicCloudFacade(publicCloudService ports.PublicCloudService) PublicCloudFacade {
 	return PublicCloudFacade{
-		publicCloudService:              publicCloudService,
-		adaptInstanceToResourceModel:    to_resource_model.AdaptInstance,
-		adaptInstancesToDataSourceModel: to_data_source_model.AdaptInstances,
-		adaptToCreateInstanceOpts:       to_domain_entity.AdaptToCreateInstanceOpts,
-		adaptToUpdateInstanceOpts:       to_domain_entity.AdaptToUpdateInstanceOpts,
+		publicCloudService: publicCloudService,
 	}
 }
