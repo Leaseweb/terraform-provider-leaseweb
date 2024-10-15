@@ -16,6 +16,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestAdaptInt64PointerValueToNullableInt32(t *testing.T) {
+	t.Run("passing nil returns nil", func(t *testing.T) {
+		got := AdaptInt64PointerValueToNullableInt32(
+			basetypes.NewInt64PointerValue(nil),
+		)
+		assert.Nil(t, got)
+	})
+
+	t.Run("passing value returns int32 variant", func(t *testing.T) {
+		value := int64(1)
+		int64Value := basetypes.NewInt64PointerValue(&value)
+		got := AdaptInt64PointerValueToNullableInt32(int64Value)
+
+		assert.Equal(t, int32(1), *got)
+	})
+}
+
+func ExampleAdaptInt64PointerValueToNullableInt32() {
+	value := int64(3)
+	int64Value := basetypes.NewInt64PointerValue(&value)
+	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
+
+	fmt.Println(*adaptedValue)
+	// Output: 3
+}
+
+func ExampleAdaptInt64PointerValueToNullableInt32_second() {
+	int64Value := basetypes.NewInt64PointerValue(nil)
+	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
+
+	fmt.Println(adaptedValue)
+	// Output: <nil>
+}
+
 type mockDomainEntity struct {
 }
 
@@ -353,38 +387,4 @@ func ExampleReturnError() {
 
 	fmt.Println(returnedErrors)
 	// Output:  functionName: "summary" "detail"
-}
-
-func TestAdaptInt64PointerValueToNullableInt32(t *testing.T) {
-	t.Run("passing nil returns nil", func(t *testing.T) {
-		got := AdaptInt64PointerValueToNullableInt32(
-			basetypes.NewInt64PointerValue(nil),
-		)
-		assert.Nil(t, got)
-	})
-
-	t.Run("passing value returns int32 variant", func(t *testing.T) {
-		value := int64(1)
-		int64Value := basetypes.NewInt64PointerValue(&value)
-		got := AdaptInt64PointerValueToNullableInt32(int64Value)
-
-		assert.Equal(t, int32(1), *got)
-	})
-}
-
-func ExampleAdaptInt64PointerValueToNullableInt32() {
-	value := int64(3)
-	int64Value := basetypes.NewInt64PointerValue(&value)
-	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
-
-	fmt.Println(*adaptedValue)
-	// Output: 3
-}
-
-func ExampleAdaptInt64PointerValueToNullableInt32_second() {
-	int64Value := basetypes.NewInt64PointerValue(nil)
-	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
-
-	fmt.Println(adaptedValue)
-	// Output: <nil>
 }

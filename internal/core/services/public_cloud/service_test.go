@@ -11,6 +11,9 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
+	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
@@ -712,6 +715,333 @@ func TestService_CanInstanceBeTerminated(t *testing.T) {
 		assert.ErrorContains(t, err, "some error")
 	},
 	)
+}
+
+func TestService_GetBillingFrequencies(t *testing.T) {
+	service := Service{}
+	want := shared2.NewIntMarkdownList([]int{0, 1, 3, 6, 12})
+	got := service.GetBillingFrequencies()
+
+	assert.Equal(t, want, got)
+}
+
+func TestService_GetContractTerms(t *testing.T) {
+	service := Service{}
+	want := shared2.NewIntMarkdownList([]int{0, 1, 3, 6, 12})
+	got := service.GetContractTerms()
+
+	assert.Equal(t, want, got)
+}
+
+func TestService_GetContractTypes(t *testing.T) {
+	service := Service{}
+	want := []string{"HOURLY", "MONTHLY"}
+	got := service.GetContractTypes()
+
+	assert.Equal(t, want, got)
+}
+
+func TestService_ValidateContractTerm(t *testing.T) {
+	t.Run(
+		"ErrContractTermCannotBeZero is returned when contract returns ErrContractTermCannotBeZero",
+		func(t *testing.T) {
+			service := Service{}
+			got := service.ValidateContractTerm(0, "MONTHLY")
+
+			assert.ErrorIs(t, got, public_cloud.ErrContractTermCannotBeZero)
+		},
+	)
+
+	t.Run(
+		"ErrContractTermMustBeZero is returned when contract returns ErrContractTermMustBeZero",
+		func(t *testing.T) {
+			service := Service{}
+			got := service.ValidateContractTerm(3, "HOURLY")
+
+			assert.ErrorIs(t, got, public_cloud.ErrContractTermMustBeZero)
+		},
+	)
+
+	t.Run(
+		"no error is returned when contract does not return an error",
+		func(t *testing.T) {
+			service := Service{}
+			got := service.ValidateContractTerm(0, "HOURLY")
+
+			assert.Nil(t, got)
+		},
+	)
+
+	t.Run(
+		"error is returned when invalid contractTerm is passed",
+		func(t *testing.T) {
+			service := Service{}
+			got := service.ValidateContractTerm(55, "HOURLY")
+
+			assert.ErrorContains(t, got, "55")
+		},
+	)
+
+	t.Run(
+		"error is returned when invalid contractType is passed",
+		func(t *testing.T) {
+			service := Service{}
+			got := service.ValidateContractTerm(0, "tralala")
+
+			assert.ErrorContains(t, got, "tralala")
+		},
+	)
+}
+
+func TestService_GetMinimumRootDiskSize(t *testing.T) {
+	service := Service{}
+	want := int64(value_object.MinRootDiskSize)
+	got := service.GetMinimumRootDiskSize()
+
+	assert.Equal(t, want, got)
+}
+
+func TestService_GetMaximumRootDiskSize(t *testing.T) {
+	service := Service{}
+	want := int64(value_object.MaxRootDiskSize)
+	got := service.GetMaximumRootDiskSize()
+
+	assert.Equal(t, want, got)
+}
+
+func TestService_GetRootDiskStorageTypes(t *testing.T) {
+	service := Service{}
+	want := enum.StorageTypeCentral.Values()
+	got := service.GetRootDiskStorageTypes()
+
+	assert.Equal(t, want, got)
+}
+
+func TestService_DoesRegionExist(t *testing.T) {
+	t.Run("returns true if region exists", func(t *testing.T) {
+		spy := newRepositorySpy()
+		spy.regions = []string{"region"}
+
+		service := New(&spy)
+
+		got, validRegions, err := service.DoesRegionExist(
+			"region",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{"region"}, validRegions)
+		assert.True(t, got)
+	})
+
+	t.Run("returns false if region does not exist", func(t *testing.T) {
+		spy := newRepositorySpy()
+		spy.regions = []string{"region"}
+
+		service := New(&spy)
+
+		got, validRegions, err := service.DoesRegionExist(
+			"tralala",
+			context.TODO(),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{"region"}, validRegions)
+		assert.False(t, got)
+	})
+
+	t.Run("errors from the service bubble up", func(t *testing.T) {
+		spy := newRepositorySpy()
+		spy.getRegionsError = shared.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+
+		service := New(&spy)
+
+		_, _, err := service.DoesRegionExist("region", context.TODO())
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+}
+
+func TestService_IsInstanceTypeAvailableForRegion(t *testing.T) {
+	t.Run(
+		"return true when instanceType is available for region",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.instanceTypesForRegion = []string{"tralala"}
+
+			service := New(&spy)
+
+			got, instanceTypes, err := service.IsInstanceTypeAvailableForRegion(
+				"tralala",
+				"region",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"tralala"}, instanceTypes)
+			assert.True(t, got)
+		},
+	)
+
+	t.Run(
+		"return true when instanceType is not available for region",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.instanceTypesForRegion = []string{"piet"}
+
+			service := New(&spy)
+
+			got, instanceTypes, err := service.IsInstanceTypeAvailableForRegion(
+				"tralala",
+				"region",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"piet"}, instanceTypes)
+			assert.False(t, got)
+		},
+	)
+
+	t.Run("region is passed to repository", func(t *testing.T) {
+		spy := newRepositorySpy()
+		service := New(&spy)
+
+		_, _, _ = service.IsInstanceTypeAvailableForRegion(
+			"tralala",
+			"region",
+			context.TODO(),
+		)
+
+		assert.Equal(
+			t,
+			"region",
+			spy.passedGetInstanceTypesForRegionRegion,
+		)
+	})
+
+	t.Run("errors from service bubble up", func(t *testing.T) {
+		spy := newRepositorySpy()
+		spy.getInstanceTypesForRegionError = shared.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+		service := New(&spy)
+
+		_, _, err := service.IsInstanceTypeAvailableForRegion(
+			"tralala",
+			"region",
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+}
+
+func TestService_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
+	t.Run(
+		"returns true if instanceType is equal to the current instanceType",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.availableInstanceTypesForUpdate = []string{}
+
+			service := New(&spy)
+
+			got, instanceTypes, err := service.CanInstanceTypeBeUsedWithInstance(
+				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"tralala",
+				"tralala",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"tralala"}, instanceTypes)
+			assert.True(t, got)
+		},
+	)
+	t.Run(
+		"returns true if instanceType is in availableInstanceTypes",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.availableInstanceTypesForUpdate = []string{"tralala"}
+
+			service := New(&spy)
+
+			got, instanceTypes, err := service.CanInstanceTypeBeUsedWithInstance(
+				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"",
+				"tralala",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"tralala", ""}, instanceTypes)
+			assert.True(t, got)
+		},
+	)
+
+	t.Run(
+		"returns false if instanceType cannot be used with instance",
+		func(t *testing.T) {
+			spy := newRepositorySpy()
+			spy.availableInstanceTypesForUpdate = []string{"piet"}
+
+			service := New(&spy)
+
+			got, instanceTypes, err := service.CanInstanceTypeBeUsedWithInstance(
+				"085075b0-a6ad-4026-a0d1-e3256d3f7c47",
+				"",
+				"tralala",
+				context.TODO(),
+			)
+
+			assert.Nil(t, err)
+			assert.Equal(t, []string{"piet", ""}, instanceTypes)
+			assert.False(t, got)
+		},
+	)
+
+	t.Run("errors from the service bubble up", func(t *testing.T) {
+		spy := newRepositorySpy()
+		spy.getAvailableInstanceTypesForUpdateError = shared.NewGeneralError(
+			"",
+			errors.New("some error"),
+		)
+
+		service := New(&spy)
+
+		_, _, err := service.CanInstanceTypeBeUsedWithInstance(
+			"3cf0ddcb-b375-45a8-b18a-1bdad52527f2",
+			"",
+			"",
+			context.TODO(),
+		)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "some error")
+	})
+
+	t.Run("id is passed to repository", func(t *testing.T) {
+		want := "085075b0-a6ad-4026-a0d1-e3256d3f7c47"
+
+		spy := newRepositorySpy()
+
+		service := New(&spy)
+
+		_, _, _ = service.CanInstanceTypeBeUsedWithInstance(
+			want,
+			"",
+			"",
+			context.TODO(),
+		)
+
+		assert.Equal(t, want, spy.passedGetAvailableInstanceTypesForUpdateId)
+	})
 }
 
 func generateInstanceDetails() publicCloud.InstanceDetails {

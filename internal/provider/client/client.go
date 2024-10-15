@@ -2,8 +2,8 @@
 package client
 
 import (
-	publiccloudservice "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository"
 )
 
@@ -16,8 +16,8 @@ type ProviderData struct {
 
 // The Client handles instantiation of the facades.
 type Client struct {
-	ProviderData      ProviderData
-	PublicCloudFacade public_cloud.PublicCloudFacade
+	ProviderData       ProviderData
+	PublicCloudService ports.PublicCloudService
 }
 
 type Optional struct {
@@ -33,7 +33,7 @@ func NewClient(token string, optional Optional) Client {
 			Scheme: optional.Scheme,
 		},
 	)
-	publicCloudService := publiccloudservice.New(publicCloudRepository)
+	publicCloudService := public_cloud.New(publicCloudRepository)
 
 	return Client{
 		ProviderData: ProviderData{
@@ -41,6 +41,6 @@ func NewClient(token string, optional Optional) Client {
 			Host:   optional.Host,
 			Scheme: optional.Scheme,
 		},
-		PublicCloudFacade: public_cloud.NewPublicCloudFacade(&publicCloudService),
+		PublicCloudService: &publicCloudService,
 	}
 }

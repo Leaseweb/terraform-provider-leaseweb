@@ -27,7 +27,7 @@ func (i *instanceResource) Update(
 		"Updating public cloud instance %q",
 		plan.Id.ValueString(),
 	))
-	updatedInstance, err := i.client.PublicCloudFacade.UpdateInstance(plan, ctx)
+	updatedInstance, err := i.client.PublicCloudService.UpdateInstance(plan, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating instance", err.Error())
 

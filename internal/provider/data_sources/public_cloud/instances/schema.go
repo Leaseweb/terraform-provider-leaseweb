@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	facade "github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
+	publicCloud "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared_schemas/public_cloud"
 )
 
@@ -14,7 +14,7 @@ func (d *instancesDataSource) Schema(
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
 ) {
-	publicCloudFacade := facade.PublicCloudFacade{}
+	publicCloudService := publicCloud.Service{}
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -65,7 +65,7 @@ func (d *instancesDataSource) Schema(
 								},
 							},
 						},
-						"contract": public_cloud.Contract(false, publicCloudFacade),
+						"contract": public_cloud.Contract(false, &publicCloudService),
 						"market_app_id": schema.StringAttribute{
 							Computed:    true,
 							Description: "Market App ID",

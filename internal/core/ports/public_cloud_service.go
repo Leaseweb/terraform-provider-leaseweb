@@ -3,8 +3,8 @@ package ports
 import (
 	"context"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
@@ -53,7 +53,54 @@ type PublicCloudService interface {
 	// CanInstanceBeTerminated determines if an instance can be terminated.
 	CanInstanceBeTerminated(id string, ctx context.Context) (
 		bool,
-		*public_cloud.ReasonInstanceCannotBeTerminated,
+		*string,
 		*errors.ServiceError,
 	)
+
+	// GetBillingFrequencies returns a list of valid billing frequencies.
+	GetBillingFrequencies() shared.IntMarkdownList
+
+	// GetContractTerms returns a list of valid contract terms.
+	GetContractTerms() shared.IntMarkdownList
+
+	// GetContractTypes returns a list of valid contract types.
+	GetContractTypes() []string
+
+	// ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
+	ValidateContractTerm(contractTerm int64, contractType string) error
+
+	// GetMinimumRootDiskSize returns the minimal valid rootDiskSize.
+	GetMinimumRootDiskSize() int64
+
+	// GetMaximumRootDiskSize returns the maximum valid rootDiskSize.
+	GetMaximumRootDiskSize() int64
+
+	// GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
+	GetRootDiskStorageTypes() []string
+
+	// DoesRegionExist checks if the region exists.
+	DoesRegionExist(
+		region string,
+		ctx context.Context,
+	) (bool, []string, *errors.ServiceError)
+
+	// IsInstanceTypeAvailableForRegion checks
+	// if the instanceType is available for the region.
+	IsInstanceTypeAvailableForRegion(
+		instanceType string,
+		region string,
+		ctx context.Context,
+	) (bool, []string, *errors.ServiceError)
+
+	// CanInstanceTypeBeUsedWithInstance checks
+	// if the passed instanceType can be used with the passed instance.
+	// This is the case if:
+	//   - instanceType is equal to currentInstanceType
+	//   - instanceType is in available instanceTypes returned by service
+	CanInstanceTypeBeUsedWithInstance(
+		instanceId string,
+		currentInstanceType string,
+		instanceType string,
+		ctx context.Context,
+	) (bool, []string, *errors.ServiceError)
 }

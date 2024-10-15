@@ -4,25 +4,25 @@ import (
 	"context"
 	"testing"
 
-	validator2 "github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRegionValidator_ValidateString(t *testing.T) {
 	t.Run("does not set errors if the region exists", func(t *testing.T) {
-		request := validator2.StringRequest{
+		request := terraformValidator.StringRequest{
 			ConfigValue: basetypes.NewStringValue("region"),
 		}
 
-		response := validator2.StringResponse{}
+		response := terraformValidator.StringResponse{}
 
 		validator := NewRegionValidator(
 			func(
 				region string,
 				ctx context.Context,
-			) (bool, []string, *shared.FacadeError) {
+			) (bool, []string, *errors.ServiceError) {
 				return true, nil, nil
 			},
 		)
@@ -32,17 +32,17 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 	})
 
 	t.Run("passes region to handler", func(t *testing.T) {
-		request := validator2.StringRequest{
+		request := terraformValidator.StringRequest{
 			ConfigValue: basetypes.NewStringValue("region"),
 		}
 
-		response := validator2.StringResponse{}
+		response := terraformValidator.StringResponse{}
 
 		validator := NewRegionValidator(
 			func(
 				region string,
 				ctx context.Context,
-			) (bool, []string, *shared.FacadeError) {
+			) (bool, []string, *errors.ServiceError) {
 				assert.Equal(t, "region", region)
 				return true, nil, nil
 			},
@@ -53,11 +53,11 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 	t.Run(
 		"does not set errors if the region is unknown",
 		func(t *testing.T) {
-			request := validator2.StringRequest{
+			request := terraformValidator.StringRequest{
 				ConfigValue: basetypes.NewStringUnknown(),
 			}
 
-			response := validator2.StringResponse{}
+			response := terraformValidator.StringResponse{}
 
 			validator := RegionValidator{}
 			validator.ValidateString(context.TODO(), request, &response)
@@ -69,11 +69,11 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 	t.Run(
 		"does not set errors if the region is null",
 		func(t *testing.T) {
-			request := validator2.StringRequest{
+			request := terraformValidator.StringRequest{
 				ConfigValue: basetypes.NewStringNull(),
 			}
 
-			response := validator2.StringResponse{}
+			response := terraformValidator.StringResponse{}
 
 			validator := RegionValidator{}
 			validator.ValidateString(context.TODO(), request, &response)
@@ -83,17 +83,17 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 	)
 
 	t.Run("sets an error if the region does not exist", func(t *testing.T) {
-		request := validator2.StringRequest{
+		request := terraformValidator.StringRequest{
 			ConfigValue: basetypes.NewStringValue("region"),
 		}
 
-		response := validator2.StringResponse{}
+		response := terraformValidator.StringResponse{}
 
 		validator := NewRegionValidator(
 			func(
 				region string,
 				ctx context.Context,
-			) (bool, []string, *shared.FacadeError) {
+			) (bool, []string, *errors.ServiceError) {
 				return false, []string{"tralala"}, nil
 			},
 		)

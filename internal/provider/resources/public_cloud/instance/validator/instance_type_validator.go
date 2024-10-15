@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 )
 
 var _ validator.String = InstanceTypeValidator{}
@@ -17,13 +18,13 @@ type InstanceTypeValidator struct {
 		instanceType string,
 		region string,
 		ctx context.Context,
-	) (bool, []string, error)
+	) (bool, []string, *serviceErrors.ServiceError)
 	canInstanceTypeBeUsedWithInstance func(
 		id string,
 		currentInstanceType string,
 		instanceType string,
 		ctx context.Context,
-	) (bool, []string, error)
+	) (bool, []string, *serviceErrors.ServiceError)
 	instanceId          types.String
 	region              types.String
 	currentInstanceType types.String
@@ -120,13 +121,13 @@ func NewInstanceTypeValidator(
 		instanceType string,
 		region string,
 		ctx context.Context,
-	) (bool, []string, error),
+	) (bool, []string, *serviceErrors.ServiceError),
 	canInstanceTypeBeUsedWithInstance func(
 		id string,
 		currentInstanceType string,
 		instanceType string,
 		ctx context.Context,
-	) (bool, []string, error),
+	) (bool, []string, *serviceErrors.ServiceError),
 	instanceId types.String,
 	region types.String,
 	currentInstanceType types.String,

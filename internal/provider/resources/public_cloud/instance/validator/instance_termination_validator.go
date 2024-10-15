@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -14,9 +14,9 @@ var _ validator.Object = InstanceTerminationValidator{}
 // InstanceTerminationValidator validates if the Instance is allowed to be terminated.
 type InstanceTerminationValidator struct {
 	canInstanceBeTerminated func(
-		instanceId string,
+		id string,
 		ctx context.Context,
-	) (bool, *public_cloud.CannotBeTerminatedReason, error)
+	) (bool, *string, *errors.ServiceError)
 }
 
 func (i InstanceTerminationValidator) Description(ctx context.Context) string {
@@ -62,16 +62,16 @@ func (i InstanceTerminationValidator) ValidateObject(
 	if reason != nil {
 		response.Diagnostics.AddError(
 			"Instance is not allowed to be terminated",
-			string(*reason),
+			*reason,
 		)
 	}
 }
 
 func ValidateInstanceTermination(
 	canInstanceBeTerminated func(
-		instanceId string,
+		id string,
 		ctx context.Context,
-	) (bool, *public_cloud.CannotBeTerminatedReason, error),
+	) (bool, *string, *errors.ServiceError),
 ) InstanceTerminationValidator {
 	return InstanceTerminationValidator{
 		canInstanceBeTerminated: canInstanceBeTerminated,

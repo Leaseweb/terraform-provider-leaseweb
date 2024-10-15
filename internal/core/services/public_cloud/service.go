@@ -3,7 +3,10 @@ package public_cloud
 
 import (
 	"context"
+	errors2 "errors"
 	"fmt"
+	"log"
+	"slices"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
@@ -12,7 +15,10 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_data_source_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_opts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_resource_model"
+	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
@@ -209,7 +215,7 @@ func (srv *Service) GetAvailableInstanceTypesForRegion(
 
 func (srv *Service) CanInstanceBeTerminated(id string, ctx context.Context) (
 	bool,
-	*public_cloud.ReasonInstanceCannotBeTerminated,
+	*string,
 	*errors.ServiceError,
 ) {
 	instance, err := srv.getSdkInstance(id, ctx)
@@ -218,20 +224,138 @@ func (srv *Service) CanInstanceBeTerminated(id string, ctx context.Context) (
 	}
 
 	if instance.State == publicCloud.STATE_CREATING || instance.State == publicCloud.STATE_DESTROYING || instance.State == publicCloud.STATE_DESTROYED {
-		reason := public_cloud.ReasonInstanceCannotBeTerminated(
-			fmt.Sprintf("state is %q", instance.State),
-		)
+		reason := fmt.Sprintf("state is %q", instance.State)
+
 		return false, &reason, nil
 	}
 
 	if instance.Contract.EndsAt.Get() != nil {
-		reason := public_cloud.ReasonInstanceCannotBeTerminated(
-			fmt.Sprintf("contract.endsAt is %q", instance.Contract.EndsAt.Get()),
-		)
+		reason := fmt.Sprintf("contract.endsAt is %q", instance.Contract.EndsAt.Get())
+
 		return false, &reason, nil
 	}
 
 	return true, nil, nil
+}
+
+func (srv *Service) GetBillingFrequencies() shared2.IntMarkdownList {
+	return shared2.NewIntMarkdownList(enum.ContractBillingFrequencyThree.Values())
+}
+
+func (srv *Service) GetContractTerms() shared2.IntMarkdownList {
+	return shared2.NewIntMarkdownList(enum.ContractTermThree.Values())
+}
+
+func (srv *Service) GetContractTypes() []string {
+	return enum.ContractTypeHourly.Values()
+}
+
+func (srv *Service) ValidateContractTerm(
+	contractTerm int64,
+	contractType string,
+) error {
+
+	contractTermEnum, err := enum.NewContractTerm(int(contractTerm))
+	if err != nil {
+		return errors.NewError("ValidateContractTerm", err)
+	}
+	contractTypeEnum, err := enum.NewContractType(contractType)
+	if err != nil {
+		return errors.NewError("ValidateContractType", err)
+	}
+
+	_, err = public_cloud.NewContract(
+		enum.ContractBillingFrequencySix,
+		contractTermEnum,
+		contractTypeEnum,
+		enum.ContractStateActive,
+		nil,
+	)
+
+	if err != nil {
+		switch {
+		case errors2.Is(err, public_cloud.ErrContractTermMustBeZero):
+			return public_cloud.ErrContractTermMustBeZero
+		case errors2.Is(err, public_cloud.ErrContractTermCannotBeZero):
+			return public_cloud.ErrContractTermCannotBeZero
+		default:
+			log.Fatal(err)
+		}
+	}
+
+	return nil
+}
+
+func (srv *Service) GetMinimumRootDiskSize() int64 {
+	return int64(value_object.MinRootDiskSize)
+}
+
+func (srv *Service) GetMaximumRootDiskSize() int64 {
+	return int64(value_object.MaxRootDiskSize)
+}
+
+func (srv *Service) GetRootDiskStorageTypes() []string {
+	return enum.StorageTypeCentral.Values()
+}
+
+func (srv *Service) DoesRegionExist(
+	region string,
+	ctx context.Context,
+) (bool, []string, *errors.ServiceError) {
+	regions, err := srv.GetRegions(ctx)
+	if err != nil {
+		return false, nil, errors.NewError(
+			"DoesRegionExist",
+			err,
+		)
+	}
+
+	if slices.Contains(regions, region) {
+		return true, regions, nil
+	}
+
+	return false, regions, nil
+}
+
+func (srv *Service) IsInstanceTypeAvailableForRegion(
+	instanceType string,
+	region string,
+	ctx context.Context,
+) (bool, []string, *errors.ServiceError) {
+	instanceTypes, err := srv.GetAvailableInstanceTypesForRegion(
+		region,
+		ctx,
+	)
+	if err != nil {
+		return false, nil, errors.NewError(
+			"IsInstanceTypeAvailableForRegion",
+			err,
+		)
+	}
+
+	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
+}
+
+func (srv *Service) CanInstanceTypeBeUsedWithInstance(
+	instanceId string,
+	currentInstanceType string,
+	instanceType string,
+	ctx context.Context,
+) (bool, []string, *errors.ServiceError) {
+	instanceTypes, err := srv.GetAvailableInstanceTypesForUpdate(
+		instanceId,
+		ctx,
+	)
+	if err != nil {
+		return false, nil, errors.NewError(
+			"CanInstanceTypeBeUsedWithInstance",
+			err,
+		)
+	}
+
+	instanceTypes = append(instanceTypes, currentInstanceType)
+
+	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
 }
 
 func New(publicCloudRepository ports.PublicCloudRepository) Service {

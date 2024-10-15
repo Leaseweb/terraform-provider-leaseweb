@@ -8,7 +8,7 @@ import (
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
+	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +22,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			func(
 				instanceId string,
 				ctx context.Context,
-			) (bool, *public_cloud.CannotBeTerminatedReason, error) {
+			) (bool, *string, *serviceErrors.ServiceError) {
 				return false, nil, nil
 			},
 		)
@@ -51,8 +51,11 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			func(
 				instanceId string,
 				ctx context.Context,
-			) (bool, *public_cloud.CannotBeTerminatedReason, error) {
-				return false, nil, errors.New("something went wrong")
+			) (bool, *string, *serviceErrors.ServiceError) {
+				return false, nil, serviceErrors.NewError(
+					"",
+					errors.New("something went wrong"),
+				)
 			},
 		)
 
@@ -87,7 +90,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 				func(
 					instanceId string,
 					ctx context.Context,
-				) (bool, *public_cloud.CannotBeTerminatedReason, error) {
+				) (bool, *string, *serviceErrors.ServiceError) {
 					return true, nil, nil
 				},
 			)
@@ -114,8 +117,8 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 				func(
 					instanceId string,
 					ctx context.Context,
-				) (bool, *public_cloud.CannotBeTerminatedReason, error) {
-					reason := public_cloud.CannotBeTerminatedReason("reason")
+				) (bool, *string, *serviceErrors.ServiceError) {
+					reason := "reason"
 					return false, &reason, nil
 				},
 			)

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
 	sharedSchemas "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared_schemas/public_cloud"
 )
 
@@ -20,7 +20,7 @@ func (i *instanceResource) Schema(
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-	facade := public_cloud.PublicCloudFacade{}
+	service := public_cloud.Service{}
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
@@ -77,7 +77,7 @@ func (i *instanceResource) Schema(
 			  	Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
 			  	Validators: []validator.String{
 			  		stringvalidator.RegexMatches(
-			  			regexp.MustCompile(facade.GetSshKeyRegularExpression()),
+			  			regexp.MustCompile(service.GetSshKeyRegularExpression()),
 			  			"Invalid ssh key",
 			  		),
 			  	},
@@ -89,8 +89,8 @@ func (i *instanceResource) Schema(
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
 				Validators: []validator.Int64{
 					int64validator.Between(
-						facade.GetMinimumRootDiskSize(),
-						facade.GetMaximumRootDiskSize(),
+						service.GetMinimumRootDiskSize(),
+						service.GetMaximumRootDiskSize(),
 					),
 				},
 			},
@@ -98,7 +98,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(facade.GetRootDiskStorageTypes()...),
+					stringvalidator.OneOf(service.GetRootDiskStorageTypes()...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -112,7 +112,7 @@ func (i *instanceResource) Schema(
 					},
 				},
 			},
-			"contract": sharedSchemas.Contract(true, facade),
+			"contract": sharedSchemas.Contract(true, &service),
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,

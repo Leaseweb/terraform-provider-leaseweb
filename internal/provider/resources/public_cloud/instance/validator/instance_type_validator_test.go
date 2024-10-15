@@ -6,6 +6,7 @@ import (
 
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +43,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 				instanceType string,
 				region string,
 				ctx context.Context,
-			) (bool, []string, error) {
+			) (bool, []string, *errors.ServiceError) {
 				countIsInstanceTypeAvailableForRegionIsCalled++
 
 				return false, nil, nil
@@ -52,7 +53,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 				currentInstanceType string,
 				instanceType string,
 				ctx context.Context,
-			) (bool, []string, error) {
+			) (bool, []string, *errors.ServiceError) {
 				countCanInstanceTypeBeUsedWithInstanceIsCalled++
 
 				return false, nil, nil
@@ -79,7 +80,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 				instanceType string,
 				region string,
 				ctx context.Context,
-			) (bool, []string, error) {
+			) (bool, []string, *errors.ServiceError) {
 				countIsInstanceTypeAvailableForRegionIsCalled++
 
 				return false, nil, nil
@@ -89,7 +90,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 				currentInstanceType string,
 				instanceType string,
 				ctx context.Context,
-			) (bool, []string, error) {
+			) (bool, []string, *errors.ServiceError) {
 				countCanInstanceTypeBeUsedWithInstanceIsCalled++
 
 				return false, nil, nil
@@ -119,7 +120,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 					instanceType string,
 					region string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					countIsInstanceTypeAvailableForRegionIsCalled++
 
 					return false, nil, nil
@@ -151,7 +152,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					countCanInstanceTypeBeUsedWithInstance++
 
 					return false, nil, nil
@@ -182,7 +183,7 @@ func TestInstanceTypeValidator_validateCreatedInstance(t *testing.T) {
 					instanceType string,
 					region string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					assert.Equal(t, "region", region)
 					assert.Equal(t, "instanceType", instanceType)
 
@@ -210,7 +211,7 @@ func TestInstanceTypeValidator_validateCreatedInstance(t *testing.T) {
 					instanceType string,
 					region string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					return true, nil, nil
 				},
 			}
@@ -236,7 +237,7 @@ func TestInstanceTypeValidator_validateCreatedInstance(t *testing.T) {
 					instanceType string,
 					region string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					return false, []string{"tralala"}, nil
 				},
 			}
@@ -275,7 +276,7 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					return true, nil, nil
 				},
 			}
@@ -302,7 +303,7 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					assert.Equal(t, "instanceType", instanceType)
 					assert.Equal(t, "instanceId", id)
 					assert.Equal(t, "currentInstanceType", currentInstanceType)
@@ -333,7 +334,7 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 					currentInstanceType string,
 					instanceType string,
 					ctx context.Context,
-				) (bool, []string, error) {
+				) (bool, []string, *errors.ServiceError) {
 					return false, []string{"tralala"}, nil
 				},
 			}
@@ -367,7 +368,7 @@ func TestNewInstanceTypeValidator(t *testing.T) {
 			instanceType string,
 			region string,
 			ctx context.Context,
-		) (bool, []string, error) {
+		) (bool, []string, *errors.ServiceError) {
 			return false, []string{"tralala"}, nil
 		},
 		func(
@@ -375,7 +376,7 @@ func TestNewInstanceTypeValidator(t *testing.T) {
 			currentInstanceType string,
 			instanceType string,
 			ctx context.Context,
-		) (bool, []string, error) {
+		) (bool, []string, *errors.ServiceError) {
 			return false, []string{"blah"}, nil
 		},
 		basetypes.NewStringValue("instanceId"),
