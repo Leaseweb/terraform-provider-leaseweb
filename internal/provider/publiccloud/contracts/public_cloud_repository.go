@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 )
 
 // PublicCloudRepository is used to connect to public_cloud api.

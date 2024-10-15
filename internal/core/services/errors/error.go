@@ -4,13 +4,13 @@ package errors
 import (
 	"fmt"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
+	repository2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 )
 
 type ServiceError struct {
 	msg           string
 	GeneralError  error
-	ErrorResponse *repository.ErrorResponse
+	ErrorResponse *repository2.ErrorResponse
 }
 
 func (e ServiceError) Error() string {
@@ -20,7 +20,7 @@ func (e ServiceError) Error() string {
 // NewFromRepositoryError generates a new error from the passed repository error.
 func NewFromRepositoryError(
 	errorPrefix string,
-	repositoryError repository.RepositoryError,
+	repositoryError repository2.RepositoryError,
 ) *ServiceError {
 	return &ServiceError{
 		msg:           fmt.Errorf("%s: %w", errorPrefix, repositoryError).Error(),

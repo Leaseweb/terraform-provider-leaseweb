@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 )
 
 // ServiceError prints the passed errorResponse as a Terraform error log.

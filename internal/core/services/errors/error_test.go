@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
+	repository2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,9 +19,9 @@ func TestNewFromRepositoryError(t *testing.T) {
 		Body:       io.NopCloser(bytes.NewReader([]byte(""))),
 	}
 
-	errorResponse := repository.ErrorResponse{ErrorCode: "54"}
+	errorResponse := repository2.ErrorResponse{ErrorCode: "54"}
 
-	repositoryError := repository.NewSdkError(
+	repositoryError := repository2.NewSdkError(
 		"repositoryErrorPrefix",
 		err,
 		&response,
@@ -60,7 +60,7 @@ func TestNewError(t *testing.T) {
 }
 
 func ExampleNewFromRepositoryError() {
-	repositoryError := repository.NewSdkError(
+	repositoryError := repository2.NewSdkError(
 		"repositoryErrorPrefix",
 		errors.New("sdk error"),
 		nil,

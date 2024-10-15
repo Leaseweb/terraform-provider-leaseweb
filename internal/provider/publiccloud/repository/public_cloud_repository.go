@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/shared/repository"
+	repository2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 )
 
 // Optional contains optional values that can be passed to NewPublicCloudRepository.
@@ -35,7 +35,7 @@ func (p PublicCloudRepository) authContext(ctx context.Context) context.Context 
 
 func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	[]publicCloud.Instance,
-	*repository.RepositoryError,
+	*repository2.RepositoryError,
 ) {
 	var instances []publicCloud.Instance
 
@@ -44,11 +44,11 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, repository.NewSdkError("GetAllInstances", err, response)
+		return nil, repository2.NewSdkError("GetAllInstances", err, response)
 	}
 
 	metadata := result.GetMetadata()
-	pagination := repository.NewPagination(
+	pagination := repository2.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -57,7 +57,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, repository.NewSdkError("GetAllInstances", err, response)
+			return nil, repository2.NewSdkError("GetAllInstances", err, response)
 		}
 
 		instances = append(instances, result.Instances...)
@@ -68,7 +68,7 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, repository.NewSdkError("GetAllInstances", err, response)
+			return nil, repository2.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -78,14 +78,14 @@ func (p PublicCloudRepository) GetAllInstances(ctx context.Context) (
 func (p PublicCloudRepository) GetInstance(
 	id string,
 	ctx context.Context,
-) (*publicCloud.InstanceDetails, *repository.RepositoryError) {
+) (*publicCloud.InstanceDetails, *repository2.RepositoryError) {
 	instance, response, err := p.publicCLoudAPI.GetInstance(
 		p.authContext(ctx),
 		id,
 	).Execute()
 
 	if err != nil {
-		return nil, repository.NewSdkError(
+		return nil, repository2.NewSdkError(
 			fmt.Sprintf("GetInstance %q", id),
 			err,
 			response,
@@ -98,13 +98,13 @@ func (p PublicCloudRepository) GetInstance(
 func (p PublicCloudRepository) LaunchInstance(
 	opts publicCloud.LaunchInstanceOpts,
 	ctx context.Context,
-) (*publicCloud.Instance, *repository.RepositoryError) {
+) (*publicCloud.Instance, *repository2.RepositoryError) {
 	instance, response, err := p.publicCLoudAPI.
 		LaunchInstance(p.authContext(ctx)).
 		LaunchInstanceOpts(opts).Execute()
 
 	if err != nil {
-		return nil, repository.NewSdkError(
+		return nil, repository2.NewSdkError(
 			"LaunchInstance",
 			err,
 			response,
@@ -118,13 +118,13 @@ func (p PublicCloudRepository) UpdateInstance(
 	id string,
 	opts publicCloud.UpdateInstanceOpts,
 	ctx context.Context,
-) (*publicCloud.InstanceDetails, *repository.RepositoryError) {
+) (*publicCloud.InstanceDetails, *repository2.RepositoryError) {
 	instance, response, err := p.publicCLoudAPI.UpdateInstance(
 		p.authContext(ctx),
 		id,
 	).UpdateInstanceOpts(opts).Execute()
 	if err != nil {
-		return nil, repository.NewSdkError(
+		return nil, repository2.NewSdkError(
 			fmt.Sprintf("UpdateInstance %q", id),
 			err,
 			response,
@@ -137,13 +137,13 @@ func (p PublicCloudRepository) UpdateInstance(
 func (p PublicCloudRepository) DeleteInstance(
 	id string,
 	ctx context.Context,
-) *repository.RepositoryError {
+) *repository2.RepositoryError {
 	response, err := p.publicCLoudAPI.TerminateInstance(
 		p.authContext(ctx),
 		id,
 	).Execute()
 	if err != nil {
-		return repository.NewSdkError(
+		return repository2.NewSdkError(
 			fmt.Sprintf("DeleteInstance %q", id),
 			err,
 			response,
@@ -156,7 +156,7 @@ func (p PublicCloudRepository) DeleteInstance(
 func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
-) ([]string, *repository.RepositoryError) {
+) ([]string, *repository2.RepositoryError) {
 	var instanceTypes []string
 
 	sdkInstanceTypes, response, err := p.publicCLoudAPI.GetUpdateInstanceTypeList(
@@ -164,7 +164,7 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 		id,
 	).Execute()
 	if err != nil {
-		return nil, repository.NewSdkError(
+		return nil, repository2.NewSdkError(
 			fmt.Sprintf("GetAvailableInstanceTypesForUpdate %q", id),
 			err,
 			response,
@@ -180,7 +180,7 @@ func (p PublicCloudRepository) GetAvailableInstanceTypesForUpdate(
 
 func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 	[]string,
-	*repository.RepositoryError,
+	*repository2.RepositoryError,
 ) {
 	var regions []string
 
@@ -189,11 +189,11 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, repository.NewSdkError("GetRegions", err, response)
+		return nil, repository2.NewSdkError("GetRegions", err, response)
 	}
 
 	metadata := result.GetMetadata()
-	pagination := repository.NewPagination(
+	pagination := repository2.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -202,7 +202,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, repository.NewSdkError("GetRegions", err, response)
+			return nil, repository2.NewSdkError("GetRegions", err, response)
 		}
 
 		for _, sdkRegion := range result.Regions {
@@ -215,7 +215,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, repository.NewSdkError("GetAllInstances", err, response)
+			return nil, repository2.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -225,7 +225,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
-) ([]string, *repository.RepositoryError) {
+) ([]string, *repository2.RepositoryError) {
 	var instanceTypes []string
 
 	request := p.publicCLoudAPI.GetInstanceTypeList(p.authContext(ctx)).
@@ -234,7 +234,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, repository.NewSdkError(
+		return nil, repository2.NewSdkError(
 			"GetInstanceTypesForRegion",
 			err,
 			response,
@@ -242,7 +242,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	}
 
 	metadata := result.GetMetadata()
-	pagination := repository.NewPagination(
+	pagination := repository2.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -251,7 +251,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, repository.NewSdkError(
+			return nil, repository2.NewSdkError(
 				"GetInstanceTypesForRegion",
 				err,
 				response,
@@ -268,7 +268,7 @@ func (p PublicCloudRepository) GetInstanceTypesForRegion(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, repository.NewSdkError("GetAllInstances", err, response)
+			return nil, repository2.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
