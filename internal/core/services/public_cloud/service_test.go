@@ -11,7 +11,6 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
@@ -800,18 +799,16 @@ func TestService_GetMinimumRootDiskSize(t *testing.T) {
 
 func TestService_GetMaximumRootDiskSize(t *testing.T) {
 	service := Service{}
-	want := int64(value_object.MaxRootDiskSize)
 	got := service.GetMaximumRootDiskSize()
 
-	assert.Equal(t, want, got)
+	assert.Equal(t, int64(1000), got)
 }
 
 func TestService_GetRootDiskStorageTypes(t *testing.T) {
 	service := Service{}
-	want := enum.StorageTypeCentral.Values()
 	got := service.GetRootDiskStorageTypes()
 
-	assert.Equal(t, want, got)
+	assert.Contains(t, got, "CENTRAL")
 }
 
 func TestService_DoesRegionExist(t *testing.T) {

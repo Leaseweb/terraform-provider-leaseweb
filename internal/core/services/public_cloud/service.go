@@ -13,7 +13,6 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_opts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_resource_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
@@ -22,12 +21,12 @@ import (
 
 var ErrContractTermCannotBeZero = fmt.Errorf(
 	"contract.term cannot be 0 when contract.type is %q",
-	enum.ContractTypeMonthly,
+	publicCloud.CONTRACTTYPE_MONTHLY,
 )
 
 var ErrContractTermMustBeZero = fmt.Errorf(
 	"contract.term must be 0 when contract.type is %q",
-	enum.ContractTypeHourly,
+	publicCloud.CONTRACTTYPE_HOURLY,
 )
 
 // Service fulfills the contract for ports.PublicCloudService.
@@ -246,36 +245,55 @@ func (srv *Service) CanInstanceBeTerminated(id string, ctx context.Context) (
 }
 
 func (srv *Service) GetBillingFrequencies() shared.IntMarkdownList {
-	return shared.NewIntMarkdownList(enum.ContractBillingFrequencyThree.Values())
+	var convertedBillingFrequencies []int
+	// Have to add 0 manually here, no way round it.
+	convertedBillingFrequencies = append(convertedBillingFrequencies, 0)
+
+	for _, billingFrequency := range publicCloud.AllowedBillingFrequencyEnumValues {
+		convertedBillingFrequencies = append(convertedBillingFrequencies, int(billingFrequency))
+	}
+
+	return shared.NewIntMarkdownList(convertedBillingFrequencies)
 }
 
 func (srv *Service) GetContractTerms() shared.IntMarkdownList {
-	return shared.NewIntMarkdownList(enum.ContractTermThree.Values())
+	var convertedContractTerms []int
+
+	for _, contractTerm := range publicCloud.AllowedContractTermEnumValues {
+		convertedContractTerms = append(convertedContractTerms, int(contractTerm))
+	}
+
+	return shared.NewIntMarkdownList(convertedContractTerms)
 }
 
 func (srv *Service) GetContractTypes() []string {
-	return enum.ContractTypeHourly.Values()
+	var convertedContractTypes []string
+
+	for _, contractType := range publicCloud.AllowedContractTypeEnumValues {
+		convertedContractTypes = append(convertedContractTypes, string(contractType))
+	}
+
+	return convertedContractTypes
 }
 
 func (srv *Service) ValidateContractTerm(
 	contractTerm int64,
 	contractType string,
 ) error {
-
-	contractTermEnum, err := enum.NewContractTerm(int(contractTerm))
+	contractTermEnum, err := publicCloud.NewContractTermFromValue(int32(contractTerm))
 	if err != nil {
 		return errors.NewError("ValidateContractTerm", err)
 	}
-	contractTypeEnum, err := enum.NewContractType(contractType)
+	contractTypeEnum, err := publicCloud.NewContractTypeFromValue(contractType)
 	if err != nil {
 		return errors.NewError("ValidateContractType", err)
 	}
 
-	if contractTypeEnum == enum.ContractTypeMonthly && contractTermEnum == enum.ContractTermZero {
+	if *contractTypeEnum == publicCloud.CONTRACTTYPE_MONTHLY && *contractTermEnum == publicCloud.CONTRACTTERM__0 {
 		return ErrContractTermCannotBeZero
 	}
 
-	if contractTypeEnum == enum.ContractTypeHourly && contractTermEnum != enum.ContractTermZero {
+	if *contractTypeEnum == publicCloud.CONTRACTTYPE_HOURLY && *contractTermEnum != publicCloud.CONTRACTTERM__0 {
 		return ErrContractTermMustBeZero
 	}
 
@@ -291,7 +309,13 @@ func (srv *Service) GetMaximumRootDiskSize() int64 {
 }
 
 func (srv *Service) GetRootDiskStorageTypes() []string {
-	return enum.StorageTypeCentral.Values()
+	var convertedStates []string
+
+	for _, state := range publicCloud.AllowedStorageTypeEnumValues {
+		convertedStates = append(convertedStates, string(state))
+	}
+
+	return convertedStates
 }
 
 func (srv *Service) DoesRegionExist(
