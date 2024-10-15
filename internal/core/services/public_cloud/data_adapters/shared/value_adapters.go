@@ -48,9 +48,8 @@ func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
 	return basetypes.NewStringValue(*value)
 }
 
-// AdaptDomainEntityToResourceObject converts a domain entity to a Terraform
-// resource object.
-func AdaptDomainEntityToResourceObject[T any, U any](
+// AdaptSdkModelToResourceObject converts an sdk model to a Terraform resource object.
+func AdaptSdkModelToResourceObject[T any, U any](
 	entity T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
@@ -62,7 +61,7 @@ func AdaptDomainEntityToResourceObject[T any, U any](
 	resourceObject, err := generateResourceObject(ctx, entity)
 	if err != nil {
 		return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-			"unable to convert domain entity to resource: %w",
+			"unable to convert sdk model to resource: %w",
 			err,
 		)
 	}
@@ -75,7 +74,7 @@ func AdaptDomainEntityToResourceObject[T any, U any](
 	if diags.HasError() {
 		for _, v := range diags {
 			return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-				"unable to convert domain entity to resource: %q %q",
+				"unable to convert sdk model to resource: %q %q",
 				v.Summary(),
 				v.Detail(),
 			)
@@ -86,9 +85,9 @@ func AdaptDomainEntityToResourceObject[T any, U any](
 	return objectValue, nil
 }
 
-// AdaptEntitiesToListValue converts a domain entities array to a Terraform
+// AdaptSdkModelsToListValue converts a sdk model array to a Terraform
 // ListValue.
-func AdaptEntitiesToListValue[T any, U any](
+func AdaptSdkModelsToListValue[T any, U any](
 	entities []T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
@@ -105,7 +104,7 @@ func AdaptEntitiesToListValue[T any, U any](
 			return types.ListUnknown(
 					types.ObjectType{AttrTypes: attributeTypes}),
 				fmt.Errorf(
-					"unable to convert domain entity to resource: %w",
+					"unable to convert sdk model to resource: %w",
 					err,
 				)
 		}
@@ -122,7 +121,7 @@ func AdaptEntitiesToListValue[T any, U any](
 		for _, v := range diags {
 			return types.ListUnknown(
 					types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
-					"unable to convert domain entity to resource: %q %q",
+					"unable to convert sdk model to resource: %q %q",
 					v.Summary(),
 					v.Detail(),
 				)

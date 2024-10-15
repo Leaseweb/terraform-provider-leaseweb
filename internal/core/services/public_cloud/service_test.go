@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
@@ -125,9 +124,9 @@ func (r *repositorySpy) DeleteInstance(
 
 func newRepositorySpy() repositorySpy {
 	return repositorySpy{
-		instanceTypesForRegion:         public_cloud.InstanceTypes{"instanceType"},
+		instanceTypesForRegion:         []string{"instanceType"},
 		getInstanceTypesForRegionSleep: 0,
-		regions:                        public_cloud.Regions{"region"},
+		regions:                        []string{"region"},
 	}
 }
 
@@ -563,7 +562,7 @@ func TestService_GetAvailableInstanceTypesForRegion(t *testing.T) {
 		"does not query repository if a local cached instanceType exists",
 		func(t *testing.T) {
 			spy := newRepositorySpy()
-			spy.instanceTypesForRegion = public_cloud.InstanceTypes{"tralala"}
+			spy.instanceTypesForRegion = []string{"tralala"}
 			service := New(&spy)
 			_, _ = service.GetAvailableInstanceTypesForRegion(
 				"region",
@@ -743,33 +742,31 @@ func TestService_GetContractTypes(t *testing.T) {
 
 func TestService_ValidateContractTerm(t *testing.T) {
 	t.Run(
-		"ErrContractTermCannotBeZero is returned when contract returns ErrContractTermCannotBeZero",
+		"ErrContractTermCannotBeZero is returned when contract term is monthly and contract term is 0",
 		func(t *testing.T) {
 			service := Service{}
 			got := service.ValidateContractTerm(0, "MONTHLY")
 
-			assert.ErrorIs(t, got, public_cloud.ErrContractTermCannotBeZero)
+			assert.ErrorIs(t, got, ErrContractTermCannotBeZero)
 		},
 	)
 
 	t.Run(
-		"ErrContractTermMustBeZero is returned when contract returns ErrContractTermMustBeZero",
+		"ErrContractTermMustBeZero is returned when contract term is hourly and contract term is not 0",
 		func(t *testing.T) {
 			service := Service{}
 			got := service.ValidateContractTerm(3, "HOURLY")
 
-			assert.ErrorIs(t, got, public_cloud.ErrContractTermMustBeZero)
+			assert.ErrorIs(t, got, ErrContractTermMustBeZero)
 		},
 	)
 
-	t.Run(
-		"no error is returned when contract does not return an error",
-		func(t *testing.T) {
-			service := Service{}
-			got := service.ValidateContractTerm(0, "HOURLY")
+	t.Run("no error is returned when contract is valid", func(t *testing.T) {
+		service := Service{}
+		got := service.ValidateContractTerm(0, "HOURLY")
 
-			assert.Nil(t, got)
-		},
+		assert.Nil(t, got)
+	},
 	)
 
 	t.Run(

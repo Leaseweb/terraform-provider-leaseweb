@@ -3,24 +3,31 @@ package public_cloud
 
 import (
 	"context"
-	errors2 "errors"
 	"fmt"
-	"log"
 	"slices"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_data_source_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_opts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_resource_model"
-	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/enum"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+)
+
+var ErrContractTermCannotBeZero = fmt.Errorf(
+	"contract.term cannot be 0 when contract.type is %q",
+	enum.ContractTypeMonthly,
+)
+
+var ErrContractTermMustBeZero = fmt.Errorf(
+	"contract.term must be 0 when contract.type is %q",
+	enum.ContractTypeHourly,
 )
 
 // Service fulfills the contract for ports.PublicCloudService.
@@ -43,8 +50,8 @@ type Service struct {
 		instance resourceModel.Instance,
 		ctx context.Context,
 	) (*publicCloud.UpdateInstanceOpts, error)
-	cachedInstanceTypes synced_map.SyncedMap[string, public_cloud.InstanceTypes]
-	cachedRegions       synced_map.SyncedMap[string, public_cloud.Regions]
+	cachedInstanceTypes synced_map.SyncedMap[string, []string]
+	cachedRegions       synced_map.SyncedMap[string, []string]
 }
 
 func (srv *Service) GetAllInstances(ctx context.Context) (
@@ -238,12 +245,12 @@ func (srv *Service) CanInstanceBeTerminated(id string, ctx context.Context) (
 	return true, nil, nil
 }
 
-func (srv *Service) GetBillingFrequencies() shared2.IntMarkdownList {
-	return shared2.NewIntMarkdownList(enum.ContractBillingFrequencyThree.Values())
+func (srv *Service) GetBillingFrequencies() shared.IntMarkdownList {
+	return shared.NewIntMarkdownList(enum.ContractBillingFrequencyThree.Values())
 }
 
-func (srv *Service) GetContractTerms() shared2.IntMarkdownList {
-	return shared2.NewIntMarkdownList(enum.ContractTermThree.Values())
+func (srv *Service) GetContractTerms() shared.IntMarkdownList {
+	return shared.NewIntMarkdownList(enum.ContractTermThree.Values())
 }
 
 func (srv *Service) GetContractTypes() []string {
@@ -264,23 +271,12 @@ func (srv *Service) ValidateContractTerm(
 		return errors.NewError("ValidateContractType", err)
 	}
 
-	_, err = public_cloud.NewContract(
-		enum.ContractBillingFrequencySix,
-		contractTermEnum,
-		contractTypeEnum,
-		enum.ContractStateActive,
-		nil,
-	)
+	if contractTypeEnum == enum.ContractTypeMonthly && contractTermEnum == enum.ContractTermZero {
+		return ErrContractTermCannotBeZero
+	}
 
-	if err != nil {
-		switch {
-		case errors2.Is(err, public_cloud.ErrContractTermMustBeZero):
-			return public_cloud.ErrContractTermMustBeZero
-		case errors2.Is(err, public_cloud.ErrContractTermCannotBeZero):
-			return public_cloud.ErrContractTermCannotBeZero
-		default:
-			log.Fatal(err)
-		}
+	if contractTypeEnum == enum.ContractTypeHourly && contractTermEnum != enum.ContractTermZero {
+		return ErrContractTermMustBeZero
 	}
 
 	return nil
@@ -366,7 +362,7 @@ func New(publicCloudRepository ports.PublicCloudRepository) Service {
 		adaptInstance:             to_resource_model.AdaptInstance,
 		adaptToLaunchInstanceOpts: to_opts.AdaptToLaunchInstanceOpts,
 		adaptToUpdateInstanceOpts: to_opts.AdaptToUpdateInstanceOpts,
-		cachedInstanceTypes:       synced_map.NewSyncedMap[string, public_cloud.InstanceTypes](),
-		cachedRegions:             synced_map.NewSyncedMap[string, public_cloud.Regions](),
+		cachedInstanceTypes:       synced_map.NewSyncedMap[string, []string](),
+		cachedRegions:             synced_map.NewSyncedMap[string, []string](),
 	}
 }

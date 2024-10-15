@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/domain/public_cloud"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -92,7 +92,7 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := AdaptDomainEntityToResourceObject(
+		got, err := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
@@ -110,7 +110,7 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
-		got, err := AdaptDomainEntityToResourceObject(
+		got, err := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
@@ -129,7 +129,7 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
-		got, diags := AdaptDomainEntityToResourceObject(
+		got, diags := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
@@ -188,7 +188,7 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"slice can successfully be converted into a ListValue",
 		func(t *testing.T) {
-			got, diags := AdaptEntitiesToListValue(
+			got, diags := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
@@ -214,7 +214,7 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"error is returned if list element cannot be converted",
 		func(t *testing.T) {
-			_, err := AdaptEntitiesToListValue(
+			_, err := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
@@ -234,7 +234,7 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
-			_, err := AdaptEntitiesToListValue(
+			_, err := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
@@ -303,14 +303,14 @@ func ExampleAdaptNullableStringToStringValue_second() {
 	// Output: <null>
 }
 
-func ExampleAdaptDomainEntityToResourceObject() {
-	datasourceModel, _ := AdaptDomainEntityToResourceObject(
-		public_cloud.NewImage("imageId"),
+func ExampleAdaptSdkModelToResourceObject() {
+	datasourceModel, _ := AdaptSdkModelToResourceObject(
+		publicCloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, image public_cloud.Image) (*model.Image, error) {
+		func(ctx context.Context, image publicCloud.Image) (*model.Image, error) {
 			return &model.Image{
 				Id: basetypes.NewStringValue(image.Id),
 			}, nil
@@ -321,16 +321,16 @@ func ExampleAdaptDomainEntityToResourceObject() {
 	// Output: {"id":"imageId"}
 }
 
-func ExampleAdaptEntitiesToListValue() {
-	listValue, _ := AdaptEntitiesToListValue(
-		public_cloud.Ips{public_cloud.NewIp("1.2.3.4")},
+func ExampleAdaptSdkModelsToListValue() {
+	listValue, _ := AdaptSdkModelsToListValue(
+		[]publicCloud.Ip{{Ip: "1.2.3.4"}},
 		map[string]attr.Type{
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, entity public_cloud.Ip) (*model.Ip, error) {
+		func(ctx context.Context, ip publicCloud.Ip) (*model.Ip, error) {
 			return &model.Ip{
-				Ip: basetypes.NewStringValue(entity.Ip),
+				Ip: basetypes.NewStringValue(ip.Ip),
 			}, nil
 		},
 	)

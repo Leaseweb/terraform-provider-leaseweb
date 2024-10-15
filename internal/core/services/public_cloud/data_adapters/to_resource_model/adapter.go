@@ -22,7 +22,7 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 
-	image, err := shared.AdaptDomainEntityToResourceObject(
+	image, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
 		model.Image{}.AttributeTypes(),
 		ctx,
@@ -33,7 +33,7 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 	}
 	instance.Image = image
 
-	ips, err := shared.AdaptEntitiesToListValue(
+	ips, err := shared.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
 		model.Ip{}.AttributeTypes(),
 		ctx,
@@ -44,7 +44,7 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 	}
 	instance.Ips = ips
 
-	contract, err := shared.AdaptDomainEntityToResourceObject(
+	contract, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
 		model.Contract{}.AttributeTypes(),
 		ctx,
@@ -70,7 +70,7 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 
-	image, err := shared.AdaptDomainEntityToResourceObject(
+	image, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
 		model.Image{}.AttributeTypes(),
 		ctx,
@@ -81,7 +81,7 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 	}
 	instance.Image = image
 
-	ips, err := shared.AdaptEntitiesToListValue(
+	ips, err := shared.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
 		model.Ip{}.AttributeTypes(),
 		ctx,
@@ -92,7 +92,7 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 	}
 	instance.Ips = ips
 
-	contract, err := shared.AdaptDomainEntityToResourceObject(
+	contract, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
 		model.Contract{}.AttributeTypes(),
 		ctx,
