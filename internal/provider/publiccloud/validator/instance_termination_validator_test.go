@@ -8,7 +8,7 @@ import (
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -131,13 +131,13 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 	)
 }
 
-func generateInstanceModel() model.Instance {
-	return model.Instance{
+func generateInstanceModel() resource.Instance {
+	return resource.Instance{
 		Id:        basetypes.NewStringUnknown(),
 		Region:    basetypes.NewStringUnknown(),
 		Reference: basetypes.NewStringUnknown(),
 		Image: basetypes.NewObjectUnknown(
-			model.Image{}.AttributeTypes(),
+			resource.Image{}.AttributeTypes(),
 		),
 		State:               basetypes.NewStringUnknown(),
 		Type:                basetypes.NewStringUnknown(),
@@ -145,11 +145,11 @@ func generateInstanceModel() model.Instance {
 		RootDiskStorageType: basetypes.NewStringUnknown(),
 		Ips: basetypes.NewListUnknown(
 			types.ObjectType{
-				AttrTypes: model.Ip{}.AttributeTypes(),
+				AttrTypes: resource.Ip{}.AttributeTypes(),
 			},
 		),
 		Contract: basetypes.NewObjectUnknown(
-			model.Contract{}.AttributeTypes(),
+			resource.Contract{}.AttributeTypes(),
 		),
 		MarketAppId: basetypes.NewStringUnknown(),
 		// TODO Enable SSH key support

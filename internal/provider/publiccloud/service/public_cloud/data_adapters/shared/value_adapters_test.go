@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -310,8 +310,8 @@ func ExampleAdaptSdkModelToResourceObject() {
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, image publicCloud.Image) (*model.Image, error) {
-			return &model.Image{
+		func(ctx context.Context, image publicCloud.Image) (*resource.Image, error) {
+			return &resource.Image{
 				Id: basetypes.NewStringValue(image.Id),
 			}, nil
 		},
@@ -328,8 +328,8 @@ func ExampleAdaptSdkModelsToListValue() {
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, ip publicCloud.Ip) (*model.Ip, error) {
-			return &model.Ip{
+		func(ctx context.Context, ip publicCloud.Ip) (*resource.Ip, error) {
+			return &resource.Ip{
 				Ip: basetypes.NewStringValue(ip.Ip),
 			}, nil
 		},

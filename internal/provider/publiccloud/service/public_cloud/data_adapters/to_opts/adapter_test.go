@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -167,7 +167,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 			_, err := AdaptToLaunchInstanceOpts(instance, context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, "model.Image")
+			assert.ErrorContains(t, err, ".Image")
 		},
 	)
 
@@ -180,7 +180,7 @@ func TestAdaptToLaunchInstanceOpts(t *testing.T) {
 			_, err := AdaptToLaunchInstanceOpts(instance, context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, "model.Contract")
+			assert.ErrorContains(t, err, ".Contract")
 		},
 	)
 }
@@ -279,7 +279,7 @@ func TestAdaptToUpdateInstanceOpts(t *testing.T) {
 			_, err := AdaptToUpdateInstanceOpts(instance, context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, "model.Contract")
+			assert.ErrorContains(t, err, ".Contract")
 		},
 	)
 }
@@ -305,8 +305,8 @@ func generateContractObject(
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		model.Contract{}.AttributeTypes(),
-		model.Contract{
+		resource.Contract{}.AttributeTypes(),
+		resource.Contract{
 			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
 			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
@@ -320,7 +320,7 @@ func generateContractObject(
 func generateInstanceModel(
 // TODO Enable SSH key support
 // sshKey *string,
-) model.Instance {
+) resource.Instance {
 	// TODO Enable SSH key support
 	/**
 	  if sshKey == nil {
@@ -330,15 +330,15 @@ func generateInstanceModel(
 
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		model.Image{}.AttributeTypes(),
-		model.Image{
+		resource.Image{}.AttributeTypes(),
+		resource.Image{
 			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
 
 	contract := generateContractObject(nil, nil, nil)
 
-	instance := model.Instance{
+	instance := resource.Instance{
 		Id:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),

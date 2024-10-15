@@ -1,4 +1,4 @@
-package instance
+package publiccloud
 
 import (
 	"context"

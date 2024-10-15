@@ -4,7 +4,7 @@ import (
 	"context"
 
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
-	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )

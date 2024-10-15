@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/stretchr/testify/assert"
@@ -236,7 +236,7 @@ func TestService_GetInstance(t *testing.T) {
 		service.adaptInstanceDetails = func(
 			sdkInstance publicCloud.InstanceDetails,
 			ctx context.Context,
-		) (*model.Instance, error) {
+		) (*resource.Instance, error) {
 			return nil, errors.New("some error")
 		}
 
@@ -285,7 +285,7 @@ func TestService_LaunchInstance(t *testing.T) {
 		spy := newRepositorySpy()
 		service := New(&spy)
 		service.adaptToLaunchInstanceOpts = func(
-			instance model.Instance,
+			instance resource.Instance,
 			ctx context.Context,
 		) (*publicCloud.LaunchInstanceOpts, error) {
 			return nil, errors.New("some error")
@@ -306,7 +306,7 @@ func TestService_LaunchInstance(t *testing.T) {
 		service.adaptInstance = func(
 			sdkInstance publicCloud.Instance,
 			ctx context.Context,
-		) (*model.Instance, error) {
+		) (*resource.Instance, error) {
 			return nil, errors.New("some error")
 		}
 
@@ -354,7 +354,7 @@ func TestService_UpdateInstance(t *testing.T) {
 		spy := newRepositorySpy()
 		service := New(&spy)
 		service.adaptToUpdateInstanceOpts = func(
-			instance model.Instance,
+			instance resource.Instance,
 			ctx context.Context,
 		) (*publicCloud.UpdateInstanceOpts, error) {
 			return nil, errors.New("some error")
@@ -375,7 +375,7 @@ func TestService_UpdateInstance(t *testing.T) {
 		service.adaptInstanceDetails = func(
 			sdkInstance publicCloud.InstanceDetails,
 			ctx context.Context,
-		) (*model.Instance, error) {
+		) (*resource.Instance, error) {
 			return nil, errors.New("some error")
 		}
 
@@ -1066,19 +1066,19 @@ func generateInstance() publicCloud.Instance {
 	}
 }
 
-func generateInstanceModel() model.Instance {
+func generateInstanceModel() resource.Instance {
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		model.Image{}.AttributeTypes(),
-		model.Image{
+		resource.Image{}.AttributeTypes(),
+		resource.Image{
 			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		model.Contract{}.AttributeTypes(),
-		model.Contract{
+		resource.Contract{}.AttributeTypes(),
+		resource.Contract{
 			BillingFrequency: basetypes.NewInt64Value(int64(1)),
 			Term:             basetypes.NewInt64Value(int64(3)),
 			Type:             basetypes.NewStringValue("MONTHLY"),
@@ -1086,7 +1086,7 @@ func generateInstanceModel() model.Instance {
 		},
 	)
 
-	return model.Instance{
+	return resource.Instance{
 		Id:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),

@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	publicCloud "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
+	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared_schemas/public_cloud"
 )
 
 var (
@@ -146,7 +149,37 @@ func (d *instancesDataSource) Schema(
 								},
 							},
 						},
-						"contract": public_cloud.Contract(false, &publicCloudService),
+						"contract": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"billing_frequency": schema.Int64Attribute{
+									Computed:    true,
+									Description: "The billing frequency (in months). Valid options are " + publicCloudService.GetBillingFrequencies().Markdown(),
+									Validators: []validator.Int64{
+										int64validator.OneOf(publicCloudService.GetBillingFrequencies().ToInt64()...),
+									},
+								},
+								"term": schema.Int64Attribute{
+									Computed:    true,
+									Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + publicCloudService.GetContractTerms().Markdown(),
+									Validators: []validator.Int64{
+										int64validator.OneOf(publicCloudService.GetContractTerms().ToInt64()...),
+									},
+								},
+								"type": schema.StringAttribute{
+									Computed:    true,
+									Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
+									Validators: []validator.String{
+										stringvalidator.OneOf(publicCloudService.GetContractTypes()...),
+									},
+								},
+								"ends_at": schema.StringAttribute{Computed: true},
+								"state": schema.StringAttribute{
+									Computed: true,
+								},
+							},
+							Validators: []validator.Object{customValidator.ContractTermIsValid()},
+						},
 						"market_app_id": schema.StringAttribute{
 							Computed:    true,
 							Description: "Market App ID",

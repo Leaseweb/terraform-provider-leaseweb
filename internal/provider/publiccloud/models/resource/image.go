@@ -1,4 +1,4 @@
-package model
+package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"

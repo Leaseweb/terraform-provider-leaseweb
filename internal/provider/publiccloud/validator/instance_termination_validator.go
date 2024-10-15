@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )
 
@@ -42,7 +42,7 @@ func (i InstanceTerminationValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
-	instance := model.Instance{}
+	instance := resource.Instance{}
 
 	diags := request.ConfigValue.As(ctx, &instance, basetypes.ObjectAsOptions{})
 	if diags.HasError() {

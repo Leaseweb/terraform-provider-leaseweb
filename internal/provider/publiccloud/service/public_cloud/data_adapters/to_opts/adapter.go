@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
 func AdaptToLaunchInstanceOpts(
-	instance model.Instance,
+	instance resource.Instance,
 	ctx context.Context,
 ) (*publicCloud.LaunchInstanceOpts, error) {
 	sdkRootDiskStorageType, err := publicCloud.NewStorageTypeFromValue(
@@ -21,7 +21,7 @@ func AdaptToLaunchInstanceOpts(
 		return nil, err
 	}
 
-	image := model.Image{}
+	image := resource.Image{}
 	imageDiags := instance.Image.As(
 		ctx,
 		&image,
@@ -34,7 +34,7 @@ func AdaptToLaunchInstanceOpts(
 		)
 	}
 
-	contract := model.Contract{}
+	contract := resource.Contract{}
 	contractDiags := instance.Contract.As(
 		ctx,
 		&contract,
@@ -106,7 +106,7 @@ func AdaptToLaunchInstanceOpts(
 }
 
 func AdaptToUpdateInstanceOpts(
-	instance model.Instance,
+	instance resource.Instance,
 	ctx context.Context,
 ) (*publicCloud.UpdateInstanceOpts, error) {
 	opts := publicCloud.NewUpdateInstanceOpts()
@@ -117,7 +117,7 @@ func AdaptToUpdateInstanceOpts(
 		instance.RootDiskSize,
 	)
 
-	contract := model.Contract{}
+	contract := resource.Contract{}
 	diags := instance.Contract.As(
 		ctx,
 		&contract,

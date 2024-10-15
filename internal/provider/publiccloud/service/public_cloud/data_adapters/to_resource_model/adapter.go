@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud/data_adapters/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
-func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.Context) (*model.Instance, error) {
-	instance := model.Instance{
+func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.Context) (*resource.Instance, error) {
+	instance := resource.Instance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           shared.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
@@ -24,7 +24,7 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 
 	image, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
-		model.Image{}.AttributeTypes(),
+		resource.Image{}.AttributeTypes(),
 		ctx,
 		adaptImage,
 	)
@@ -35,7 +35,7 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 
 	ips, err := shared.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		model.Ip{}.AttributeTypes(),
+		resource.Ip{}.AttributeTypes(),
 		ctx,
 		adaptIpDetails,
 	)
@@ -46,7 +46,7 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 
 	contract, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
-		model.Contract{}.AttributeTypes(),
+		resource.Contract{}.AttributeTypes(),
 		ctx,
 		adaptContract,
 	)
@@ -58,8 +58,8 @@ func AdaptInstanceDetails(sdkInstance publicCloud.InstanceDetails, ctx context.C
 	return &instance, nil
 }
 
-func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*model.Instance, error) {
-	instance := model.Instance{
+func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*resource.Instance, error) {
+	instance := resource.Instance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           shared.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
@@ -72,7 +72,7 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 
 	image, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
-		model.Image{}.AttributeTypes(),
+		resource.Image{}.AttributeTypes(),
 		ctx,
 		adaptImage,
 	)
@@ -83,7 +83,7 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 
 	ips, err := shared.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		model.Ip{}.AttributeTypes(),
+		resource.Ip{}.AttributeTypes(),
 		ctx,
 		adaptIp,
 	)
@@ -94,7 +94,7 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 
 	contract, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
-		model.Contract{}.AttributeTypes(),
+		resource.Contract{}.AttributeTypes(),
 		ctx,
 		adaptContract,
 	)
@@ -109,8 +109,8 @@ func AdaptInstance(sdkInstance publicCloud.Instance, ctx context.Context) (*mode
 func adaptImage(
 	ctx context.Context,
 	sdkImage publicCloud.Image,
-) (*model.Image, error) {
-	return &model.Image{
+) (*resource.Image, error) {
+	return &resource.Image{
 		Id: basetypes.NewStringValue(sdkImage.Id),
 	}, nil
 }
@@ -118,8 +118,8 @@ func adaptImage(
 func adaptIpDetails(
 	ctx context.Context,
 	sdkIp publicCloud.IpDetails,
-) (*model.Ip, error) {
-	return &model.Ip{
+) (*resource.Ip, error) {
+	return &resource.Ip{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}, nil
 }
@@ -127,8 +127,8 @@ func adaptIpDetails(
 func adaptIp(
 	ctx context.Context,
 	sdkIp publicCloud.Ip,
-) (*model.Ip, error) {
-	return &model.Ip{
+) (*resource.Ip, error) {
+	return &resource.Ip{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}, nil
 }
@@ -136,8 +136,8 @@ func adaptIp(
 func adaptContract(
 	ctx context.Context,
 	sdkContract publicCloud.Contract,
-) (*model.Contract, error) {
-	return &model.Contract{
+) (*resource.Contract, error) {
+	return &resource.Contract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),

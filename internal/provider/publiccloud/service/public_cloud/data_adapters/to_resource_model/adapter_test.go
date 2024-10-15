@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func Test_adaptContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := model.Contract{
+	want := resource.Contract{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
@@ -42,7 +42,7 @@ func Test_adaptIpDetails(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := model.Ip{
+	want := resource.Ip{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got, err := adaptIpDetails(context.TODO(), sdkIp)
@@ -56,7 +56,7 @@ func Test_adaptImage(t *testing.T) {
 		Id: "imageId",
 	}
 
-	want := model.Image{
+	want := resource.Image{
 		Id: basetypes.NewStringValue("imageId"),
 	}
 	got, err := adaptImage(context.TODO(), sdkImage)
@@ -104,15 +104,15 @@ func TestAdaptInstanceDetails(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := model.Image{}
+	image := resource.Image{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-	contract := model.Contract{}
+	contract := resource.Contract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []model.Ip
+	var ips []resource.Ip
 	got.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -157,15 +157,15 @@ func TestAdaptInstance(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := model.Image{}
+	image := resource.Image{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-	contract := model.Contract{}
+	contract := resource.Contract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []model.Ip
+	var ips []resource.Ip
 	got.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -176,7 +176,7 @@ func Test_adaptIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := model.Ip{
+	want := resource.Ip{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got, err := adaptIp(context.TODO(), sdkIp)
