@@ -11,7 +11,6 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
@@ -791,7 +790,7 @@ func TestService_ValidateContractTerm(t *testing.T) {
 
 func TestService_GetMinimumRootDiskSize(t *testing.T) {
 	service := Service{}
-	want := int64(value_object.MinRootDiskSize)
+	want := int64(5)
 	got := service.GetMinimumRootDiskSize()
 
 	assert.Equal(t, want, got)

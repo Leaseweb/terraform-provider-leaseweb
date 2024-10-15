@@ -14,7 +14,6 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_resource_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/value_object"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
@@ -28,6 +27,9 @@ var ErrContractTermMustBeZero = fmt.Errorf(
 	"contract.term must be 0 when contract.type is %q",
 	publicCloud.CONTRACTTYPE_HOURLY,
 )
+
+var minimumRootDiskSize = 5
+var maximumRootDiskSize = 1000
 
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
@@ -301,11 +303,11 @@ func (srv *Service) ValidateContractTerm(
 }
 
 func (srv *Service) GetMinimumRootDiskSize() int64 {
-	return int64(value_object.MinRootDiskSize)
+	return int64(minimumRootDiskSize)
 }
 
 func (srv *Service) GetMaximumRootDiskSize() int64 {
-	return int64(value_object.MaxRootDiskSize)
+	return int64(maximumRootDiskSize)
 }
 
 func (srv *Service) GetRootDiskStorageTypes() []string {
