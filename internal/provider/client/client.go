@@ -2,8 +2,8 @@
 package client
 
 import (
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/repository"
 )
 
@@ -17,7 +17,7 @@ type ProviderData struct {
 // The Client handles instantiation of the facades.
 type Client struct {
 	ProviderData       ProviderData
-	PublicCloudService ports.PublicCloudService
+	PublicCloudService contracts.PublicCloudService
 }
 
 type Optional struct {

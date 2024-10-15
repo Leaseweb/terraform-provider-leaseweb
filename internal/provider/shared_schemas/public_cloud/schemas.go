@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/instance/validator"
 )
 
 func Contract(
 	required bool,
-	publicCloudService ports.PublicCloudService,
+	publicCloudService contracts.PublicCloudService,
 ) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed: !required,

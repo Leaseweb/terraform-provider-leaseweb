@@ -7,7 +7,6 @@ import (
 	"slices"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_data_source_model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud/data_adapters/to_opts"
@@ -15,6 +14,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared/synced_map"
 	dataSourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/data_sources/public_cloud/model"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 )
 
@@ -33,7 +33,7 @@ var maximumRootDiskSize = 1000
 
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
-	publicCloudRepository ports.PublicCloudRepository
+	publicCloudRepository contracts.PublicCloudRepository
 	adaptInstances        func(sdkInstances []publicCloud.Instance) dataSourceModel.Instances
 	adaptInstanceDetails  func(
 		sdkInstance publicCloud.InstanceDetails,
@@ -380,7 +380,7 @@ func (srv *Service) CanInstanceTypeBeUsedWithInstance(
 	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
 }
 
-func New(publicCloudRepository ports.PublicCloudRepository) Service {
+func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository:     publicCloudRepository,
 		adaptInstances:            to_data_source_model.AdaptInstances,

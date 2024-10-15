@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/core/ports"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/core/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/resources/public_cloud/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/shared"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	_ ports.PublicCloudRepository = &repositorySpy{}
+	_ contracts.PublicCloudRepository = &repositorySpy{}
 )
 
 type repositorySpy struct {
