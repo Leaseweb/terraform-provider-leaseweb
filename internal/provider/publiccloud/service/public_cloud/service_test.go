@@ -345,21 +345,6 @@ func TestService_ValidateContractTerm(t *testing.T) {
 	)
 }
 
-func TestService_GetMinimumRootDiskSize(t *testing.T) {
-	service := Service{}
-	want := int64(5)
-	got := service.GetMinimumRootDiskSize()
-
-	assert.Equal(t, want, got)
-}
-
-func TestService_GetMaximumRootDiskSize(t *testing.T) {
-	service := Service{}
-	got := service.GetMaximumRootDiskSize()
-
-	assert.Equal(t, int64(1000), got)
-}
-
 func TestService_GetRootDiskStorageTypes(t *testing.T) {
 	service := Service{}
 	got := service.GetRootDiskStorageTypes()

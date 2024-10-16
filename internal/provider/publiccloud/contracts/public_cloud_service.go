@@ -26,12 +26,6 @@ type PublicCloudService interface {
 	// ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
 	ValidateContractTerm(contractTerm int64, contractType string) error
 
-	// GetMinimumRootDiskSize returns the minimal valid rootDiskSize.
-	GetMinimumRootDiskSize() int64
-
-	// GetMaximumRootDiskSize returns the maximum valid rootDiskSize.
-	GetMaximumRootDiskSize() int64
-
 	// GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
 	GetRootDiskStorageTypes() []string
 

@@ -22,9 +22,6 @@ var ErrContractTermMustBeZero = fmt.Errorf(
 	publicCloud.CONTRACTTYPE_HOURLY,
 )
 
-var minimumRootDiskSize = 5
-var maximumRootDiskSize = 1000
-
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
 	publicCloudRepository contracts.PublicCloudRepository
@@ -116,14 +113,6 @@ func (srv *Service) ValidateContractTerm(
 	}
 
 	return nil
-}
-
-func (srv *Service) GetMinimumRootDiskSize() int64 {
-	return int64(minimumRootDiskSize)
-}
-
-func (srv *Service) GetMaximumRootDiskSize() int64 {
-	return int64(maximumRootDiskSize)
 }
 
 func (srv *Service) GetRootDiskStorageTypes() []string {

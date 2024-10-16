@@ -375,10 +375,7 @@ func (i *instanceResource) Schema(
 				Optional:    true,
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
 				Validators: []validator.Int64{
-					int64validator.Between(
-						publicCloudService.GetMinimumRootDiskSize(),
-						publicCloudService.GetMaximumRootDiskSize(),
-					),
+					int64validator.Between(5, 1000),
 				},
 			},
 			"root_disk_storage_type": schema.StringAttribute{
