@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewContract(t *testing.T) {
+func Test_newContract(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -29,7 +29,7 @@ func TestNewContract(t *testing.T) {
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got := NewContract(sdkContract)
+	got := newContract(sdkContract)
 
 	assert.Equal(t, want, got)
 }

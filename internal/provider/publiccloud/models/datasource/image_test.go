@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewImage(t *testing.T) {
+func Test_newImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
@@ -16,7 +16,7 @@ func TestNewImage(t *testing.T) {
 	want := Image{
 		Id: basetypes.NewStringValue("imageId"),
 	}
-	got := NewImage(sdkImage)
+	got := newImage(sdkImage)
 
 	assert.Equal(t, want, got)
 }

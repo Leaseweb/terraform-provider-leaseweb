@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewInstance(t *testing.T) {
+func Test_newInstance(t *testing.T) {
 	reference := "reference"
 	marketAppId := "marketAppId"
 
@@ -31,7 +31,7 @@ func TestNewInstance(t *testing.T) {
 		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
 	}
 
-	got := NewInstance(sdkInstance)
+	got := newInstance(sdkInstance)
 
 	assert.Equal(t, "id", got.Id.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())

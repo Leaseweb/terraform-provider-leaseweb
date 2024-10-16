@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewIp(t *testing.T) {
+func Test_newIp(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
@@ -16,7 +16,7 @@ func TestNewIp(t *testing.T) {
 	want := Ip{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got := NewIp(sdkIp)
+	got := newIp(sdkIp)
 
 	assert.Equal(t, want, got)
 }

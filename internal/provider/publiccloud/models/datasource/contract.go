@@ -15,7 +15,7 @@ type Contract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func NewContract(sdkContract publicCloud.Contract) Contract {
+func newContract(sdkContract publicCloud.Contract) Contract {
 	return Contract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),

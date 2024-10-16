@@ -10,7 +10,7 @@ type Image struct {
 	Id types.String `tfsdk:"id"`
 }
 
-func NewImage(sdkImage publicCloud.Image) Image {
+func newImage(sdkImage publicCloud.Image) Image {
 	return Image{
 		Id: basetypes.NewStringValue(sdkImage.Id),
 	}

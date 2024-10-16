@@ -10,7 +10,7 @@ type Ip struct {
 	Ip types.String `tfsdk:"ip"`
 }
 
-func NewIp(sdkIp publicCloud.Ip) Ip {
+func newIp(sdkIp publicCloud.Ip) Ip {
 	return Ip{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}

@@ -12,7 +12,7 @@ func NewInstances(sdkInstances []publicCloud.Instance) Instances {
 	var instances Instances
 
 	for _, sdkInstance := range sdkInstances {
-		instance := NewInstance(sdkInstance)
+		instance := newInstance(sdkInstance)
 		instances.Instances = append(instances.Instances, instance)
 	}
 
