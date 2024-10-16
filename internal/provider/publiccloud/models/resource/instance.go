@@ -23,8 +23,6 @@ type Instance struct {
 	Ips                 types.List   `tfsdk:"ips"`
 	Contract            types.Object `tfsdk:"contract"`
 	MarketAppId         types.String `tfsdk:"market_app_id"`
-	// TODO Enable SSH key support
-	//SshKey              types.String `tfsdk:"ssh_key"`
 }
 
 func (i Instance) AttributeTypes() map[string]attr.Type {
@@ -48,9 +46,99 @@ func (i Instance) AttributeTypes() map[string]attr.Type {
 			AttrTypes: Contract{}.AttributeTypes(),
 		},
 		"market_app_id": types.StringType,
-		// TODO Enable SSH key support
-		//"ssh_key": types.StringType,
 	}
+}
+
+func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (*publicCloud.LaunchInstanceOpts, error) {
+	sdkRootDiskStorageType, err := publicCloud.NewStorageTypeFromValue(
+		i.RootDiskStorageType.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	image := Image{}
+	imageDiags := i.Image.As(
+		ctx,
+		&image,
+		basetypes.ObjectAsOptions{},
+	)
+	if imageDiags != nil {
+		return nil, shared.ReturnError(
+			"AdaptToCreateInstanceOpts",
+			imageDiags,
+		)
+	}
+
+	contract := Contract{}
+	contractDiags := i.Contract.As(
+		ctx,
+		&contract,
+		basetypes.ObjectAsOptions{},
+	)
+	if contractDiags != nil {
+		return nil, shared.ReturnError(
+			"AdaptToCreateInstanceOpts",
+			contractDiags,
+		)
+	}
+
+	sdkContractType, err := publicCloud.NewContractTypeFromValue(
+		contract.Type.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
+		int32(contract.Term.ValueInt64()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+		int32(contract.BillingFrequency.ValueInt64()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkRegionName, err := publicCloud.NewRegionNameFromValue(
+		i.Region.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkInstanceType, err := publicCloud.NewTypeNameFromValue(
+		i.Type.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := publicCloud.NewLaunchInstanceOpts(
+		*sdkRegionName,
+		*sdkInstanceType,
+		image.Id.ValueString(),
+		*sdkContractType,
+		*sdkContractTerm,
+		*sdkBillingFrequency,
+		*sdkRootDiskStorageType,
+	)
+
+	opts.MarketAppId = shared.AdaptStringPointerValueToNullableString(
+		i.MarketAppId,
+	)
+	opts.Reference = shared.AdaptStringPointerValueToNullableString(
+		i.Reference,
+	)
+	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
+		i.RootDiskSize,
+	)
+
+	return opts, nil
 }
 
 func NewFromInstance(

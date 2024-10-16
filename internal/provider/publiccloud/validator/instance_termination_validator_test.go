@@ -152,7 +152,5 @@ func generateInstanceModel() resource.Instance {
 			resource.Contract{}.AttributeTypes(),
 		),
 		MarketAppId: basetypes.NewStringUnknown(),
-		// TODO Enable SSH key support
-		//SshKey: basetypes.NewStringUnknown(),
 	}
 }

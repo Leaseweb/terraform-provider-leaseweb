@@ -128,57 +128,6 @@ func newRepositorySpy() repositorySpy {
 	}
 }
 
-func TestService_LaunchInstance(t *testing.T) {
-	t.Run("passes back instance from repository", func(t *testing.T) {
-		launchedInstance := generateInstance()
-		launchedInstance.Id = "instanceId"
-		launchedInstance.Image.Id = "tralala"
-
-		spy := newRepositorySpy()
-		spy.launchedInstance = &launchedInstance
-
-		service := New(&spy)
-
-		got, err := service.LaunchInstance(generateInstanceModel(), context.TODO())
-
-		assert.Nil(t, err)
-		assert.Equal(t, "instanceId", got.Id)
-	})
-
-	t.Run("passes back error from repository", func(t *testing.T) {
-		instanceService := New(
-			&repositorySpy{
-				launchedInstanceError: repository.NewSdkError(
-					"",
-					errors.New("some error"),
-					nil,
-				),
-			},
-		)
-
-		_, err := instanceService.LaunchInstance(generateInstanceModel(), context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("bubbles up error from adaptToLaunchInstanceOpts", func(t *testing.T) {
-		spy := newRepositorySpy()
-		service := New(&spy)
-		service.adaptToLaunchInstanceOpts = func(
-			instance resource.Instance,
-			ctx context.Context,
-		) (*publicCloud.LaunchInstanceOpts, error) {
-			return nil, errors.New("some error")
-		}
-
-		_, err := service.LaunchInstance(generateInstanceModel(), context.TODO())
-
-		assert.NotNil(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-}
-
 func TestService_UpdateInstance(t *testing.T) {
 	t.Run("passes back instance from repository", func(t *testing.T) {
 		updatedInstance := generateInstanceDetails()
@@ -895,14 +844,6 @@ func TestService_CanInstanceTypeBeUsedWithInstance(t *testing.T) {
 func generateInstanceDetails() publicCloud.InstanceDetails {
 	return publicCloud.InstanceDetails{
 		Id:     "id",
-		Image:  publicCloud.Image{Id: "imageId"},
-		Type:   "instanceType",
-		Region: "region",
-	}
-}
-
-func generateInstance() publicCloud.Instance {
-	return publicCloud.Instance{
 		Image:  publicCloud.Image{Id: "imageId"},
 		Type:   "instanceType",
 		Region: "region",

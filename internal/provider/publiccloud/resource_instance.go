@@ -78,16 +78,33 @@ func (i *instanceResource) Create(
 	}
 
 	tflog.Info(ctx, "Launch public cloud instance on API")
-	sdkInstance, err := i.client.PublicCloudService.LaunchInstance(plan, ctx)
+
+	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating Instance", err.Error())
+		resp.Diagnostics.AddError(
+			"Error creating launch instance opts",
+			err.Error(),
+		)
+
+		return
+	}
+
+	sdkInstance, repositoryErr := i.client.PublicCloudRepository.LaunchInstance(
+		*opts,
+		ctx,
+	)
+	if repositoryErr != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Instance",
+			repositoryErr.Error(),
+		)
 
 		logging.ServiceError(
 			ctx,
-			err.ErrorResponse,
+			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
 			"Error launching public cloud instance",
-			err.Error(),
+			repositoryErr.Error(),
 		)
 
 		return
@@ -217,7 +234,10 @@ func (i *instanceResource) Read(
 		ctx,
 	)
 	if resourceErr != nil {
-		resp.Diagnostics.AddError("Error creating public cloud instance resource", resourceErr.Error())
+		resp.Diagnostics.AddError(
+			"Error creating public cloud instance resource",
+			resourceErr.Error(),
+		)
 
 		return
 	}
@@ -325,21 +345,6 @@ func (i *instanceResource) Schema(
 					),
 				},
 			},
-			// TODO Enable SSH key support
-			/**
-			  "ssh_key": schema.StringAttribute{
-			  	Optional:      true,
-			  	Sensitive:     true,
-			  	PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			  	Description:   "Public SSH key to be installed into the instance. Must be used only on Linux/FreeBSD instances",
-			  	Validators: []validator.String{
-			  		stringvalidator.RegexMatches(
-			  			regexp.MustCompile(service.GetSshKeyRegularExpression()),
-			  			"Invalid ssh key",
-			  		),
-			  	},
-			  },
-			*/
 			"root_disk_size": schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,

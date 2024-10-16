@@ -11,12 +11,6 @@ import (
 
 // PublicCloudService gets data associated with public_cloud.
 type PublicCloudService interface {
-	// LaunchInstance creates an instance.
-	LaunchInstance(
-		plan resourceModel.Instance,
-		ctx context.Context,
-	) (*publicCloud.Instance, *errors.ServiceError)
-
 	// UpdateInstance updates an instance.
 	UpdateInstance(
 		plan resourceModel.Instance,

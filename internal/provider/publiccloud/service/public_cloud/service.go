@@ -31,10 +31,6 @@ var maximumRootDiskSize = 1000
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
 	publicCloudRepository     contracts.PublicCloudRepository
-	adaptToLaunchInstanceOpts func(
-		instance resourceModel.Instance,
-		ctx context.Context,
-	) (*publicCloud.LaunchInstanceOpts, error)
 	adaptToUpdateInstanceOpts func(
 		instance resourceModel.Instance,
 		ctx context.Context,
@@ -50,24 +46,6 @@ func (srv *Service) getSdkInstance(
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError("GetInstance", *err)
-	}
-
-	return instance, nil
-}
-
-func (srv *Service) LaunchInstance(
-	plan resourceModel.Instance,
-	ctx context.Context,
-) (*publicCloud.Instance, *errors.ServiceError) {
-
-	opts, err := srv.adaptToLaunchInstanceOpts(plan, ctx)
-	if err != nil {
-		return nil, errors.NewError("LaunchInstance", err)
-	}
-
-	instance, repositoryErr := srv.publicCloudRepository.LaunchInstance(*opts, ctx)
-	if repositoryErr != nil {
-		return nil, errors.NewFromRepositoryError("LaunchInstance", *repositoryErr)
 	}
 
 	return instance, nil
@@ -330,7 +308,6 @@ func (srv *Service) CanInstanceTypeBeUsedWithInstance(
 func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository:     publicCloudRepository,
-		adaptToLaunchInstanceOpts: to_opts.AdaptToLaunchInstanceOpts,
 		adaptToUpdateInstanceOpts: to_opts.AdaptToUpdateInstanceOpts,
 		cachedInstanceTypes:       synced_map.NewSyncedMap[string, []string](),
 		cachedRegions:             synced_map.NewSyncedMap[string, []string](),
