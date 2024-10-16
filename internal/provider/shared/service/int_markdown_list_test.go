@@ -15,7 +15,7 @@ func TestIntMarkdownList_Markdown(t *testing.T) {
 }
 
 func TestNewIntMarkdownList(t *testing.T) {
-	got := NewIntMarkdownList([]int{1, 2, 3})
+	got := NewIntMarkdownList([]int32{1, 2, 3})
 	want := IntMarkdownList{1, 2, 3}
 
 	assert.Equal(t, want, got)

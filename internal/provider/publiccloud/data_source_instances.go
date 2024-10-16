@@ -10,11 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 	datasourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
-	publicCloud "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 )
 
 var (
@@ -99,7 +101,14 @@ func (d *instancesDataSource) Schema(
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
 ) {
-	publicCloudService := publicCloud.Service{}
+	// 0 has to be prepended manually as it's a valid option.
+	billingFrequencies := service.NewIntMarkdownList(
+		append(
+			[]publicCloud.BillingFrequency{0},
+			publicCloud.AllowedBillingFrequencyEnumValues...,
+		),
+	)
+	contractTerms := service.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -155,23 +164,23 @@ func (d *instancesDataSource) Schema(
 							Attributes: map[string]schema.Attribute{
 								"billing_frequency": schema.Int64Attribute{
 									Computed:    true,
-									Description: "The billing frequency (in months). Valid options are " + publicCloudService.GetBillingFrequencies().Markdown(),
+									Description: "The billing frequency (in months). Valid options are " + billingFrequencies.Markdown(),
 									Validators: []validator.Int64{
-										int64validator.OneOf(publicCloudService.GetBillingFrequencies().ToInt64()...),
+										int64validator.OneOf(billingFrequencies.ToInt64()...),
 									},
 								},
 								"term": schema.Int64Attribute{
 									Computed:    true,
-									Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + publicCloudService.GetContractTerms().Markdown(),
+									Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + contractTerms.Markdown(),
 									Validators: []validator.Int64{
-										int64validator.OneOf(publicCloudService.GetContractTerms().ToInt64()...),
+										int64validator.OneOf(contractTerms.ToInt64()...),
 									},
 								},
 								"type": schema.StringAttribute{
 									Computed:    true,
 									Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 									Validators: []validator.String{
-										stringvalidator.OneOf(publicCloudService.GetContractTypes()...),
+										stringvalidator.OneOf(shared.AdaptContractTypesToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 									},
 								},
 								"ends_at": schema.StringAttribute{Computed: true},

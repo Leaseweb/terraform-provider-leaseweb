@@ -15,12 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
-	publicCloud "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 )
 
 var (
@@ -312,8 +314,15 @@ func (i *instanceResource) Schema(
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-	publicCloudService := publicCloud.Service{}
-	service := public_cloud.Service{}
+	// 0 has to be prepended manually as it's a valid option.
+	billingFrequencies := service.NewIntMarkdownList(
+		append(
+			[]publicCloud.BillingFrequency{0},
+			publicCloud.AllowedBillingFrequencyEnumValues...,
+		),
+	)
+	contractTerms := service.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	publicCloudService := public_cloud.Service{}
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
@@ -367,8 +376,8 @@ func (i *instanceResource) Schema(
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
 				Validators: []validator.Int64{
 					int64validator.Between(
-						service.GetMinimumRootDiskSize(),
-						service.GetMaximumRootDiskSize(),
+						publicCloudService.GetMinimumRootDiskSize(),
+						publicCloudService.GetMaximumRootDiskSize(),
 					),
 				},
 			},
@@ -376,7 +385,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(service.GetRootDiskStorageTypes()...),
+					stringvalidator.OneOf(publicCloudService.GetRootDiskStorageTypes()...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -395,23 +404,23 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"billing_frequency": schema.Int64Attribute{
 						Required:    true,
-						Description: "The billing frequency (in months). Valid options are " + publicCloudService.GetBillingFrequencies().Markdown(),
+						Description: "The billing frequency (in months). Valid options are " + billingFrequencies.Markdown(),
 						Validators: []validator.Int64{
-							int64validator.OneOf(publicCloudService.GetBillingFrequencies().ToInt64()...),
+							int64validator.OneOf(billingFrequencies.ToInt64()...),
 						},
 					},
 					"term": schema.Int64Attribute{
 						Required:    true,
-						Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + publicCloudService.GetContractTerms().Markdown(),
+						Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + contractTerms.Markdown(),
 						Validators: []validator.Int64{
-							int64validator.OneOf(publicCloudService.GetContractTerms().ToInt64()...),
+							int64validator.OneOf(contractTerms.ToInt64()...),
 						},
 					},
 					"type": schema.StringAttribute{
 						Required:    true,
 						Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 						Validators: []validator.String{
-							stringvalidator.OneOf(publicCloudService.GetContractTypes()...),
+							stringvalidator.OneOf(shared.AdaptContractTypesToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 						},
 					},
 					"ends_at": schema.StringAttribute{Computed: true},

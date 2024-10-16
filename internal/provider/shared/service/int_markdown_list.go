@@ -25,10 +25,10 @@ func (i IntMarkdownList) ToInt64() []int64 {
 	return returnValues
 }
 
-func NewIntMarkdownList(values []int) IntMarkdownList {
+func NewIntMarkdownList[T ~int32](values []T) IntMarkdownList {
 	i := IntMarkdownList{}
 	for _, value := range values {
-		i = append(i, value)
+		i = append(i, int(value))
 	}
 
 	return i

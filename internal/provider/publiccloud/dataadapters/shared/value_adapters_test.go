@@ -395,3 +395,10 @@ func ExampleReturnError() {
 	fmt.Println(returnedErrors)
 	// Output:  functionName: "summary" "detail"
 }
+
+func TestAdaptContractTermsToStringArray(t *testing.T) {
+	want := []string{"HOURLY", "MONTHLY"}
+	got := AdaptContractTypesToStringArray(publicCloud.AllowedContractTypeEnumValues)
+
+	assert.Equal(t, want, got)
+}

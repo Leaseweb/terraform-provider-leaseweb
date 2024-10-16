@@ -8,7 +8,6 @@ import (
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/synced_map"
 )
@@ -93,38 +92,6 @@ func (srv *Service) GetAvailableInstanceTypesForRegion(
 	srv.cachedInstanceTypes.Set(region, instanceTypes)
 
 	return instanceTypes, nil
-}
-
-func (srv *Service) GetBillingFrequencies() service.IntMarkdownList {
-	var convertedBillingFrequencies []int
-	// Have to add 0 manually here, no way round it.
-	convertedBillingFrequencies = append(convertedBillingFrequencies, 0)
-
-	for _, billingFrequency := range publicCloud.AllowedBillingFrequencyEnumValues {
-		convertedBillingFrequencies = append(convertedBillingFrequencies, int(billingFrequency))
-	}
-
-	return service.NewIntMarkdownList(convertedBillingFrequencies)
-}
-
-func (srv *Service) GetContractTerms() service.IntMarkdownList {
-	var convertedContractTerms []int
-
-	for _, contractTerm := range publicCloud.AllowedContractTermEnumValues {
-		convertedContractTerms = append(convertedContractTerms, int(contractTerm))
-	}
-
-	return service.NewIntMarkdownList(convertedContractTerms)
-}
-
-func (srv *Service) GetContractTypes() []string {
-	var convertedContractTypes []string
-
-	for _, contractType := range publicCloud.AllowedContractTypeEnumValues {
-		convertedContractTypes = append(convertedContractTypes, string(contractType))
-	}
-
-	return convertedContractTypes
 }
 
 func (srv *Service) ValidateContractTerm(

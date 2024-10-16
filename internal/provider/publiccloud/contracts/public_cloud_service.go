@@ -3,7 +3,6 @@ package contracts
 import (
 	"context"
 
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )
 
@@ -23,15 +22,6 @@ type PublicCloudService interface {
 		region string,
 		ctx context.Context,
 	) ([]string, *errors.ServiceError)
-
-	// GetBillingFrequencies returns a list of valid billing frequencies.
-	GetBillingFrequencies() service.IntMarkdownList
-
-	// GetContractTerms returns a list of valid contract terms.
-	GetContractTerms() service.IntMarkdownList
-
-	// GetContractTypes returns a list of valid contract types.
-	GetContractTypes() []string
 
 	// ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
 	ValidateContractTerm(contractTerm int64, contractType string) error

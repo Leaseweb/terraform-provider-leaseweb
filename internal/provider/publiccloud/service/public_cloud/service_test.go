@@ -9,7 +9,6 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
-	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -294,30 +293,6 @@ func BenchmarkService_GetRegions(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = service.GetRegions(context.TODO())
 	}
-}
-
-func TestService_GetBillingFrequencies(t *testing.T) {
-	service := Service{}
-	want := shared2.NewIntMarkdownList([]int{0, 1, 3, 6, 12})
-	got := service.GetBillingFrequencies()
-
-	assert.Equal(t, want, got)
-}
-
-func TestService_GetContractTerms(t *testing.T) {
-	service := Service{}
-	want := shared2.NewIntMarkdownList([]int{0, 1, 3, 6, 12})
-	got := service.GetContractTerms()
-
-	assert.Equal(t, want, got)
-}
-
-func TestService_GetContractTypes(t *testing.T) {
-	service := Service{}
-	want := []string{"HOURLY", "MONTHLY"}
-	got := service.GetContractTypes()
-
-	assert.Equal(t, want, got)
 }
 
 func TestService_ValidateContractTerm(t *testing.T) {
