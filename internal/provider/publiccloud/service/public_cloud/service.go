@@ -8,8 +8,6 @@ import (
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/to_opts"
-	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/synced_map"
@@ -30,13 +28,9 @@ var maximumRootDiskSize = 1000
 
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
-	publicCloudRepository     contracts.PublicCloudRepository
-	adaptToUpdateInstanceOpts func(
-		instance resourceModel.Instance,
-		ctx context.Context,
-	) (*publicCloud.UpdateInstanceOpts, error)
-	cachedInstanceTypes synced_map.SyncedMap[string, []string]
-	cachedRegions       synced_map.SyncedMap[string, []string]
+	publicCloudRepository contracts.PublicCloudRepository
+	cachedInstanceTypes   synced_map.SyncedMap[string, []string]
+	cachedRegions         synced_map.SyncedMap[string, []string]
 }
 
 func (srv *Service) getSdkInstance(
@@ -46,27 +40,6 @@ func (srv *Service) getSdkInstance(
 	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
 	if err != nil {
 		return nil, errors.NewFromRepositoryError("GetInstance", *err)
-	}
-
-	return instance, nil
-}
-
-func (srv *Service) UpdateInstance(
-	plan resourceModel.Instance,
-	ctx context.Context,
-) (*publicCloud.InstanceDetails, *errors.ServiceError) {
-	opts, err := srv.adaptToUpdateInstanceOpts(plan, ctx)
-	if err != nil {
-		return nil, errors.NewError("UpdateInstance", err)
-	}
-
-	instance, repositoryErr := srv.publicCloudRepository.UpdateInstance(
-		plan.Id.ValueString(),
-		*opts,
-		ctx,
-	)
-	if repositoryErr != nil {
-		return nil, errors.NewFromRepositoryError("UpdateInstance", *repositoryErr)
 	}
 
 	return instance, nil
@@ -307,9 +280,8 @@ func (srv *Service) CanInstanceTypeBeUsedWithInstance(
 
 func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
-		publicCloudRepository:     publicCloudRepository,
-		adaptToUpdateInstanceOpts: to_opts.AdaptToUpdateInstanceOpts,
-		cachedInstanceTypes:       synced_map.NewSyncedMap[string, []string](),
-		cachedRegions:             synced_map.NewSyncedMap[string, []string](),
+		publicCloudRepository: publicCloudRepository,
+		cachedInstanceTypes:   synced_map.NewSyncedMap[string, []string](),
+		cachedRegions:         synced_map.NewSyncedMap[string, []string](),
 	}
 }

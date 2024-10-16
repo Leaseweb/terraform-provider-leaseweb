@@ -266,19 +266,35 @@ func (i *instanceResource) Update(
 		"Update public cloud instance %q",
 		plan.Id.ValueString(),
 	))
-	sdkInstance, err := i.client.PublicCloudService.UpdateInstance(plan, ctx)
+	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating instance", err.Error())
+		resp.Diagnostics.AddError(
+			"Error creating UpdateInstanceOpts",
+			err.Error(),
+		)
+		return
+	}
+
+	sdkInstance, repositoryErr := i.client.PublicCloudRepository.UpdateInstance(
+		plan.Id.ValueString(),
+		*opts,
+		ctx,
+	)
+	if repositoryErr != nil {
+		resp.Diagnostics.AddError(
+			"Error updating instance",
+			repositoryErr.Error(),
+		)
 
 		logging.ServiceError(
 			ctx,
-			err.ErrorResponse,
+			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Unable to update public cloud instance %q",
 				plan.Id.ValueString(),
 			),
-			err.Error(),
+			repositoryErr.Error(),
 		)
 
 		return

@@ -49,7 +49,10 @@ func (i Instance) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (*publicCloud.LaunchInstanceOpts, error) {
+func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
+	*publicCloud.LaunchInstanceOpts,
+	error,
+) {
 	sdkRootDiskStorageType, err := publicCloud.NewStorageTypeFromValue(
 		i.RootDiskStorageType.ValueString(),
 	)
@@ -137,6 +140,87 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (*publicCloud.Launc
 	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
 		i.RootDiskSize,
 	)
+
+	return opts, nil
+}
+
+func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
+	*publicCloud.UpdateInstanceOpts,
+	error,
+) {
+
+	opts := publicCloud.NewUpdateInstanceOpts()
+	opts.Reference = shared.AdaptStringPointerValueToNullableString(
+		i.Reference,
+	)
+	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
+		i.RootDiskSize,
+	)
+
+	contract := Contract{}
+	diags := i.Contract.As(
+		ctx,
+		&contract,
+		basetypes.ObjectAsOptions{},
+	)
+	if diags.HasError() {
+		return nil, shared.ReturnError(
+			"AdaptToUpdateInstanceOpts",
+			diags,
+		)
+	}
+
+	if contract.Type.ValueString() != "" {
+		contractType, err := publicCloud.NewContractTypeFromValue(
+			contract.Type.ValueString(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"AdaptToUpdateInstanceOpts: %w",
+				err,
+			)
+		}
+		opts.ContractType = contractType
+	}
+
+	if contract.Term.ValueInt64() != 0 {
+		contractTerm, err := publicCloud.NewContractTermFromValue(
+			int32(contract.Term.ValueInt64()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"AdaptToUpdateInstanceOpts: %w",
+				err,
+			)
+		}
+		opts.ContractTerm = contractTerm
+	}
+
+	if contract.BillingFrequency.ValueInt64() != 0 {
+		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+			int32(contract.BillingFrequency.ValueInt64()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"AdaptToUpdateInstanceOpts: %w",
+				err,
+			)
+		}
+		opts.BillingFrequency = billingFrequency
+	}
+
+	if i.Type.ValueString() != "" {
+		instanceType, err := publicCloud.NewTypeNameFromValue(
+			i.Type.ValueString(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"AdaptToUpdateInstanceOpts: %w",
+				err,
+			)
+		}
+		opts.Type = instanceType
+	}
 
 	return opts, nil
 }

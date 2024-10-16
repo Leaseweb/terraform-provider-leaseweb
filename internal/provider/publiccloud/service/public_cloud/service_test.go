@@ -6,11 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/stretchr/testify/assert"
@@ -126,56 +123,6 @@ func newRepositorySpy() repositorySpy {
 		getInstanceTypesForRegionSleep: 0,
 		regions:                        []string{"region"},
 	}
-}
-
-func TestService_UpdateInstance(t *testing.T) {
-	t.Run("passes back instance from repository", func(t *testing.T) {
-		updatedInstance := generateInstanceDetails()
-		updatedInstance.Id = "instanceId"
-
-		spy := newRepositorySpy()
-		spy.updatedInstance = &updatedInstance
-
-		service := New(&spy)
-
-		got, err := service.UpdateInstance(generateInstanceModel(), context.TODO())
-
-		assert.Nil(t, err)
-		assert.Equal(t, "instanceId", got.Id)
-	})
-
-	t.Run("passes back error from repository", func(t *testing.T) {
-		service := New(
-			&repositorySpy{
-				updateInstanceError: repository.NewSdkError(
-					"",
-					errors.New("some error"),
-					nil,
-				),
-			},
-		)
-
-		_, err := service.UpdateInstance(generateInstanceModel(), context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("bubbles up error from adaptToUpdateInstanceOpts", func(t *testing.T) {
-		spy := newRepositorySpy()
-		service := New(&spy)
-		service.adaptToUpdateInstanceOpts = func(
-			instance resource.Instance,
-			ctx context.Context,
-		) (*publicCloud.UpdateInstanceOpts, error) {
-			return nil, errors.New("some error")
-		}
-
-		_, err := service.UpdateInstance(generateInstanceModel(), context.TODO())
-
-		assert.NotNil(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
 }
 
 func TestService_DeleteInstance(t *testing.T) {
@@ -847,38 +794,5 @@ func generateInstanceDetails() publicCloud.InstanceDetails {
 		Image:  publicCloud.Image{Id: "imageId"},
 		Type:   "instanceType",
 		Region: "region",
-	}
-}
-
-func generateInstanceModel() resource.Instance {
-	image, _ := types.ObjectValueFrom(
-		context.TODO(),
-		resource.Image{}.AttributeTypes(),
-		resource.Image{
-			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
-		},
-	)
-
-	contract, _ := types.ObjectValueFrom(
-		context.TODO(),
-		resource.Contract{}.AttributeTypes(),
-		resource.Contract{
-			BillingFrequency: basetypes.NewInt64Value(int64(1)),
-			Term:             basetypes.NewInt64Value(int64(3)),
-			Type:             basetypes.NewStringValue("MONTHLY"),
-			State:            basetypes.NewStringUnknown(),
-		},
-	)
-
-	return resource.Instance{
-		Id:                  basetypes.NewStringValue("id"),
-		Region:              basetypes.NewStringValue("eu-west-3"),
-		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
-		RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
-		RootDiskSize:        basetypes.NewInt64Value(int64(55)),
-		Image:               image,
-		Contract:            contract,
-		MarketAppId:         basetypes.NewStringValue("marketAppId"),
-		Reference:           basetypes.NewStringValue("reference"),
 	}
 }
