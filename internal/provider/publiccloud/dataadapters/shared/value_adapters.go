@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
 // AdaptInt64PointerValueToNullableInt32 converts a Terraform
@@ -156,7 +155,7 @@ func ReturnError(functionName string, diags diag.Diagnostics) error {
 	return nil
 }
 
-func AdaptContractTypesToStringArray(types []publicCloud.ContractType) []string {
+func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {
 	var convertedTypes []string
 
 	for _, contractType := range types {

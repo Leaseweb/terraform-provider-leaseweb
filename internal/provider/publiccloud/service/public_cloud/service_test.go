@@ -345,13 +345,6 @@ func TestService_ValidateContractTerm(t *testing.T) {
 	)
 }
 
-func TestService_GetRootDiskStorageTypes(t *testing.T) {
-	service := Service{}
-	got := service.GetRootDiskStorageTypes()
-
-	assert.Contains(t, got, "CENTRAL")
-}
-
 func TestService_DoesRegionExist(t *testing.T) {
 	t.Run("returns true if region exists", func(t *testing.T) {
 		spy := newRepositorySpy()

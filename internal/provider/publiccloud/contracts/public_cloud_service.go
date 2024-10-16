@@ -26,9 +26,6 @@ type PublicCloudService interface {
 	// ValidateContractTerm checks if the passed combination of contractTerm & contractType is valid.
 	ValidateContractTerm(contractTerm int64, contractType string) error
 
-	// GetRootDiskStorageTypes returns a list of valid rootDiskStorageTypes.
-	GetRootDiskStorageTypes() []string
-
 	// DoesRegionExist checks if the region exists.
 	DoesRegionExist(
 		region string,

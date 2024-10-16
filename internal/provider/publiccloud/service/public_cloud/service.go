@@ -115,16 +115,6 @@ func (srv *Service) ValidateContractTerm(
 	return nil
 }
 
-func (srv *Service) GetRootDiskStorageTypes() []string {
-	var convertedStates []string
-
-	for _, state := range publicCloud.AllowedStorageTypeEnumValues {
-		convertedStates = append(convertedStates, string(state))
-	}
-
-	return convertedStates
-}
-
 func (srv *Service) DoesRegionExist(
 	region string,
 	ctx context.Context,

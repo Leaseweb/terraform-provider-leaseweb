@@ -396,9 +396,19 @@ func ExampleReturnError() {
 	// Output:  functionName: "summary" "detail"
 }
 
-func TestAdaptContractTermsToStringArray(t *testing.T) {
+func TestAdaptStringTypeArrayToStringArray(t *testing.T) {
 	want := []string{"HOURLY", "MONTHLY"}
-	got := AdaptContractTypesToStringArray(publicCloud.AllowedContractTypeEnumValues)
+	got := AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)
 
 	assert.Equal(t, want, got)
+}
+
+func ExampleAdaptStringTypeArrayToStringArray() {
+	type customType string
+	customTypes := []customType{customType("value")}
+
+	stringTypes := AdaptStringTypeArrayToStringArray(customTypes)
+
+	fmt.Println(stringTypes)
+	// Output: [value]
 }

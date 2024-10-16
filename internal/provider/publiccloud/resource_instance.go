@@ -19,7 +19,6 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/service/public_cloud"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
@@ -322,7 +321,6 @@ func (i *instanceResource) Schema(
 		),
 	)
 	contractTerms := service.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
-	publicCloudService := public_cloud.Service{}
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
@@ -382,7 +380,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(publicCloudService.GetRootDiskStorageTypes()...),
+					stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedStorageTypeEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -417,7 +415,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 						Validators: []validator.String{
-							stringvalidator.OneOf(shared.AdaptContractTypesToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+							stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 						},
 					},
 					"ends_at": schema.StringAttribute{Computed: true},

@@ -180,7 +180,7 @@ func (d *instancesDataSource) Schema(
 									Computed:    true,
 									Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 									Validators: []validator.String{
-										stringvalidator.OneOf(shared.AdaptContractTypesToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+										stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 									},
 								},
 								"ends_at": schema.StringAttribute{Computed: true},
