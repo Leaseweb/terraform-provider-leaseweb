@@ -24,13 +24,6 @@ type PublicCloudService interface {
 		ctx context.Context,
 	) ([]string, *errors.ServiceError)
 
-	// CanInstanceBeTerminated determines if an instance can be terminated.
-	CanInstanceBeTerminated(id string, ctx context.Context) (
-		bool,
-		*string,
-		*errors.ServiceError,
-	)
-
 	// GetBillingFrequencies returns a list of valid billing frequencies.
 	GetBillingFrequencies() service.IntMarkdownList
 

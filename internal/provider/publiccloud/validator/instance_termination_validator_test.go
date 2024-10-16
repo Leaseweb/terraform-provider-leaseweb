@@ -20,9 +20,8 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 
 		validator := ValidateInstanceTermination(
 			func(
-				instanceId string,
 				ctx context.Context,
-			) (bool, *string, *serviceErrors.ServiceError) {
+			) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
 				return false, nil, nil
 			},
 		)
@@ -37,7 +36,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 		)
 	})
 
-	t.Run("facade errors bubble up", func(t *testing.T) {
+	t.Run("resource errors bubble up", func(t *testing.T) {
 		instance := generateInstanceModel()
 		instanceObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -49,9 +48,8 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 
 		validator := ValidateInstanceTermination(
 			func(
-				instanceId string,
 				ctx context.Context,
-			) (bool, *string, *serviceErrors.ServiceError) {
+			) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
 				return false, nil, serviceErrors.NewError(
 					"",
 					errors.New("something went wrong"),
@@ -88,9 +86,8 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 
 			validator := ValidateInstanceTermination(
 				func(
-					instanceId string,
 					ctx context.Context,
-				) (bool, *string, *serviceErrors.ServiceError) {
+				) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
 					return true, nil, nil
 				},
 			)
@@ -115,10 +112,9 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 
 			validator := ValidateInstanceTermination(
 				func(
-					instanceId string,
 					ctx context.Context,
-				) (bool, *string, *serviceErrors.ServiceError) {
-					reason := "reason"
+				) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
+					reason := resource.ReasonInstanceCannotBeTerminated("reason")
 					return false, &reason, nil
 				},
 			)

@@ -11,6 +11,8 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 )
 
+type ReasonInstanceCannotBeTerminated string
+
 type Instance struct {
 	Id                  types.String `tfsdk:"id"`
 	Region              types.String `tfsdk:"region"`
@@ -223,6 +225,39 @@ func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	return opts, nil
+}
+
+func (i Instance) CanBeTerminated(ctx context.Context) (bool, *ReasonInstanceCannotBeTerminated, error) {
+	contract := Contract{}
+	contractDiags := i.Contract.As(
+		ctx,
+		&contract,
+		basetypes.ObjectAsOptions{},
+	)
+	if contractDiags != nil {
+		return false, nil, shared.ReturnError(
+			"AdaptToCreateInstanceOpts",
+			contractDiags,
+		)
+	}
+
+	if i.State.ValueString() == string(publicCloud.STATE_CREATING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYED) {
+		reason := ReasonInstanceCannotBeTerminated(
+			fmt.Sprintf("state is %q", i.State),
+		)
+
+		return false, &reason, nil
+	}
+
+	if !contract.EndsAt.IsNull() {
+		reason := ReasonInstanceCannotBeTerminated(
+			fmt.Sprintf("contract.endsAt is %q", contract.EndsAt.ValueString()),
+		)
+
+		return false, &reason, nil
+	}
+
+	return true, nil, nil
 }
 
 func NewFromInstance(

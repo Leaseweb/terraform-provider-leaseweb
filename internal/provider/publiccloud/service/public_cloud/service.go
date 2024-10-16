@@ -33,18 +33,6 @@ type Service struct {
 	cachedRegions         synced_map.SyncedMap[string, []string]
 }
 
-func (srv *Service) getSdkInstance(
-	id string,
-	ctx context.Context,
-) (*publicCloud.InstanceDetails, *errors.ServiceError) {
-	instance, err := srv.publicCloudRepository.GetInstance(id, ctx)
-	if err != nil {
-		return nil, errors.NewFromRepositoryError("GetInstance", *err)
-	}
-
-	return instance, nil
-}
-
 func (srv *Service) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
@@ -105,31 +93,6 @@ func (srv *Service) GetAvailableInstanceTypesForRegion(
 	srv.cachedInstanceTypes.Set(region, instanceTypes)
 
 	return instanceTypes, nil
-}
-
-func (srv *Service) CanInstanceBeTerminated(id string, ctx context.Context) (
-	bool,
-	*string,
-	*errors.ServiceError,
-) {
-	instance, err := srv.getSdkInstance(id, ctx)
-	if err != nil {
-		return false, nil, errors.NewError("CanInstanceBeTerminated", err)
-	}
-
-	if instance.State == publicCloud.STATE_CREATING || instance.State == publicCloud.STATE_DESTROYING || instance.State == publicCloud.STATE_DESTROYED {
-		reason := fmt.Sprintf("state is %q", instance.State)
-
-		return false, &reason, nil
-	}
-
-	if instance.Contract.EndsAt.Get() != nil {
-		reason := fmt.Sprintf("contract.endsAt is %q", instance.Contract.EndsAt.Get())
-
-		return false, &reason, nil
-	}
-
-	return true, nil, nil
 }
 
 func (srv *Service) GetBillingFrequencies() service.IntMarkdownList {

@@ -540,7 +540,7 @@ func (i *instanceResource) validateInstance(
 	instanceRequest := validator.ObjectRequest{ConfigValue: instanceObject}
 	instanceResponse := validator.ObjectResponse{}
 	validateInstanceTermination := customValidator.ValidateInstanceTermination(
-		i.client.PublicCloudService.CanInstanceBeTerminated,
+		instance.CanBeTerminated,
 	)
 	validateInstanceTermination.ValidateObject(
 		ctx,
