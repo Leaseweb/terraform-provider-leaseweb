@@ -3,6 +3,7 @@ package contracts
 import (
 	"context"
 
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
@@ -10,23 +11,17 @@ import (
 
 // PublicCloudService gets data associated with public_cloud.
 type PublicCloudService interface {
-	// GetInstance gets a single instance.
-	GetInstance(
-		id string,
-		ctx context.Context,
-	) (*resourceModel.Instance, *errors.ServiceError)
-
 	// LaunchInstance creates an instance.
 	LaunchInstance(
 		plan resourceModel.Instance,
 		ctx context.Context,
-	) (*resourceModel.Instance, *errors.ServiceError)
+	) (*publicCloud.Instance, *errors.ServiceError)
 
 	// UpdateInstance updates an instance.
 	UpdateInstance(
 		plan resourceModel.Instance,
 		ctx context.Context,
-	) (*resourceModel.Instance, *errors.ServiceError)
+	) (*publicCloud.InstanceDetails, *errors.ServiceError)
 
 	// DeleteInstance deletes an instance.
 	DeleteInstance(id string, ctx context.Context) *errors.ServiceError

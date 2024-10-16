@@ -77,8 +77,8 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	tflog.Info(ctx, "Creating public cloud instance")
-	instance, err := i.client.PublicCloudService.LaunchInstance(plan, ctx)
+	tflog.Info(ctx, "Launch public cloud instance on API")
+	sdkInstance, err := i.client.PublicCloudService.LaunchInstance(plan, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Instance", err.Error())
 
@@ -86,8 +86,18 @@ func (i *instanceResource) Create(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
-			"Error creating public cloud instance",
+			"Error launching public cloud instance",
 			err.Error(),
+		)
+
+		return
+	}
+
+	instance, resourceErr := resourceModel.NewFromInstance(*sdkInstance, ctx)
+	if resourceErr != nil {
+		resp.Diagnostics.AddError(
+			"Error creating public cloud instance resource",
+			resourceErr.Error(),
 		)
 
 		return
@@ -113,7 +123,7 @@ func (i *instanceResource) Delete(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf(
-		"Deleting public cloud instance %q",
+		"Terminate public cloud instance %q",
 		state.Id.ValueString(),
 	))
 	err := i.client.PublicCloudService.DeleteInstance(state.Id.ValueString(), ctx)
@@ -132,7 +142,7 @@ func (i *instanceResource) Delete(
 			err.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
-				"Error deleting public cloud instance %q",
+				"Error terminating public cloud instance %q",
 				state.Id.ValueString(),
 			),
 			err.Error(),
@@ -180,7 +190,7 @@ func (i *instanceResource) Read(
 		"Read public cloud instance %q",
 		state.Id.ValueString(),
 	))
-	instance, err := i.client.PublicCloudService.GetInstance(
+	sdkInstance, err := i.client.PublicCloudRepository.GetInstance(
 		state.Id.ValueString(),
 		ctx,
 	)
@@ -191,9 +201,23 @@ func (i *instanceResource) Read(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf("Unable to read instance %q", state.Id.ValueString()),
+			fmt.Sprintf("Unable to read Instance %q", state.Id.ValueString()),
 			err.Error(),
 		)
+
+		return
+	}
+
+	tflog.Info(ctx, fmt.Sprintf(
+		"Create public cloud instance resource for %q",
+		state.Id.ValueString(),
+	))
+	instance, resourceErr := resourceModel.NewFromInstanceDetails(
+		*sdkInstance,
+		ctx,
+	)
+	if resourceErr != nil {
+		resp.Diagnostics.AddError("Error creating public cloud instance resource", resourceErr.Error())
 
 		return
 	}
@@ -219,10 +243,10 @@ func (i *instanceResource) Update(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf(
-		"Updating public cloud instance %q",
+		"Update public cloud instance %q",
 		plan.Id.ValueString(),
 	))
-	updatedInstance, err := i.client.PublicCloudService.UpdateInstance(plan, ctx)
+	sdkInstance, err := i.client.PublicCloudService.UpdateInstance(plan, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating instance", err.Error())
 
@@ -240,7 +264,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	diags = resp.State.Set(ctx, updatedInstance)
+	diags = resp.State.Set(ctx, sdkInstance)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

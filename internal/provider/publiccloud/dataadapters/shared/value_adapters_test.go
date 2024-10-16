@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -304,14 +303,18 @@ func ExampleAdaptNullableStringToStringValue_second() {
 }
 
 func ExampleAdaptSdkModelToResourceObject() {
+	type Image struct {
+		Id types.String `tfsdk:"id"`
+	}
+
 	datasourceModel, _ := AdaptSdkModelToResourceObject(
 		publicCloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, image publicCloud.Image) (*resource.Image, error) {
-			return &resource.Image{
+		func(ctx context.Context, image publicCloud.Image) (*Image, error) {
+			return &Image{
 				Id: basetypes.NewStringValue(image.Id),
 			}, nil
 		},
@@ -322,14 +325,18 @@ func ExampleAdaptSdkModelToResourceObject() {
 }
 
 func ExampleAdaptSdkModelsToListValue() {
+	type Ip struct {
+		Ip types.String `tfsdk:"ip"`
+	}
+
 	listValue, _ := AdaptSdkModelsToListValue(
 		[]publicCloud.Ip{{Ip: "1.2.3.4"}},
 		map[string]attr.Type{
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, ip publicCloud.Ip) (*resource.Ip, error) {
-			return &resource.Ip{
+		func(ctx context.Context, ip publicCloud.Ip) (*Ip, error) {
+			return &Ip{
 				Ip: basetypes.NewStringValue(ip.Ip),
 			}, nil
 		},

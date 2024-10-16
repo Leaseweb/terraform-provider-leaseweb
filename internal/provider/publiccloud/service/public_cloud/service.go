@@ -9,7 +9,6 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/contracts"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/to_opts"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/to_resource_model"
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
@@ -31,15 +30,7 @@ var maximumRootDiskSize = 1000
 
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
-	publicCloudRepository contracts.PublicCloudRepository
-	adaptInstanceDetails  func(
-		sdkInstance publicCloud.InstanceDetails,
-		ctx context.Context,
-	) (*resourceModel.Instance, error)
-	adaptInstance func(
-		sdkInstance publicCloud.Instance,
-		ctx context.Context,
-	) (*resourceModel.Instance, error)
+	publicCloudRepository     contracts.PublicCloudRepository
 	adaptToLaunchInstanceOpts func(
 		instance resourceModel.Instance,
 		ctx context.Context,
@@ -50,23 +41,6 @@ type Service struct {
 	) (*publicCloud.UpdateInstanceOpts, error)
 	cachedInstanceTypes synced_map.SyncedMap[string, []string]
 	cachedRegions       synced_map.SyncedMap[string, []string]
-}
-
-func (srv *Service) GetInstance(
-	id string,
-	ctx context.Context,
-) (*resourceModel.Instance, *errors.ServiceError) {
-	instance, err := srv.getSdkInstance(id, ctx)
-	if err != nil {
-		return nil, errors.NewError("GetInstance", *err)
-	}
-
-	instanceResourceModel, adaptErr := srv.adaptInstanceDetails(*instance, ctx)
-	if adaptErr != nil {
-		return nil, errors.NewError("GetInstance", adaptErr)
-	}
-
-	return instanceResourceModel, nil
 }
 
 func (srv *Service) getSdkInstance(
@@ -84,7 +58,7 @@ func (srv *Service) getSdkInstance(
 func (srv *Service) LaunchInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
-) (*resourceModel.Instance, *errors.ServiceError) {
+) (*publicCloud.Instance, *errors.ServiceError) {
 
 	opts, err := srv.adaptToLaunchInstanceOpts(plan, ctx)
 	if err != nil {
@@ -96,18 +70,13 @@ func (srv *Service) LaunchInstance(
 		return nil, errors.NewFromRepositoryError("LaunchInstance", *repositoryErr)
 	}
 
-	instanceResourceModel, adaptErr := srv.adaptInstance(*instance, ctx)
-	if adaptErr != nil {
-		return nil, errors.NewError("LaunchInstance", adaptErr)
-	}
-
-	return instanceResourceModel, nil
+	return instance, nil
 }
 
 func (srv *Service) UpdateInstance(
 	plan resourceModel.Instance,
 	ctx context.Context,
-) (*resourceModel.Instance, *errors.ServiceError) {
+) (*publicCloud.InstanceDetails, *errors.ServiceError) {
 	opts, err := srv.adaptToUpdateInstanceOpts(plan, ctx)
 	if err != nil {
 		return nil, errors.NewError("UpdateInstance", err)
@@ -122,11 +91,7 @@ func (srv *Service) UpdateInstance(
 		return nil, errors.NewFromRepositoryError("UpdateInstance", *repositoryErr)
 	}
 
-	instanceResourceModel, adaptErr := srv.adaptInstanceDetails(*instance, ctx)
-	if adaptErr != nil {
-		return nil, errors.NewError("UpdateInstance", adaptErr)
-	}
-	return instanceResourceModel, nil
+	return instance, nil
 }
 
 func (srv *Service) DeleteInstance(
@@ -365,8 +330,6 @@ func (srv *Service) CanInstanceTypeBeUsedWithInstance(
 func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository:     publicCloudRepository,
-		adaptInstanceDetails:      to_resource_model.AdaptInstanceDetails,
-		adaptInstance:             to_resource_model.AdaptInstance,
 		adaptToLaunchInstanceOpts: to_opts.AdaptToLaunchInstanceOpts,
 		adaptToUpdateInstanceOpts: to_opts.AdaptToUpdateInstanceOpts,
 		cachedInstanceTypes:       synced_map.NewSyncedMap[string, []string](),

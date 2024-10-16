@@ -128,81 +128,6 @@ func newRepositorySpy() repositorySpy {
 	}
 }
 
-func TestService_GetInstance(t *testing.T) {
-	t.Run("passes back instance from repository", func(t *testing.T) {
-		instanceDetails := generateInstanceDetails()
-		instanceDetailsById := make(map[string]*publicCloud.InstanceDetails)
-		instanceDetailsById[instanceDetails.Id] = &instanceDetails
-
-		spy := newRepositorySpy()
-		spy.instanceDetailsById = instanceDetailsById
-		service := New(&spy)
-
-		got, err := service.GetInstance("id", context.TODO())
-
-		assert.Nil(t, err)
-		assert.Equal(t, "id", got.Id.ValueString())
-	})
-
-	t.Run("id is passed to repository", func(t *testing.T) {
-		instance := generateInstanceDetails()
-		instance.Id = "id"
-		instanceDetails := make(map[string]*publicCloud.InstanceDetails)
-		instanceDetails[instance.Id] = &instance
-
-		spy := newRepositorySpy()
-		spy.instanceDetailsById = instanceDetails
-		service := New(&spy)
-
-		want := "id"
-
-		_, _ = service.GetInstance(want, context.TODO())
-
-		assert.Equal(t, want, spy.passedGetInstanceId)
-	})
-
-	t.Run(
-		"bubbles up getInstance error from repository",
-		func(t *testing.T) {
-			service := New(
-				&repositorySpy{
-					getInstanceError: repository.NewSdkError(
-						"",
-						errors.New("some error"),
-						nil,
-					),
-				},
-			)
-
-			_, err := service.GetInstance("", context.TODO())
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "some error")
-		},
-	)
-
-	t.Run("bubbles up error from adaptInstanceDetails", func(t *testing.T) {
-		instanceDetails := generateInstanceDetails()
-		instanceDetailsById := make(map[string]*publicCloud.InstanceDetails)
-		instanceDetailsById[instanceDetails.Id] = &instanceDetails
-
-		spy := newRepositorySpy()
-		spy.instanceDetailsById = instanceDetailsById
-		service := New(&spy)
-		service.adaptInstanceDetails = func(
-			sdkInstance publicCloud.InstanceDetails,
-			ctx context.Context,
-		) (*resource.Instance, error) {
-			return nil, errors.New("some error")
-		}
-
-		_, err := service.GetInstance("id", context.TODO())
-
-		assert.NotNil(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-}
-
 func TestService_LaunchInstance(t *testing.T) {
 	t.Run("passes back instance from repository", func(t *testing.T) {
 		launchedInstance := generateInstance()
@@ -217,7 +142,7 @@ func TestService_LaunchInstance(t *testing.T) {
 		got, err := service.LaunchInstance(generateInstanceModel(), context.TODO())
 
 		assert.Nil(t, err)
-		assert.Equal(t, "instanceId", got.Id.ValueString())
+		assert.Equal(t, "instanceId", got.Id)
 	})
 
 	t.Run("passes back error from repository", func(t *testing.T) {
@@ -252,25 +177,6 @@ func TestService_LaunchInstance(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.ErrorContains(t, err, "some error")
 	})
-
-	t.Run("bubbles up error from adaptInstance", func(t *testing.T) {
-		launchedInstance := generateInstance()
-
-		spy := newRepositorySpy()
-		service := New(&spy)
-		spy.launchedInstance = &launchedInstance
-		service.adaptInstance = func(
-			sdkInstance publicCloud.Instance,
-			ctx context.Context,
-		) (*resource.Instance, error) {
-			return nil, errors.New("some error")
-		}
-
-		_, err := service.LaunchInstance(generateInstanceModel(), context.TODO())
-
-		assert.NotNil(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
 }
 
 func TestService_UpdateInstance(t *testing.T) {
@@ -286,7 +192,7 @@ func TestService_UpdateInstance(t *testing.T) {
 		got, err := service.UpdateInstance(generateInstanceModel(), context.TODO())
 
 		assert.Nil(t, err)
-		assert.Equal(t, "instanceId", got.Id.ValueString())
+		assert.Equal(t, "instanceId", got.Id)
 	})
 
 	t.Run("passes back error from repository", func(t *testing.T) {
@@ -313,25 +219,6 @@ func TestService_UpdateInstance(t *testing.T) {
 			instance resource.Instance,
 			ctx context.Context,
 		) (*publicCloud.UpdateInstanceOpts, error) {
-			return nil, errors.New("some error")
-		}
-
-		_, err := service.UpdateInstance(generateInstanceModel(), context.TODO())
-
-		assert.NotNil(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("bubbles up error from adaptInstanceDetails", func(t *testing.T) {
-		updatedInstance := generateInstanceDetails()
-
-		spy := newRepositorySpy()
-		service := New(&spy)
-		spy.updatedInstance = &updatedInstance
-		service.adaptInstanceDetails = func(
-			sdkInstance publicCloud.InstanceDetails,
-			ctx context.Context,
-		) (*resource.Instance, error) {
 			return nil, errors.New("some error")
 		}
 
