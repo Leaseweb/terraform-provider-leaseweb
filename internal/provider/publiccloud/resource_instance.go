@@ -143,7 +143,7 @@ func (i *instanceResource) Delete(
 		"Terminate public cloud instance %q",
 		state.Id.ValueString(),
 	))
-	err := i.client.PublicCloudService.DeleteInstance(state.Id.ValueString(), ctx)
+	err := i.client.PublicCloudRepository.DeleteInstance(state.Id.ValueString(), ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(

@@ -45,18 +45,6 @@ func (srv *Service) getSdkInstance(
 	return instance, nil
 }
 
-func (srv *Service) DeleteInstance(
-	id string,
-	ctx context.Context,
-) *errors.ServiceError {
-	err := srv.publicCloudRepository.DeleteInstance(id, ctx)
-	if err != nil {
-		return errors.NewFromRepositoryError("DeleteInstance", *err)
-	}
-
-	return nil
-}
-
 func (srv *Service) GetAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,

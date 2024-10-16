@@ -125,44 +125,6 @@ func newRepositorySpy() repositorySpy {
 	}
 }
 
-func TestService_DeleteInstance(t *testing.T) {
-	t.Run("passes back nil from repository", func(t *testing.T) {
-		service := New(&repositorySpy{})
-
-		err := service.DeleteInstance("", context.TODO())
-
-		assert.Nil(t, err)
-	})
-
-	t.Run("passes back error from repository", func(t *testing.T) {
-		service := New(
-			&repositorySpy{
-				deleteInstanceError: repository.NewSdkError(
-					"",
-					errors.New("some error"),
-					nil,
-				),
-			},
-		)
-
-		err := service.DeleteInstance("", context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "some error")
-	})
-
-	t.Run("id is passed to repository", func(t *testing.T) {
-		want := "id"
-
-		spy := &repositorySpy{}
-		service := New(spy)
-
-		_ = service.DeleteInstance(want, context.TODO())
-
-		assert.Equal(t, want, spy.passedDeleteInstanceId)
-	})
-}
-
 func TestService_GetAvailableInstanceTypesForUpdate(t *testing.T) {
 	t.Run(
 		"expected instance types returned from repository",

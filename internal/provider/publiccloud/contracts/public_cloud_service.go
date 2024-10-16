@@ -9,9 +9,6 @@ import (
 
 // PublicCloudService gets data associated with public_cloud.
 type PublicCloudService interface {
-	// DeleteInstance deletes an instance.
-	DeleteInstance(id string, ctx context.Context) *errors.ServiceError
-
 	// GetAvailableInstanceTypesForUpdate gets all available instances types an instance can upgrade to.
 	GetAvailableInstanceTypesForUpdate(
 		id string,
