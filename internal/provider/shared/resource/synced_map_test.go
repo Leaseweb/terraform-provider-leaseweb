@@ -1,4 +1,4 @@
-package synced_map
+package resource
 
 import (
 	"fmt"

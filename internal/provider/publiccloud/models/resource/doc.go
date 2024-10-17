@@ -1,2 +1,2 @@
-// Package resource implements models for publiccloud resources.
+// Package resource implements models for publiccloud resource.
 package resource

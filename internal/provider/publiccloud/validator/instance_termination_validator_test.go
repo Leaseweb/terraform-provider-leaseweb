@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
-	serviceErrors "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +35,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 		)
 	})
 
-	t.Run("resource errors bubble up", func(t *testing.T) {
+	t.Run("errors bubble up", func(t *testing.T) {
 		instance := generateInstanceModel()
 		instanceObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -50,10 +49,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			func(
 				ctx context.Context,
 			) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
-				return false, nil, serviceErrors.NewError(
-					"",
-					errors.New("something went wrong"),
-				)
+				return false, nil, errors.New("something went wrong")
 			},
 		)
 

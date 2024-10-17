@@ -1,2 +1,2 @@
-// Package validator implements validators used by public_cloud resources.
+// Package validator implements validators used by public_cloud resource.
 package validator

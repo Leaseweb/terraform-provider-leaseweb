@@ -46,3 +46,56 @@ func Test_newContract(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
 }
+
+func TestIsContractTermValid(t *testing.T) {
+	t.Run(
+		"false is returned when contract term is monthly and contract term is 0",
+		func(t *testing.T) {
+			sdkContract := publicCloud.Contract{
+				Term: publicCloud.CONTRACTTERM__0,
+				Type: publicCloud.CONTRACTTYPE_MONTHLY,
+			}
+
+			contract, _ := newContract(context.TODO(), sdkContract)
+
+			got, reason := contract.IsContractTermValid()
+
+			assert.False(t, got)
+			assert.Equal(t, ReasonContractTermCannotBeZero, reason)
+		},
+	)
+
+	t.Run(
+		"false is returned when contract term is hourly and contract term is not 0",
+		func(t *testing.T) {
+			sdkContract := publicCloud.Contract{
+				Term: publicCloud.CONTRACTTERM__3,
+				Type: publicCloud.CONTRACTTYPE_HOURLY,
+			}
+
+			contract, _ := newContract(context.TODO(), sdkContract)
+
+			got, reason := contract.IsContractTermValid()
+
+			assert.False(t, got)
+			assert.Equal(t, ReasonContractTermMustBeZero, reason)
+		},
+	)
+
+	t.Run(
+		"true is returned when contract term is valid",
+		func(t *testing.T) {
+			sdkContract := publicCloud.Contract{
+				Term: publicCloud.CONTRACTTERM__0,
+				Type: publicCloud.CONTRACTTYPE_HOURLY,
+			}
+
+			contract, _ := newContract(context.TODO(), sdkContract)
+
+			got, reason := contract.IsContractTermValid()
+
+			assert.True(t, got)
+			assert.Equal(t, ReasonNone, reason)
+		},
+	)
+}

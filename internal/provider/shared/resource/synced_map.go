@@ -1,5 +1,4 @@
-// Package synced_map implements a thread safe map with generics support.
-package synced_map
+package resource
 
 import (
 	"sync"

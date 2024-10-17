@@ -10,6 +10,14 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 )
 
+type Reason string
+
+const (
+	ReasonContractTermCannotBeZero Reason = "contract.term cannot be 0 when contract type is MONTHLY"
+	ReasonContractTermMustBeZero   Reason = "contract.term must be 0 when contract type is HOURLY"
+	ReasonNone                     Reason = ""
+)
+
 type Contract struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
@@ -26,6 +34,18 @@ func (c Contract) AttributeTypes() map[string]attr.Type {
 		"ends_at":           types.StringType,
 		"state":             types.StringType,
 	}
+}
+
+func (c Contract) IsContractTermValid() (bool, Reason) {
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
+		return false, ReasonContractTermCannotBeZero
+	}
+
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt64() != 0 {
+		return false, ReasonContractTermMustBeZero
+	}
+
+	return true, ReasonNone
 }
 
 func newContract(ctx context.Context, sdkContract publicCloud.Contract) (*Contract, error) {

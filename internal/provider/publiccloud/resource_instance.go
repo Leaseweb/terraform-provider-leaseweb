@@ -21,7 +21,7 @@ import (
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
+	resourceHelper "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
 var (
@@ -314,13 +314,13 @@ func (i *instanceResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := service.NewIntMarkdownList(
+	billingFrequencies := resourceHelper.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := service.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := resourceHelper.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{

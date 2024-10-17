@@ -16,7 +16,7 @@ import (
 	datasourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
 var (
@@ -102,13 +102,13 @@ func (d *instancesDataSource) Schema(
 	resp *datasource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := service.NewIntMarkdownList(
+	billingFrequencies := resource.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := service.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := resource.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
