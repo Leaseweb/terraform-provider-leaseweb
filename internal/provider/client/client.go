@@ -39,6 +39,6 @@ func NewClient(token string, optional Optional) Client {
 			Host:   optional.Host,
 			Scheme: optional.Scheme,
 		},
-		PublicCloudRepository: publicCloudRepository,
+		PublicCloudRepository: &publicCloudRepository,
 	}
 }

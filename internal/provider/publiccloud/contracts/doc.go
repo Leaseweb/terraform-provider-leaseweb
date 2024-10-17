@@ -1,2 +1,2 @@
-// Package contracts contains service & repository interfaces.
+// Package contracts contains repository interfaces.
 package contracts
