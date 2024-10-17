@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 )
 
 type ReasonInstanceCannotBeTerminated string
@@ -69,7 +69,7 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
 		basetypes.ObjectAsOptions{},
 	)
 	if imageDiags != nil {
-		return nil, shared.ReturnError(
+		return nil, model.ReturnError(
 			"AdaptToCreateInstanceOpts",
 			imageDiags,
 		)
@@ -82,7 +82,7 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
 		basetypes.ObjectAsOptions{},
 	)
 	if contractDiags != nil {
-		return nil, shared.ReturnError(
+		return nil, model.ReturnError(
 			"AdaptToCreateInstanceOpts",
 			contractDiags,
 		)
@@ -133,13 +133,13 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
 		*sdkRootDiskStorageType,
 	)
 
-	opts.MarketAppId = shared.AdaptStringPointerValueToNullableString(
+	opts.MarketAppId = model.AdaptStringPointerValueToNullableString(
 		i.MarketAppId,
 	)
-	opts.Reference = shared.AdaptStringPointerValueToNullableString(
+	opts.Reference = model.AdaptStringPointerValueToNullableString(
 		i.Reference,
 	)
-	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
+	opts.RootDiskSize = model.AdaptInt64PointerValueToNullableInt32(
 		i.RootDiskSize,
 	)
 
@@ -152,10 +152,10 @@ func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
 ) {
 
 	opts := publicCloud.NewUpdateInstanceOpts()
-	opts.Reference = shared.AdaptStringPointerValueToNullableString(
+	opts.Reference = model.AdaptStringPointerValueToNullableString(
 		i.Reference,
 	)
-	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
+	opts.RootDiskSize = model.AdaptInt64PointerValueToNullableInt32(
 		i.RootDiskSize,
 	)
 
@@ -166,7 +166,7 @@ func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
 		basetypes.ObjectAsOptions{},
 	)
 	if diags.HasError() {
-		return nil, shared.ReturnError(
+		return nil, model.ReturnError(
 			"AdaptToUpdateInstanceOpts",
 			diags,
 		)
@@ -235,7 +235,7 @@ func (i Instance) CanBeTerminated(ctx context.Context) (bool, *ReasonInstanceCan
 		basetypes.ObjectAsOptions{},
 	)
 	if contractDiags != nil {
-		return false, nil, shared.ReturnError(
+		return false, nil, model.ReturnError(
 			"AdaptToCreateInstanceOpts",
 			contractDiags,
 		)
@@ -267,15 +267,15 @@ func NewFromInstance(
 	instance := Instance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           shared.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           model.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
-		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         model.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 
-	image, err := shared.AdaptSdkModelToResourceObject(
+	image, err := model.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
 		Image{}.AttributeTypes(),
 		ctx,
@@ -286,7 +286,7 @@ func NewFromInstance(
 	}
 	instance.Image = image
 
-	ips, err := shared.AdaptSdkModelsToListValue(
+	ips, err := model.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
 		Ip{}.AttributeTypes(),
 		ctx,
@@ -297,7 +297,7 @@ func NewFromInstance(
 	}
 	instance.Ips = ips
 
-	contract, err := shared.AdaptSdkModelToResourceObject(
+	contract, err := model.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
 		Contract{}.AttributeTypes(),
 		ctx,
@@ -318,15 +318,15 @@ func NewFromInstanceDetails(
 	instance := Instance{
 		Id:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
-		Reference:           shared.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
+		Reference:           model.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.RootDiskStorageType)),
-		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
+		MarketAppId:         model.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
 
-	image, err := shared.AdaptSdkModelToResourceObject(
+	image, err := model.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Image,
 		Image{}.AttributeTypes(),
 		ctx,
@@ -337,7 +337,7 @@ func NewFromInstanceDetails(
 	}
 	instance.Image = image
 
-	ips, err := shared.AdaptSdkModelsToListValue(
+	ips, err := model.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
 		Ip{}.AttributeTypes(),
 		ctx,
@@ -348,7 +348,7 @@ func NewFromInstanceDetails(
 	}
 	instance.Ips = ips
 
-	contract, err := shared.AdaptSdkModelToResourceObject(
+	contract, err := model.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Contract,
 		Contract{}.AttributeTypes(),
 		ctx,

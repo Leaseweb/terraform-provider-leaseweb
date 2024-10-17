@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 )
 
 type Reason string
@@ -53,7 +53,7 @@ func newContract(ctx context.Context, sdkContract publicCloud.Contract) (*Contra
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),
-		EndsAt:           shared.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
+		EndsAt:           model.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.State)),
 	}, nil
 }

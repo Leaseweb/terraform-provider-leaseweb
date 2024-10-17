@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 )
 
 type Instance struct {
@@ -30,7 +30,7 @@ func newInstance(sdkInstance publicCloud.Instance) Instance {
 	return Instance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           shared.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           model.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		Image:               newImage(sdkInstance.Image),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
@@ -38,6 +38,6 @@ func newInstance(sdkInstance publicCloud.Instance) Instance {
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
 		Ips:                 ips,
 		Contract:            newContract(sdkInstance.Contract),
-		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         model.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 }

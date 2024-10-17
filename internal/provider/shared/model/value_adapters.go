@@ -1,4 +1,5 @@
-package shared
+// Package model implements utils that resource models use.
+package model
 
 import (
 	"context"

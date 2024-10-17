@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/dataadapters/shared"
 	datasourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
@@ -180,7 +180,7 @@ func (d *instancesDataSource) Schema(
 									Computed:    true,
 									Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 									Validators: []validator.String{
-										stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+										stringvalidator.OneOf(model.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 									},
 								},
 								"ends_at": schema.StringAttribute{Computed: true},
