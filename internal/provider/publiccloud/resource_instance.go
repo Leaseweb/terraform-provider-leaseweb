@@ -100,7 +100,7 @@ func (i *instanceResource) Create(
 			repositoryErr.Error(),
 		)
 
-		logging.ServiceError(
+		logging.LogError(
 			ctx,
 			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
@@ -155,7 +155,7 @@ func (i *instanceResource) Delete(
 			),
 		)
 
-		logging.ServiceError(
+		logging.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -215,7 +215,7 @@ func (i *instanceResource) Read(
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading Instance", err.Error())
 
-		logging.ServiceError(
+		logging.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -287,7 +287,7 @@ func (i *instanceResource) Update(
 			repositoryErr.Error(),
 		)
 
-		logging.ServiceError(
+		logging.LogError(
 			ctx,
 			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,

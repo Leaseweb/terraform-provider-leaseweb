@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestServiceError(t *testing.T) {
+func TestLogError(t *testing.T) {
 	t.Run("response is set", func(t *testing.T) {
 
 		diags := diag.Diagnostics{}
 
-		ServiceError(
+		LogError(
 			context.TODO(),
 			&repository.ErrorResponse{},
 			&diags,
@@ -41,7 +41,7 @@ func TestServiceError(t *testing.T) {
 		summary := "summary"
 		detail := "detail"
 
-		ServiceError(context.TODO(), nil, &diags, summary, detail)
+		LogError(context.TODO(), nil, &diags, summary, detail)
 
 		assert.Equal(
 			t,

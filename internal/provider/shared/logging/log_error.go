@@ -9,8 +9,8 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 )
 
-// ServiceError prints the passed errorResponse as a Terraform error log.
-func ServiceError(
+// LogError prints the passed errorResponse as a Terraform error log.
+func LogError(
 	ctx context.Context,
 	errorResponse *repository.ErrorResponse,
 	diags *diag.Diagnostics,
