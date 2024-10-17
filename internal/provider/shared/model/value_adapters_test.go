@@ -30,6 +30,11 @@ func TestAdaptInt64PointerValueToNullableInt32(t *testing.T) {
 
 		assert.Equal(t, int32(1), *got)
 	})
+
+	t.Run("passing unknown returns nil", func(t *testing.T) {
+		got := AdaptInt64PointerValueToNullableInt32(basetypes.NewInt64Unknown())
+		assert.Nil(t, got)
+	})
 }
 
 func ExampleAdaptInt64PointerValueToNullableInt32() {
