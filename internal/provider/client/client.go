@@ -34,7 +34,7 @@ func NewClient(token string, optional Optional) Client {
 			Scheme: optional.Scheme,
 		},
 	)
-	publicCloudService := public_cloud.New(publicCloudRepository)
+	publicCloudService := public_cloud.Service{}
 
 	return Client{
 		ProviderData: ProviderData{

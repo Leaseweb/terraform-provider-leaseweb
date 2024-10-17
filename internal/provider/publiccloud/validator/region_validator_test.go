@@ -6,7 +6,6 @@ import (
 
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,36 +17,10 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 		response := terraformValidator.StringResponse{}
 
-		validator := NewRegionValidator(
-			func(
-				region string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				return true, nil, nil
-			},
-		)
+		validator := NewRegionValidator([]string{"region"})
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 0)
-	})
-
-	t.Run("passes region to handler", func(t *testing.T) {
-		request := terraformValidator.StringRequest{
-			ConfigValue: basetypes.NewStringValue("region"),
-		}
-
-		response := terraformValidator.StringResponse{}
-
-		validator := NewRegionValidator(
-			func(
-				region string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				assert.Equal(t, "region", region)
-				return true, nil, nil
-			},
-		)
-		validator.ValidateString(context.TODO(), request, &response)
 	})
 
 	t.Run(
@@ -89,18 +62,16 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 		response := terraformValidator.StringResponse{}
 
-		validator := NewRegionValidator(
-			func(
-				region string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				return false, []string{"tralala"}, nil
-			},
-		)
+		validator := NewRegionValidator([]string{"tralala"})
 
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 1)
+		assert.Contains(
+			t,
+			response.Diagnostics.Errors()[0].Detail(),
+			"region",
+		)
 		assert.Contains(
 			t,
 			response.Diagnostics.Errors()[0].Detail(),

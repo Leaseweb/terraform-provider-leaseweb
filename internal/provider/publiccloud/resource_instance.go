@@ -465,7 +465,16 @@ func (i *instanceResource) ModifyPlan(
 		}
 	}
 
-	i.validateRegion(planInstance.Region, response, ctx)
+	regions, err := i.client.PublicCloudRepository.GetRegions(ctx)
+	if err != nil {
+		response.Diagnostics.AddError("Cannot get regions", err.Error())
+		return
+	}
+
+	// The Region has
+	//to be validated first or getAvailableInstanceTypes will throw an error on creation,
+	//as the region could be invalid.
+	i.validateRegion(planInstance.Region, response, regions, ctx)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -524,14 +533,13 @@ func (i *instanceResource) getAvailableInstanceTypes(
 func (i *instanceResource) validateRegion(
 	plannedValue types.String,
 	response *resource.ModifyPlanResponse,
+	regions []string,
 	ctx context.Context,
 ) {
 	request := validator.StringRequest{ConfigValue: plannedValue}
 	regionResponse := validator.StringResponse{}
 
-	regionValidator := customValidator.NewRegionValidator(
-		i.client.PublicCloudService.DoesRegionExist,
-	)
+	regionValidator := customValidator.NewRegionValidator(regions)
 	regionValidator.ValidateString(ctx, request, &regionResponse)
 	if regionResponse.Diagnostics.HasError() {
 		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)

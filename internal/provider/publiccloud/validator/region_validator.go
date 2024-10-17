@@ -3,20 +3,16 @@ package validator
 import (
 	"context"
 	"fmt"
-	"log"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 )
 
 var _ validator.String = RegionValidator{}
 
 // RegionValidator validates if a region exists.
 type RegionValidator struct {
-	doesRegionExist func(
-		region string,
-		ctx context.Context,
-	) (bool, []string, *errors.ServiceError)
+	regions []string
 }
 
 func (r RegionValidator) Description(ctx context.Context) string {
@@ -37,14 +33,7 @@ func (r RegionValidator) ValidateString(
 		return
 	}
 
-	regionExists, currentRegions, err := r.doesRegionExist(
-		request.ConfigValue.ValueString(),
-		ctx,
-	)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	regionExists := slices.Contains(r.regions, request.ConfigValue.ValueString())
 
 	if !regionExists {
 		response.Diagnostics.AddAttributeError(
@@ -52,16 +41,13 @@ func (r RegionValidator) ValidateString(
 			"Invalid Region",
 			fmt.Sprintf(
 				"Attribute region value must be one of: %q, got: %q",
-				currentRegions,
+				r.regions,
 				request.ConfigValue.ValueString(),
 			),
 		)
 	}
 }
 
-func NewRegionValidator(doesRegionExist func(
-	region string,
-	ctx context.Context,
-) (bool, []string, *errors.ServiceError)) RegionValidator {
-	return RegionValidator{doesRegionExist: doesRegionExist}
+func NewRegionValidator(regions []string) RegionValidator {
+	return RegionValidator{regions: regions}
 }
