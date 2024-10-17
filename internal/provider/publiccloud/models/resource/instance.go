@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -235,10 +236,7 @@ func (i Instance) CanBeTerminated(ctx context.Context) (bool, *ReasonInstanceCan
 		basetypes.ObjectAsOptions{},
 	)
 	if contractDiags != nil {
-		return false, nil, model.ReturnError(
-			"AdaptToCreateInstanceOpts",
-			contractDiags,
-		)
+		log.Fatal("cannot convert contract objectType to model")
 	}
 
 	if i.State.ValueString() == string(publicCloud.STATE_CREATING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYED) {
