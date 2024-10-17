@@ -21,6 +21,7 @@ import (
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 )
 
@@ -445,6 +446,8 @@ func (i *instanceResource) ModifyPlan(
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
 ) {
+	var availableInstanceTypesForUpdate []string
+
 	planInstance := resourceModel.Instance{}
 	request.Plan.Get(ctx, &planInstance)
 
@@ -470,12 +473,24 @@ func (i *instanceResource) ModifyPlan(
 		return
 	}
 
+	// Only get availableInstanceTypesForUpdate if Instance isn't being created
+	if !stateInstance.Id.IsNull() {
+		var err *repository.RepositoryError
+
+		availableInstanceTypesForUpdate, err = i.client.PublicCloudRepository.GetAvailableInstanceTypesForUpdate(stateInstance.Id.ValueString(), ctx)
+		if err != nil {
+			response.Diagnostics.AddError("Cannot get available instanceTypes for update", err.Error())
+			return
+		}
+	}
+
 	i.validateInstanceType(
 		planInstance.Type,
 		stateInstance.Type,
 		stateInstance.Id,
 		planInstance.Region,
 		response,
+		availableInstanceTypesForUpdate,
 		ctx,
 	)
 	if response.Diagnostics.HasError() {
@@ -506,6 +521,7 @@ func (i *instanceResource) validateInstanceType(
 	instanceId types.String,
 	region types.String,
 	response *resource.ModifyPlanResponse,
+	availableInstanceTypesForUpdate []string,
 	ctx context.Context,
 ) {
 	request := validator.StringRequest{ConfigValue: instanceType}
@@ -513,10 +529,10 @@ func (i *instanceResource) validateInstanceType(
 
 	instanceTypeValidator := customValidator.NewInstanceTypeValidator(
 		i.client.PublicCloudService.IsInstanceTypeAvailableForRegion,
-		i.client.PublicCloudService.CanInstanceTypeBeUsedWithInstance,
 		instanceId,
 		region,
 		currentInstanceType,
+		availableInstanceTypesForUpdate,
 	)
 
 	instanceTypeValidator.ValidateString(ctx, request, &instanceResponse)

@@ -48,16 +48,6 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 
 				return false, nil, nil
 			},
-			canInstanceTypeBeUsedWithInstance: func(
-				id string,
-				currentInstanceType string,
-				instanceType string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				countCanInstanceTypeBeUsedWithInstanceIsCalled++
-
-				return false, nil, nil
-			},
 		}
 
 		response := terraformValidator.StringResponse{}
@@ -82,16 +72,6 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 				ctx context.Context,
 			) (bool, []string, *errors.ServiceError) {
 				countIsInstanceTypeAvailableForRegionIsCalled++
-
-				return false, nil, nil
-			},
-			canInstanceTypeBeUsedWithInstance: func(
-				id string,
-				currentInstanceType string,
-				instanceType string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				countCanInstanceTypeBeUsedWithInstanceIsCalled++
 
 				return false, nil, nil
 			},
@@ -144,32 +124,25 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 	t.Run(
 		"logic for updated instance is followed if instanceId is known",
 		func(t *testing.T) {
-			countCanInstanceTypeBeUsedWithInstance := 0
-
 			validator := InstanceTypeValidator{
-				canInstanceTypeBeUsedWithInstance: func(
-					id string,
-					currentInstanceType string,
-					instanceType string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					countCanInstanceTypeBeUsedWithInstance++
-
-					return false, nil, nil
-				},
-				instanceId: basetypes.NewStringValue(""),
+				instanceId:                      basetypes.NewStringValue(""),
+				availableInstanceTypesForUpdate: []string{"tralala"},
 			}
 
 			response := terraformValidator.StringResponse{}
 			validator.ValidateString(
 				context.TODO(),
 				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("oldInstanceType"),
+					ConfigValue: basetypes.NewStringValue("doesNotExist"),
 				},
 				&response,
 			)
 
-			assert.Equal(t, 1, countCanInstanceTypeBeUsedWithInstance)
+			assert.Contains(
+				t,
+				response.Diagnostics[0].Detail(),
+				"tralala",
+			)
 		},
 	)
 }
@@ -271,23 +244,15 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 		"no errors are set if instanceType is valid ",
 		func(t *testing.T) {
 			validator := InstanceTypeValidator{
-				canInstanceTypeBeUsedWithInstance: func(
-					id string,
-					currentInstanceType string,
-					instanceType string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					return true, nil, nil
-				},
+				availableInstanceTypesForUpdate: []string{"instanceType"},
 			}
 
 			response := terraformValidator.StringResponse{}
 			validator.validateUpdatedInstance(
 				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue(""),
+					ConfigValue: basetypes.NewStringValue("instanceType"),
 				},
 				&response,
-				context.TODO(),
 			)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -298,18 +263,6 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 		"instanceType, currentInstanceType & stateValue are passed to canInstanceTypeBeUsedWithInstance",
 		func(t *testing.T) {
 			validator := InstanceTypeValidator{
-				canInstanceTypeBeUsedWithInstance: func(
-					id string,
-					currentInstanceType string,
-					instanceType string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					assert.Equal(t, "instanceType", instanceType)
-					assert.Equal(t, "instanceId", id)
-					assert.Equal(t, "currentInstanceType", currentInstanceType)
-
-					return true, nil, nil
-				},
 				instanceId:          basetypes.NewStringValue("instanceId"),
 				currentInstanceType: basetypes.NewStringValue("currentInstanceType"),
 			}
@@ -320,43 +273,6 @@ func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
 					ConfigValue: basetypes.NewStringValue("instanceType"),
 				},
 				&response,
-				context.TODO(),
-			)
-		},
-	)
-
-	t.Run(
-		"errors are set if instanceType is not valid",
-		func(t *testing.T) {
-			validator := InstanceTypeValidator{
-				canInstanceTypeBeUsedWithInstance: func(
-					id string,
-					currentInstanceType string,
-					instanceType string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					return false, []string{"tralala"}, nil
-				},
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.validateUpdatedInstance(
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("piet"),
-				},
-				&response,
-				context.TODO(),
-			)
-
-			assert.Len(t, response.Diagnostics.Errors(), 1)
-			assert.Contains(
-				t,
-				response.Diagnostics.Errors()[0].Detail(),
-				"tralala",
-			)
-			assert.Contains(
-				t, response.Diagnostics.Errors()[0].Detail(),
-				"piet",
 			)
 		},
 	)
@@ -371,31 +287,17 @@ func TestNewInstanceTypeValidator(t *testing.T) {
 		) (bool, []string, *errors.ServiceError) {
 			return false, []string{"tralala"}, nil
 		},
-		func(
-			id string,
-			currentInstanceType string,
-			instanceType string,
-			ctx context.Context,
-		) (bool, []string, *errors.ServiceError) {
-			return false, []string{"blah"}, nil
-		},
 		basetypes.NewStringValue("instanceId"),
 		basetypes.NewStringValue("region"),
 		basetypes.NewStringValue("currentInstanceType"),
+		[]string{"type1"},
 	)
 
 	assert.Equal(t, "instanceId", validator.instanceId.ValueString())
 	assert.Equal(t, "region", validator.region.ValueString())
+	assert.Equal(t, []string{"type1", "currentInstanceType"}, validator.availableInstanceTypesForUpdate)
 
-	_, got, _ := validator.canInstanceTypeBeUsedWithInstance(
-		"",
-		"",
-		"",
-		context.TODO(),
-	)
-	assert.Equal(t, []string{"blah"}, got)
-
-	_, got, _ = validator.isInstanceTypeAvailableForRegion(
+	_, got, _ := validator.isInstanceTypeAvailableForRegion(
 		"",
 		"",
 		context.TODO(),

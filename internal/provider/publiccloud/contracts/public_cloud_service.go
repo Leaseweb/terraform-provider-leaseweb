@@ -39,16 +39,4 @@ type PublicCloudService interface {
 		region string,
 		ctx context.Context,
 	) (bool, []string, *errors.ServiceError)
-
-	// CanInstanceTypeBeUsedWithInstance checks
-	// if the passed instanceType can be used with the passed instance.
-	// This is the case if:
-	//   - instanceType is equal to currentInstanceType
-	//   - instanceType is in available instanceTypes returned by service
-	CanInstanceTypeBeUsedWithInstance(
-		instanceId string,
-		currentInstanceType string,
-		instanceType string,
-		ctx context.Context,
-	) (bool, []string, *errors.ServiceError)
 }

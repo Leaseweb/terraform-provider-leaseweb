@@ -153,28 +153,6 @@ func (srv *Service) IsInstanceTypeAvailableForRegion(
 	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
 }
 
-func (srv *Service) CanInstanceTypeBeUsedWithInstance(
-	instanceId string,
-	currentInstanceType string,
-	instanceType string,
-	ctx context.Context,
-) (bool, []string, *errors.ServiceError) {
-	instanceTypes, err := srv.GetAvailableInstanceTypesForUpdate(
-		instanceId,
-		ctx,
-	)
-	if err != nil {
-		return false, nil, errors.NewError(
-			"CanInstanceTypeBeUsedWithInstance",
-			err,
-		)
-	}
-
-	instanceTypes = append(instanceTypes, currentInstanceType)
-
-	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
-}
-
 func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository: publicCloudRepository,

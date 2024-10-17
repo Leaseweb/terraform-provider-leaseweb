@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,15 +20,10 @@ type InstanceTypeValidator struct {
 		region string,
 		ctx context.Context,
 	) (bool, []string, *serviceErrors.ServiceError)
-	canInstanceTypeBeUsedWithInstance func(
-		id string,
-		currentInstanceType string,
-		instanceType string,
-		ctx context.Context,
-	) (bool, []string, *serviceErrors.ServiceError)
-	instanceId          types.String
-	region              types.String
-	currentInstanceType types.String
+	instanceId                      types.String
+	region                          types.String
+	currentInstanceType             types.String
+	availableInstanceTypesForUpdate []string
 }
 
 func (i InstanceTypeValidator) Description(ctx context.Context) string {
@@ -43,7 +39,6 @@ func (i InstanceTypeValidator) ValidateString(
 	request validator.StringRequest,
 	response *validator.StringResponse,
 ) {
-
 	// Nothing to validate here.
 	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
 		return
@@ -56,7 +51,7 @@ func (i InstanceTypeValidator) ValidateString(
 	}
 
 	// Instance is being updated.
-	i.validateUpdatedInstance(request, response, ctx)
+	i.validateUpdatedInstance(request, response)
 }
 
 func (i InstanceTypeValidator) validateCreatedInstance(
@@ -82,21 +77,9 @@ func (i InstanceTypeValidator) validateCreatedInstance(
 func (i InstanceTypeValidator) validateUpdatedInstance(
 	request validator.StringRequest,
 	response *validator.StringResponse,
-	ctx context.Context,
 ) {
-	canInstanceTypeBeUsed, allowedInstanceTypes, err := i.canInstanceTypeBeUsedWithInstance(
-		i.instanceId.ValueString(),
-		i.currentInstanceType.ValueString(),
-		request.ConfigValue.ValueString(),
-		ctx,
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if !canInstanceTypeBeUsed {
-		i.setError(response, request, allowedInstanceTypes)
+	if !slices.Contains(i.availableInstanceTypesForUpdate, request.ConfigValue.ValueString()) {
+		i.setError(response, request, i.availableInstanceTypesForUpdate)
 	}
 }
 
@@ -122,25 +105,23 @@ func NewInstanceTypeValidator(
 		region string,
 		ctx context.Context,
 	) (bool, []string, *serviceErrors.ServiceError),
-	canInstanceTypeBeUsedWithInstance func(
-		id string,
-		currentInstanceType string,
-		instanceType string,
-		ctx context.Context,
-	) (bool, []string, *serviceErrors.ServiceError),
 	instanceId types.String,
 	region types.String,
 	currentInstanceType types.String,
+	availableInstanceTypesForUpdate []string,
 ) InstanceTypeValidator {
 	if region.IsUnknown() {
 		log.Fatal(errors.New("region must be specified"))
 	}
 
+	// Include the current instance type as it isn't returned the by api.
+	availableInstanceTypesForUpdate = append(availableInstanceTypesForUpdate, currentInstanceType.ValueString())
+
 	return InstanceTypeValidator{
-		isInstanceTypeAvailableForRegion:  isInstanceTypeAvailableForRegion,
-		canInstanceTypeBeUsedWithInstance: canInstanceTypeBeUsedWithInstance,
-		instanceId:                        instanceId,
-		region:                            region,
-		currentInstanceType:               currentInstanceType,
+		isInstanceTypeAvailableForRegion: isInstanceTypeAvailableForRegion,
+		instanceId:                       instanceId,
+		region:                           region,
+		currentInstanceType:              currentInstanceType,
+		availableInstanceTypesForUpdate:  availableInstanceTypesForUpdate,
 	}
 }
