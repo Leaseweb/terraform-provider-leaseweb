@@ -25,29 +25,10 @@ var ErrContractTermMustBeZero = fmt.Errorf(
 // Service fulfills the contract for ports.PublicCloudService.
 type Service struct {
 	publicCloudRepository contracts.PublicCloudRepository
-	cachedInstanceTypes   synced_map.SyncedMap[string, []string]
 	cachedRegions         synced_map.SyncedMap[string, []string]
 }
 
-func (srv *Service) GetAvailableInstanceTypesForUpdate(
-	id string,
-	ctx context.Context,
-) ([]string, *errors.ServiceError) {
-	instanceTypes, err := srv.publicCloudRepository.GetAvailableInstanceTypesForUpdate(
-		id,
-		ctx,
-	)
-	if err != nil {
-		return nil, errors.NewFromRepositoryError(
-			"GetAvailableInstanceTypesForUpdate",
-			*err,
-		)
-	}
-
-	return instanceTypes, nil
-}
-
-func (srv *Service) GetRegions(ctx context.Context) (
+func (srv *Service) getRegions(ctx context.Context) (
 	[]string,
 	*errors.ServiceError,
 ) {
@@ -58,37 +39,12 @@ func (srv *Service) GetRegions(ctx context.Context) (
 
 	regions, err := srv.publicCloudRepository.GetRegions(ctx)
 	if err != nil {
-		return nil, errors.NewFromRepositoryError("GetRegions", *err)
+		return nil, errors.NewFromRepositoryError("getRegions", *err)
 	}
 
 	srv.cachedRegions.Set("all", regions)
 
 	return regions, nil
-}
-
-func (srv *Service) GetAvailableInstanceTypesForRegion(
-	region string,
-	ctx context.Context,
-) ([]string, *errors.ServiceError) {
-	cachedInstanceTypes, ok := srv.cachedInstanceTypes.Get(region)
-	if ok {
-		return cachedInstanceTypes, nil
-	}
-
-	instanceTypes, err := srv.publicCloudRepository.GetInstanceTypesForRegion(
-		region,
-		ctx,
-	)
-	if err != nil {
-		return nil, errors.NewFromRepositoryError(
-			"populateMissingInstanceAttributes",
-			*err,
-		)
-	}
-
-	srv.cachedInstanceTypes.Set(region, instanceTypes)
-
-	return instanceTypes, nil
 }
 
 func (srv *Service) ValidateContractTerm(
@@ -119,7 +75,7 @@ func (srv *Service) DoesRegionExist(
 	region string,
 	ctx context.Context,
 ) (bool, []string, *errors.ServiceError) {
-	regions, err := srv.GetRegions(ctx)
+	regions, err := srv.getRegions(ctx)
 	if err != nil {
 		return false, nil, errors.NewError(
 			"DoesRegionExist",
@@ -134,29 +90,9 @@ func (srv *Service) DoesRegionExist(
 	return false, regions, nil
 }
 
-func (srv *Service) IsInstanceTypeAvailableForRegion(
-	instanceType string,
-	region string,
-	ctx context.Context,
-) (bool, []string, *errors.ServiceError) {
-	instanceTypes, err := srv.GetAvailableInstanceTypesForRegion(
-		region,
-		ctx,
-	)
-	if err != nil {
-		return false, nil, errors.NewError(
-			"IsInstanceTypeAvailableForRegion",
-			err,
-		)
-	}
-
-	return slices.Contains(instanceTypes, instanceType), instanceTypes, nil
-}
-
 func New(publicCloudRepository contracts.PublicCloudRepository) Service {
 	return Service{
 		publicCloudRepository: publicCloudRepository,
-		cachedInstanceTypes:   synced_map.NewSyncedMap[string, []string](),
 		cachedRegions:         synced_map.NewSyncedMap[string, []string](),
 	}
 }

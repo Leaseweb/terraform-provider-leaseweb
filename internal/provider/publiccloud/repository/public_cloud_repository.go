@@ -189,7 +189,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, repository2.NewSdkError("GetRegions", err, response)
+		return nil, repository2.NewSdkError("getRegions", err, response)
 	}
 
 	metadata := result.GetMetadata()
@@ -202,7 +202,7 @@ func (p PublicCloudRepository) GetRegions(ctx context.Context) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, repository2.NewSdkError("GetRegions", err, response)
+			return nil, repository2.NewSdkError("getRegions", err, response)
 		}
 
 		for _, sdkRegion := range result.Regions {

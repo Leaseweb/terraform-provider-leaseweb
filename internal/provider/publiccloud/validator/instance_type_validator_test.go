@@ -6,49 +6,15 @@ import (
 
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service/errors"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestInstanceTypeValidator_setError(t *testing.T) {
-	validator := InstanceTypeValidator{}
-
-	response := terraformValidator.StringResponse{}
-	request := terraformValidator.StringRequest{
-		ConfigValue: basetypes.NewStringValue("tralala"),
-	}
-
-	validator.setError(&response, request, []string{"piet"})
-
-	assert.Len(t, response.Diagnostics.Errors(), 1)
-	assert.Contains(
-		t,
-		response.Diagnostics.Errors()[0].Detail(),
-		"tralala",
-	)
-	assert.Contains(
-		t,
-		response.Diagnostics.Errors()[0].Detail(),
-		"piet",
-	)
-}
 
 func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 	t.Run("nothing happens if instanceType is unknown", func(t *testing.T) {
 		countIsInstanceTypeAvailableForRegionIsCalled := 0
 		countCanInstanceTypeBeUsedWithInstanceIsCalled := 0
 
-		validator := InstanceTypeValidator{
-			isInstanceTypeAvailableForRegion: func(
-				instanceType string,
-				region string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				countIsInstanceTypeAvailableForRegionIsCalled++
-
-				return false, nil, nil
-			},
-		}
+		validator := InstanceTypeValidator{}
 
 		response := terraformValidator.StringResponse{}
 		validator.ValidateString(
@@ -65,17 +31,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 		countIsInstanceTypeAvailableForRegionIsCalled := 0
 		countCanInstanceTypeBeUsedWithInstanceIsCalled := 0
 
-		validator := InstanceTypeValidator{
-			isInstanceTypeAvailableForRegion: func(
-				instanceType string,
-				region string,
-				ctx context.Context,
-			) (bool, []string, *errors.ServiceError) {
-				countIsInstanceTypeAvailableForRegionIsCalled++
-
-				return false, nil, nil
-			},
-		}
+		validator := InstanceTypeValidator{}
 
 		response := terraformValidator.StringResponse{}
 		validator.ValidateString(
@@ -91,42 +47,10 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 	})
 
 	t.Run(
-		"logic for created instance is followed if instanceId is null",
-		func(t *testing.T) {
-			countIsInstanceTypeAvailableForRegionIsCalled := 0
-
-			validator := InstanceTypeValidator{
-				isInstanceTypeAvailableForRegion: func(
-					instanceType string,
-					region string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					countIsInstanceTypeAvailableForRegionIsCalled++
-
-					return false, nil, nil
-				},
-				instanceId: basetypes.NewStringNull(),
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.ValidateString(
-				context.TODO(),
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("oldInstanceType"),
-				},
-				&response,
-			)
-
-			assert.Equal(t, 1, countIsInstanceTypeAvailableForRegionIsCalled)
-		},
-	)
-
-	t.Run(
-		"logic for updated instance is followed if instanceId is known",
+		"attributeError added to response if instanceType cannot be found",
 		func(t *testing.T) {
 			validator := InstanceTypeValidator{
-				instanceId:                      basetypes.NewStringValue(""),
-				availableInstanceTypesForUpdate: []string{"tralala"},
+				availableInstanceTypes: []string{"tralala"},
 			}
 
 			response := terraformValidator.StringResponse{}
@@ -143,164 +67,44 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 				response.Diagnostics[0].Detail(),
 				"tralala",
 			)
-		},
-	)
-}
-
-func TestInstanceTypeValidator_validateCreatedInstance(t *testing.T) {
-	t.Run(
-		"instanceType & region are passed to isInstanceTypeAvailableForRegion",
-		func(t *testing.T) {
-			validator := InstanceTypeValidator{
-				isInstanceTypeAvailableForRegion: func(
-					instanceType string,
-					region string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					assert.Equal(t, "region", region)
-					assert.Equal(t, "instanceType", instanceType)
-
-					return false, nil, nil
-				},
-				region: basetypes.NewStringValue("region"),
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.validateCreatedInstance(
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("instanceType"),
-				},
-				&response,
-				context.TODO(),
-			)
-		},
-	)
-
-	t.Run(
-		"no errors are set if instanceType is valid",
-		func(t *testing.T) {
-			validator := InstanceTypeValidator{
-				isInstanceTypeAvailableForRegion: func(
-					instanceType string,
-					region string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					return true, nil, nil
-				},
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.validateCreatedInstance(
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue(""),
-				},
-				&response,
-				context.TODO(),
-			)
-
-			assert.Len(t, response.Diagnostics.Errors(), 0)
-		},
-	)
-
-	t.Run(
-		"errors are set if instanceType is valid for creation",
-		func(t *testing.T) {
-			validator := InstanceTypeValidator{
-				isInstanceTypeAvailableForRegion: func(
-					instanceType string,
-					region string,
-					ctx context.Context,
-				) (bool, []string, *errors.ServiceError) {
-					return false, []string{"tralala"}, nil
-				},
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.validateCreatedInstance(
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("piet"),
-				},
-				&response,
-				context.TODO(),
-			)
-
-			assert.Len(t, response.Diagnostics.Errors(), 1)
 			assert.Contains(
 				t,
-				response.Diagnostics.Errors()[0].Detail(),
-				"tralala",
+				response.Diagnostics[0].Detail(),
+				"doesNotExist",
 			)
-			assert.Contains(
-				t,
-				response.Diagnostics.Errors()[0].Detail(),
-				"piet",
-			)
-		},
-	)
-}
-
-func TestInstanceTypeValidator_validateUpdatedInstance(t *testing.T) {
-	t.Run(
-		"no errors are set if instanceType is valid ",
-		func(t *testing.T) {
-			validator := InstanceTypeValidator{
-				availableInstanceTypesForUpdate: []string{"instanceType"},
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.validateUpdatedInstance(
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("instanceType"),
-				},
-				&response,
-			)
-
-			assert.Len(t, response.Diagnostics.Errors(), 0)
 		},
 	)
 
 	t.Run(
-		"instanceType, currentInstanceType & stateValue are passed to canInstanceTypeBeUsedWithInstance",
+		"attributeError not added to response if instanceType can be found",
 		func(t *testing.T) {
 			validator := InstanceTypeValidator{
-				instanceId:          basetypes.NewStringValue("instanceId"),
-				currentInstanceType: basetypes.NewStringValue("currentInstanceType"),
+				availableInstanceTypes: []string{"tralala"},
 			}
 
 			response := terraformValidator.StringResponse{}
-			validator.validateUpdatedInstance(
+			validator.ValidateString(
+				context.TODO(),
 				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("instanceType"),
+					ConfigValue: basetypes.NewStringValue("tralala"),
 				},
 				&response,
 			)
+
+			assert.Len(t, response.Diagnostics, 0)
 		},
 	)
 }
 
 func TestNewInstanceTypeValidator(t *testing.T) {
 	validator := NewInstanceTypeValidator(
-		func(
-			instanceType string,
-			region string,
-			ctx context.Context,
-		) (bool, []string, *errors.ServiceError) {
-			return false, []string{"tralala"}, nil
-		},
-		basetypes.NewStringValue("instanceId"),
-		basetypes.NewStringValue("region"),
 		basetypes.NewStringValue("currentInstanceType"),
 		[]string{"type1"},
 	)
 
-	assert.Equal(t, "instanceId", validator.instanceId.ValueString())
-	assert.Equal(t, "region", validator.region.ValueString())
-	assert.Equal(t, []string{"type1", "currentInstanceType"}, validator.availableInstanceTypesForUpdate)
-
-	_, got, _ := validator.isInstanceTypeAvailableForRegion(
-		"",
-		"",
-		context.TODO(),
+	assert.Equal(
+		t,
+		[]string{"type1", "currentInstanceType"},
+		validator.availableInstanceTypes,
 	)
-	assert.Equal(t, []string{"tralala"}, got)
 }

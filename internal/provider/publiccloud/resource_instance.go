@@ -21,7 +21,6 @@ import (
 	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/service"
 )
 
@@ -446,8 +445,6 @@ func (i *instanceResource) ModifyPlan(
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
 ) {
-	var availableInstanceTypesForUpdate []string
-
 	planInstance := resourceModel.Instance{}
 	request.Plan.Get(ctx, &planInstance)
 
@@ -473,29 +470,55 @@ func (i *instanceResource) ModifyPlan(
 		return
 	}
 
-	// Only get availableInstanceTypesForUpdate if Instance isn't being created
-	if !stateInstance.Id.IsNull() {
-		var err *repository.RepositoryError
-
-		availableInstanceTypesForUpdate, err = i.client.PublicCloudRepository.GetAvailableInstanceTypesForUpdate(stateInstance.Id.ValueString(), ctx)
-		if err != nil {
-			response.Diagnostics.AddError("Cannot get available instanceTypes for update", err.Error())
-			return
-		}
-	}
-
-	i.validateInstanceType(
-		planInstance.Type,
-		stateInstance.Type,
-		stateInstance.Id,
-		planInstance.Region,
+	availableInstanceTypes := i.getAvailableInstanceTypes(
 		response,
-		availableInstanceTypesForUpdate,
+		stateInstance.Id,
+		planInstance.Region.ValueString(),
 		ctx,
 	)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	i.validateInstanceType(
+		planInstance.Type,
+		stateInstance.Type,
+		response,
+		availableInstanceTypes,
+		ctx,
+	)
+	if response.Diagnostics.HasError() {
+		return
+	}
+}
+
+// When creating a new Instance,
+// any instanceType available in the region is good.
+// On update, the criteria is more limited.
+func (i *instanceResource) getAvailableInstanceTypes(
+	response *resource.ModifyPlanResponse,
+	id basetypes.StringValue,
+	region string,
+	ctx context.Context,
+) []string {
+	// Instance is being created.
+	if id.IsNull() {
+		availableInstanceTypes, err := i.client.PublicCloudRepository.GetInstanceTypesForRegion(region, ctx)
+		if err != nil {
+			response.Diagnostics.AddError("Cannot get available instanceTypes for region", err.Error())
+			return nil
+		}
+
+		return availableInstanceTypes
+	}
+
+	availableInstanceTypes, err := i.client.PublicCloudRepository.GetAvailableInstanceTypesForUpdate(id.ValueString(), ctx)
+	if err != nil {
+		response.Diagnostics.AddError("Cannot get available instanceTypes for update", err.Error())
+		return nil
+	}
+
+	return availableInstanceTypes
 }
 
 func (i *instanceResource) validateRegion(
@@ -518,21 +541,16 @@ func (i *instanceResource) validateRegion(
 func (i *instanceResource) validateInstanceType(
 	instanceType types.String,
 	currentInstanceType types.String,
-	instanceId types.String,
-	region types.String,
 	response *resource.ModifyPlanResponse,
-	availableInstanceTypesForUpdate []string,
+	availableInstanceTypes []string,
 	ctx context.Context,
 ) {
 	request := validator.StringRequest{ConfigValue: instanceType}
 	instanceResponse := validator.StringResponse{}
 
 	instanceTypeValidator := customValidator.NewInstanceTypeValidator(
-		i.client.PublicCloudService.IsInstanceTypeAvailableForRegion,
-		instanceId,
-		region,
 		currentInstanceType,
-		availableInstanceTypesForUpdate,
+		availableInstanceTypes,
 	)
 
 	instanceTypeValidator.ValidateString(ctx, request, &instanceResponse)
