@@ -17,7 +17,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 		response := terraformValidator.StringResponse{}
 
-		validator := RegionValidator{
+		validator := regionValidator{
 			regions: []string{"region"},
 		}
 		validator.ValidateString(context.TODO(), request, &response)
@@ -34,7 +34,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 			response := terraformValidator.StringResponse{}
 
-			validator := RegionValidator{}
+			validator := regionValidator{}
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -50,7 +50,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 			response := terraformValidator.StringResponse{}
 
-			validator := RegionValidator{}
+			validator := regionValidator{}
 			validator.ValidateString(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -64,7 +64,7 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 		response := terraformValidator.StringResponse{}
 
-		validator := RegionValidator{
+		validator := regionValidator{
 			regions: []string{"tralala"},
 		}
 

@@ -33,7 +33,8 @@ var (
 	_ resource.ResourceWithModifyPlan  = &instanceResource{}
 	_ validator.Object                 = contractTermValidator{}
 	_ validator.Object                 = instanceTerminationValidator{}
-	_ validator.String                 = RegionValidator{}
+	_ validator.String                 = regionValidator{}
+	_ validator.String                 = instanceTypeValidator{}
 )
 
 // Checks that contractType/contractTerm combination is valid.
@@ -123,20 +124,20 @@ func (i instanceTerminationValidator) ValidateObject(
 	}
 }
 
-// RegionValidator validates if a region exists.
-type RegionValidator struct {
+// regionValidator validates if a region exists.
+type regionValidator struct {
 	regions []string
 }
 
-func (r RegionValidator) Description(ctx context.Context) string {
+func (r regionValidator) Description(ctx context.Context) string {
 	return `Determines whether a region exists`
 }
 
-func (r RegionValidator) MarkdownDescription(ctx context.Context) string {
+func (r regionValidator) MarkdownDescription(ctx context.Context) string {
 	return r.Description(ctx)
 }
 
-func (r RegionValidator) ValidateString(
+func (r regionValidator) ValidateString(
 	ctx context.Context,
 	request validator.StringRequest,
 	response *validator.StringResponse,
@@ -158,6 +159,56 @@ func (r RegionValidator) ValidateString(
 				request.ConfigValue.ValueString(),
 			),
 		)
+	}
+}
+
+type instanceTypeValidator struct {
+	availableInstanceTypes []string
+}
+
+func (i instanceTypeValidator) Description(ctx context.Context) string {
+	return "Determines if an instanceType can be used with an instance."
+}
+
+func (i instanceTypeValidator) MarkdownDescription(ctx context.Context) string {
+	return i.Description(ctx)
+}
+
+func (i instanceTypeValidator) ValidateString(
+	ctx context.Context,
+	request validator.StringRequest,
+	response *validator.StringResponse,
+) {
+	// Nothing to validate here.
+	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
+		return
+	}
+
+	if !slices.Contains(
+		i.availableInstanceTypes,
+		request.ConfigValue.ValueString(),
+	) {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Instance Type",
+			fmt.Sprintf(
+				"Attribute type value must be one of: %q, got: %q",
+				i.availableInstanceTypes,
+				request.ConfigValue.ValueString(),
+			),
+		)
+	}
+}
+
+func newInstanceTypeValidator(
+	currentInstanceType types.String,
+	availableInstanceTypes []string,
+) instanceTypeValidator {
+	// Include the current instance type as it isn't returned the by api.
+	availableInstanceTypes = append(availableInstanceTypes, currentInstanceType.ValueString())
+
+	return instanceTypeValidator{
+		availableInstanceTypes: availableInstanceTypes,
 	}
 }
 
@@ -1112,7 +1163,7 @@ func (i *instanceResource) validateRegion(
 	request := validator.StringRequest{ConfigValue: plannedValue}
 	regionResponse := validator.StringResponse{}
 
-	regionValidator := RegionValidator{
+	regionValidator := regionValidator{
 		regions: regions,
 	}
 	regionValidator.ValidateString(ctx, request, &regionResponse)
@@ -1131,7 +1182,7 @@ func (i *instanceResource) validateInstanceType(
 	request := validator.StringRequest{ConfigValue: instanceType}
 	instanceResponse := validator.StringResponse{}
 
-	instanceTypeValidator := NewInstanceTypeValidator(
+	instanceTypeValidator := newInstanceTypeValidator(
 		currentInstanceType,
 		availableInstanceTypes,
 	)

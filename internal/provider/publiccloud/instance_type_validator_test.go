@@ -14,7 +14,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 		countIsInstanceTypeAvailableForRegionIsCalled := 0
 		countCanInstanceTypeBeUsedWithInstanceIsCalled := 0
 
-		validator := InstanceTypeValidator{}
+		validator := instanceTypeValidator{}
 
 		response := terraformValidator.StringResponse{}
 		validator.ValidateString(
@@ -31,7 +31,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 		countIsInstanceTypeAvailableForRegionIsCalled := 0
 		countCanInstanceTypeBeUsedWithInstanceIsCalled := 0
 
-		validator := InstanceTypeValidator{}
+		validator := instanceTypeValidator{}
 
 		response := terraformValidator.StringResponse{}
 		validator.ValidateString(
@@ -49,7 +49,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 	t.Run(
 		"attributeError added to response if instanceType cannot be found",
 		func(t *testing.T) {
-			validator := InstanceTypeValidator{
+			validator := instanceTypeValidator{
 				availableInstanceTypes: []string{"tralala"},
 			}
 
@@ -78,7 +78,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 	t.Run(
 		"attributeError not added to response if instanceType can be found",
 		func(t *testing.T) {
-			validator := InstanceTypeValidator{
+			validator := instanceTypeValidator{
 				availableInstanceTypes: []string{"tralala"},
 			}
 
@@ -97,7 +97,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 }
 
 func TestNewInstanceTypeValidator(t *testing.T) {
-	validator := NewInstanceTypeValidator(
+	validator := newInstanceTypeValidator(
 		basetypes.NewStringValue("currentInstanceType"),
 		[]string{"type1"},
 	)
