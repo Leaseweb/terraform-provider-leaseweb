@@ -28,6 +28,7 @@ func (i IntMarkdownList) ToInt64() []int64 {
 	return returnValues
 }
 
+// NewIntMarkdownList instantiates a new IntMarkdownList.
 func NewIntMarkdownList[T ~int32](values []T) IntMarkdownList {
 	i := IntMarkdownList{}
 	for _, value := range values {

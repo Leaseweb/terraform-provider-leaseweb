@@ -40,3 +40,9 @@ func ExampleIntMarkdownList_ToInt64() {
 	fmt.Println(list)
 	// Output []{1, 2, 3}
 }
+
+func TestNewIntMarkdownList(t *testing.T) {
+	got := NewIntMarkdownList([]int32{1})
+
+	assert.Equal(t, []int64{1}, got.ToInt64())
+}
