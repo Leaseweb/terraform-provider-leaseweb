@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -370,8 +371,8 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 
 	if err != nil {
 		summary := fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID)
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
