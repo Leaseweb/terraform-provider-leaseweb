@@ -21,10 +21,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/doc"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
-	resourceHelper "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
 var (
@@ -1141,13 +1141,13 @@ func (i *instanceResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := resourceHelper.NewIntMarkdownList(
+	billingFrequencies := doc.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := resourceHelper.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := doc.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{

@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/doc"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
 var (
@@ -236,13 +236,13 @@ func (d *InstancesDataSource) Schema(
 	resp *datasource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := resource.NewIntMarkdownList(
+	billingFrequencies := doc.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := resource.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := doc.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
