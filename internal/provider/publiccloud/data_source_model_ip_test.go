@@ -13,7 +13,7 @@ func Test_newDataSourceModelIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := DataSourceModelIp{
+	want := dataSourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got := newDataSourceModelIp(sdkIp)

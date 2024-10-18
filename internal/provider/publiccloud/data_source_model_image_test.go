@@ -13,7 +13,7 @@ func Test_newDataSourceModelImage(t *testing.T) {
 		Id: "imageId",
 	}
 
-	want := DataSourceModelImage{
+	want := dataSourceModelImage{
 		Id: basetypes.NewStringValue("imageId"),
 	}
 	got := newDataSourceModelImage(sdkImage)

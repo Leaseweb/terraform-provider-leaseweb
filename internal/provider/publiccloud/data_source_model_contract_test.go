@@ -22,7 +22,7 @@ func Test_newDataSourceModelContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := DataSourceModelContract{
+	want := dataSourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
