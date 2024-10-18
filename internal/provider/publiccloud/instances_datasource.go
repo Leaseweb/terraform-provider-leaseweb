@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/shared"
 )
 
 var (
