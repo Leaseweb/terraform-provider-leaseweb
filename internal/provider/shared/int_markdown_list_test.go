@@ -1,6 +1,7 @@
-package doc
+package shared
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,11 +15,16 @@ func TestIntMarkdownList_Markdown(t *testing.T) {
 	})
 }
 
-func TestNewIntMarkdownList(t *testing.T) {
-	got := NewIntMarkdownList([]int32{1, 2, 3})
-	want := IntMarkdownList{1, 2, 3}
+func ExampleIntMarkdownList_Markdown() {
+	list := IntMarkdownList{1, 2, 3}
 
-	assert.Equal(t, want, got)
+	fmt.Println(list.Markdown())
+	/**
+	  Output:
+	  - *1*
+	  - *2*
+	  - *3*
+	*/
 }
 
 func TestIntMarkdownList_ToInt64(t *testing.T) {
@@ -26,4 +32,11 @@ func TestIntMarkdownList_ToInt64(t *testing.T) {
 	want := []int64{1, 2, 3}
 
 	assert.Equal(t, want, got)
+}
+
+func ExampleIntMarkdownList_ToInt64() {
+	list := IntMarkdownList{1, 2, 3}.ToInt64()
+
+	fmt.Println(list)
+	// Output []{1, 2, 3}
 }

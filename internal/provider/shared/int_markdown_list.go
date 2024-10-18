@@ -1,11 +1,13 @@
-package doc
+package shared
 
 import (
 	"strconv"
 )
 
+// IntMarkdownList implements helpers to use int64 sets in validation & documentation.
 type IntMarkdownList []int
 
+// Markdown returns a string with all the values in Markdown list format.
 func (i IntMarkdownList) Markdown() string {
 	markdown := "\n"
 	for _, i := range i {
@@ -15,6 +17,7 @@ func (i IntMarkdownList) Markdown() string {
 	return markdown
 }
 
+// ToInt64 converts all slice values to int64.
 func (i IntMarkdownList) ToInt64() []int64 {
 	var returnValues []int64
 

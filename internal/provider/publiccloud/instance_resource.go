@@ -21,10 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/doc"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
-	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared"
 )
 
 var (
@@ -84,7 +81,7 @@ func (v contractTermValidator) ValidateObject(
 // instanceTerminationValidator validates if the resourceModelInstance is allowed to be terminated.
 type instanceTerminationValidator struct{}
 
-func (i instanceTerminationValidator) Description(ctx context.Context) string {
+func (i instanceTerminationValidator) Description(_ context.Context) string {
 	return `
 Determines whether an instance can be terminated or not. An instance cannot be
 terminated if:
@@ -130,7 +127,7 @@ type regionValidator struct {
 	regions []string
 }
 
-func (r regionValidator) Description(ctx context.Context) string {
+func (r regionValidator) Description(_ context.Context) string {
 	return `Determines whether a region exists`
 }
 
@@ -139,7 +136,7 @@ func (r regionValidator) MarkdownDescription(ctx context.Context) string {
 }
 
 func (r regionValidator) ValidateString(
-	ctx context.Context,
+	_ context.Context,
 	request validator.StringRequest,
 	response *validator.StringResponse,
 ) {
@@ -167,7 +164,7 @@ type instanceTypeValidator struct {
 	availableInstanceTypes []string
 }
 
-func (i instanceTypeValidator) Description(ctx context.Context) string {
+func (i instanceTypeValidator) Description(_ context.Context) string {
 	return "Determines if an instanceType can be used with an instance."
 }
 
@@ -176,7 +173,7 @@ func (i instanceTypeValidator) MarkdownDescription(ctx context.Context) string {
 }
 
 func (i instanceTypeValidator) ValidateString(
-	ctx context.Context,
+	_ context.Context,
 	request validator.StringRequest,
 	response *validator.StringResponse,
 ) {
@@ -206,7 +203,10 @@ func newInstanceTypeValidator(
 	availableInstanceTypes []string,
 ) instanceTypeValidator {
 	// Include the current instance type as it isn't returned the by api.
-	availableInstanceTypes = append(availableInstanceTypes, currentInstanceType.ValueString())
+	availableInstanceTypes = append(
+		availableInstanceTypes,
+		currentInstanceType.ValueString(),
+	)
 
 	return instanceTypeValidator{
 		availableInstanceTypes: availableInstanceTypes,
@@ -252,14 +252,14 @@ func (c resourceModelContract) IsContractTermValid() (bool, reason) {
 }
 
 func newResourceModelContract(
-	ctx context.Context,
+	_ context.Context,
 	sdkContract publicCloud.Contract,
 ) (*resourceModelContract, error) {
 	return &resourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),
-		EndsAt:           model.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
+		EndsAt:           shared.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.State)),
 	}, nil
 }
@@ -275,7 +275,7 @@ func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
 }
 
 func newResourceModelImage(
-	ctx context.Context,
+	_ context.Context,
 	sdkImage publicCloud.Image,
 ) (*resourceModelImage, error) {
 	return &resourceModelImage{
@@ -335,29 +335,15 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 	}
 
 	image := resourceModelImage{}
-	imageDiags := i.Image.As(
-		ctx,
-		&image,
-		basetypes.ObjectAsOptions{},
-	)
+	imageDiags := i.Image.As(ctx, &image, basetypes.ObjectAsOptions{})
 	if imageDiags != nil {
-		return nil, model.ReturnError(
-			"AdaptToCreateInstanceOpts",
-			imageDiags,
-		)
+		return nil, shared.ReturnError("GetLaunchInstanceOpts", imageDiags)
 	}
 
 	contract := resourceModelContract{}
-	contractDiags := i.Contract.As(
-		ctx,
-		&contract,
-		basetypes.ObjectAsOptions{},
-	)
+	contractDiags := i.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	if contractDiags != nil {
-		return nil, model.ReturnError(
-			"AdaptToCreateInstanceOpts",
-			contractDiags,
-		)
+		return nil, shared.ReturnError("GetLaunchInstanceOpts", contractDiags)
 	}
 
 	sdkContractType, err := publicCloud.NewContractTypeFromValue(
@@ -405,13 +391,11 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 		*sdkRootDiskStorageType,
 	)
 
-	opts.MarketAppId = model.AdaptStringPointerValueToNullableString(
+	opts.MarketAppId = shared.AdaptStringPointerValueToNullableString(
 		i.MarketAppId,
 	)
-	opts.Reference = model.AdaptStringPointerValueToNullableString(
-		i.Reference,
-	)
-	opts.RootDiskSize = model.AdaptInt64PointerValueToNullableInt32(
+	opts.Reference = shared.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
 		i.RootDiskSize,
 	)
 
@@ -422,12 +406,9 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 	*publicCloud.UpdateInstanceOpts,
 	error,
 ) {
-
 	opts := publicCloud.NewUpdateInstanceOpts()
-	opts.Reference = model.AdaptStringPointerValueToNullableString(
-		i.Reference,
-	)
-	opts.RootDiskSize = model.AdaptInt64PointerValueToNullableInt32(
+	opts.Reference = shared.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.RootDiskSize = shared.AdaptInt64PointerValueToNullableInt32(
 		i.RootDiskSize,
 	)
 
@@ -438,10 +419,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 		basetypes.ObjectAsOptions{},
 	)
 	if diags.HasError() {
-		return nil, model.ReturnError(
-			"AdaptToUpdateInstanceOpts",
-			diags,
-		)
+		return nil, shared.ReturnError("GetUpdateInstanceOpts", diags)
 	}
 
 	if contract.Type.ValueString() != "" {
@@ -449,10 +427,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 			contract.Type.ValueString(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToUpdateInstanceOpts: %w",
-				err,
-			)
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
 		}
 		opts.ContractType = contractType
 	}
@@ -462,10 +437,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 			int32(contract.Term.ValueInt64()),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToUpdateInstanceOpts: %w",
-				err,
-			)
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
 		}
 		opts.ContractTerm = contractTerm
 	}
@@ -475,10 +447,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 			int32(contract.BillingFrequency.ValueInt64()),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToUpdateInstanceOpts: %w",
-				err,
-			)
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
 		}
 		opts.BillingFrequency = billingFrequency
 	}
@@ -488,10 +457,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 			i.Type.ValueString(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"AdaptToUpdateInstanceOpts: %w",
-				err,
-			)
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
 		}
 		opts.Type = instanceType
 	}
@@ -536,15 +502,15 @@ func newResourceModelInstanceFromInstance(
 	instance := resourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           model.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           shared.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
-		MarketAppId:         model.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 
-	image, err := model.AdaptSdkModelToResourceObject(
+	image, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
@@ -555,7 +521,7 @@ func newResourceModelInstanceFromInstance(
 	}
 	instance.Image = image
 
-	ips, err := model.AdaptSdkModelsToListValue(
+	ips, err := shared.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
 		resourceModelIp{}.AttributeTypes(),
 		ctx,
@@ -566,7 +532,7 @@ func newResourceModelInstanceFromInstance(
 	}
 	instance.Ips = ips
 
-	contract, err := model.AdaptSdkModelToResourceObject(
+	contract, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
 		resourceModelContract{}.AttributeTypes(),
 		ctx,
@@ -587,15 +553,15 @@ func newResourceModelInstanceFromInstanceDetails(
 	instance := resourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
-		Reference:           model.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
+		Reference:           shared.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.RootDiskStorageType)),
-		MarketAppId:         model.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
+		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
 
-	image, err := model.AdaptSdkModelToResourceObject(
+	image, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
@@ -606,7 +572,7 @@ func newResourceModelInstanceFromInstanceDetails(
 	}
 	instance.Image = image
 
-	ips, err := model.AdaptSdkModelsToListValue(
+	ips, err := shared.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
 		resourceModelIp{}.AttributeTypes(),
 		ctx,
@@ -617,7 +583,7 @@ func newResourceModelInstanceFromInstanceDetails(
 	}
 	instance.Ips = ips
 
-	contract, err := model.AdaptSdkModelToResourceObject(
+	contract, err := shared.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Contract,
 		resourceModelContract{}.AttributeTypes(),
 		ctx,
@@ -641,14 +607,17 @@ func (i resourceModelIp) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newResourceModelIpFromIp(ctx context.Context, sdkIp publicCloud.Ip) (*resourceModelIp, error) {
+func newResourceModelIpFromIp(
+	_ context.Context,
+	sdkIp publicCloud.Ip,
+) (*resourceModelIp, error) {
 	return &resourceModelIp{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}, nil
 }
 
 func newResourceModelIpFromIpDetails(
-	ctx context.Context,
+	_ context.Context,
 	sdkIpDetails publicCloud.IpDetails,
 ) (*resourceModelIp, error) {
 	return &resourceModelIp{
@@ -726,7 +695,7 @@ func (i *instanceResource) Create(
 			repositoryErr.Error(),
 		)
 
-		logging.LogError(
+		shared.LogError(
 			ctx,
 			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
@@ -785,7 +754,7 @@ func (i *instanceResource) Delete(
 			),
 		)
 
-		logging.LogError(
+		shared.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -804,11 +773,11 @@ func getInstance(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.InstanceDetails, *sharedRepository.RepositoryError) {
+) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
 	instance, response, err := api.GetInstance(ctx, id).Execute()
 
 	if err != nil {
-		return nil, sharedRepository.NewSdkError(
+		return nil, shared.NewSdkError(
 			fmt.Sprintf("getInstance %q", id),
 			err,
 			response,
@@ -822,15 +791,11 @@ func launchInstance(
 	opts publicCloud.LaunchInstanceOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.Instance, *sharedRepository.RepositoryError) {
+) (*publicCloud.Instance, *shared.RepositoryError) {
 	instance, response, err := api.LaunchInstance(ctx).LaunchInstanceOpts(opts).Execute()
 
 	if err != nil {
-		return nil, sharedRepository.NewSdkError(
-			"launchInstance",
-			err,
-			response,
-		)
+		return nil, shared.NewSdkError("launchInstance", err, response)
 	}
 
 	return instance, nil
@@ -841,13 +806,13 @@ func updateInstance(
 	opts publicCloud.UpdateInstanceOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.InstanceDetails, *sharedRepository.RepositoryError) {
+) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
 	instance, response, err := api.UpdateInstance(
 		ctx,
 		id,
 	).UpdateInstanceOpts(opts).Execute()
 	if err != nil {
-		return nil, sharedRepository.NewSdkError(
+		return nil, shared.NewSdkError(
 			fmt.Sprintf("updateInstance %q", id),
 			err,
 			response,
@@ -861,10 +826,10 @@ func terminateInstance(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) *sharedRepository.RepositoryError {
+) *shared.RepositoryError {
 	response, err := api.TerminateInstance(ctx, id).Execute()
 	if err != nil {
-		return sharedRepository.NewSdkError(
+		return shared.NewSdkError(
 			fmt.Sprintf("terminateInstance %q", id),
 			err,
 			response,
@@ -878,13 +843,13 @@ func getAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *sharedRepository.RepositoryError) {
+) ([]string, *shared.RepositoryError) {
 	var instanceTypes []string
 
 	sdkInstanceTypes, response, err := api.GetUpdateInstanceTypeList(ctx, id).
 		Execute()
 	if err != nil {
-		return nil, sharedRepository.NewSdkError(
+		return nil, shared.NewSdkError(
 			fmt.Sprintf("getAvailableInstanceTypesForUpdate %q", id),
 			err,
 			response,
@@ -898,10 +863,10 @@ func getAvailableInstanceTypesForUpdate(
 	return instanceTypes, nil
 }
 
-func getRegions(ctx context.Context, api publicCloud.PublicCloudAPI) (
-	[]string,
-	*sharedRepository.RepositoryError,
-) {
+func getRegions(
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]string, *shared.RepositoryError) {
 	var regions []string
 
 	request := api.GetRegionList(ctx)
@@ -909,11 +874,11 @@ func getRegions(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, sharedRepository.NewSdkError("getRegions", err, response)
+		return nil, shared.NewSdkError("getRegions", err, response)
 	}
 
 	metadata := result.GetMetadata()
-	pagination := sharedRepository.NewPagination(
+	pagination := shared.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -922,7 +887,7 @@ func getRegions(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, sharedRepository.NewSdkError("getRegions", err, response)
+			return nil, shared.NewSdkError("getRegions", err, response)
 		}
 
 		for _, sdkRegion := range result.Regions {
@@ -935,7 +900,7 @@ func getRegions(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -946,7 +911,7 @@ func getInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *sharedRepository.RepositoryError) {
+) ([]string, *shared.RepositoryError) {
 	var instanceTypes []string
 
 	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
@@ -954,7 +919,7 @@ func getInstanceTypesForRegion(
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, sharedRepository.NewSdkError(
+		return nil, shared.NewSdkError(
 			"GetInstanceTypesForRegion",
 			err,
 			response,
@@ -962,7 +927,7 @@ func getInstanceTypesForRegion(
 	}
 
 	metadata := result.GetMetadata()
-	pagination := sharedRepository.NewPagination(
+	pagination := shared.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -971,7 +936,7 @@ func getInstanceTypesForRegion(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, sharedRepository.NewSdkError(
+			return nil, shared.NewSdkError(
 				"GetInstanceTypesForRegion",
 				err,
 				response,
@@ -988,7 +953,7 @@ func getInstanceTypesForRegion(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+			return nil, shared.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -1041,7 +1006,7 @@ func (i *instanceResource) Read(
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading resourceModelInstance", err.Error())
 
-		logging.LogError(
+		shared.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -1114,7 +1079,7 @@ func (i *instanceResource) Update(
 			repositoryErr.Error(),
 		)
 
-		logging.LogError(
+		shared.LogError(
 			ctx,
 			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
@@ -1141,13 +1106,13 @@ func (i *instanceResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := doc.NewIntMarkdownList(
+	billingFrequencies := shared.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := doc.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := shared.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
@@ -1207,7 +1172,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(model.AdaptStringTypeArrayToStringArray(publicCloud.AllowedStorageTypeEnumValues)...),
+					stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedStorageTypeEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -1242,7 +1207,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 						Validators: []validator.String{
-							stringvalidator.OneOf(model.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+							stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 						},
 					},
 					"ends_at": schema.StringAttribute{Computed: true},

@@ -1,12 +1,22 @@
-package repository
+package shared
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 )
+
+type exampleRequest struct {
+	CurrentOffset int32
+}
+
+func (e exampleRequest) Offset(offset int32) exampleRequest {
+	e.CurrentOffset = offset
+	return e
+}
 
 func Test_pagination_canIncrement(t *testing.T) {
 	t.Run(
@@ -89,4 +99,27 @@ func Test_pagination_nextPage(t *testing.T) {
 			)
 		},
 	)
+}
+
+func Example() {
+	request := exampleRequest{CurrentOffset: 0}
+
+	pagination := NewPagination(10, 20, request)
+
+	fmt.Println(request.CurrentOffset)
+	fmt.Println(pagination.CanIncrement())
+	newRequest, _ := pagination.NextPage()
+	fmt.Println(newRequest.CurrentOffset)
+	fmt.Println(pagination.CanIncrement())
+	newRequest, _ = pagination.NextPage()
+	fmt.Println(newRequest.CurrentOffset)
+	fmt.Println(pagination.CanIncrement())
+
+	// Output:
+	// 0
+	// true
+	// 10
+	// true
+	// 20
+	// false
 }

@@ -1,15 +1,66 @@
-package repository
+package shared
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestLogError(t *testing.T) {
+	t.Run("response is set", func(t *testing.T) {
+
+		diags := diag.Diagnostics{}
+
+		LogError(
+			context.TODO(),
+			&ErrorResponse{},
+			&diags,
+			"summary",
+			"detail",
+		)
+
+		assert.Equal(
+			t,
+			"summary",
+			diags[0].Summary(),
+			"error contains summary",
+		)
+		assert.Equal(
+			t,
+			"detail",
+			diags[0].Detail(),
+			"error contains detail",
+		)
+	})
+
+	t.Run("response is not set", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+		summary := "summary"
+		detail := "detail"
+
+		LogError(context.TODO(), nil, &diags, summary, detail)
+
+		assert.Equal(
+			t,
+			"summary",
+			diags[0].Summary(),
+			"error contains summary",
+		)
+		assert.Equal(
+			t,
+			"detail",
+			diags[0].Detail(),
+			"error contains detail",
+		)
+	})
+}
 
 func TestNewSdkError(t *testing.T) {
 	t.Run("expected Error is returned", func(t *testing.T) {
@@ -105,4 +156,34 @@ func ExampleNewSdkError() {
 	// Output:
 	// prefix: some error
 	// &{correlationId errorCode errorMessage map[attribute:[error1 error2]]}
+}
+
+func Test_newErrorResponse(t *testing.T) {
+	t.Run("json is processed correctly", func(t *testing.T) {
+		jsonStr := `
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attribute": ["error1", "error2"]
+  }
+}
+`
+		want := ErrorResponse{
+			CorrelationId: "correlationId",
+			ErrorCode:     "errorCode",
+			ErrorMessage:  "errorMessage",
+			ErrorDetails:  map[string][]string{"attribute": {"error1", "error2"}},
+		}
+		got, err := newErrorResponse(jsonStr)
+
+		assert.NoError(t, err)
+		assert.Equal(t, want, *got)
+	})
+
+	t.Run("Invalid json returns error", func(t *testing.T) {
+		_, err := newErrorResponse("")
+		assert.Error(t, err)
+	})
 }
