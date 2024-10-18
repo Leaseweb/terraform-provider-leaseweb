@@ -1,4 +1,4 @@
-package validator
+package publiccloud
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 )
 
 var _ validator.Object = contractTermValidator{}
@@ -28,20 +27,20 @@ func (v contractTermValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
-	contract := resource.Contract{}
+	contract := ResourceModelContract{}
 	request.ConfigValue.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	valid, reason := contract.IsContractTermValid()
 
 	if !valid {
 		switch reason {
-		case resource.ReasonContractTermCannotBeZero:
+		case ReasonContractTermCannotBeZero:
 			response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
 				request.Path.AtName("term"),
 				"cannot be 0 when contract.type is \"MONTHLY\"",
 				contract.Term.String(),
 			))
 			return
-		case resource.ReasonContractTermMustBeZero:
+		case ReasonContractTermMustBeZero:
 			response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
 				request.Path.AtName("term"),
 				"must be 0 when contract.type is \"HOURLY\"",
@@ -52,8 +51,4 @@ func (v contractTermValidator) ValidateObject(
 			return
 		}
 	}
-}
-
-func ContractTermIsValid() validator.Object {
-	return contractTermValidator{}
 }

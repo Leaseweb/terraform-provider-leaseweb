@@ -15,7 +15,7 @@ type Optional struct {
 	Scheme *string
 }
 
-// PublicCloudRepository fulfills contract for ports.PublicCloudRepository.
+// PublicCloudRepository fulfills contract for PublicCloudRepositoryContract.
 type PublicCloudRepository struct {
 	publicCLoudAPI      publicCloud.PublicCloudAPI
 	token               string

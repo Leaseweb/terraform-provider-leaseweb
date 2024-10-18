@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newImage(t *testing.T) {
+func Test_newResourceModelImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
 
-	want := Image{
+	want := ResourceModelImage{
 		Id: basetypes.NewStringValue("imageId"),
 	}
-	got, err := newImage(context.TODO(), sdkImage)
+	got, err := newResourceModelImage(context.TODO(), sdkImage)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)

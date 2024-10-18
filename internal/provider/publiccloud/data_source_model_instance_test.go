@@ -1,4 +1,4 @@
-package datasource
+package publiccloud
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newInstance(t *testing.T) {
+func Test_newDataSourceModelInstance(t *testing.T) {
 	reference := "reference"
 	marketAppId := "marketAppId"
 
@@ -31,7 +31,7 @@ func Test_newInstance(t *testing.T) {
 		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
 	}
 
-	got := newInstance(sdkInstance)
+	got := newDataSourceModelInstance(sdkInstance)
 
 	assert.Equal(t, "id", got.Id.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())

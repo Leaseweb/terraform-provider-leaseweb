@@ -1,4 +1,4 @@
-package datasource
+package publiccloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -7,7 +7,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 )
 
-type Contract struct {
+type DataSourceModelContract struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
@@ -15,8 +15,8 @@ type Contract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func newContract(sdkContract publicCloud.Contract) Contract {
-	return Contract{
+func newDataSourceModelContract(sdkContract publicCloud.Contract) DataSourceModelContract {
+	return DataSourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),

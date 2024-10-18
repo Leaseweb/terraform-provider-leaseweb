@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -33,8 +33,8 @@ func generateContractObject(
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		Contract{}.AttributeTypes(),
-		Contract{
+		ResourceModelContract{}.AttributeTypes(),
+		ResourceModelContract{
 			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
 			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
@@ -46,11 +46,11 @@ func generateContractObject(
 	return contract
 }
 
-func generateInstanceModel() Instance {
+func generateInstanceModel() ResourceModelInstance {
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		Image{}.AttributeTypes(),
-		Image{
+		ResourceModelImage{}.AttributeTypes(),
+		ResourceModelImage{
 			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
@@ -62,7 +62,7 @@ func generateInstanceModel() Instance {
 		nil,
 	)
 
-	instance := Instance{
+	instance := ResourceModelInstance{
 		Id:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
@@ -77,7 +77,7 @@ func generateInstanceModel() Instance {
 	return instance
 }
 
-func TestNewFromInstance(t *testing.T) {
+func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -103,7 +103,7 @@ func TestNewFromInstance(t *testing.T) {
 		},
 	}
 
-	got, err := NewFromInstance(instance, context.TODO())
+	got, err := newResourceModelInstanceFromInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -116,21 +116,21 @@ func TestNewFromInstance(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := Image{}
+	image := ResourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-	contract := Contract{}
+	contract := ResourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []Ip
+	var ips []ResourceModelIp
 	got.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
 }
 
-func TestNewFromInstanceDetails(t *testing.T) {
+func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -156,7 +156,7 @@ func TestNewFromInstanceDetails(t *testing.T) {
 		},
 	}
 
-	got, err := NewFromInstanceDetails(instance, context.TODO())
+	got, err := newResourceModelInstanceFromInstanceDetails(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -169,15 +169,15 @@ func TestNewFromInstanceDetails(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := Image{}
+	image := ResourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-	contract := Contract{}
+	contract := ResourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []Ip
+	var ips []ResourceModelIp
 	got.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -310,7 +310,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if Image resource is incorrect",
+		"returns error if ResourceModelImage resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
@@ -318,12 +318,12 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".Image")
+			assert.ErrorContains(t, err, ".ResourceModelImage")
 		},
 	)
 
 	t.Run(
-		"returns error if Contract resource is incorrect",
+		"returns error if ResourceModelContract resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
@@ -331,7 +331,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".Contract")
+			assert.ErrorContains(t, err, ".ResourceModelContract")
 		},
 	)
 }
@@ -426,7 +426,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if Contract resource is incorrect",
+		"returns error if ResourceModelContract resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
@@ -434,7 +434,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".Contract")
+			assert.ErrorContains(t, err, ".ResourceModelContract")
 		},
 	)
 }
@@ -444,12 +444,9 @@ func TestInstance_CanBeTerminated(t *testing.T) {
 		instance := generateInstanceModel()
 		instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 
-		got, reason, err := instance.CanBeTerminated(context.TODO())
+		got := instance.CanBeTerminated(context.TODO())
 
-		assert.Nil(t, err)
-		assert.Nil(t, reason)
-
-		assert.True(t, got)
+		assert.Nil(t, got)
 	})
 
 	t.Run(
@@ -481,13 +478,10 @@ func TestInstance_CanBeTerminated(t *testing.T) {
 					instance := generateInstanceModel()
 					instance.State = basetypes.NewStringValue(string(tt.state))
 
-					got, reason, err := instance.CanBeTerminated(context.TODO())
+					got := instance.CanBeTerminated(context.TODO())
 
-					assert.Nil(t, err)
-					assert.NotNil(t, reason)
-					assert.Contains(t, *reason, tt.reasonContains)
-
-					assert.False(t, got)
+					assert.NotNil(t, got)
+					assert.Contains(t, *got, tt.reasonContains)
 				})
 			}
 		},
@@ -504,13 +498,10 @@ func TestInstance_CanBeTerminated(t *testing.T) {
 			instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 			instance.Contract = contract
 
-			got, reason, err := instance.CanBeTerminated(context.TODO())
+			got := instance.CanBeTerminated(context.TODO())
 
-			assert.Nil(t, err)
-			assert.NotNil(t, reason)
-			assert.Contains(t, *reason, "2023-12-14 17:09:47 +0000 UTC")
-
-			assert.False(t, got)
+			assert.NotNil(t, got)
+			assert.Contains(t, *got, "2023-12-14 17:09:47 +0000 UTC")
 		},
 	)
 }

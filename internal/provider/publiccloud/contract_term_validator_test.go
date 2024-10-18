@@ -1,4 +1,4 @@
-package validator
+package publiccloud
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +14,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"does not set error if contract term is correct",
 		func(t *testing.T) {
-			contract := resource.Contract{}
+			contract := ResourceModelContract{}
 			configValue, _ := types.ObjectValueFrom(
 				context.TODO(),
 				contract.AttributeTypes(),
@@ -28,7 +27,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 
 			response := terraformValidator.ObjectResponse{}
 
-			validator := ContractTermIsValid()
+			validator := contractTermValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -38,7 +37,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"returns expected error if contract term cannot be 0",
 		func(t *testing.T) {
-			contract := resource.Contract{
+			contract := ResourceModelContract{
 				Type: basetypes.NewStringValue("MONTHLY"),
 				Term: basetypes.NewInt64Value(0),
 			}
@@ -54,7 +53,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 
 			response := terraformValidator.ObjectResponse{}
 
-			validator := ContractTermIsValid()
+			validator := contractTermValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 1)
@@ -69,7 +68,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"returns expected error if contract term must be 0",
 		func(t *testing.T) {
-			contract := resource.Contract{
+			contract := ResourceModelContract{
 				Type: basetypes.NewStringValue("HOURLY"),
 				Term: basetypes.NewInt64Value(3),
 			}
@@ -85,7 +84,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 
 			response := terraformValidator.ObjectResponse{}
 
-			validator := ContractTermIsValid()
+			validator := contractTermValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.Len(t, response.Diagnostics.Errors(), 1)

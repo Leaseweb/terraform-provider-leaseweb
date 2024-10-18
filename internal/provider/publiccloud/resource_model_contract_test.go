@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -14,14 +14,14 @@ import (
 func TestContract_attributeTypes(t *testing.T) {
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),
-		Contract{}.AttributeTypes(),
-		Contract{},
+		ResourceModelContract{}.AttributeTypes(),
+		ResourceModelContract{},
 	)
 
 	assert.Nil(t, diags, "attributes should be correct")
 }
 
-func Test_newContract(t *testing.T) {
+func Test_newResourceModelContract(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -34,14 +34,14 @@ func Test_newContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := Contract{
+	want := ResourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got, err := newContract(context.TODO(), sdkContract)
+	got, err := newResourceModelContract(context.TODO(), sdkContract)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
@@ -56,7 +56,7 @@ func TestIsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_MONTHLY,
 			}
 
-			contract, _ := newContract(context.TODO(), sdkContract)
+			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -73,7 +73,7 @@ func TestIsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := newContract(context.TODO(), sdkContract)
+			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -90,7 +90,7 @@ func TestIsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := newContract(context.TODO(), sdkContract)
+			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 

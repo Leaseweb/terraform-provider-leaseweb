@@ -1,4 +1,4 @@
-package datasource
+package publiccloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -6,12 +6,12 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type Image struct {
+type DataSourceModelImage struct {
 	Id types.String `tfsdk:"id"`
 }
 
-func newImage(sdkImage publicCloud.Image) Image {
-	return Image{
+func newDataSourceModelImage(sdkImage publicCloud.Image) DataSourceModelImage {
+	return DataSourceModelImage{
 		Id: basetypes.NewStringValue(sdkImage.Id),
 	}
 }

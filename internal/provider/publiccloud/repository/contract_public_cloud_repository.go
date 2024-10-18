@@ -1,4 +1,4 @@
-package contracts
+package repository
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 )
 
-// PublicCloudRepository is used to connect to public_cloud api.
-type PublicCloudRepository interface {
+// PublicCloudRepositoryContract is used to connect to public_cloud api.
+type PublicCloudRepositoryContract interface {
 	// GetAllInstances Retrieve all instances from the public cloud api.
 	GetAllInstances(ctx context.Context) (
 		[]publicCloud.Instance,

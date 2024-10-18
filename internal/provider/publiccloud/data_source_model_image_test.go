@@ -1,4 +1,4 @@
-package datasource
+package publiccloud
 
 import (
 	"testing"
@@ -8,15 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newImage(t *testing.T) {
+func Test_newDataSourceModelImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
 
-	want := Image{
+	want := DataSourceModelImage{
 		Id: basetypes.NewStringValue("imageId"),
 	}
-	got := newImage(sdkImage)
+	got := newDataSourceModelImage(sdkImage)
 
 	assert.Equal(t, want, got)
 }

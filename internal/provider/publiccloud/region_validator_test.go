@@ -1,4 +1,4 @@
-package validator
+package publiccloud
 
 import (
 	"context"
@@ -17,7 +17,9 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 		response := terraformValidator.StringResponse{}
 
-		validator := NewRegionValidator([]string{"region"})
+		validator := RegionValidator{
+			regions: []string{"region"},
+		}
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -62,7 +64,9 @@ func TestRegionValidator_ValidateString(t *testing.T) {
 
 		response := terraformValidator.StringResponse{}
 
-		validator := NewRegionValidator([]string{"tralala"})
+		validator := RegionValidator{
+			regions: []string{"tralala"},
+		}
 
 		validator.ValidateString(context.TODO(), request, &response)
 

@@ -1,4 +1,4 @@
-package datasource
+package publiccloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -6,12 +6,12 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type Ip struct {
+type DataSourceModelIp struct {
 	Ip types.String `tfsdk:"ip"`
 }
 
-func newIp(sdkIp publicCloud.Ip) Ip {
-	return Ip{
+func newDataSourceModelIp(sdkIp publicCloud.Ip) DataSourceModelIp {
+	return DataSourceModelIp{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}
 }

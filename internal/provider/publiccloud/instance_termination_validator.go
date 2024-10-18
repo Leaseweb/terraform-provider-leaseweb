@@ -1,21 +1,16 @@
-package validator
+package publiccloud
 
 import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 )
 
 var _ validator.Object = InstanceTerminationValidator{}
 
-// InstanceTerminationValidator validates if the Instance is allowed to be terminated.
-type InstanceTerminationValidator struct {
-	canInstanceBeTerminated func(
-		ctx context.Context,
-	) (bool, *resource.ReasonInstanceCannotBeTerminated, error)
-}
+// InstanceTerminationValidator validates if the ResourceModelInstance is allowed to be terminated.
+type InstanceTerminationValidator struct{}
 
 func (i InstanceTerminationValidator) Description(ctx context.Context) string {
 	return `
@@ -40,7 +35,7 @@ func (i InstanceTerminationValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
-	instance := resource.Instance{}
+	instance := ResourceModelInstance{}
 
 	diags := request.ConfigValue.As(ctx, &instance, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
@@ -48,26 +43,12 @@ func (i InstanceTerminationValidator) ValidateObject(
 		return
 	}
 
-	_, reason, err := i.canInstanceBeTerminated(ctx)
-	if err != nil {
-		response.Diagnostics.AddError("ValidateObject", err.Error())
-		return
-	}
+	reason := instance.CanBeTerminated(ctx)
 
 	if reason != nil {
 		response.Diagnostics.AddError(
-			"Instance is not allowed to be terminated",
+			"ResourceModelInstance is not allowed to be terminated",
 			string(*reason),
 		)
-	}
-}
-
-func ValidateInstanceTermination(
-	canInstanceBeTerminated func(
-		ctx context.Context,
-	) (bool, *resource.ReasonInstanceCannotBeTerminated, error),
-) InstanceTerminationValidator {
-	return InstanceTerminationValidator{
-		canInstanceBeTerminated: canInstanceBeTerminated,
 	}
 }

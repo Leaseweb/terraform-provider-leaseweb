@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -18,7 +18,7 @@ const (
 	ReasonNone                     Reason = ""
 )
 
-type Contract struct {
+type ResourceModelContract struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
@@ -26,7 +26,7 @@ type Contract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func (c Contract) AttributeTypes() map[string]attr.Type {
+func (c ResourceModelContract) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"billing_frequency": types.Int64Type,
 		"term":              types.Int64Type,
@@ -36,7 +36,7 @@ func (c Contract) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (c Contract) IsContractTermValid() (bool, Reason) {
+func (c ResourceModelContract) IsContractTermValid() (bool, Reason) {
 	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
 		return false, ReasonContractTermCannotBeZero
 	}
@@ -48,8 +48,11 @@ func (c Contract) IsContractTermValid() (bool, Reason) {
 	return true, ReasonNone
 }
 
-func newContract(ctx context.Context, sdkContract publicCloud.Contract) (*Contract, error) {
-	return &Contract{
+func newResourceModelContract(
+	ctx context.Context,
+	sdkContract publicCloud.Contract,
+) (*ResourceModelContract, error) {
+	return &ResourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),

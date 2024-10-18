@@ -1,4 +1,4 @@
-package datasource
+package publiccloud
 
 import (
 	"testing"
@@ -8,15 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newIp(t *testing.T) {
+func Test_newDataSourceModelIp(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
 
-	want := Ip{
+	want := DataSourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got := newIp(sdkIp)
+	got := newDataSourceModelIp(sdkIp)
 
 	assert.Equal(t, want, got)
 }

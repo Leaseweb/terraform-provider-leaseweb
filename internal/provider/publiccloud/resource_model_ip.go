@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -9,27 +9,27 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type Ip struct {
+type ResourceModelIp struct {
 	Ip types.String `tfsdk:"ip"`
 }
 
-func (i Ip) AttributeTypes() map[string]attr.Type {
+func (i ResourceModelIp) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"ip": types.StringType,
 	}
 }
 
-func newFromIp(ctx context.Context, sdkIp publicCloud.Ip) (*Ip, error) {
-	return &Ip{
+func newResourceModelIpFromIp(ctx context.Context, sdkIp publicCloud.Ip) (*ResourceModelIp, error) {
+	return &ResourceModelIp{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}, nil
 }
 
-func newFromIpDetails(
+func newResourceModelIpFromIpDetails(
 	ctx context.Context,
 	sdkIpDetails publicCloud.IpDetails,
-) (*Ip, error) {
-	return &Ip{
+) (*ResourceModelIp, error) {
+	return &ResourceModelIp{
 		Ip: basetypes.NewStringValue(sdkIpDetails.Ip),
 	}, nil
 }

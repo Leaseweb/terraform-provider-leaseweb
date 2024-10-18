@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -9,21 +9,21 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-type Image struct {
+type ResourceModelImage struct {
 	Id types.String `tfsdk:"id"`
 }
 
-func (i Image) AttributeTypes() map[string]attr.Type {
+func (i ResourceModelImage) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id": types.StringType,
 	}
 }
 
-func newImage(
+func newResourceModelImage(
 	ctx context.Context,
 	sdkImage publicCloud.Image,
-) (*Image, error) {
-	return &Image{
+) (*ResourceModelImage, error) {
+	return &ResourceModelImage{
 		Id: basetypes.NewStringValue(sdkImage.Id),
 	}, nil
 }

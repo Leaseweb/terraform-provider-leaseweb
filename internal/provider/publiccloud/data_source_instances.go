@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	datasourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/datasource"
-	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
@@ -87,7 +85,7 @@ func (d *instancesDataSource) Read(
 		return
 	}
 
-	state := datasourceModel.NewInstances(instances)
+	state := newDataSourceModelInstances(instances)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -188,7 +186,7 @@ func (d *instancesDataSource) Schema(
 									Computed: true,
 								},
 							},
-							Validators: []validator.Object{customValidator.ContractTermIsValid()},
+							Validators: []validator.Object{contractTermValidator{}},
 						},
 						"market_app_id": schema.StringAttribute{
 							Computed:    true,

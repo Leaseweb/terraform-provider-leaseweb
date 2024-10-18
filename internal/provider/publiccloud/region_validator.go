@@ -1,4 +1,4 @@
-package validator
+package publiccloud
 
 import (
 	"context"
@@ -46,8 +46,4 @@ func (r RegionValidator) ValidateString(
 			),
 		)
 	}
-}
-
-func NewRegionValidator(regions []string) RegionValidator {
-	return RegionValidator{regions: regions}
 }

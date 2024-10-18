@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 type ReasonInstanceCannotBeTerminated string
 
-type Instance struct {
+type ResourceModelInstance struct {
 	Id                  types.String `tfsdk:"id"`
 	Region              types.String `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
@@ -28,13 +28,13 @@ type Instance struct {
 	MarketAppId         types.String `tfsdk:"market_app_id"`
 }
 
-func (i Instance) AttributeTypes() map[string]attr.Type {
+func (i ResourceModelInstance) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":        types.StringType,
 		"region":    types.StringType,
 		"reference": types.StringType,
 		"image": types.ObjectType{
-			AttrTypes: Image{}.AttributeTypes(),
+			AttrTypes: ResourceModelImage{}.AttributeTypes(),
 		},
 		"state":                  types.StringType,
 		"type":                   types.StringType,
@@ -42,17 +42,17 @@ func (i Instance) AttributeTypes() map[string]attr.Type {
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
-				AttrTypes: Ip{}.AttributeTypes(),
+				AttrTypes: ResourceModelIp{}.AttributeTypes(),
 			},
 		},
 		"contract": types.ObjectType{
-			AttrTypes: Contract{}.AttributeTypes(),
+			AttrTypes: ResourceModelContract{}.AttributeTypes(),
 		},
 		"market_app_id": types.StringType,
 	}
 }
 
-func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
+func (i ResourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 	*publicCloud.LaunchInstanceOpts,
 	error,
 ) {
@@ -63,7 +63,7 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
 		return nil, err
 	}
 
-	image := Image{}
+	image := ResourceModelImage{}
 	imageDiags := i.Image.As(
 		ctx,
 		&image,
@@ -76,7 +76,7 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
 		)
 	}
 
-	contract := Contract{}
+	contract := ResourceModelContract{}
 	contractDiags := i.Contract.As(
 		ctx,
 		&contract,
@@ -147,7 +147,7 @@ func (i Instance) GetLaunchInstanceOpts(ctx context.Context) (
 	return opts, nil
 }
 
-func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
+func (i ResourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 	*publicCloud.UpdateInstanceOpts,
 	error,
 ) {
@@ -160,7 +160,7 @@ func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
 		i.RootDiskSize,
 	)
 
-	contract := Contract{}
+	contract := ResourceModelContract{}
 	diags := i.Contract.As(
 		ctx,
 		&contract,
@@ -228,8 +228,8 @@ func (i Instance) GetUpdateInstanceOpts(ctx context.Context) (
 	return opts, nil
 }
 
-func (i Instance) CanBeTerminated(ctx context.Context) (bool, *ReasonInstanceCannotBeTerminated, error) {
-	contract := Contract{}
+func (i ResourceModelInstance) CanBeTerminated(ctx context.Context) *ReasonInstanceCannotBeTerminated {
+	contract := ResourceModelContract{}
 	contractDiags := i.Contract.As(
 		ctx,
 		&contract,
@@ -244,7 +244,7 @@ func (i Instance) CanBeTerminated(ctx context.Context) (bool, *ReasonInstanceCan
 			fmt.Sprintf("state is %q", i.State),
 		)
 
-		return false, &reason, nil
+		return &reason
 	}
 
 	if !contract.EndsAt.IsNull() {
@@ -252,17 +252,17 @@ func (i Instance) CanBeTerminated(ctx context.Context) (bool, *ReasonInstanceCan
 			fmt.Sprintf("contract.endsAt is %q", contract.EndsAt.ValueString()),
 		)
 
-		return false, &reason, nil
+		return &reason
 	}
 
-	return true, nil, nil
+	return nil
 }
 
-func NewFromInstance(
+func newResourceModelInstanceFromInstance(
 	sdkInstance publicCloud.Instance,
 	ctx context.Context,
-) (*Instance, error) {
-	instance := Instance{
+) (*ResourceModelInstance, error) {
+	instance := ResourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           model.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
@@ -275,45 +275,45 @@ func NewFromInstance(
 
 	image, err := model.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
-		Image{}.AttributeTypes(),
+		ResourceModelImage{}.AttributeTypes(),
 		ctx,
-		newImage,
+		newResourceModelImage,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("NewFromInstance: %w", err)
+		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
 	}
 	instance.Image = image
 
 	ips, err := model.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		Ip{}.AttributeTypes(),
+		ResourceModelIp{}.AttributeTypes(),
 		ctx,
-		newFromIp,
+		newResourceModelIpFromIp,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("NewFromInstance: %w", err)
+		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
 	}
 	instance.Ips = ips
 
 	contract, err := model.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
-		Contract{}.AttributeTypes(),
+		ResourceModelContract{}.AttributeTypes(),
 		ctx,
-		newContract,
+		newResourceModelContract,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("NewFromInstance: %w", err)
+		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
 	}
 	instance.Contract = contract
 
 	return &instance, nil
 }
 
-func NewFromInstanceDetails(
+func newResourceModelInstanceFromInstanceDetails(
 	sdkInstanceDetails publicCloud.InstanceDetails,
 	ctx context.Context,
-) (*Instance, error) {
-	instance := Instance{
+) (*ResourceModelInstance, error) {
+	instance := ResourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
 		Reference:           model.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
@@ -326,34 +326,34 @@ func NewFromInstanceDetails(
 
 	image, err := model.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Image,
-		Image{}.AttributeTypes(),
+		ResourceModelImage{}.AttributeTypes(),
 		ctx,
-		newImage,
+		newResourceModelImage,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("NewFromInstance: %w", err)
+		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
 	}
 	instance.Image = image
 
 	ips, err := model.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
-		Ip{}.AttributeTypes(),
+		ResourceModelIp{}.AttributeTypes(),
 		ctx,
-		newFromIpDetails,
+		newResourceModelIpFromIpDetails,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("NewFromInstance: %w", err)
+		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
 	}
 	instance.Ips = ips
 
 	contract, err := model.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Contract,
-		Contract{}.AttributeTypes(),
+		ResourceModelContract{}.AttributeTypes(),
 		ctx,
-		newContract,
+		newResourceModelContract,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("NewFromInstance: %w", err)
+		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
 	}
 	instance.Contract = contract
 

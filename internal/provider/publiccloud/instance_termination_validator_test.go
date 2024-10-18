@@ -1,14 +1,12 @@
-package validator
+package publiccloud
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,14 +15,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 		request := terraformValidator.ObjectRequest{}
 		response := terraformValidator.ObjectResponse{}
 
-		validator := ValidateInstanceTermination(
-			func(
-				ctx context.Context,
-			) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
-				return false, nil, nil
-			},
-		)
-
+		validator := InstanceTerminationValidator{}
 		validator.ValidateObject(context.TODO(), request, &response)
 
 		assert.True(t, response.Diagnostics.HasError())
@@ -35,43 +26,10 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 		)
 	})
 
-	t.Run("errors bubble up", func(t *testing.T) {
-		instance := generateInstanceModel()
-		instanceObject, _ := basetypes.NewObjectValueFrom(
-			context.TODO(),
-			instance.AttributeTypes(),
-			instance,
-		)
-		request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
-		response := terraformValidator.ObjectResponse{}
-
-		validator := ValidateInstanceTermination(
-			func(
-				ctx context.Context,
-			) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
-				return false, nil, errors.New("something went wrong")
-			},
-		)
-
-		validator.ValidateObject(context.TODO(), request, &response)
-
-		assert.True(t, response.Diagnostics.HasError())
-		assert.Contains(
-			t,
-			response.Diagnostics[0].Summary(),
-			"ValidateObject",
-		)
-		assert.Contains(
-			t,
-			response.Diagnostics[0].Detail(),
-			"something went wrong",
-		)
-	})
-
 	t.Run(
 		"does not set a diagnostics error if instance is allowed to be terminated",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceModelForValidator()
 			instanceObject, _ := basetypes.NewObjectValueFrom(
 				context.TODO(),
 				instance.AttributeTypes(),
@@ -80,14 +38,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
 			response := terraformValidator.ObjectResponse{}
 
-			validator := ValidateInstanceTermination(
-				func(
-					ctx context.Context,
-				) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
-					return true, nil, nil
-				},
-			)
-
+			validator := InstanceTerminationValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.False(t, response.Diagnostics.HasError())
@@ -97,7 +48,8 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"sets a diagnostics error if instance is not allowed to be terminated",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceModelForValidator()
+			instance.State = basetypes.NewStringValue("DESTROYED")
 			instanceObject, _ := basetypes.NewObjectValueFrom(
 				context.TODO(),
 				instance.AttributeTypes(),
@@ -106,30 +58,29 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
 			response := terraformValidator.ObjectResponse{}
 
-			validator := ValidateInstanceTermination(
-				func(
-					ctx context.Context,
-				) (bool, *resource.ReasonInstanceCannotBeTerminated, error) {
-					reason := resource.ReasonInstanceCannotBeTerminated("reason")
-					return false, &reason, nil
-				},
-			)
-
+			validator := InstanceTerminationValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.True(t, response.Diagnostics.HasError())
-			assert.Contains(t, response.Diagnostics[0].Detail(), "reason")
+			assert.Contains(t, response.Diagnostics[0].Detail(), "DESTROYED")
 		},
 	)
 }
 
-func generateInstanceModel() resource.Instance {
-	return resource.Instance{
+func generateInstanceModelForValidator() ResourceModelInstance {
+	contract := ResourceModelContract{}
+	contractObject, _ := types.ObjectValueFrom(
+		context.TODO(),
+		contract.AttributeTypes(),
+		contract,
+	)
+
+	return ResourceModelInstance{
 		Id:        basetypes.NewStringUnknown(),
 		Region:    basetypes.NewStringUnknown(),
 		Reference: basetypes.NewStringUnknown(),
 		Image: basetypes.NewObjectUnknown(
-			resource.Image{}.AttributeTypes(),
+			ResourceModelImage{}.AttributeTypes(),
 		),
 		State:               basetypes.NewStringUnknown(),
 		Type:                basetypes.NewStringUnknown(),
@@ -137,12 +88,10 @@ func generateInstanceModel() resource.Instance {
 		RootDiskStorageType: basetypes.NewStringUnknown(),
 		Ips: basetypes.NewListUnknown(
 			types.ObjectType{
-				AttrTypes: resource.Ip{}.AttributeTypes(),
+				AttrTypes: ResourceModelIp{}.AttributeTypes(),
 			},
 		),
-		Contract: basetypes.NewObjectUnknown(
-			resource.Contract{}.AttributeTypes(),
-		),
+		Contract:    contractObject,
 		MarketAppId: basetypes.NewStringUnknown(),
 	}
 }

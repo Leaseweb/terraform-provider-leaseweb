@@ -1,4 +1,4 @@
-package resource
+package publiccloud
 
 import (
 	"context"
@@ -14,10 +14,10 @@ func Test_newFromIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := Ip{
+	want := ResourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := newFromIp(context.TODO(), sdkIp)
+	got, err := newResourceModelIpFromIp(context.TODO(), sdkIp)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
@@ -28,10 +28,10 @@ func Test_newFromIpDetails(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := Ip{
+	want := ResourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := newFromIpDetails(context.TODO(), sdkIpDetails)
+	got, err := newResourceModelIpFromIpDetails(context.TODO(), sdkIpDetails)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)

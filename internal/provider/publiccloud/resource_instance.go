@@ -17,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	resourceModel "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/models/resource"
-	customValidator "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud/validator"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
 	resourceHelper "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
@@ -70,7 +68,7 @@ func (i *instanceResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan resourceModel.Instance
+	var plan ResourceModelInstance
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -96,7 +94,7 @@ func (i *instanceResource) Create(
 	)
 	if repositoryErr != nil {
 		resp.Diagnostics.AddError(
-			"Error creating Instance",
+			"Error creating ResourceModelInstance",
 			repositoryErr.Error(),
 		)
 
@@ -111,7 +109,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, resourceErr := resourceModel.NewFromInstance(*sdkInstance, ctx)
+	instance, resourceErr := newResourceModelInstanceFromInstance(*sdkInstance, ctx)
 	if resourceErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating public cloud instance resource",
@@ -133,7 +131,7 @@ func (i *instanceResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state resourceModel.Instance
+	var state ResourceModelInstance
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -148,9 +146,9 @@ func (i *instanceResource) Delete(
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error terminating Public Cloud Instance",
+			"Error terminating Public Cloud ResourceModelInstance",
 			fmt.Sprintf(
-				"Could not terminate Public Cloud Instance, unexpected error: %q",
+				"Could not terminate Public Cloud ResourceModelInstance, unexpected error: %q",
 				err.Error(),
 			),
 		)
@@ -197,7 +195,7 @@ func (i *instanceResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state resourceModel.Instance
+	var state ResourceModelInstance
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -213,13 +211,13 @@ func (i *instanceResource) Read(
 		ctx,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading Instance", err.Error())
+		resp.Diagnostics.AddError("Error reading ResourceModelInstance", err.Error())
 
 		logging.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf("Unable to read Instance %q", state.Id.ValueString()),
+			fmt.Sprintf("Unable to read ResourceModelInstance %q", state.Id.ValueString()),
 			err.Error(),
 		)
 
@@ -230,7 +228,7 @@ func (i *instanceResource) Read(
 		"Create public cloud instance resource for %q",
 		state.Id.ValueString(),
 	))
-	instance, resourceErr := resourceModel.NewFromInstanceDetails(
+	instance, resourceErr := newResourceModelInstanceFromInstanceDetails(
 		*sdkInstance,
 		ctx,
 	)
@@ -255,7 +253,7 @@ func (i *instanceResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan resourceModel.Instance
+	var plan ResourceModelInstance
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -423,7 +421,7 @@ func (i *instanceResource) Schema(
 						Computed: true,
 					},
 				},
-				Validators: []validator.Object{customValidator.ContractTermIsValid()},
+				Validators: []validator.Object{contractTermValidator{}},
 			},
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
@@ -445,16 +443,16 @@ func (i *instanceResource) ModifyPlan(
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
 ) {
-	planInstance := resourceModel.Instance{}
+	planInstance := ResourceModelInstance{}
 	request.Plan.Get(ctx, &planInstance)
 
-	planImage := resourceModel.Image{}
+	planImage := ResourceModelImage{}
 	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
 
-	stateInstance := resourceModel.Instance{}
+	stateInstance := ResourceModelInstance{}
 	request.State.Get(ctx, &stateInstance)
 
-	stateImage := resourceModel.Image{}
+	stateImage := ResourceModelImage{}
 	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
 
 	// Before deletion, determine if the instance is allowed to be deleted
@@ -501,7 +499,7 @@ func (i *instanceResource) ModifyPlan(
 	}
 }
 
-// When creating a new Instance,
+// When creating a new ResourceModelInstance,
 // any instanceType available in the region is good.
 // On update, the criteria is more limited.
 func (i *instanceResource) getAvailableInstanceTypes(
@@ -510,7 +508,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	region string,
 	ctx context.Context,
 ) []string {
-	// Instance is being created.
+	// ResourceModelInstance is being created.
 	if id.IsNull() {
 		availableInstanceTypes, err := i.client.PublicCloudRepository.GetInstanceTypesForRegion(region, ctx)
 		if err != nil {
@@ -539,7 +537,9 @@ func (i *instanceResource) validateRegion(
 	request := validator.StringRequest{ConfigValue: plannedValue}
 	regionResponse := validator.StringResponse{}
 
-	regionValidator := customValidator.NewRegionValidator(regions)
+	regionValidator := RegionValidator{
+		regions: regions,
+	}
 	regionValidator.ValidateString(ctx, request, &regionResponse)
 	if regionResponse.Diagnostics.HasError() {
 		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
@@ -556,7 +556,7 @@ func (i *instanceResource) validateInstanceType(
 	request := validator.StringRequest{ConfigValue: instanceType}
 	instanceResponse := validator.StringResponse{}
 
-	instanceTypeValidator := customValidator.NewInstanceTypeValidator(
+	instanceTypeValidator := NewInstanceTypeValidator(
 		currentInstanceType,
 		availableInstanceTypes,
 	)
@@ -569,13 +569,13 @@ func (i *instanceResource) validateInstanceType(
 
 // Checks if instance can be deleted.
 func (i *instanceResource) validateInstance(
-	instance resourceModel.Instance,
+	instance ResourceModelInstance,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,
 ) {
 	instanceObject, diags := basetypes.NewObjectValueFrom(
 		ctx,
-		resourceModel.Instance{}.AttributeTypes(),
+		ResourceModelInstance{}.AttributeTypes(),
 		instance,
 	)
 	if diags.HasError() {
@@ -585,9 +585,7 @@ func (i *instanceResource) validateInstance(
 
 	instanceRequest := validator.ObjectRequest{ConfigValue: instanceObject}
 	instanceResponse := validator.ObjectResponse{}
-	validateInstanceTermination := customValidator.ValidateInstanceTermination(
-		instance.CanBeTerminated,
-	)
+	validateInstanceTermination := InstanceTerminationValidator{}
 	validateInstanceTermination.ValidateObject(
 		ctx,
 		instanceRequest,
