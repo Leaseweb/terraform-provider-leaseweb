@@ -14,7 +14,7 @@ func Test_newFromIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := ResourceModelIp{
+	want := resourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got, err := newResourceModelIpFromIp(context.TODO(), sdkIp)
@@ -28,7 +28,7 @@ func Test_newFromIpDetails(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := ResourceModelIp{
+	want := resourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got, err := newResourceModelIpFromIpDetails(context.TODO(), sdkIpDetails)

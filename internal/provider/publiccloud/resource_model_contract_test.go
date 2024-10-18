@@ -14,8 +14,8 @@ import (
 func TestContract_attributeTypes(t *testing.T) {
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),
-		ResourceModelContract{}.AttributeTypes(),
-		ResourceModelContract{},
+		resourceModelContract{}.AttributeTypes(),
+		resourceModelContract{},
 	)
 
 	assert.Nil(t, diags, "attributes should be correct")
@@ -34,7 +34,7 @@ func Test_newResourceModelContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := ResourceModelContract{
+	want := resourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
@@ -61,7 +61,7 @@ func TestIsContractTermValid(t *testing.T) {
 			got, reason := contract.IsContractTermValid()
 
 			assert.False(t, got)
-			assert.Equal(t, ReasonContractTermCannotBeZero, reason)
+			assert.Equal(t, reasonContractTermCannotBeZero, reason)
 		},
 	)
 
@@ -78,7 +78,7 @@ func TestIsContractTermValid(t *testing.T) {
 			got, reason := contract.IsContractTermValid()
 
 			assert.False(t, got)
-			assert.Equal(t, ReasonContractTermMustBeZero, reason)
+			assert.Equal(t, reasonContractTermMustBeZero, reason)
 		},
 	)
 
@@ -95,7 +95,7 @@ func TestIsContractTermValid(t *testing.T) {
 			got, reason := contract.IsContractTermValid()
 
 			assert.True(t, got)
-			assert.Equal(t, ReasonNone, reason)
+			assert.Equal(t, reasonNone, reason)
 		},
 	)
 }

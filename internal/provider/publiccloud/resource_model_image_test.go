@@ -14,7 +14,7 @@ func Test_newResourceModelImage(t *testing.T) {
 		Id: "imageId",
 	}
 
-	want := ResourceModelImage{
+	want := resourceModelImage{
 		Id: basetypes.NewStringValue("imageId"),
 	}
 	got, err := newResourceModelImage(context.TODO(), sdkImage)

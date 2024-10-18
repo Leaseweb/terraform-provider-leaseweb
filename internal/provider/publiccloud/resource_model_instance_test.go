@@ -33,8 +33,8 @@ func generateContractObject(
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		ResourceModelContract{}.AttributeTypes(),
-		ResourceModelContract{
+		resourceModelContract{}.AttributeTypes(),
+		resourceModelContract{
 			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
 			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
@@ -46,11 +46,11 @@ func generateContractObject(
 	return contract
 }
 
-func generateInstanceModel() ResourceModelInstance {
+func generateInstanceModel() resourceModelInstance {
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		ResourceModelImage{}.AttributeTypes(),
-		ResourceModelImage{
+		resourceModelImage{}.AttributeTypes(),
+		resourceModelImage{
 			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
@@ -62,7 +62,7 @@ func generateInstanceModel() ResourceModelInstance {
 		nil,
 	)
 
-	instance := ResourceModelInstance{
+	instance := resourceModelInstance{
 		Id:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
@@ -116,15 +116,15 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := ResourceModelImage{}
+	image := resourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-	contract := ResourceModelContract{}
+	contract := resourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []ResourceModelIp
+	var ips []resourceModelIp
 	got.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -169,15 +169,15 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := ResourceModelImage{}
+	image := resourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
 
-	contract := ResourceModelContract{}
+	contract := resourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []ResourceModelIp
+	var ips []resourceModelIp
 	got.Ips.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -310,7 +310,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if ResourceModelImage resource is incorrect",
+		"returns error if resourceModelImage resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
@@ -318,12 +318,12 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".ResourceModelImage")
+			assert.ErrorContains(t, err, ".resourceModelImage")
 		},
 	)
 
 	t.Run(
-		"returns error if ResourceModelContract resource is incorrect",
+		"returns error if resourceModelContract resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
@@ -331,7 +331,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".ResourceModelContract")
+			assert.ErrorContains(t, err, ".resourceModelContract")
 		},
 	)
 }
@@ -426,7 +426,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if ResourceModelContract resource is incorrect",
+		"returns error if resourceModelContract resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
@@ -434,7 +434,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".ResourceModelContract")
+			assert.ErrorContains(t, err, ".resourceModelContract")
 		},
 	)
 }

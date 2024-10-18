@@ -15,7 +15,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"does not set error if contract term is correct",
 		func(t *testing.T) {
-			contract := ResourceModelContract{}
+			contract := resourceModelContract{}
 			configValue, _ := types.ObjectValueFrom(
 				context.TODO(),
 				contract.AttributeTypes(),
@@ -38,7 +38,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"returns expected error if contract term cannot be 0",
 		func(t *testing.T) {
-			contract := ResourceModelContract{
+			contract := resourceModelContract{
 				Type: basetypes.NewStringValue("MONTHLY"),
 				Term: basetypes.NewInt64Value(0),
 			}
@@ -69,7 +69,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"returns expected error if contract term must be 0",
 		func(t *testing.T) {
-			contract := ResourceModelContract{
+			contract := resourceModelContract{
 				Type: basetypes.NewStringValue("HOURLY"),
 				Term: basetypes.NewInt64Value(3),
 			}
@@ -98,7 +98,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	)
 }
 
-func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
+func Test_instanceTerminationValidator_ValidateObject(t *testing.T) {
 	t.Run("ConfigValue populate errors bubble up", func(t *testing.T) {
 		request := terraformValidator.ObjectRequest{}
 		response := terraformValidator.ObjectResponse{}
@@ -155,20 +155,20 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 	)
 }
 
-func generateInstanceModelForValidator() ResourceModelInstance {
-	contract := ResourceModelContract{}
+func generateInstanceModelForValidator() resourceModelInstance {
+	contract := resourceModelContract{}
 	contractObject, _ := types.ObjectValueFrom(
 		context.TODO(),
 		contract.AttributeTypes(),
 		contract,
 	)
 
-	return ResourceModelInstance{
+	return resourceModelInstance{
 		Id:        basetypes.NewStringUnknown(),
 		Region:    basetypes.NewStringUnknown(),
 		Reference: basetypes.NewStringUnknown(),
 		Image: basetypes.NewObjectUnknown(
-			ResourceModelImage{}.AttributeTypes(),
+			resourceModelImage{}.AttributeTypes(),
 		),
 		State:               basetypes.NewStringUnknown(),
 		Type:                basetypes.NewStringUnknown(),
@@ -176,7 +176,7 @@ func generateInstanceModelForValidator() ResourceModelInstance {
 		RootDiskStorageType: basetypes.NewStringUnknown(),
 		Ips: basetypes.NewListUnknown(
 			types.ObjectType{
-				AttrTypes: ResourceModelIp{}.AttributeTypes(),
+				AttrTypes: resourceModelIp{}.AttributeTypes(),
 			},
 		),
 		Contract:    contractObject,
@@ -271,7 +271,7 @@ func TestInstanceTypeValidator_ValidateString(t *testing.T) {
 	)
 }
 
-func TestNewInstanceTypeValidator(t *testing.T) {
+func Test_newInstanceTypeValidator(t *testing.T) {
 	validator := newInstanceTypeValidator(
 		basetypes.NewStringValue("currentInstanceType"),
 		[]string{"type1"},
