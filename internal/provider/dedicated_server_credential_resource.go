@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -139,8 +140,8 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
@@ -169,8 +170,8 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
@@ -202,8 +203,8 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error updating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
@@ -232,8 +233,8 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 }
