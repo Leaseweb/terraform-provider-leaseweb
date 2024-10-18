@@ -15,7 +15,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 		request := terraformValidator.ObjectRequest{}
 		response := terraformValidator.ObjectResponse{}
 
-		validator := InstanceTerminationValidator{}
+		validator := instanceTerminationValidator{}
 		validator.ValidateObject(context.TODO(), request, &response)
 
 		assert.True(t, response.Diagnostics.HasError())
@@ -38,7 +38,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
 			response := terraformValidator.ObjectResponse{}
 
-			validator := InstanceTerminationValidator{}
+			validator := instanceTerminationValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.False(t, response.Diagnostics.HasError())
@@ -58,7 +58,7 @@ func TestInstanceTerminationValidator_ValidateObject(t *testing.T) {
 			request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
 			response := terraformValidator.ObjectResponse{}
 
-			validator := InstanceTerminationValidator{}
+			validator := instanceTerminationValidator{}
 			validator.ValidateObject(context.TODO(), request, &response)
 
 			assert.True(t, response.Diagnostics.HasError())

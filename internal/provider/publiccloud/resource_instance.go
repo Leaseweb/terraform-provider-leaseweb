@@ -3,7 +3,9 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"slices"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -27,7 +29,135 @@ var (
 	_ resource.ResourceWithConfigure   = &instanceResource{}
 	_ resource.ResourceWithImportState = &instanceResource{}
 	_ resource.ResourceWithModifyPlan  = &instanceResource{}
+	_ validator.Object                 = contractTermValidator{}
+	_ validator.Object                 = instanceTerminationValidator{}
+	_ validator.String                 = RegionValidator{}
 )
+
+// Checks that contractType/contractTerm combination is valid.
+type contractTermValidator struct {
+}
+
+func (v contractTermValidator) Description(_ context.Context) string {
+	return `When contract.type is "MONTHLY", contract.term cannot be 0. When contract.type is "HOURLY", contract.term may only be 0.`
+}
+
+func (v contractTermValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v contractTermValidator) ValidateObject(
+	ctx context.Context,
+	request validator.ObjectRequest,
+	response *validator.ObjectResponse,
+) {
+	contract := ResourceModelContract{}
+	request.ConfigValue.As(ctx, &contract, basetypes.ObjectAsOptions{})
+	valid, reason := contract.IsContractTermValid()
+
+	if !valid {
+		switch reason {
+		case ReasonContractTermCannotBeZero:
+			response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
+				request.Path.AtName("term"),
+				"cannot be 0 when contract.type is \"MONTHLY\"",
+				contract.Term.String(),
+			))
+			return
+		case ReasonContractTermMustBeZero:
+			response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
+				request.Path.AtName("term"),
+				"must be 0 when contract.type is \"HOURLY\"",
+				contract.Term.String(),
+			))
+			return
+		default:
+			return
+		}
+	}
+}
+
+// instanceTerminationValidator validates if the ResourceModelInstance is allowed to be terminated.
+type instanceTerminationValidator struct{}
+
+func (i instanceTerminationValidator) Description(ctx context.Context) string {
+	return `
+Determines whether an instance can be terminated or not. An instance cannot be
+terminated if:
+
+- state is equal to Creating
+- state is equal to Destroying
+- state is equal to Destroyed
+- contract.endsAt is set
+
+In all other scenarios an instance can be terminated.
+`
+}
+
+func (i instanceTerminationValidator) MarkdownDescription(ctx context.Context) string {
+	return i.Description(ctx)
+}
+
+func (i instanceTerminationValidator) ValidateObject(
+	ctx context.Context,
+	request validator.ObjectRequest,
+	response *validator.ObjectResponse,
+) {
+	instance := ResourceModelInstance{}
+
+	diags := request.ConfigValue.As(ctx, &instance, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
+
+	reason := instance.CanBeTerminated(ctx)
+
+	if reason != nil {
+		response.Diagnostics.AddError(
+			"ResourceModelInstance is not allowed to be terminated",
+			string(*reason),
+		)
+	}
+}
+
+// RegionValidator validates if a region exists.
+type RegionValidator struct {
+	regions []string
+}
+
+func (r RegionValidator) Description(ctx context.Context) string {
+	return `Determines whether a region exists`
+}
+
+func (r RegionValidator) MarkdownDescription(ctx context.Context) string {
+	return r.Description(ctx)
+}
+
+func (r RegionValidator) ValidateString(
+	ctx context.Context,
+	request validator.StringRequest,
+	response *validator.StringResponse,
+) {
+	// If the region is unknown or null, there is nothing to validate.
+	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
+		return
+	}
+
+	regionExists := slices.Contains(r.regions, request.ConfigValue.ValueString())
+
+	if !regionExists {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Region",
+			fmt.Sprintf(
+				"Attribute region value must be one of: %q, got: %q",
+				r.regions,
+				request.ConfigValue.ValueString(),
+			),
+		)
+	}
+}
 
 func NewInstanceResource() resource.Resource {
 	return &instanceResource{}
@@ -585,7 +715,7 @@ func (i *instanceResource) validateInstance(
 
 	instanceRequest := validator.ObjectRequest{ConfigValue: instanceObject}
 	instanceResponse := validator.ObjectResponse{}
-	validateInstanceTermination := InstanceTerminationValidator{}
+	validateInstanceTermination := instanceTerminationValidator{}
 	validateInstanceTermination.ValidateObject(
 		ctx,
 		instanceRequest,
