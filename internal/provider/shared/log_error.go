@@ -31,14 +31,14 @@ func newErrorResponse(jsonStr string) (*ErrorResponse, error) {
 	return &errorResponse, nil
 }
 
-type RepositoryError struct {
+type SdkError struct {
 	msg           string
 	err           error
 	ErrorResponse *ErrorResponse
 }
 
-func (e RepositoryError) Error() string {
-	return e.msg
+func (s SdkError) Error() string {
+	return s.msg
 }
 
 // NewSdkError generates a new error from an sdk error & response.
@@ -46,8 +46,8 @@ func NewSdkError(
 	errorPrefix string,
 	sdkError error,
 	sdkHttpResponse *http.Response,
-) *RepositoryError {
-	repositoryError := RepositoryError{
+) *SdkError {
+	repositoryError := SdkError{
 		msg: fmt.Errorf("%s: %w", errorPrefix, sdkError).Error(),
 		err: sdkError,
 	}

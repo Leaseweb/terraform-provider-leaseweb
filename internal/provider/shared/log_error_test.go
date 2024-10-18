@@ -84,7 +84,7 @@ func TestNewSdkError(t *testing.T) {
 		}
 
 		got := NewSdkError("prefix", err, &response)
-		want := RepositoryError{
+		want := SdkError{
 			msg: "prefix: result",
 			err: err,
 			ErrorResponse: &ErrorResponse{
@@ -119,7 +119,7 @@ func TestNewSdkError(t *testing.T) {
 }
 
 func TestRepositoryError_Error(t *testing.T) {
-	err := RepositoryError{msg: "Result"}
+	err := SdkError{msg: "Result"}
 	want := "Result"
 	got := err.Error()
 

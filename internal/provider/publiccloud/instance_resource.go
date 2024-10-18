@@ -773,7 +773,7 @@ func getInstance(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
+) (*publicCloud.InstanceDetails, *shared.SdkError) {
 	instance, response, err := api.GetInstance(ctx, id).Execute()
 
 	if err != nil {
@@ -791,7 +791,7 @@ func launchInstance(
 	opts publicCloud.LaunchInstanceOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.Instance, *shared.RepositoryError) {
+) (*publicCloud.Instance, *shared.SdkError) {
 	instance, response, err := api.LaunchInstance(ctx).LaunchInstanceOpts(opts).Execute()
 
 	if err != nil {
@@ -806,7 +806,7 @@ func updateInstance(
 	opts publicCloud.UpdateInstanceOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.InstanceDetails, *shared.RepositoryError) {
+) (*publicCloud.InstanceDetails, *shared.SdkError) {
 	instance, response, err := api.UpdateInstance(
 		ctx,
 		id,
@@ -826,7 +826,7 @@ func terminateInstance(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) *shared.RepositoryError {
+) *shared.SdkError {
 	response, err := api.TerminateInstance(ctx, id).Execute()
 	if err != nil {
 		return shared.NewSdkError(
@@ -843,7 +843,7 @@ func getAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *shared.RepositoryError) {
+) ([]string, *shared.SdkError) {
 	var instanceTypes []string
 
 	sdkInstanceTypes, response, err := api.GetUpdateInstanceTypeList(ctx, id).
@@ -866,7 +866,7 @@ func getAvailableInstanceTypesForUpdate(
 func getRegions(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *shared.RepositoryError) {
+) ([]string, *shared.SdkError) {
 	var regions []string
 
 	request := api.GetRegionList(ctx)
@@ -911,7 +911,7 @@ func getInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *shared.RepositoryError) {
+) ([]string, *shared.SdkError) {
 	var instanceTypes []string
 
 	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))

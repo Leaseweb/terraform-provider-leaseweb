@@ -112,7 +112,7 @@ func newDataSourceModelInstances(sdkInstances []publicCloud.Instance) dataSource
 
 func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	[]publicCloud.Instance,
-	*shared.RepositoryError,
+	*shared.SdkError,
 ) {
 	var instances []publicCloud.Instance
 
