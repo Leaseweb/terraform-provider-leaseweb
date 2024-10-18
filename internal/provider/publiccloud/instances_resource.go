@@ -23,6 +23,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
+	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	resourceHelper "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
@@ -714,9 +715,10 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, repositoryErr := i.client.PublicCloudRepository.LaunchInstance(
+	sdkInstance, repositoryErr := launchInstance(
 		*opts,
-		ctx,
+		i.client.AuthContext(ctx),
+		i.client.PublicCloudAPI,
 	)
 	if repositoryErr != nil {
 		resp.Diagnostics.AddError(
@@ -768,7 +770,11 @@ func (i *instanceResource) Delete(
 		"Terminate public cloud instance %q",
 		state.Id.ValueString(),
 	))
-	err := i.client.PublicCloudRepository.DeleteInstance(state.Id.ValueString(), ctx)
+	err := terminateInstance(
+		state.Id.ValueString(),
+		i.client.AuthContext(ctx),
+		i.client.PublicCloudAPI,
+	)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -792,6 +798,201 @@ func (i *instanceResource) Delete(
 
 		return
 	}
+}
+
+func getInstance(
+	id string,
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) (*publicCloud.InstanceDetails, *sharedRepository.RepositoryError) {
+	instance, response, err := api.GetInstance(ctx, id).Execute()
+
+	if err != nil {
+		return nil, sharedRepository.NewSdkError(
+			fmt.Sprintf("getInstance %q", id),
+			err,
+			response,
+		)
+	}
+
+	return instance, nil
+}
+
+func launchInstance(
+	opts publicCloud.LaunchInstanceOpts,
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) (*publicCloud.Instance, *sharedRepository.RepositoryError) {
+	instance, response, err := api.LaunchInstance(ctx).LaunchInstanceOpts(opts).Execute()
+
+	if err != nil {
+		return nil, sharedRepository.NewSdkError(
+			"launchInstance",
+			err,
+			response,
+		)
+	}
+
+	return instance, nil
+}
+
+func updateInstance(
+	id string,
+	opts publicCloud.UpdateInstanceOpts,
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) (*publicCloud.InstanceDetails, *sharedRepository.RepositoryError) {
+	instance, response, err := api.UpdateInstance(
+		ctx,
+		id,
+	).UpdateInstanceOpts(opts).Execute()
+	if err != nil {
+		return nil, sharedRepository.NewSdkError(
+			fmt.Sprintf("updateInstance %q", id),
+			err,
+			response,
+		)
+	}
+
+	return instance, nil
+}
+
+func terminateInstance(
+	id string,
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) *sharedRepository.RepositoryError {
+	response, err := api.TerminateInstance(ctx, id).Execute()
+	if err != nil {
+		return sharedRepository.NewSdkError(
+			fmt.Sprintf("terminateInstance %q", id),
+			err,
+			response,
+		)
+	}
+
+	return nil
+}
+
+func getAvailableInstanceTypesForUpdate(
+	id string,
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]string, *sharedRepository.RepositoryError) {
+	var instanceTypes []string
+
+	sdkInstanceTypes, response, err := api.GetUpdateInstanceTypeList(ctx, id).
+		Execute()
+	if err != nil {
+		return nil, sharedRepository.NewSdkError(
+			fmt.Sprintf("getAvailableInstanceTypesForUpdate %q", id),
+			err,
+			response,
+		)
+	}
+
+	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
+		instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
+	}
+
+	return instanceTypes, nil
+}
+
+func getRegions(ctx context.Context, api publicCloud.PublicCloudAPI) (
+	[]string,
+	*sharedRepository.RepositoryError,
+) {
+	var regions []string
+
+	request := api.GetRegionList(ctx)
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, sharedRepository.NewSdkError("getRegions", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := sharedRepository.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, sharedRepository.NewSdkError("getRegions", err, response)
+		}
+
+		for _, sdkRegion := range result.Regions {
+			regions = append(regions, string(sdkRegion.Name))
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+		}
+	}
+
+	return regions, nil
+}
+
+func getInstanceTypesForRegion(
+	region string,
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]string, *sharedRepository.RepositoryError) {
+	var instanceTypes []string
+
+	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, sharedRepository.NewSdkError(
+			"GetInstanceTypesForRegion",
+			err,
+			response,
+		)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := sharedRepository.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, sharedRepository.NewSdkError(
+				"GetInstanceTypesForRegion",
+				err,
+				response,
+			)
+		}
+
+		for _, sdkInstanceType := range result.InstanceTypes {
+			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
+		}
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+		}
+	}
+
+	return instanceTypes, nil
 }
 
 func (i *instanceResource) ImportState(
@@ -832,9 +1033,10 @@ func (i *instanceResource) Read(
 		"Read public cloud instance %q",
 		state.Id.ValueString(),
 	))
-	sdkInstance, err := i.client.PublicCloudRepository.GetInstance(
+	sdkInstance, err := getInstance(
 		state.Id.ValueString(),
-		ctx,
+		i.client.AuthContext(ctx),
+		i.client.PublicCloudAPI,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading resourceModelInstance", err.Error())
@@ -900,10 +1102,11 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, repositoryErr := i.client.PublicCloudRepository.UpdateInstance(
+	sdkInstance, repositoryErr := updateInstance(
 		plan.Id.ValueString(),
 		*opts,
-		ctx,
+		i.client.AuthContext(ctx),
+		i.client.PublicCloudAPI,
 	)
 	if repositoryErr != nil {
 		resp.Diagnostics.AddError(
@@ -1089,7 +1292,7 @@ func (i *instanceResource) ModifyPlan(
 		}
 	}
 
-	regions, err := i.client.PublicCloudRepository.GetRegions(ctx)
+	regions, err := getRegions(i.client.AuthContext(ctx), i.client.PublicCloudAPI)
 	if err != nil {
 		response.Diagnostics.AddError("Cannot get regions", err.Error())
 		return
@@ -1136,18 +1339,32 @@ func (i *instanceResource) getAvailableInstanceTypes(
 ) []string {
 	// resourceModelInstance is being created.
 	if id.IsNull() {
-		availableInstanceTypes, err := i.client.PublicCloudRepository.GetInstanceTypesForRegion(region, ctx)
+		availableInstanceTypes, err := getInstanceTypesForRegion(
+			region,
+			i.client.AuthContext(ctx),
+			i.client.PublicCloudAPI,
+		)
 		if err != nil {
-			response.Diagnostics.AddError("Cannot get available instanceTypes for region", err.Error())
+			response.Diagnostics.AddError(
+				"Cannot get available instanceTypes for region",
+				err.Error(),
+			)
 			return nil
 		}
 
 		return availableInstanceTypes
 	}
 
-	availableInstanceTypes, err := i.client.PublicCloudRepository.GetAvailableInstanceTypesForUpdate(id.ValueString(), ctx)
+	availableInstanceTypes, err := getAvailableInstanceTypesForUpdate(
+		id.ValueString(),
+		i.client.AuthContext(ctx),
+		i.client.PublicCloudAPI,
+	)
 	if err != nil {
-		response.Diagnostics.AddError("Cannot get available instanceTypes for update", err.Error())
+		response.Diagnostics.AddError(
+			"Cannot get available instanceTypes for update",
+			err.Error(),
+		)
 		return nil
 	}
 

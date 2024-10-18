@@ -16,6 +16,7 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/logging"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/model"
+	sharedRepository "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/repository"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/shared/resource"
 )
 
@@ -112,6 +113,48 @@ func newDataSourceModelInstances(sdkInstances []publicCloud.Instance) dataSource
 	return instances
 }
 
+func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
+	[]publicCloud.Instance,
+	*sharedRepository.RepositoryError,
+) {
+	var instances []publicCloud.Instance
+
+	request := api.GetInstanceList(ctx)
+
+	result, response, err := request.Execute()
+
+	if err != nil {
+		return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+	}
+
+	metadata := result.GetMetadata()
+	pagination := sharedRepository.NewPagination(
+		metadata.GetLimit(),
+		metadata.GetTotalCount(),
+		request,
+	)
+
+	for {
+		result, response, err := request.Execute()
+		if err != nil {
+			return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+		}
+
+		instances = append(instances, result.Instances...)
+
+		if !pagination.CanIncrement() {
+			break
+		}
+
+		request, err = pagination.NextPage()
+		if err != nil {
+			return nil, sharedRepository.NewSdkError("GetAllInstances", err, response)
+		}
+	}
+
+	return instances, nil
+}
+
 func NewInstancesDataSource() datasource.DataSource {
 	return &InstancesDataSource{}
 }
@@ -160,7 +203,10 @@ func (d *InstancesDataSource) Read(
 ) {
 
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, err := d.client.PublicCloudRepository.GetAllInstances(ctx)
+	instances, err := getAllInstances(
+		d.client.AuthContext(ctx),
+		d.client.PublicCloudAPI,
+	)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
