@@ -58,14 +58,17 @@ func (p *leasewebProvider) Schema(
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
-				Optional: true,
+				Description: "Host for Leaseweb API, defaults to \"api.leaseweb.com\". May also be provided via LEASEWEB_HOST",
+				Optional:    true,
 			},
 			"scheme": schema.StringAttribute{
-				Optional: true,
+				Description: "Scheme for Leaseweb API, defaults to \"https\". May also be provided via LEASEWEB_SCHEME",
+				Optional:    true,
 			},
 			"token": schema.StringAttribute{
-				Sensitive: true,
-				Required:  true,
+				Description: "The API token to use. By default it takes the value from the LEASEWEB_API_TOKEN environment variable if present.",
+				Sensitive:   true,
+				Required:    true,
 			},
 		},
 	}
@@ -90,7 +93,7 @@ func (p *leasewebProvider) Configure(
 			path.Root("token"),
 			"Unknown Leaseweb API token",
 			"The provider cannot create the Leaseweb API client as there is an unknown configuration value for the Leaseweb API token. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the LEASEWEB_TOKEN environment variable.",
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the LEASEWEB_API_TOKEN environment variable.",
 		)
 	}
 
@@ -100,7 +103,7 @@ func (p *leasewebProvider) Configure(
 
 	host := os.Getenv("LEASEWEB_HOST")
 	scheme := os.Getenv("LEASEWEB_SCHEME")
-	token := os.Getenv("LEASEWEB_TOKEN")
+	token := os.Getenv("LEASEWEB_API_TOKEN")
 
 	if !config.Host.IsNull() {
 		host = config.Host.ValueString()
@@ -119,7 +122,7 @@ func (p *leasewebProvider) Configure(
 			path.Root("token"),
 			"Missing Leaseweb API token",
 			"The provider cannot create the Leaseweb API client as there is a missing or empty value for the Leaseweb API token. "+
-				"Set the token value in the configuration or use the LEASEWEB_TOKEN environment variable. "+
+				"Set the token value in the configuration or use the LEASEWEB_API_TOKEN environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -130,8 +133,8 @@ func (p *leasewebProvider) Configure(
 
 	ctx = tflog.SetField(ctx, "leaseweb_host", host)
 	ctx = tflog.SetField(ctx, "leaseweb_scheme", scheme)
-	ctx = tflog.SetField(ctx, "leaseweb_token", token)
-	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "leaseweb_token")
+	ctx = tflog.SetField(ctx, "leaseweb_api_token", token)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "leaseweb_api_token")
 
 	tflog.Debug(ctx, "Creating Leaseweb client")
 
