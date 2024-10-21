@@ -686,7 +686,7 @@ func (i *instanceResource) Create(
 
 	sdkInstance, repositoryErr := launchInstance(
 		*opts,
-		i.client.AuthContext(ctx),
+		ctx,
 		i.client.PublicCloudAPI,
 	)
 	if repositoryErr != nil {
@@ -739,11 +739,7 @@ func (i *instanceResource) Delete(
 		"Terminate public cloud instance %q",
 		state.Id.ValueString(),
 	))
-	err := terminateInstance(
-		state.Id.ValueString(),
-		i.client.AuthContext(ctx),
-		i.client.PublicCloudAPI,
-	)
+	err := terminateInstance(state.Id.ValueString(), ctx, i.client.PublicCloudAPI)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -1000,7 +996,7 @@ func (i *instanceResource) Read(
 	))
 	sdkInstance, err := getInstance(
 		state.Id.ValueString(),
-		i.client.AuthContext(ctx),
+		ctx,
 		i.client.PublicCloudAPI,
 	)
 	if err != nil {
@@ -1070,7 +1066,7 @@ func (i *instanceResource) Update(
 	sdkInstance, repositoryErr := updateInstance(
 		plan.Id.ValueString(),
 		*opts,
-		i.client.AuthContext(ctx),
+		ctx,
 		i.client.PublicCloudAPI,
 	)
 	if repositoryErr != nil {
@@ -1257,7 +1253,7 @@ func (i *instanceResource) ModifyPlan(
 		}
 	}
 
-	regions, err := getRegions(i.client.AuthContext(ctx), i.client.PublicCloudAPI)
+	regions, err := getRegions(ctx, i.client.PublicCloudAPI)
 	if err != nil {
 		response.Diagnostics.AddError("Cannot get regions", err.Error())
 		return
@@ -1306,7 +1302,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	if id.IsNull() {
 		availableInstanceTypes, err := getInstanceTypesForRegion(
 			region,
-			i.client.AuthContext(ctx),
+			ctx,
 			i.client.PublicCloudAPI,
 		)
 		if err != nil {
@@ -1322,7 +1318,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 
 	availableInstanceTypes, err := getAvailableInstanceTypesForUpdate(
 		id.ValueString(),
-		i.client.AuthContext(ctx),
+		ctx,
 		i.client.PublicCloudAPI,
 	)
 	if err != nil {

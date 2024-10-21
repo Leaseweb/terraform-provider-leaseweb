@@ -2,8 +2,6 @@
 package client
 
 import (
-	"context"
-
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
@@ -20,17 +18,6 @@ type Client struct {
 	PublicCloudAPI publicCloud.PublicCloudAPI
 }
 
-// AuthContext injects the authentication token into the context for the sdk.
-func (c Client) AuthContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		publicCloud.ContextAPIKeys,
-		map[string]publicCloud.APIKey{
-			"X-LSW-Auth": {Key: c.ProviderData.ApiKey, Prefix: ""},
-		},
-	)
-}
-
 type Optional struct {
 	Host   *string
 	Scheme *string
@@ -44,6 +31,7 @@ func NewClient(token string, optional Optional) Client {
 	if optional.Scheme != nil {
 		cfg.Scheme = *optional.Scheme
 	}
+	cfg.AddDefaultHeader("X-LSW-Auth", token)
 
 	publicCloudApi := publicCloud.NewAPIClient(cfg)
 

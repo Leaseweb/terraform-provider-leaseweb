@@ -200,10 +200,7 @@ func (d *InstancesDataSource) Read(
 ) {
 
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, err := getAllInstances(
-		d.client.AuthContext(ctx),
-		d.client.PublicCloudAPI,
-	)
+	instances, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
