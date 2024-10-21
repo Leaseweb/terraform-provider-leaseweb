@@ -18,7 +18,6 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &InstancesDataSource{}
 	_ datasource.DataSourceWithConfigure = &InstancesDataSource{}
 )
 
@@ -64,7 +63,7 @@ func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceMode
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
-		Image:               newDataSourceModelImage(sdkInstance.Image),
+		Image:               newDataSourceModelImageFromImage(sdkInstance.Image),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
@@ -72,16 +71,6 @@ func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceMode
 		Ips:                 ips,
 		Contract:            newDataSourceModelContract(sdkInstance.Contract),
 		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
-	}
-}
-
-type dataSourceModelImage struct {
-	Id types.String `tfsdk:"id"`
-}
-
-func newDataSourceModelImage(sdkImage publicCloud.Image) dataSourceModelImage {
-	return dataSourceModelImage{
-		Id: basetypes.NewStringValue(sdkImage.Id),
 	}
 }
 
@@ -121,7 +110,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, utils.NewSdkError("GetAllInstances", err, response)
+		return nil, utils.NewSdkError("getAllInstances", err, response)
 	}
 
 	metadata := result.GetMetadata()
@@ -134,7 +123,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("getAllInstances", err, response)
 		}
 
 		instances = append(instances, result.Instances...)
@@ -145,7 +134,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("getAllInstances", err, response)
 		}
 	}
 
@@ -198,7 +187,6 @@ func (d *InstancesDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
 	tflog.Info(ctx, "Read public cloud instances")
 	instances, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
@@ -256,13 +244,8 @@ func (d *InstancesDataSource) Schema(
 							Description: "The identifying name set to the instance",
 						},
 						"image": schema.SingleNestedAttribute{
-							Computed: true,
-							Attributes: map[string]schema.Attribute{
-								"id": schema.StringAttribute{
-									Computed:    true,
-									Description: "Image ID",
-								},
-							},
+							Computed:   true,
+							Attributes: imageSchemaAttributes(),
 						},
 						"state": schema.StringAttribute{
 							Computed:    true,

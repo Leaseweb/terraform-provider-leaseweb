@@ -162,6 +162,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		NewDedicatedServerControlPanelsDataSource,
 		NewDedicatedServerOperatingSystemsDataSource,
 		NewDedicatedServerCredentialDataSource,
+		publiccloud.NewImagesDataSource,
 	}
 }
 

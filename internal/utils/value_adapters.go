@@ -48,6 +48,16 @@ func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
 	return basetypes.NewStringValue(*value)
 }
 
+// AdaptNullableStringEnumToStringValue converts a nullable string enum to a Terraform
+// StringValue.
+func AdaptNullableStringEnumToStringValue[T ~string](value *T) basetypes.StringValue {
+	if value == nil {
+		return basetypes.NewStringNull()
+	}
+
+	return basetypes.NewStringValue(string(*value))
+}
+
 // AdaptSdkModelToResourceObject converts an sdk model to a Terraform resource object.
 func AdaptSdkModelToResourceObject[T any, U any](
 	sdkModel T,

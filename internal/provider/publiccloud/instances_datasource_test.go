@@ -100,19 +100,6 @@ func Test_newDataSourceModelIp(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func Test_newDataSourceModelImage(t *testing.T) {
-	sdkImage := publicCloud.Image{
-		Id: "imageId",
-	}
-
-	want := dataSourceModelImage{
-		Id: basetypes.NewStringValue("imageId"),
-	}
-	got := newDataSourceModelImage(sdkImage)
-
-	assert.Equal(t, want, got)
-}
-
 func Test_instancesDataSource_Metadata(t *testing.T) {
 	resp := datasource.MetadataResponse{}
 	instancesDataSource := NewInstancesDataSource()
