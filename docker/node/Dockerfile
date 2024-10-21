@@ -1,4 +1,4 @@
-FROM node:iron-slim@sha256:cffed8cd39d6a380434e6d08116d188c53e70611175cd5ec7700f93f32a935a6
+FROM node:iron-slim@sha256:ec35a66c9a0a275b027debde05247c081f8b2f0c43d7399d3a6ad5660cee2f6a
 
 RUN corepack enable \
     && corepack prepare pnpm@latest-9 --activate \
