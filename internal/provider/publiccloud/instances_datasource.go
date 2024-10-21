@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -35,7 +35,7 @@ func newDataSourceModelContract(sdkContract publicCloud.Contract) dataSourceMode
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),
-		EndsAt:           shared.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.State)),
 	}
 }
@@ -63,7 +63,7 @@ func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceMode
 	return dataSourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           shared.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		Image:               newDataSourceModelImage(sdkInstance.Image),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
@@ -71,7 +71,7 @@ func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceMode
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
 		Ips:                 ips,
 		Contract:            newDataSourceModelContract(sdkInstance.Contract),
-		MarketAppId:         shared.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 }
 
@@ -112,7 +112,7 @@ func newDataSourceModelInstances(sdkInstances []publicCloud.Instance) dataSource
 
 func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	[]publicCloud.Instance,
-	*shared.SdkError,
+	*utils.SdkError,
 ) {
 	var instances []publicCloud.Instance
 
@@ -121,11 +121,11 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, shared.NewSdkError("GetAllInstances", err, response)
+		return nil, utils.NewSdkError("GetAllInstances", err, response)
 	}
 
 	metadata := result.GetMetadata()
-	pagination := shared.NewPagination(
+	pagination := utils.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -134,7 +134,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, shared.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("GetAllInstances", err, response)
 		}
 
 		instances = append(instances, result.Instances...)
@@ -145,7 +145,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, shared.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -204,7 +204,7 @@ func (d *InstancesDataSource) Read(
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
-		shared.LogError(
+		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -230,13 +230,13 @@ func (d *InstancesDataSource) Schema(
 	resp *datasource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := shared.NewIntMarkdownList(
+	billingFrequencies := utils.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := shared.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := utils.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -308,7 +308,7 @@ func (d *InstancesDataSource) Schema(
 									Computed:    true,
 									Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 									Validators: []validator.String{
-										stringvalidator.OneOf(shared.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+										stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 									},
 								},
 								"ends_at": schema.StringAttribute{Computed: true},

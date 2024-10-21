@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	shared2 "github.com/leaseweb/terraform-provider-leaseweb/internal/shared"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -259,7 +259,7 @@ func newResourceModelContract(
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
 		Type:             basetypes.NewStringValue(string(sdkContract.Type)),
-		EndsAt:           shared2.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.State)),
 	}, nil
 }
@@ -337,13 +337,13 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 	image := resourceModelImage{}
 	imageDiags := i.Image.As(ctx, &image, basetypes.ObjectAsOptions{})
 	if imageDiags != nil {
-		return nil, shared2.ReturnError("GetLaunchInstanceOpts", imageDiags)
+		return nil, utils.ReturnError("GetLaunchInstanceOpts", imageDiags)
 	}
 
 	contract := resourceModelContract{}
 	contractDiags := i.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	if contractDiags != nil {
-		return nil, shared2.ReturnError("GetLaunchInstanceOpts", contractDiags)
+		return nil, utils.ReturnError("GetLaunchInstanceOpts", contractDiags)
 	}
 
 	sdkContractType, err := publicCloud.NewContractTypeFromValue(
@@ -391,13 +391,11 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 		*sdkRootDiskStorageType,
 	)
 
-	opts.MarketAppId = shared2.AdaptStringPointerValueToNullableString(
+	opts.MarketAppId = utils.AdaptStringPointerValueToNullableString(
 		i.MarketAppId,
 	)
-	opts.Reference = shared2.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = shared2.AdaptInt64PointerValueToNullableInt32(
-		i.RootDiskSize,
-	)
+	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
 
 	return opts, nil
 }
@@ -407,10 +405,8 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 	error,
 ) {
 	opts := publicCloud.NewUpdateInstanceOpts()
-	opts.Reference = shared2.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = shared2.AdaptInt64PointerValueToNullableInt32(
-		i.RootDiskSize,
-	)
+	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
 
 	contract := resourceModelContract{}
 	diags := i.Contract.As(
@@ -419,7 +415,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 		basetypes.ObjectAsOptions{},
 	)
 	if diags.HasError() {
-		return nil, shared2.ReturnError("GetUpdateInstanceOpts", diags)
+		return nil, utils.ReturnError("GetUpdateInstanceOpts", diags)
 	}
 
 	if contract.Type.ValueString() != "" {
@@ -502,15 +498,15 @@ func newResourceModelInstanceFromInstance(
 	instance := resourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           shared2.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
-		MarketAppId:         shared2.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
 	}
 
-	image, err := shared2.AdaptSdkModelToResourceObject(
+	image, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
@@ -521,7 +517,7 @@ func newResourceModelInstanceFromInstance(
 	}
 	instance.Image = image
 
-	ips, err := shared2.AdaptSdkModelsToListValue(
+	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
 		resourceModelIp{}.AttributeTypes(),
 		ctx,
@@ -532,7 +528,7 @@ func newResourceModelInstanceFromInstance(
 	}
 	instance.Ips = ips
 
-	contract, err := shared2.AdaptSdkModelToResourceObject(
+	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
 		resourceModelContract{}.AttributeTypes(),
 		ctx,
@@ -553,15 +549,15 @@ func newResourceModelInstanceFromInstanceDetails(
 	instance := resourceModelInstance{
 		Id:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
-		Reference:           shared2.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
+		Reference:           utils.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.RootDiskStorageType)),
-		MarketAppId:         shared2.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
+		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
 
-	image, err := shared2.AdaptSdkModelToResourceObject(
+	image, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
@@ -572,7 +568,7 @@ func newResourceModelInstanceFromInstanceDetails(
 	}
 	instance.Image = image
 
-	ips, err := shared2.AdaptSdkModelsToListValue(
+	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
 		resourceModelIp{}.AttributeTypes(),
 		ctx,
@@ -583,7 +579,7 @@ func newResourceModelInstanceFromInstanceDetails(
 	}
 	instance.Ips = ips
 
-	contract, err := shared2.AdaptSdkModelToResourceObject(
+	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Contract,
 		resourceModelContract{}.AttributeTypes(),
 		ctx,
@@ -695,7 +691,7 @@ func (i *instanceResource) Create(
 			repositoryErr.Error(),
 		)
 
-		shared2.LogError(
+		utils.LogError(
 			ctx,
 			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
@@ -750,7 +746,7 @@ func (i *instanceResource) Delete(
 			),
 		)
 
-		shared2.LogError(
+		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -769,11 +765,11 @@ func getInstance(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.InstanceDetails, *shared2.SdkError) {
+) (*publicCloud.InstanceDetails, *utils.SdkError) {
 	instance, response, err := api.GetInstance(ctx, id).Execute()
 
 	if err != nil {
-		return nil, shared2.NewSdkError(
+		return nil, utils.NewSdkError(
 			fmt.Sprintf("getInstance %q", id),
 			err,
 			response,
@@ -787,11 +783,11 @@ func launchInstance(
 	opts publicCloud.LaunchInstanceOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.Instance, *shared2.SdkError) {
+) (*publicCloud.Instance, *utils.SdkError) {
 	instance, response, err := api.LaunchInstance(ctx).LaunchInstanceOpts(opts).Execute()
 
 	if err != nil {
-		return nil, shared2.NewSdkError("launchInstance", err, response)
+		return nil, utils.NewSdkError("launchInstance", err, response)
 	}
 
 	return instance, nil
@@ -802,13 +798,13 @@ func updateInstance(
 	opts publicCloud.UpdateInstanceOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.InstanceDetails, *shared2.SdkError) {
+) (*publicCloud.InstanceDetails, *utils.SdkError) {
 	instance, response, err := api.UpdateInstance(
 		ctx,
 		id,
 	).UpdateInstanceOpts(opts).Execute()
 	if err != nil {
-		return nil, shared2.NewSdkError(
+		return nil, utils.NewSdkError(
 			fmt.Sprintf("updateInstance %q", id),
 			err,
 			response,
@@ -822,10 +818,10 @@ func terminateInstance(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) *shared2.SdkError {
+) *utils.SdkError {
 	response, err := api.TerminateInstance(ctx, id).Execute()
 	if err != nil {
-		return shared2.NewSdkError(
+		return utils.NewSdkError(
 			fmt.Sprintf("terminateInstance %q", id),
 			err,
 			response,
@@ -839,13 +835,13 @@ func getAvailableInstanceTypesForUpdate(
 	id string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *shared2.SdkError) {
+) ([]string, *utils.SdkError) {
 	var instanceTypes []string
 
 	sdkInstanceTypes, response, err := api.GetUpdateInstanceTypeList(ctx, id).
 		Execute()
 	if err != nil {
-		return nil, shared2.NewSdkError(
+		return nil, utils.NewSdkError(
 			fmt.Sprintf("getAvailableInstanceTypesForUpdate %q", id),
 			err,
 			response,
@@ -862,7 +858,7 @@ func getAvailableInstanceTypesForUpdate(
 func getRegions(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *shared2.SdkError) {
+) ([]string, *utils.SdkError) {
 	var regions []string
 
 	request := api.GetRegionList(ctx)
@@ -870,11 +866,11 @@ func getRegions(
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, shared2.NewSdkError("getRegions", err, response)
+		return nil, utils.NewSdkError("getRegions", err, response)
 	}
 
 	metadata := result.GetMetadata()
-	pagination := shared2.NewPagination(
+	pagination := utils.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -883,7 +879,7 @@ func getRegions(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, shared2.NewSdkError("getRegions", err, response)
+			return nil, utils.NewSdkError("getRegions", err, response)
 		}
 
 		for _, sdkRegion := range result.Regions {
@@ -896,7 +892,7 @@ func getRegions(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, shared2.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -907,7 +903,7 @@ func getInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]string, *shared2.SdkError) {
+) ([]string, *utils.SdkError) {
 	var instanceTypes []string
 
 	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
@@ -915,7 +911,7 @@ func getInstanceTypesForRegion(
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, shared2.NewSdkError(
+		return nil, utils.NewSdkError(
 			"GetInstanceTypesForRegion",
 			err,
 			response,
@@ -923,7 +919,7 @@ func getInstanceTypesForRegion(
 	}
 
 	metadata := result.GetMetadata()
-	pagination := shared2.NewPagination(
+	pagination := utils.NewPagination(
 		metadata.GetLimit(),
 		metadata.GetTotalCount(),
 		request,
@@ -932,7 +928,7 @@ func getInstanceTypesForRegion(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, shared2.NewSdkError(
+			return nil, utils.NewSdkError(
 				"GetInstanceTypesForRegion",
 				err,
 				response,
@@ -949,7 +945,7 @@ func getInstanceTypesForRegion(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, shared2.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("GetAllInstances", err, response)
 		}
 	}
 
@@ -1002,7 +998,7 @@ func (i *instanceResource) Read(
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading resourceModelInstance", err.Error())
 
-		shared2.LogError(
+		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
@@ -1075,7 +1071,7 @@ func (i *instanceResource) Update(
 			repositoryErr.Error(),
 		)
 
-		shared2.LogError(
+		utils.LogError(
 			ctx,
 			repositoryErr.ErrorResponse,
 			&resp.Diagnostics,
@@ -1102,13 +1098,13 @@ func (i *instanceResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	// 0 has to be prepended manually as it's a valid option.
-	billingFrequencies := shared2.NewIntMarkdownList(
+	billingFrequencies := utils.NewIntMarkdownList(
 		append(
 			[]publicCloud.BillingFrequency{0},
 			publicCloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := shared2.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := utils.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
@@ -1168,7 +1164,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(shared2.AdaptStringTypeArrayToStringArray(publicCloud.AllowedStorageTypeEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedStorageTypeEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -1203,7 +1199,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 						Validators: []validator.String{
-							stringvalidator.OneOf(shared2.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
 						},
 					},
 					"ends_at": schema.StringAttribute{Computed: true},
