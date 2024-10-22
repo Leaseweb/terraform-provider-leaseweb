@@ -36,16 +36,16 @@ func Test_newResourceModelImageFromImage(t *testing.T) {
 }
 
 func Test_newResourceModelImageFromImageDetails(t *testing.T) {
-	state := "RUNNING"
+	state := publicCloud.IMAGESTATE_READY
 	region := publicCloud.REGIONNAME_EU_WEST_3
 
 	sdkImageDetails := publicCloud.ImageDetails{
 		Id:           "imageId",
 		Name:         "name",
 		Custom:       true,
-		State:        *publicCloud.NewNullableString(&state),
-		MarketApps:   []string{"marketApp"},
-		StorageTypes: []string{"storageType"},
+		State:        *publicCloud.NewNullableImageState(&state),
+		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
+		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
 		Flavour:      "flavour",
 		Region:       *publicCloud.NewNullableRegionName(&region),
 	}
@@ -53,19 +53,19 @@ func Test_newResourceModelImageFromImageDetails(t *testing.T) {
 	marketApps, _ := basetypes.NewListValueFrom(
 		context.TODO(),
 		types.StringType,
-		[]string{"marketApp"},
+		[]string{"CPANEL_30"},
 	)
 	storageTypes, _ := basetypes.NewListValueFrom(
 		context.TODO(),
 		types.StringType,
-		[]string{"storageType"},
+		[]string{"CENTRAL"},
 	)
 
 	want := resourceModelImage{
 		Id:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
-		State:        basetypes.NewStringValue("RUNNING"),
+		State:        basetypes.NewStringValue("READY"),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 		Flavour:      basetypes.NewStringValue("flavour"),
@@ -106,32 +106,128 @@ func Test_resourceModelImage_GetCreateImageOpts(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func Test_instanceIdValidator_ValidateString(t *testing.T) {
+func Test_instanceIdForCustomImageValidator_ValidateString(t *testing.T) {
 	t.Run("valid instanceId passes", func(t *testing.T) {
 		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
 		idResponse := validator.StringResponse{}
 
-		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "id"}})
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+				},
+			},
+		)
 		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
 
-		assert.Len(t, idResponse.Diagnostics.Errors(), 0)
+		assert.False(t, idResponse.Diagnostics.HasError())
 	})
 
-	t.Run("invalid instanceId does not pass", func(t *testing.T) {
+	t.Run("non existent instanceId does not pass", func(t *testing.T) {
 		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
 		idResponse := validator.StringResponse{}
 
-		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "tralala"}})
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:    "tralala",
+					State: publicCloud.STATE_STOPPED,
+				},
+			},
+		)
 		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
 
 		assert.Len(t, idResponse.Diagnostics.Errors(), 1)
+		assert.Equal(
+			t,
+			`Attribute id value must be one of: ["tralala"], got: "id"`,
+			idResponse.Diagnostics.Errors()[0].Detail(),
+		)
+	})
+
+	t.Run("instance with state other than stopped does not pass", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_RUNNING,
+				},
+			},
+		)
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 1)
+		assert.Equal(
+			t,
+			`Instance linked to attribute ID "id" does not have state "STOPPED", has state "RUNNING"`,
+			idResponse.Diagnostics.Errors()[0].Detail(),
+		)
+	})
+
+	t.Run("instance with rootDiskSize greater than 100 does not pass", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:           "id",
+					State:        publicCloud.STATE_STOPPED,
+					RootDiskSize: 101,
+				},
+			},
+		)
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 1)
+		assert.Equal(
+			t,
+			`Instance linked to attribute ID "id" has rootDiskSize of 101 GB, maximum allowed size is 100 GB`,
+			idResponse.Diagnostics.Errors()[0].Detail(),
+		)
+	})
+
+	t.Run("instance with Windows OS does not pass", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+					Image: publicCloud.Image{
+						Flavour: "windows",
+					},
+				},
+			},
+		)
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 1)
+		assert.Equal(
+			t,
+			`Instance linked to attribute ID "id" has OS "windows", only Linux & BSD are allowed`,
+			idResponse.Diagnostics.Errors()[0].Detail(),
+		)
 	})
 
 	t.Run("nothing is validated if id is unknown", func(t *testing.T) {
 		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringUnknown()}
 		idResponse := validator.StringResponse{}
 
-		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "tralala"}})
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+				},
+			},
+		)
 		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
 
 		assert.Len(t, idResponse.Diagnostics.Errors(), 0)
@@ -141,9 +237,34 @@ func Test_instanceIdValidator_ValidateString(t *testing.T) {
 		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringNull()}
 		idResponse := validator.StringResponse{}
 
-		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "tralala"}})
+		instanceIdValidator := newInstanceIdForCustomImageValidator(
+			[]publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+				},
+			},
+		)
 		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
 
 		assert.Len(t, idResponse.Diagnostics.Errors(), 0)
+	})
+}
+
+func Test_newInstanceIdForCustomImageValidator(t *testing.T) {
+	t.Run("validIds are set correctly", func(t *testing.T) {
+		instances := []publicCloud.Instance{
+			{
+				Id:    "id",
+				State: publicCloud.STATE_STOPPED,
+			},
+			{
+				Id:    "id",
+				State: publicCloud.STATE_RUNNING,
+			},
+		}
+		instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
+
+		assert.Equal(t, []string{"id"}, instanceIdValidator.validIds)
 	})
 }

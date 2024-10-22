@@ -3,7 +3,6 @@ package publiccloud
 import (
 	"context"
 	"fmt"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -22,7 +21,7 @@ var (
 	_ resource.ResourceWithConfigure   = &imageResource{}
 	_ resource.ResourceWithImportState = &imageResource{}
 	_ resource.ResourceWithModifyPlan  = &imageResource{}
-	_ validator.String                 = instanceIdValidator{}
+	_ validator.String                 = instanceIdForCustomImageValidator{}
 )
 
 type resourceModelImage struct {
@@ -94,10 +93,10 @@ func newResourceModelImageFromImageDetails(
 		Id:           basetypes.NewStringValue(sdkImageDetails.Id),
 		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
 		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
-		State:        utils.AdaptNullableStringToStringValue(sdkImageDetails.State.Get()),
+		State:        utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.State.Get()),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(sdkImageDetails.Flavour),
+		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
 		Region:       utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.Region.Get()),
 	}
 
@@ -114,57 +113,129 @@ func newResourceModelImageFromImage(
 		Id:           basetypes.NewStringValue(sdkImage.Id),
 		Name:         basetypes.NewStringValue(sdkImage.Name),
 		Custom:       basetypes.NewBoolValue(sdkImage.Custom),
-		Flavour:      basetypes.NewStringValue(sdkImage.Flavour),
+		Flavour:      basetypes.NewStringValue(string(sdkImage.Flavour)),
 		MarketApps:   emptyList,
 		StorageTypes: emptyList,
 	}, nil
 }
 
-type instanceIdValidator struct {
-	instanceIds []string
+// - Does not yet test
+// that the customer has an object storage in the given entity,
+// as there's currently no public endpoint for this.
+// - Does not check that an image configuration in place.
+type instanceIdForCustomImageValidator struct {
+	validIds  []string
+	instances []publicCloud.Instance
 }
 
-func (i instanceIdValidator) Description(_ context.Context) string {
-	return `instanceId needs to exist.`
+func (i instanceIdForCustomImageValidator) Description(_ context.Context) string {
+	return `Checks the following:
+  - instance exists for instanceId
+  - instance has state "STOPPED"
+  - instance has a maximum rootDiskSize of 100 GB
+  - instance OS must not be Windows
+`
 }
 
-func (i instanceIdValidator) MarkdownDescription(ctx context.Context) string {
+func (i instanceIdForCustomImageValidator) MarkdownDescription(ctx context.Context) string {
 	return i.Description(ctx)
 }
 
-func (i instanceIdValidator) ValidateString(
+func (i instanceIdForCustomImageValidator) ValidateString(
 	_ context.Context,
 	request validator.StringRequest,
 	response *validator.StringResponse,
 ) {
+	const maxRootDiskSize = 100
+
 	// If the instanceId is unknown or null, there is nothing to validate.
 	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
 		return
 	}
 
-	instanceIdExists := slices.Contains(i.instanceIds, request.ConfigValue.ValueString())
-
-	if !instanceIdExists {
+	foundInstance := i.findInstance(request.ConfigValue.ValueString())
+	if foundInstance == nil {
 		response.Diagnostics.AddAttributeError(
 			request.Path,
 			"Invalid id",
 			fmt.Sprintf(
 				"Attribute id value must be one of: %q, got: %q",
-				i.instanceIds,
+				i.validIds,
 				request.ConfigValue.ValueString(),
 			),
 		)
+
+		return
+	}
+
+	if foundInstance.State != publicCloud.STATE_STOPPED {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid instance state",
+			fmt.Sprintf(
+				"Instance linked to attribute ID %q does not have state %q, has state %q",
+				request.ConfigValue.ValueString(),
+				publicCloud.STATE_STOPPED,
+				foundInstance.State,
+			),
+		)
+
+		return
+	}
+
+	if foundInstance.RootDiskSize >= maxRootDiskSize {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid instance rootDiskSize",
+			fmt.Sprintf(
+				"Instance linked to attribute ID %q has rootDiskSize of %d GB, maximum allowed size is %d GB",
+				request.ConfigValue.ValueString(),
+				foundInstance.RootDiskSize,
+				maxRootDiskSize,
+			),
+		)
+
+		return
+	}
+
+	if foundInstance.Image.Flavour == publicCloud.FLAVOUR_WINDOWS {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid instance OS",
+			fmt.Sprintf(
+				"Instance linked to attribute ID %q has OS %q, only Linux & BSD are allowed",
+				request.ConfigValue.ValueString(),
+				foundInstance.Image.Flavour,
+			),
+		)
+
+		return
 	}
 }
 
-func newInstanceIdValidator(sdkInstances []publicCloud.Instance) instanceIdValidator {
-	var instanceIds []string
-
-	for _, sdkInstance := range sdkInstances {
-		instanceIds = append(instanceIds, sdkInstance.Id)
+func (i instanceIdForCustomImageValidator) findInstance(id string) *publicCloud.Instance {
+	for _, instance := range i.instances {
+		if instance.Id == id {
+			return &instance
+		}
 	}
 
-	return instanceIdValidator{instanceIds: instanceIds}
+	return nil
+}
+
+func newInstanceIdForCustomImageValidator(instances []publicCloud.Instance) instanceIdForCustomImageValidator {
+	var validIds []string
+
+	for _, instance := range instances {
+		if instance.State == publicCloud.STATE_STOPPED {
+			validIds = append(validIds, instance.Id)
+		}
+	}
+
+	return instanceIdForCustomImageValidator{
+		instances: instances,
+		validIds:  validIds,
+	}
 }
 
 func getImage(
@@ -243,7 +314,7 @@ func (i *imageResource) ModifyPlan(
 	idRequest := validator.StringRequest{ConfigValue: planImage.Id}
 	idResponse := validator.StringResponse{}
 
-	instanceIdValidator := newInstanceIdValidator(instances)
+	instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
 	instanceIdValidator.ValidateString(ctx, idRequest, &idResponse)
 
 	if idResponse.Diagnostics.HasError() {

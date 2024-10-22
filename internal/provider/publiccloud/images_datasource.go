@@ -34,21 +34,32 @@ func newDataSourceModelImageFromImage(sdkImage publicCloud.Image) dataSourceMode
 		Id:      basetypes.NewStringValue(sdkImage.Id),
 		Name:    basetypes.NewStringValue(sdkImage.Name),
 		Custom:  basetypes.NewBoolValue(sdkImage.Custom),
-		Flavour: basetypes.NewStringValue(sdkImage.Flavour),
+		Flavour: basetypes.NewStringValue(string(sdkImage.Flavour)),
 	}
 }
 
 func newDataSourceModelImageFromImageDetails(
 	sdkImageDetails publicCloud.ImageDetails,
 ) dataSourceModelImage {
+	var marketApps []string
+	var storageTypes []string
+
+	for _, marketApp := range sdkImageDetails.MarketApps {
+		marketApps = append(marketApps, string(marketApp))
+	}
+
+	for _, storageType := range sdkImageDetails.StorageTypes {
+		storageTypes = append(storageTypes, string(storageType))
+	}
+
 	return dataSourceModelImage{
 		Id:           basetypes.NewStringValue(sdkImageDetails.Id),
 		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
 		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
-		State:        utils.AdaptNullableStringToStringValue(sdkImageDetails.State.Get()),
-		MarketApps:   sdkImageDetails.MarketApps,
-		StorageTypes: sdkImageDetails.StorageTypes,
-		Flavour:      basetypes.NewStringValue(sdkImageDetails.Flavour),
+		State:        utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.State.Get()),
+		MarketApps:   marketApps,
+		StorageTypes: storageTypes,
+		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
 		Region:       utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.Region.Get()),
 	}
 }

@@ -30,16 +30,16 @@ func Test_newDataSourceModelImageFromImage(t *testing.T) {
 }
 
 func Test_newDataSourceModelImageFromImageDetails(t *testing.T) {
-	state := "RUNNING"
+	state := publicCloud.IMAGESTATE_READY
 	region := publicCloud.REGIONNAME_EU_WEST_3
 
 	sdkImageDetails := publicCloud.ImageDetails{
 		Id:           "imageId",
 		Name:         "name",
 		Custom:       true,
-		State:        *publicCloud.NewNullableString(&state),
-		MarketApps:   []string{"marketApp"},
-		StorageTypes: []string{"storageType"},
+		State:        *publicCloud.NewNullableImageState(&state),
+		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
+		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
 		Flavour:      "flavour",
 		Region:       *publicCloud.NewNullableRegionName(&region),
 	}
@@ -48,9 +48,9 @@ func Test_newDataSourceModelImageFromImageDetails(t *testing.T) {
 		Id:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
-		State:        basetypes.NewStringValue("RUNNING"),
-		MarketApps:   []string{"marketApp"},
-		StorageTypes: []string{"storageType"},
+		State:        basetypes.NewStringValue("READY"),
+		MarketApps:   []string{"CPANEL_30"},
+		StorageTypes: []string{"CENTRAL"},
 		Flavour:      basetypes.NewStringValue("flavour"),
 		Region:       basetypes.NewStringValue("eu-west-3"),
 	}
