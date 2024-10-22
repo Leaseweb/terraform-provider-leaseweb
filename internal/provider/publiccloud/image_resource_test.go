@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newResourceModelImageFromImage(t *testing.T) {
+func Test_mapSdkImageToResourceImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id:      "imageId",
 		Name:    "name",
@@ -22,20 +22,20 @@ func Test_newResourceModelImageFromImage(t *testing.T) {
 
 	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
 	want := resourceModelImage{
-		Id:           basetypes.NewStringValue("imageId"),
+		ID:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
 		Flavour:      basetypes.NewStringValue("flavour"),
 		MarketApps:   emptyList,
 		StorageTypes: emptyList,
 	}
-	got, err := newResourceModelImageFromImage(context.TODO(), sdkImage)
+	got, err := mapSdkImageToResourceImage(context.TODO(), sdkImage)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
 }
 
-func Test_newResourceModelImageFromImageDetails(t *testing.T) {
+func Test_mapSdkImageDetailsToResourceImage(t *testing.T) {
 	state := publicCloud.IMAGESTATE_READY
 	region := publicCloud.REGIONNAME_EU_WEST_3
 
@@ -62,7 +62,7 @@ func Test_newResourceModelImageFromImageDetails(t *testing.T) {
 	)
 
 	want := resourceModelImage{
-		Id:           basetypes.NewStringValue("imageId"),
+		ID:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
 		State:        basetypes.NewStringValue("READY"),
@@ -71,7 +71,7 @@ func Test_newResourceModelImageFromImageDetails(t *testing.T) {
 		Flavour:      basetypes.NewStringValue("flavour"),
 		Region:       basetypes.NewStringValue("eu-west-3"),
 	}
-	got, err := newResourceModelImageFromImageDetails(
+	got, err := mapSdkImageDetailsToResourceImage(
 		context.TODO(),
 		sdkImageDetails,
 	)
@@ -93,7 +93,7 @@ func Test_resourceModelImage_GetUpdateImageOpts(t *testing.T) {
 
 func Test_resourceModelImage_GetCreateImageOpts(t *testing.T) {
 	image := resourceModelImage{
-		Id:   basetypes.NewStringValue("instanceId"),
+		ID:   basetypes.NewStringValue("instanceId"),
 		Name: basetypes.NewStringValue("name"),
 	}
 	got := image.GetCreateImageOpts()

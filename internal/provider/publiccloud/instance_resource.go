@@ -364,7 +364,7 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 	opts := publicCloud.NewLaunchInstanceOpts(
 		*sdkRegionName,
 		*sdkInstanceType,
-		image.Id.ValueString(),
+		image.ID.ValueString(),
 		*sdkContractType,
 		*sdkContractTerm,
 		*sdkBillingFrequency,
@@ -490,7 +490,7 @@ func newResourceModelInstanceFromInstance(
 		sdkInstance.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
-		newResourceModelImageFromImage,
+		mapSdkImageToResourceImage,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
@@ -541,7 +541,7 @@ func newResourceModelInstanceFromInstanceDetails(
 		sdkInstanceDetails.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
-		newResourceModelImageFromImage,
+		mapSdkImageToResourceImage,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)

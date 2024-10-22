@@ -25,7 +25,7 @@ var (
 )
 
 type resourceModelImage struct {
-	Id           types.String `tfsdk:"id"`
+	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Custom       types.Bool   `tfsdk:"custom"`
 	State        types.String `tfsdk:"state"`
@@ -57,11 +57,11 @@ func (i resourceModelImage) GetUpdateImageOpts() publicCloud.UpdateImageOpts {
 func (i resourceModelImage) GetCreateImageOpts() publicCloud.CreateImageOpts {
 	return publicCloud.CreateImageOpts{
 		Name:       i.Name.ValueString(),
-		InstanceId: i.Id.ValueString(),
+		InstanceId: i.ID.ValueString(),
 	}
 }
 
-func newResourceModelImageFromImageDetails(
+func mapSdkImageDetailsToResourceImage(
 	ctx context.Context,
 	sdkImageDetails publicCloud.ImageDetails,
 ) (*resourceModelImage, error) {
@@ -90,30 +90,30 @@ func newResourceModelImageFromImageDetails(
 	}
 
 	image := resourceModelImage{
-		Id:           basetypes.NewStringValue(sdkImageDetails.Id),
-		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
-		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
-		State:        utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.State.Get()),
+		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
+		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
+		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
+		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
-		Region:       utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.Region.Get()),
+		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
 	}
 
 	return &image, nil
 }
 
-func newResourceModelImageFromImage(
+func mapSdkImageToResourceImage(
 	_ context.Context,
 	sdkImage publicCloud.Image,
 ) (*resourceModelImage, error) {
 	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
 
 	return &resourceModelImage{
-		Id:           basetypes.NewStringValue(sdkImage.Id),
-		Name:         basetypes.NewStringValue(sdkImage.Name),
-		Custom:       basetypes.NewBoolValue(sdkImage.Custom),
-		Flavour:      basetypes.NewStringValue(string(sdkImage.Flavour)),
+		ID:           basetypes.NewStringValue(sdkImage.GetId()),
+		Name:         basetypes.NewStringValue(sdkImage.GetName()),
+		Custom:       basetypes.NewBoolValue(sdkImage.GetCustom()),
+		Flavour:      basetypes.NewStringValue(string(sdkImage.GetFlavour())),
 		MarketApps:   emptyList,
 		StorageTypes: emptyList,
 	}, nil
@@ -168,7 +168,7 @@ func (i instanceIdForCustomImageValidator) ValidateString(
 		return
 	}
 
-	if foundInstance.State != publicCloud.STATE_STOPPED {
+	if foundInstance.GetState() != publicCloud.STATE_STOPPED {
 		response.Diagnostics.AddAttributeError(
 			request.Path,
 			"Invalid instance state",
@@ -176,21 +176,21 @@ func (i instanceIdForCustomImageValidator) ValidateString(
 				"Instance linked to attribute ID %q does not have state %q, has state %q",
 				request.ConfigValue.ValueString(),
 				publicCloud.STATE_STOPPED,
-				foundInstance.State,
+				foundInstance.GetState(),
 			),
 		)
 
 		return
 	}
 
-	if foundInstance.RootDiskSize >= maxRootDiskSize {
+	if foundInstance.GetRootDiskSize() >= maxRootDiskSize {
 		response.Diagnostics.AddAttributeError(
 			request.Path,
 			"Invalid instance rootDiskSize",
 			fmt.Sprintf(
 				"Instance linked to attribute ID %q has rootDiskSize of %d GB, maximum allowed size is %d GB",
 				request.ConfigValue.ValueString(),
-				foundInstance.RootDiskSize,
+				foundInstance.GetRootDiskSize(),
 				maxRootDiskSize,
 			),
 		)
@@ -198,14 +198,14 @@ func (i instanceIdForCustomImageValidator) ValidateString(
 		return
 	}
 
-	if foundInstance.Image.Flavour == publicCloud.FLAVOUR_WINDOWS {
+	if foundInstance.Image.GetFlavour() == publicCloud.FLAVOUR_WINDOWS {
 		response.Diagnostics.AddAttributeError(
 			request.Path,
 			"Invalid instance OS",
 			fmt.Sprintf(
 				"Instance linked to attribute ID %q has OS %q, only Linux & BSD are allowed",
 				request.ConfigValue.ValueString(),
-				foundInstance.Image.Flavour,
+				foundInstance.Image.GetFlavour(),
 			),
 		)
 
@@ -227,7 +227,7 @@ func newInstanceIdForCustomImageValidator(instances []publicCloud.Instance) inst
 	var validIds []string
 
 	for _, instance := range instances {
-		if instance.State == publicCloud.STATE_STOPPED {
+		if instance.GetState() == publicCloud.STATE_STOPPED {
 			validIds = append(validIds, instance.Id)
 		}
 	}
@@ -239,7 +239,7 @@ func newInstanceIdForCustomImageValidator(instances []publicCloud.Instance) inst
 }
 
 func getImage(
-	id string,
+	ID string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
 ) (*publicCloud.ImageDetails, *utils.SdkError) {
@@ -250,7 +250,7 @@ func getImage(
 	}
 
 	for _, sdkImage := range sdkImages {
-		if sdkImage.Id == id {
+		if sdkImage.GetId() == ID {
 			return &sdkImage, nil
 		}
 	}
@@ -259,18 +259,18 @@ func getImage(
 }
 
 func updateImage(
-	id string,
+	ID string,
 	opts publicCloud.UpdateImageOpts,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
 ) (*publicCloud.ImageDetails, *utils.SdkError) {
 	image, response, err := api.UpdateImage(
 		ctx,
-		id,
+		ID,
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
 		return nil, utils.NewSdkError(
-			fmt.Sprintf("updateImage %q", id),
+			fmt.Sprintf("updateImage %q", ID),
 			err,
 			response,
 		)
@@ -296,7 +296,6 @@ type imageResource struct {
 	client client.Client
 }
 
-// ModifyPlan check that passed id exists.
 func (i *imageResource) ModifyPlan(
 	ctx context.Context,
 	request resource.ModifyPlanRequest,
@@ -311,7 +310,7 @@ func (i *imageResource) ModifyPlan(
 		return
 	}
 
-	idRequest := validator.StringRequest{ConfigValue: planImage.Id}
+	idRequest := validator.StringRequest{ConfigValue: planImage.ID}
 	idResponse := validator.StringResponse{}
 
 	instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
@@ -419,7 +418,7 @@ func (i *imageResource) Create(
 		return
 	}
 
-	instance, resourceErr := newResourceModelImageFromImageDetails(ctx, *sdkImage)
+	instance, resourceErr := mapSdkImageDetailsToResourceImage(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(
 			"Error creating publiccloud image resource",
@@ -445,7 +444,7 @@ func (i *imageResource) Read(ctx context.Context, request resource.ReadRequest, 
 		return
 	}
 
-	sdkImage, err := getImage(state.Id.ValueString(), ctx, i.client.PublicCloudAPI)
+	sdkImage, err := getImage(state.ID.ValueString(), ctx, i.client.PublicCloudAPI)
 	if err != nil {
 		response.Diagnostics.AddError("Unable to read images", err.Error())
 		utils.LogError(
@@ -461,9 +460,9 @@ func (i *imageResource) Read(ctx context.Context, request resource.ReadRequest, 
 
 	tflog.Info(ctx, fmt.Sprintf(
 		"Create publiccloud image resource for %q",
-		state.Id.ValueString(),
+		state.ID.ValueString(),
 	))
-	instance, resourceErr := newResourceModelImageFromImageDetails(ctx, *sdkImage)
+	instance, resourceErr := mapSdkImageDetailsToResourceImage(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(
 			"Error creating publiccloud image resource",
@@ -492,12 +491,12 @@ func (i *imageResource) Update(
 
 	tflog.Info(ctx, fmt.Sprintf(
 		"Update publiccloud image %q",
-		plan.Id.ValueString(),
+		plan.ID.ValueString(),
 	))
 	opts := plan.GetUpdateImageOpts()
 
 	sdkImageDetails, sdkErr := updateImage(
-		plan.Id.ValueString(),
+		plan.ID.ValueString(),
 		opts,
 		ctx,
 		i.client.PublicCloudAPI,
@@ -514,7 +513,7 @@ func (i *imageResource) Update(
 			&response.Diagnostics,
 			fmt.Sprintf(
 				"Unable to update publiccloud image %q",
-				plan.Id.ValueString(),
+				plan.ID.ValueString(),
 			),
 			sdkErr.Error(),
 		)

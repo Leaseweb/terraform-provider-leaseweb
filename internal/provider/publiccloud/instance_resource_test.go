@@ -493,7 +493,7 @@ func generateInstanceModel() resourceModelInstance {
 		context.TODO(),
 		resourceModelImage{}.AttributeTypes(),
 		resourceModelImage{
-			Id:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			ID:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			MarketApps:   emptyList,
 			StorageTypes: emptyList,
 		},
@@ -562,7 +562,7 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 
 	image := resourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
+	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
 	contract := resourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
@@ -615,7 +615,7 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 
 	image := resourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
+	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
 	contract := resourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
