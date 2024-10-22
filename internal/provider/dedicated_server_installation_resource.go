@@ -421,7 +421,7 @@ func (r *dedicatedServerInstallationResource) Update(_ context.Context, _ resour
 func (r *dedicatedServerInstallationResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
 }
 
-// TODO: Should goes like helper/shared.
+// TODO: Should goes like helper/utils.
 func valueStringOrNil(s basetypes.StringValue) *string {
 	if s.IsUnknown() {
 		return nil

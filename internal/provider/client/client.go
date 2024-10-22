@@ -2,12 +2,10 @@
 package client
 
 import (
-	publiccloudservice "github.com/leaseweb/terraform-provider-leaseweb/internal/core/services/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/facades/public_cloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/repositories/public_cloud_repository"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-// TODO: Refactor this part, ProviderData can be managed directly, not within client.
+// ProviderData TODO: Refactor this part, data can be managed directly, not within client.
 type ProviderData struct {
 	ApiKey string
 	Host   *string
@@ -16,8 +14,8 @@ type ProviderData struct {
 
 // The Client handles instantiation of the facades.
 type Client struct {
-	ProviderData      ProviderData
-	PublicCloudFacade public_cloud.PublicCloudFacade
+	ProviderData   ProviderData
+	PublicCloudAPI publicCloud.PublicCloudAPI
 }
 
 type Optional struct {
@@ -26,14 +24,16 @@ type Optional struct {
 }
 
 func NewClient(token string, optional Optional) Client {
-	publicCloudRepository := public_cloud_repository.NewPublicCloudRepository(
-		token,
-		public_cloud_repository.Optional{
-			Host:   optional.Host,
-			Scheme: optional.Scheme,
-		},
-	)
-	publicCloudService := publiccloudservice.New(publicCloudRepository)
+	cfg := publicCloud.NewConfiguration()
+	if optional.Host != nil {
+		cfg.Host = *optional.Host
+	}
+	if optional.Scheme != nil {
+		cfg.Scheme = *optional.Scheme
+	}
+	cfg.AddDefaultHeader("X-LSW-Auth", token)
+
+	publicCloudApi := publicCloud.NewAPIClient(cfg)
 
 	return Client{
 		ProviderData: ProviderData{
@@ -41,6 +41,6 @@ func NewClient(token string, optional Optional) Client {
 			Host:   optional.Host,
 			Scheme: optional.Scheme,
 		},
-		PublicCloudFacade: public_cloud.NewPublicCloudFacade(&publicCloudService),
+		PublicCloudAPI: publicCloudApi.PublicCloudAPI,
 	}
 }

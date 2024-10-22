@@ -362,7 +362,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	// Updating network interface status
 	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicNetworkInterfaceOpened != state.PublicNetworkInterfaceOpened {
 		if plan.PublicNetworkInterfaceOpened.ValueBool() {
-			response, err := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
+			response, err := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPEURL_PUBLIC).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error opening public network interface for dedicated server: %q", state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
@@ -370,7 +370,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 				return
 			}
 		} else {
-			response, err := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPE_PUBLIC).Execute()
+			response, err := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPEURL_PUBLIC).Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error closing public network interface for dedicated server: %q", state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
@@ -463,7 +463,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 
 	// Getting server public network interface info
 	var publicNetworkOpened bool
-	networkRequest := d.client.GetNetworkInterface(d.authContext(ctx), serverID, dedicatedServer.NETWORKTYPE_PUBLIC)
+	networkRequest := d.client.GetNetworkInterface(d.authContext(ctx), serverID, dedicatedServer.NETWORKTYPEURL_PUBLIC)
 	networkResult, networkResponse, err := networkRequest.Execute()
 	if err != nil && networkResponse.StatusCode != http.StatusNotFound {
 		return nil, fmt.Errorf("error reading dedicated server network interface with id: %q - %s", serverID, utils.NewError(networkResponse, err).Error())
