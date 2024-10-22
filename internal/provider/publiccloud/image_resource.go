@@ -350,8 +350,13 @@ func (i *imageResource) Schema(
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Required:    true,
-				Description: "The id of the instance which the custom image is based on",
+				Required: true,
+				Description: `
+The id of the instance which the custom image is based on. The following rules apply:
+  - instance exists for instanceId
+  - instance has state *STOPPED*
+  - instance has a maximum rootDiskSize of 100 GB
+  - instance OS must not be *windows*`,
 			},
 			"name": schema.StringAttribute{
 				Required:    true,

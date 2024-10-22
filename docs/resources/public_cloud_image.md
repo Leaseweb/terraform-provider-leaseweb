@@ -25,7 +25,11 @@ resource "leaseweb_public_cloud_image" "example" {
 
 ### Required
 
-- `id` (String) The id of the instance which the custom image is based on
+- `id` (String) The id of the instance which the custom image is based on. The following rules apply:
+  - instance exists for instanceId
+  - instance has state *STOPPED*
+  - instance has a maximum rootDiskSize of 100 GB
+  - instance OS must not be *windows*
 - `name` (String) Custom image name
 
 ### Read-Only
