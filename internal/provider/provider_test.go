@@ -864,17 +864,17 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_credential" "test" {
-	instance_id = "12345"
-   	username = "root"
-   	type = "OPERATING_SYSTEM"
-   	password = "mys3cr3tp@ssw0rd"
-}`,
+	resource "leaseweb_public_cloud_credential" "test" {
+		instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	   	username = "root"
+	   	type = "OPERATING_SYSTEM"
+	   	password = "12341234"
+	}`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_credential.test",
 							"instance_id",
-							"12345",
+							"695ddd91-051f-4dd6-9120-938a927a47d0",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_credential.test",
@@ -889,24 +889,24 @@ resource "leaseweb_public_cloud_credential" "test" {
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_credential.test",
 							"password",
-							"mys3cr3tp@ssw0rd",
+							"12341234",
 						),
 					),
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_credential" "test" {
-	instance_id = "12345"
-   	username = "root"
-   	type = "OPERATING_SYSTEM"
-   	password = "mys3cr3tp@ssw0rd"
-}`,
+				resource "leaseweb_public_cloud_credential" "test" {
+					instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+				   	username = "root"
+				   	type = "OPERATING_SYSTEM"
+				   	password = "12341234"
+				}`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_credential.test",
 							"instance_id",
-							"12345",
+							"695ddd91-051f-4dd6-9120-938a927a47d0",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_credential.test",
@@ -921,7 +921,7 @@ resource "leaseweb_public_cloud_credential" "test" {
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_credential.test",
 							"password",
-							"mys3cr3tp@ssw0rd",
+							"12341234",
 						),
 					),
 				},
@@ -938,12 +938,14 @@ resource "leaseweb_public_cloud_credential" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_public_cloud_credential" "test" {
-	instance_id = "12345"
-   	username = "root"
-   	type = "invalid"
-   	password = "mys3cr3tp@ssw0rd"
-}`,
+	
+		resource "leaseweb_public_cloud_credential" "test" {
+			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+		   	username = "root"
+		   	type = "invalid"
+		   	password = "12341234"
+		}`,
+
 						ExpectError: regexp.MustCompile(
 							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"\],(\s*)got: "invalid"`,
 						),

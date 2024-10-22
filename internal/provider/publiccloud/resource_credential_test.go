@@ -20,8 +20,8 @@ func Test_credentialResource_Metadata(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"tralala_public_cloud_resource",
+		"tralala_public_cloud_credential",
 		resp.TypeName,
-		"Type name should be tralala_public_cloud_resource",
+		"Type name should be tralala_public_cloud_credential",
 	)
 }
