@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
@@ -103,4 +104,46 @@ func Test_resourceModelImage_GetCreateImageOpts(t *testing.T) {
 	}
 
 	assert.Equal(t, want, got)
+}
+
+func Test_instanceIdValidator_ValidateString(t *testing.T) {
+	t.Run("valid instanceId passes", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "id"}})
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 0)
+	})
+
+	t.Run("invalid instanceId does not pass", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringValue("id")}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "tralala"}})
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 1)
+	})
+
+	t.Run("nothing is validated if id is unknown", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringUnknown()}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "tralala"}})
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 0)
+	})
+
+	t.Run("nothing is validated if id is null", func(t *testing.T) {
+		idRequest := validator.StringRequest{ConfigValue: basetypes.NewStringNull()}
+		idResponse := validator.StringResponse{}
+
+		instanceIdValidator := newInstanceIdValidator([]publicCloud.Instance{{Id: "tralala"}})
+		instanceIdValidator.ValidateString(context.TODO(), idRequest, &idResponse)
+
+		assert.Len(t, idResponse.Diagnostics.Errors(), 0)
+	})
 }

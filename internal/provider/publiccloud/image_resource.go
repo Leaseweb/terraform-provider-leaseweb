@@ -3,11 +3,13 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -19,6 +21,8 @@ import (
 var (
 	_ resource.ResourceWithConfigure   = &imageResource{}
 	_ resource.ResourceWithImportState = &imageResource{}
+	_ resource.ResourceWithModifyPlan  = &imageResource{}
+	_ validator.String                 = instanceIdValidator{}
 )
 
 type resourceModelImage struct {
@@ -116,6 +120,53 @@ func newResourceModelImageFromImage(
 	}, nil
 }
 
+type instanceIdValidator struct {
+	instanceIds []string
+}
+
+func (i instanceIdValidator) Description(_ context.Context) string {
+	return `instanceId needs to exist.`
+}
+
+func (i instanceIdValidator) MarkdownDescription(ctx context.Context) string {
+	return i.Description(ctx)
+}
+
+func (i instanceIdValidator) ValidateString(
+	_ context.Context,
+	request validator.StringRequest,
+	response *validator.StringResponse,
+) {
+	// If the instanceId is unknown or null, there is nothing to validate.
+	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
+		return
+	}
+
+	instanceIdExists := slices.Contains(i.instanceIds, request.ConfigValue.ValueString())
+
+	if !instanceIdExists {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid id",
+			fmt.Sprintf(
+				"Attribute id value must be one of: %q, got: %q",
+				i.instanceIds,
+				request.ConfigValue.ValueString(),
+			),
+		)
+	}
+}
+
+func newInstanceIdValidator(sdkInstances []publicCloud.Instance) instanceIdValidator {
+	var instanceIds []string
+
+	for _, sdkInstance := range sdkInstances {
+		instanceIds = append(instanceIds, sdkInstance.Id)
+	}
+
+	return instanceIdValidator{instanceIds: instanceIds}
+}
+
 func getImage(
 	id string,
 	ctx context.Context,
@@ -172,6 +223,32 @@ func createImage(
 
 type imageResource struct {
 	client client.Client
+}
+
+// ModifyPlan check that passed id exists.
+func (i *imageResource) ModifyPlan(
+	ctx context.Context,
+	request resource.ModifyPlanRequest,
+	response *resource.ModifyPlanResponse,
+) {
+	planImage := resourceModelImage{}
+	request.Plan.Get(ctx, &planImage)
+
+	instances, err := getAllInstances(ctx, i.client.PublicCloudAPI)
+	if err != nil {
+		response.Diagnostics.AddError("Cannot get instances", err.Error())
+		return
+	}
+
+	idRequest := validator.StringRequest{ConfigValue: planImage.Id}
+	idResponse := validator.StringResponse{}
+
+	instanceIdValidator := newInstanceIdValidator(instances)
+	instanceIdValidator.ValidateString(ctx, idRequest, &idResponse)
+
+	if idResponse.Diagnostics.HasError() {
+		response.Diagnostics.Append(idResponse.Diagnostics.Errors()...)
+	}
 }
 
 func (i *imageResource) ImportState(

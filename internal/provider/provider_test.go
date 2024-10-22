@@ -904,14 +904,14 @@ func TestAccInstanceImage(t *testing.T) {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_image" "test" {
-  id = "396a3299-1795-464b-aa10-e1f179db1926"
+  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
   name = "Custom image - 03"
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_image.test",
 							"id",
-							"396a3299-1795-464b-aa10-e1f179db1926",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_image.test",
@@ -930,14 +930,14 @@ resource "leaseweb_public_cloud_image" "test" {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_image" "test" {
-  id = "396a3299-1795-464b-aa10-e1f179db1926"
+  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
   name = "Custom image - 03"
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_image.test",
 							"id",
-							"396a3299-1795-464b-aa10-e1f179db1926",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_image.test",
@@ -950,4 +950,23 @@ resource "leaseweb_public_cloud_image" "test" {
 			},
 		})
 	})
+
+	t.Run(
+		"instanceId must exist when creating a custom image",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "tralala"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile("Attribute id value must be one of"),
+					},
+				},
+			})
+		},
+	)
 }
