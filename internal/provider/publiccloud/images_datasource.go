@@ -56,7 +56,7 @@ func newDataSourceModelImageFromImageDetails(
 		Id:           basetypes.NewStringValue(sdkImageDetails.Id),
 		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
 		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
-		State:        utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.State.Get()),
+		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
 		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
