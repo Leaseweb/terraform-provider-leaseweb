@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	publicCloudSDK "github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -24,9 +24,7 @@ var (
 )
 
 type credentialResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
-	client publicCloudSDK.PublicCloudAPI
+	client client.Client
 }
 
 type credentialResourceData struct {
@@ -40,28 +38,21 @@ func NewCredentialResource() resource.Resource {
 	return &credentialResource{}
 }
 
-func (d *credentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (c *credentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_public_cloud_credential"
 }
 
-func (d *credentialResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		publicCloudSDK.ContextAPIKeys,
-		map[string]publicCloudSDK.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *credentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (c *credentialResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := publicCloudSDK.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -70,21 +61,14 @@ func (d *credentialResource) Configure(ctx context.Context, req resource.Configu
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := publicCloudSDK.NewAPIClient(configuration)
-	d.client = apiClient.PublicCloudAPI
+	c.client = coreClient
 }
 
-func (d *credentialResource) Schema(
+func (c *credentialResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -93,7 +77,7 @@ func (d *credentialResource) Schema(
 		Attributes: map[string]schema.Attribute{
 			"instance_id": schema.StringAttribute{
 				Required:    true,
-				Description: "The ID of the instance.",
+				Description: `The ID of the instance.`,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -123,7 +107,7 @@ func (d *credentialResource) Schema(
 	}
 }
 
-func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data credentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -131,12 +115,12 @@ func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	opts := publicCloudSDK.NewStoreCredentialOpts(
-		publicCloudSDK.CredentialType(data.Type.ValueString()),
+	opts := publicCloud.NewStoreCredentialOpts(
+		publicCloud.CredentialType(data.Type.ValueString()),
 		data.Username.ValueString(),
 		data.Password.ValueString(),
 	)
-	request := d.client.StoreCredential(d.authContext(ctx), data.InstanceID.ValueString()).StoreCredentialOpts(*opts)
+	request := c.client.PublicCloudAPI.StoreCredential(ctx, data.InstanceID.ValueString()).StoreCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
@@ -158,7 +142,7 @@ func (d *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func (d *credentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data credentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -166,7 +150,7 @@ func (d *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	request := d.client.GetCredential(d.authContext(ctx), data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString())
+	request := c.client.PublicCloudAPI.GetCredential(ctx, data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
@@ -188,7 +172,7 @@ func (d *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (d *credentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data credentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -196,10 +180,10 @@ func (d *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	opts := publicCloudSDK.NewUpdateCredentialOpts(
+	opts := publicCloud.NewUpdateCredentialOpts(
 		data.Password.ValueString(),
 	)
-	request := d.client.UpdateCredential(d.authContext(ctx), data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString()).UpdateCredentialOpts(*opts)
+	request := c.client.PublicCloudAPI.UpdateCredential(ctx, data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString()).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error updating credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
@@ -221,7 +205,7 @@ func (d *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 }
 
-func (d *credentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (c *credentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data credentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -229,7 +213,7 @@ func (d *credentialResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	request := d.client.DeleteCredential(d.authContext(ctx), data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString())
+	request := c.client.PublicCloudAPI.DeleteCredential(ctx, data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString())
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
