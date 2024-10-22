@@ -17,13 +17,13 @@
   ],
   "license": "Apache-2.0",
   "devDependencies": {
-    "@commitlint/cli": "19.3.0",
-    "@commitlint/config-conventional": "19.2.2",
-    "@stoplight/prism-cli": "5.8.1",
-    "husky": "9.0.11",
-    "lint-staged": "15.2.4",
-    "markdownlint-cli": "0.40.0",
-    "prettier": "3.2.5",
+    "@commitlint/cli": "19.5.0",
+    "@commitlint/config-conventional": "19.5.0",
+    "@stoplight/prism-cli": "5.10.0",
+    "husky": "9.1.6",
+    "lint-staged": "15.2.10",
+    "markdownlint-cli": "0.42.0",
+    "prettier": "3.3.3",
     "prettier-plugin-sort-json": "4.0.0"
   },
   "lint-staged": {

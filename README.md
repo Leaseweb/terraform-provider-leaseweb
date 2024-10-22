@@ -7,7 +7,7 @@ A Terraform provider to manage Leaseweb resources.
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.7
-- [Go](https://golang.org/doc/install) >= 1.22
+- [Go](https://golang.org/doc/install) >= 1.23
 - [Node](https://nodejs.org) >= 20.17
 - [pnPM](https://pnpm.io/) >= 9.7
 
