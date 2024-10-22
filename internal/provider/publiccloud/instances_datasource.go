@@ -63,7 +63,7 @@ func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceMode
 		Id:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
-		Image:               newDataSourceModelImageFromImage(sdkInstance.Image),
+		Image:               mapSdkImageToDatasourceImage(sdkInstance.Image),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),

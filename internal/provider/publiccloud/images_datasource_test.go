@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newDataSourceModelImageFromImage(t *testing.T) {
+func Test_mapSdkImageToDatasourceImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id:      "imageId",
 		Name:    "name",
@@ -19,17 +19,17 @@ func Test_newDataSourceModelImageFromImage(t *testing.T) {
 	}
 
 	want := dataSourceModelImage{
-		Id:      basetypes.NewStringValue("imageId"),
+		ID:      basetypes.NewStringValue("imageId"),
 		Name:    basetypes.NewStringValue("name"),
 		Custom:  basetypes.NewBoolValue(true),
 		Flavour: basetypes.NewStringValue("flavour"),
 	}
-	got := newDataSourceModelImageFromImage(sdkImage)
+	got := mapSdkImageToDatasourceImage(sdkImage)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_newDataSourceModelImageFromImageDetails(t *testing.T) {
+func Test_mapSdkImageDetailsToDatasourceImage(t *testing.T) {
 	state := publicCloud.IMAGESTATE_READY
 	region := publicCloud.REGIONNAME_EU_WEST_3
 
@@ -45,7 +45,7 @@ func Test_newDataSourceModelImageFromImageDetails(t *testing.T) {
 	}
 
 	want := dataSourceModelImage{
-		Id:           basetypes.NewStringValue("imageId"),
+		ID:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
 		State:        basetypes.NewStringValue("READY"),
@@ -54,20 +54,20 @@ func Test_newDataSourceModelImageFromImageDetails(t *testing.T) {
 		Flavour:      basetypes.NewStringValue("flavour"),
 		Region:       basetypes.NewStringValue("eu-west-3"),
 	}
-	got := newDataSourceModelImageFromImageDetails(sdkImageDetails)
+	got := mapSdkImageDetailsToDatasourceImage(sdkImageDetails)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_newDataSourceModelImages(t *testing.T) {
+func Test_mapSdkImagesToDatasourceImages(t *testing.T) {
 	sdkImages := []publicCloud.ImageDetails{
 		{Id: "id"},
 	}
 
-	got := newDataSourceModelImages(sdkImages)
+	got := mapSdkImagesToDatasourceImages(sdkImages)
 
 	assert.Len(t, got.Images, 1)
-	assert.Equal(t, "id", got.Images[0].Id.ValueString())
+	assert.Equal(t, "id", got.Images[0].ID.ValueString())
 }
 
 func Test_imagesDataSource_Metadata(t *testing.T) {

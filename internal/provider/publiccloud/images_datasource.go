@@ -19,7 +19,7 @@ var (
 )
 
 type dataSourceModelImage struct {
-	Id           types.String `tfsdk:"id"`
+	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Custom       types.Bool   `tfsdk:"custom"`
 	State        types.String `tfsdk:"state"`
@@ -29,38 +29,38 @@ type dataSourceModelImage struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func newDataSourceModelImageFromImage(sdkImage publicCloud.Image) dataSourceModelImage {
+func mapSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
-		Id:      basetypes.NewStringValue(sdkImage.Id),
-		Name:    basetypes.NewStringValue(sdkImage.Name),
-		Custom:  basetypes.NewBoolValue(sdkImage.Custom),
-		Flavour: basetypes.NewStringValue(string(sdkImage.Flavour)),
+		ID:      basetypes.NewStringValue(sdkImage.GetId()),
+		Name:    basetypes.NewStringValue(sdkImage.GetName()),
+		Custom:  basetypes.NewBoolValue(sdkImage.GetCustom()),
+		Flavour: basetypes.NewStringValue(string(sdkImage.GetFlavour())),
 	}
 }
 
-func newDataSourceModelImageFromImageDetails(
+func mapSdkImageDetailsToDatasourceImage(
 	sdkImageDetails publicCloud.ImageDetails,
 ) dataSourceModelImage {
 	var marketApps []string
 	var storageTypes []string
 
-	for _, marketApp := range sdkImageDetails.MarketApps {
+	for _, marketApp := range sdkImageDetails.GetMarketApps() {
 		marketApps = append(marketApps, string(marketApp))
 	}
 
-	for _, storageType := range sdkImageDetails.StorageTypes {
+	for _, storageType := range sdkImageDetails.GetStorageTypes() {
 		storageTypes = append(storageTypes, string(storageType))
 	}
 
 	return dataSourceModelImage{
-		Id:           basetypes.NewStringValue(sdkImageDetails.Id),
-		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
-		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
+		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
+		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
+		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
 		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
-		Region:       utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.Region.Get()),
+		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.GetFlavour())),
+		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
 	}
 }
 
@@ -68,11 +68,11 @@ type dataSourceModelImages struct {
 	Images []dataSourceModelImage `tfsdk:"images"`
 }
 
-func newDataSourceModelImages(sdkImages []publicCloud.ImageDetails) dataSourceModelImages {
+func mapSdkImagesToDatasourceImages(sdkImages []publicCloud.ImageDetails) dataSourceModelImages {
 	var images dataSourceModelImages
 
 	for _, sdkImageDetails := range sdkImages {
-		image := newDataSourceModelImageFromImageDetails(sdkImageDetails)
+		image := mapSdkImageDetailsToDatasourceImage(sdkImageDetails)
 		images.Images = append(images.Images, image)
 	}
 
@@ -106,7 +106,7 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 			return nil, utils.NewSdkError("getAllImages", err, response)
 		}
 
-		images = append(images, result.Images...)
+		images = append(images, result.GetImages()...)
 
 		if !pagination.CanIncrement() {
 			break
@@ -205,7 +205,7 @@ func (i *ImagesDataSource) Read(
 		return
 	}
 
-	state := newDataSourceModelImages(images)
+	state := mapSdkImagesToDatasourceImages(images)
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
