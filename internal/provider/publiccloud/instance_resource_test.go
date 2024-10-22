@@ -451,20 +451,6 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 	)
 }
 
-func Test_newResourceModelImage(t *testing.T) {
-	sdkImage := publicCloud.Image{
-		Id: "imageId",
-	}
-
-	want := resourceModelImage{
-		Id: basetypes.NewStringValue("imageId"),
-	}
-	got, err := newResourceModelImage(context.TODO(), sdkImage)
-
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
-}
-
 func generateContractObject(
 	billingFrequency *int,
 	contractTerm *int,
@@ -501,11 +487,15 @@ func generateContractObject(
 }
 
 func generateInstanceModel() resourceModelInstance {
+	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
+
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
 		resourceModelImage{}.AttributeTypes(),
 		resourceModelImage{
-			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			Id:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			MarketApps:   emptyList,
+			StorageTypes: emptyList,
 		},
 	)
 
@@ -588,7 +578,7 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
-	instance := publicCloud.InstanceDetails{
+	instanceDetails := publicCloud.InstanceDetails{
 		Id:                  "id",
 		Type:                publicCloud.TYPENAME_C3_2XLARGE,
 		Region:              "region",
@@ -610,7 +600,7 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 		},
 	}
 
-	got, err := newResourceModelInstanceFromInstanceDetails(instance, context.TODO())
+	got, err := newResourceModelInstanceFromInstanceDetails(instanceDetails, context.TODO())
 
 	assert.NoError(t, err)
 

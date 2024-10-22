@@ -25,7 +25,6 @@ import (
 )
 
 var (
-	_ resource.Resource                = &instanceResource{}
 	_ resource.ResourceWithConfigure   = &instanceResource{}
 	_ resource.ResourceWithImportState = &instanceResource{}
 	_ resource.ResourceWithModifyPlan  = &instanceResource{}
@@ -264,25 +263,6 @@ func newResourceModelContract(
 	}, nil
 }
 
-type resourceModelImage struct {
-	Id types.String `tfsdk:"id"`
-}
-
-func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id": types.StringType,
-	}
-}
-
-func newResourceModelImage(
-	_ context.Context,
-	sdkImage publicCloud.Image,
-) (*resourceModelImage, error) {
-	return &resourceModelImage{
-		Id: basetypes.NewStringValue(sdkImage.Id),
-	}, nil
-}
-
 type reasonInstanceCannotBeTerminated string
 
 type resourceModelInstance struct {
@@ -510,7 +490,7 @@ func newResourceModelInstanceFromInstance(
 		sdkInstance.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
-		newResourceModelImage,
+		newResourceModelImageFromImage,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
@@ -561,7 +541,7 @@ func newResourceModelInstanceFromInstanceDetails(
 		sdkInstanceDetails.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
-		newResourceModelImage,
+		newResourceModelImageFromImage,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
@@ -668,7 +648,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	tflog.Info(ctx, "Launch public cloud instance on API")
+	tflog.Info(ctx, "Launch publiccloud instance")
 
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
@@ -680,23 +660,19 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, repositoryErr := launchInstance(
-		*opts,
-		ctx,
-		i.client.PublicCloudAPI,
-	)
-	if repositoryErr != nil {
+	sdkInstance, sdkErr := launchInstance(*opts, ctx, i.client.PublicCloudAPI)
+	if sdkErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating resourceModelInstance",
-			repositoryErr.Error(),
+			sdkErr.Error(),
 		)
 
 		utils.LogError(
 			ctx,
-			repositoryErr.ErrorResponse,
+			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
-			"Error launching public cloud instance",
-			repositoryErr.Error(),
+			"Error launching publiccloud instance",
+			sdkErr.Error(),
 		)
 
 		return
@@ -705,7 +681,7 @@ func (i *instanceResource) Create(
 	instance, resourceErr := newResourceModelInstanceFromInstance(*sdkInstance, ctx)
 	if resourceErr != nil {
 		resp.Diagnostics.AddError(
-			"Error creating public cloud instance resource",
+			"Error creating publiccloud instance resource",
 			resourceErr.Error(),
 		)
 
@@ -957,7 +933,6 @@ func (i *instanceResource) ImportState(
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
-
 	resource.ImportStatePassthroughID(
 		ctx,
 		path.Root("id"),
@@ -996,13 +971,13 @@ func (i *instanceResource) Read(
 		i.client.PublicCloudAPI,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading resourceModelInstance", err.Error())
+		resp.Diagnostics.AddError("Error reading publiccloud instance", err.Error())
 
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf("Unable to read resourceModelInstance %q", state.Id.ValueString()),
+			fmt.Sprintf("Unable to read publiccloud image %q", state.Id.ValueString()),
 			err.Error(),
 		)
 
@@ -1028,9 +1003,6 @@ func (i *instanceResource) Read(
 
 	diags = resp.State.Set(ctx, instance)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (i *instanceResource) Update(
@@ -1047,7 +1019,7 @@ func (i *instanceResource) Update(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf(
-		"Update public cloud instance %q",
+		"Update publiccloud instance %q",
 		plan.Id.ValueString(),
 	))
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
@@ -1059,27 +1031,27 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, repositoryErr := updateInstance(
+	sdkInstance, sdkErr := updateInstance(
 		plan.Id.ValueString(),
 		*opts,
 		ctx,
 		i.client.PublicCloudAPI,
 	)
-	if repositoryErr != nil {
+	if sdkErr != nil {
 		resp.Diagnostics.AddError(
-			"Error updating instance",
-			repositoryErr.Error(),
+			"Error updating publiccloud instance",
+			sdkErr.Error(),
 		)
 
 		utils.LogError(
 			ctx,
-			repositoryErr.ErrorResponse,
+			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
-				"Unable to update public cloud instance %q",
+				"Unable to update publiccloud instance %q",
 				plan.Id.ValueString(),
 			),
-			repositoryErr.Error(),
+			sdkErr.Error(),
 		)
 
 		return
@@ -1087,9 +1059,6 @@ func (i *instanceResource) Update(
 
 	diags = resp.State.Set(ctx, sdkInstance)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (i *instanceResource) Schema(
@@ -1137,6 +1106,31 @@ func (i *instanceResource) Schema(
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
 						},
+					},
+					"name": schema.StringAttribute{
+						Computed: true,
+					},
+					"custom": schema.BoolAttribute{
+						Computed:    true,
+						Description: "Standard or Custom image",
+					},
+					"state": schema.StringAttribute{
+						Computed: true,
+					},
+					"market_apps": schema.ListAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+					},
+					"storage_types": schema.ListAttribute{
+						Computed:    true,
+						Description: "The supported storage types for the instance type",
+						ElementType: types.StringType,
+					},
+					"flavour": schema.StringAttribute{
+						Computed: true,
+					},
+					"region": schema.StringAttribute{
+						Computed: true,
 					},
 				},
 			},

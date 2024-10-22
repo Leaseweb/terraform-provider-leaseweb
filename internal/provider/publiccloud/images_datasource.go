@@ -198,9 +198,6 @@ func (i *ImagesDataSource) Read(
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (i *ImagesDataSource) Configure(
