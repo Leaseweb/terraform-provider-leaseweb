@@ -19,7 +19,7 @@ var (
 )
 
 type dataSourceModelImage struct {
-	Id           types.String `tfsdk:"id"`
+	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Custom       types.Bool   `tfsdk:"custom"`
 	State        types.String `tfsdk:"state"`
@@ -31,7 +31,7 @@ type dataSourceModelImage struct {
 
 func newDataSourceModelImageFromImage(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
-		Id:      basetypes.NewStringValue(sdkImage.Id),
+		ID:      basetypes.NewStringValue(sdkImage.Id),
 		Name:    basetypes.NewStringValue(sdkImage.Name),
 		Custom:  basetypes.NewBoolValue(sdkImage.Custom),
 		Flavour: basetypes.NewStringValue(string(sdkImage.Flavour)),
@@ -53,7 +53,7 @@ func newDataSourceModelImageFromImageDetails(
 	}
 
 	return dataSourceModelImage{
-		Id:           basetypes.NewStringValue(sdkImageDetails.Id),
+		ID:           basetypes.NewStringValue(sdkImageDetails.Id),
 		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
 		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
 		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),

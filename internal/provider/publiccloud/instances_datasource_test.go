@@ -65,7 +65,7 @@ func Test_newDataSourceModelInstance(t *testing.T) {
 	assert.Equal(t, "id", got.Id.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
-	assert.Equal(t, "imageId", got.Image.Id.ValueString())
+	assert.Equal(t, "imageId", got.Image.ID.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())

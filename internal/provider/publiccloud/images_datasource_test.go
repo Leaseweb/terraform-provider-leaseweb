@@ -19,7 +19,7 @@ func Test_newDataSourceModelImageFromImage(t *testing.T) {
 	}
 
 	want := dataSourceModelImage{
-		Id:      basetypes.NewStringValue("imageId"),
+		ID:      basetypes.NewStringValue("imageId"),
 		Name:    basetypes.NewStringValue("name"),
 		Custom:  basetypes.NewBoolValue(true),
 		Flavour: basetypes.NewStringValue("flavour"),
@@ -45,7 +45,7 @@ func Test_newDataSourceModelImageFromImageDetails(t *testing.T) {
 	}
 
 	want := dataSourceModelImage{
-		Id:           basetypes.NewStringValue("imageId"),
+		ID:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
 		State:        basetypes.NewStringValue("READY"),
@@ -67,7 +67,7 @@ func Test_newDataSourceModelImages(t *testing.T) {
 	got := newDataSourceModelImages(sdkImages)
 
 	assert.Len(t, got.Images, 1)
-	assert.Equal(t, "id", got.Images[0].Id.ValueString())
+	assert.Equal(t, "id", got.Images[0].ID.ValueString())
 }
 
 func Test_imagesDataSource_Metadata(t *testing.T) {
