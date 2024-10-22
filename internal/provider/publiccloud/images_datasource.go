@@ -31,10 +31,10 @@ type dataSourceModelImage struct {
 
 func mapSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
-		ID:      basetypes.NewStringValue(sdkImage.Id),
-		Name:    basetypes.NewStringValue(sdkImage.Name),
-		Custom:  basetypes.NewBoolValue(sdkImage.Custom),
-		Flavour: basetypes.NewStringValue(string(sdkImage.Flavour)),
+		ID:      basetypes.NewStringValue(sdkImage.GetId()),
+		Name:    basetypes.NewStringValue(sdkImage.GetName()),
+		Custom:  basetypes.NewBoolValue(sdkImage.GetCustom()),
+		Flavour: basetypes.NewStringValue(string(sdkImage.GetFlavour())),
 	}
 }
 
@@ -44,23 +44,23 @@ func mapSdkImageDetailsToDatasourceImage(
 	var marketApps []string
 	var storageTypes []string
 
-	for _, marketApp := range sdkImageDetails.MarketApps {
+	for _, marketApp := range sdkImageDetails.GetMarketApps() {
 		marketApps = append(marketApps, string(marketApp))
 	}
 
-	for _, storageType := range sdkImageDetails.StorageTypes {
+	for _, storageType := range sdkImageDetails.GetStorageTypes() {
 		storageTypes = append(storageTypes, string(storageType))
 	}
 
 	return dataSourceModelImage{
-		ID:           basetypes.NewStringValue(sdkImageDetails.Id),
-		Name:         basetypes.NewStringValue(sdkImageDetails.Name),
-		Custom:       basetypes.NewBoolValue(sdkImageDetails.Custom),
+		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
+		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
+		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
 		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
-		Region:       utils.AdaptNullableStringEnumToStringValue(sdkImageDetails.Region.Get()),
+		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.GetFlavour())),
+		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
 	}
 }
 
@@ -106,7 +106,7 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 			return nil, utils.NewSdkError("getAllImages", err, response)
 		}
 
-		images = append(images, result.Images...)
+		images = append(images, result.GetImages()...)
 
 		if !pagination.CanIncrement() {
 			break
