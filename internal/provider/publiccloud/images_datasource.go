@@ -29,7 +29,7 @@ type dataSourceModelImage struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func newDataSourceModelImageFromImage(sdkImage publicCloud.Image) dataSourceModelImage {
+func mapSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
 		ID:      basetypes.NewStringValue(sdkImage.Id),
 		Name:    basetypes.NewStringValue(sdkImage.Name),
@@ -38,7 +38,7 @@ func newDataSourceModelImageFromImage(sdkImage publicCloud.Image) dataSourceMode
 	}
 }
 
-func newDataSourceModelImageFromImageDetails(
+func mapSdkImageDetailsToDatasourceImage(
 	sdkImageDetails publicCloud.ImageDetails,
 ) dataSourceModelImage {
 	var marketApps []string
@@ -68,11 +68,11 @@ type dataSourceModelImages struct {
 	Images []dataSourceModelImage `tfsdk:"images"`
 }
 
-func newDataSourceModelImages(sdkImages []publicCloud.ImageDetails) dataSourceModelImages {
+func mapSdkImagesToDatasourceImages(sdkImages []publicCloud.ImageDetails) dataSourceModelImages {
 	var images dataSourceModelImages
 
 	for _, sdkImageDetails := range sdkImages {
-		image := newDataSourceModelImageFromImageDetails(sdkImageDetails)
+		image := mapSdkImageDetailsToDatasourceImage(sdkImageDetails)
 		images.Images = append(images.Images, image)
 	}
 
@@ -205,7 +205,7 @@ func (i *ImagesDataSource) Read(
 		return
 	}
 
-	state := newDataSourceModelImages(images)
+	state := mapSdkImagesToDatasourceImages(images)
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
