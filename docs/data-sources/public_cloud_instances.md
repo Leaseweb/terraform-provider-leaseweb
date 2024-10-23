@@ -68,7 +68,14 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Image ID
+- `custom` (Boolean) Standard or Custom image
+- `flavour` (String)
+- `id` (String) Can be either an Operating System or a UUID in case of a Custom Image
+- `market_apps` (List of String)
+- `name` (String)
+- `region` (String)
+- `state` (String)
+- `storage_types` (List of String) The supported storage types for the instance type
 
 
 <a id="nestedatt--instances--ips"></a>

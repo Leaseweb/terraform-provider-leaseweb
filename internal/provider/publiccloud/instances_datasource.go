@@ -74,16 +74,6 @@ func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) data
 	}
 }
 
-type dataSourceModelImage struct {
-	ID types.String `tfsdk:"id"`
-}
-
-func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
-	return dataSourceModelImage{
-		ID: basetypes.NewStringValue(sdkImage.Id),
-	}
-}
-
 type dataSourceModelIP struct {
 	IP types.String `tfsdk:"ip"`
 }
@@ -249,13 +239,8 @@ func (d *InstancesDataSource) Schema(
 							Description: "The identifying name set to the instance",
 						},
 						"image": schema.SingleNestedAttribute{
-							Computed: true,
-							Attributes: map[string]schema.Attribute{
-								"id": schema.StringAttribute{
-									Computed:    true,
-									Description: "Image ID",
-								},
-							},
+							Computed:   true,
+							Attributes: imageSchemaAttributes(),
 						},
 						"state": schema.StringAttribute{
 							Computed:    true,
