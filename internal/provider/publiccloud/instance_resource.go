@@ -412,22 +412,16 @@ func (i resourceModelIP) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func adaptSdkIpToResourceIP(
-	_ context.Context,
-	sdkIp publicCloud.Ip,
-) (*resourceModelIP, error) {
-	return &resourceModelIP{
+func adaptSdkIpToResourceIP(sdkIp publicCloud.Ip) resourceModelIP {
+	return resourceModelIP{
 		IP: basetypes.NewStringValue(sdkIp.Ip),
-	}, nil
+	}
 }
 
-func adaptSdkIpDetailsToResourceIP(
-	_ context.Context,
-	sdkIpDetails publicCloud.IpDetails,
-) (*resourceModelIP, error) {
-	return &resourceModelIP{
+func adaptSdkIpDetailsToResourceIP(sdkIpDetails publicCloud.IpDetails) resourceModelIP {
+	return resourceModelIP{
 		IP: basetypes.NewStringValue(sdkIpDetails.Ip),
-	}, nil
+	}
 }
 
 func NewInstanceResource() resource.Resource {

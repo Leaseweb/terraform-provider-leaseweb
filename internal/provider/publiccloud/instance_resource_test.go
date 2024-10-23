@@ -628,10 +628,9 @@ func Test_adaptSdkIpToResourceIp(t *testing.T) {
 	want := resourceModelIP{
 		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpToResourceIP(context.TODO(), sdkIp)
+	got := adaptSdkIpToResourceIP(sdkIp)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+	assert.Equal(t, want, got)
 }
 
 func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
@@ -642,8 +641,7 @@ func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
 	want := resourceModelIP{
 		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpDetailsToResourceIP(context.TODO(), sdkIpDetails)
+	got := adaptSdkIpDetailsToResourceIP(sdkIpDetails)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+	assert.Equal(t, want, got)
 }
