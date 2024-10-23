@@ -240,7 +240,7 @@ func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.S
 			},
 			"asset_id": schema.StringAttribute{
 				Computed:    true,
-				Description: "The Asset Id of the server.",
+				Description: "The Asset ID of the server.",
 			},
 			"serial_number": schema.StringAttribute{
 				Computed:    true,
@@ -252,7 +252,7 @@ func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.S
 			},
 			"rack_id": schema.StringAttribute{
 				Computed:    true,
-				Description: "The Id of the rack.",
+				Description: "The ID of the rack.",
 			},
 			"rack_capacity": schema.StringAttribute{
 				Computed:    true,

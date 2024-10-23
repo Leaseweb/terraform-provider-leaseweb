@@ -173,13 +173,13 @@ func generateInstanceModelForValidator() resourceModelInstance {
 		Type:                basetypes.NewStringUnknown(),
 		RootDiskSize:        basetypes.NewInt64Unknown(),
 		RootDiskStorageType: basetypes.NewStringUnknown(),
-		Ips: basetypes.NewListUnknown(
+		IPs: basetypes.NewListUnknown(
 			types.ObjectType{
 				AttrTypes: resourceModelIp{}.AttributeTypes(),
 			},
 		),
 		Contract:    contractObject,
-		MarketAppId: basetypes.NewStringUnknown(),
+		MarketAppID: basetypes.NewStringUnknown(),
 	}
 }
 

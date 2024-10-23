@@ -126,11 +126,11 @@ func (d *dedicatedServerOperatingSystemsDataSource) Schema(ctx context.Context, 
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:    true,
-							Description: "Id of the operating system.",
+							Description: "ID of the operating system.",
 						},
 						"name": schema.StringAttribute{
 							Computed:    true,
-							Description: "Id of the operating system.",
+							Description: "ID of the operating system.",
 						},
 					},
 				},

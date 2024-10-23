@@ -66,15 +66,15 @@ func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
-	assert.Equal(t, "imageId", got.Image.Id.ValueString())
+	assert.Equal(t, "imageId", got.Image.ID.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Len(t, got.Ips, 1)
-	assert.Equal(t, "127.0.0.1", got.Ips[0].Ip.ValueString())
+	assert.Len(t, got.IPs, 1)
+	assert.Equal(t, "127.0.0.1", got.IPs[0].IP.ValueString())
 	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 }
 
 func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
@@ -88,15 +88,15 @@ func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
 	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
 
-func Test_adaptSdkIpToDatasourceIp(t *testing.T) {
+func Test_adaptSdkIpToDatasourceIP(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
 
-	want := dataSourceModelIp{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
+	want := dataSourceModelIP{
+		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got := adaptSdkIpToDatasourceIp(sdkIp)
+	got := adaptSdkIpToDatasourceModelIP(sdkIp)
 
 	assert.Equal(t, want, got)
 }
@@ -107,7 +107,7 @@ func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
 	}
 
 	want := dataSourceModelImage{
-		Id: basetypes.NewStringValue("imageId"),
+		ID: basetypes.NewStringValue("imageId"),
 	}
 	got := adaptSdkImageToDatasourceImage(sdkImage)
 
@@ -209,7 +209,7 @@ func Test_adaptSdkImageToResourceImage(t *testing.T) {
 	}
 
 	want := resourceModelImage{
-		Id: basetypes.NewStringValue("imageId"),
+		ID: basetypes.NewStringValue("imageId"),
 	}
 	got, err := adaptSdkImageToResourceImage(context.TODO(), sdkImage)
 
@@ -257,7 +257,7 @@ func GenerateInstanceModel() resourceModelInstance {
 		context.TODO(),
 		resourceModelImage{}.AttributeTypes(),
 		resourceModelImage{
-			Id: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			ID: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
 
@@ -276,7 +276,7 @@ func GenerateInstanceModel() resourceModelInstance {
 		RootDiskSize:        basetypes.NewInt64Value(int64(55)),
 		Image:               image,
 		Contract:            contract,
-		MarketAppId:         basetypes.NewStringValue("marketAppId"),
+		MarketAppID:         basetypes.NewStringValue("marketAppId"),
 		Reference:           basetypes.NewStringValue("reference"),
 	}
 
@@ -318,20 +318,20 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
 	image := resourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
+	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
 	contract := resourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
 	var ips []resourceModelIp
-	got.Ips.ElementsAs(context.TODO(), &ips, false)
+	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
 }
@@ -371,20 +371,20 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
 	image := resourceModelImage{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "UBUNTU_20_04_64BIT", image.Id.ValueString())
+	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
 	contract := resourceModelContract{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
 	var ips []resourceModelIp
-	got.Ips.ElementsAs(context.TODO(), &ips, false)
+	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
 }
@@ -392,7 +392,7 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instance := GenerateInstanceModel()
-		instance.MarketAppId = basetypes.NewStringPointerValue(nil)
+		instance.MarketAppID = basetypes.NewStringPointerValue(nil)
 		instance.Reference = basetypes.NewStringPointerValue(nil)
 		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
 

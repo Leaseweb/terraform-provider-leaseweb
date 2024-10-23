@@ -39,15 +39,15 @@ type dataSourceModelInstance struct {
 	Type                types.String            `tfsdk:"type"`
 	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String            `tfsdk:"root_disk_storage_type"`
-	Ips                 []dataSourceModelIp     `tfsdk:"ips"`
+	IPs                 []dataSourceModelIP     `tfsdk:"ips"`
 	Contract            dataSourceModelContract `tfsdk:"contract"`
-	MarketAppId         types.String            `tfsdk:"market_app_id"`
+	MarketAppID         types.String            `tfsdk:"market_app_id"`
 }
 
 func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) dataSourceModelInstance {
-	var ips []dataSourceModelIp
+	var ips []dataSourceModelIP
 	for _, ip := range sdkInstance.Ips {
-		ips = append(ips, adaptSdkIpToDatasourceIp(ip))
+		ips = append(ips, adaptSdkIpToDatasourceModelIP(ip))
 	}
 
 	return dataSourceModelInstance{
@@ -59,29 +59,29 @@ func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) data
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
-		Ips:                 ips,
+		IPs:                 ips,
 		Contract:            adaptSdkContractToDatasourceContract(sdkInstance.GetContract()),
-		MarketAppId:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 }
 
 type dataSourceModelImage struct {
-	Id types.String `tfsdk:"id"`
+	ID types.String `tfsdk:"id"`
 }
 
 func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
-		Id: basetypes.NewStringValue(sdkImage.Id),
+		ID: basetypes.NewStringValue(sdkImage.Id),
 	}
 }
 
-type dataSourceModelIp struct {
-	Ip types.String `tfsdk:"ip"`
+type dataSourceModelIP struct {
+	IP types.String `tfsdk:"ip"`
 }
 
-func adaptSdkIpToDatasourceIp(sdkIp publicCloud.Ip) dataSourceModelIp {
-	return dataSourceModelIp{
-		Ip: basetypes.NewStringValue(sdkIp.Ip),
+func adaptSdkIpToDatasourceModelIP(sdkIp publicCloud.Ip) dataSourceModelIP {
+	return dataSourceModelIP{
+		IP: basetypes.NewStringValue(sdkIp.Ip),
 	}
 }
 
@@ -152,7 +152,7 @@ func adaptSdkContractToResourceContract(
 }
 
 type resourceModelImage struct {
-	Id types.String `tfsdk:"id"`
+	ID types.String `tfsdk:"id"`
 }
 
 func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
@@ -166,7 +166,7 @@ func adaptSdkImageToResourceImage(
 	sdkImage publicCloud.Image,
 ) (*resourceModelImage, error) {
 	return &resourceModelImage{
-		Id: basetypes.NewStringValue(sdkImage.Id),
+		ID: basetypes.NewStringValue(sdkImage.Id),
 	}, nil
 }
 
@@ -181,9 +181,9 @@ type resourceModelInstance struct {
 	Type                types.String `tfsdk:"type"`
 	RootDiskSize        types.Int64  `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String `tfsdk:"root_disk_storage_type"`
-	Ips                 types.List   `tfsdk:"ips"`
+	IPs                 types.List   `tfsdk:"ips"`
 	Contract            types.Object `tfsdk:"contract"`
-	MarketAppId         types.String `tfsdk:"market_app_id"`
+	MarketAppID         types.String `tfsdk:"market_app_id"`
 }
 
 func (i resourceModelInstance) AttributeTypes() map[string]attr.Type {
@@ -271,14 +271,14 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 	opts := publicCloud.NewLaunchInstanceOpts(
 		*sdkRegionName,
 		*sdkInstanceType,
-		image.Id.ValueString(),
+		image.ID.ValueString(),
 		*sdkContractType,
 		*sdkContractTerm,
 		*sdkBillingFrequency,
 		*sdkRootDiskStorageType,
 	)
 
-	opts.MarketAppId = i.MarketAppId.ValueStringPointer()
+	opts.MarketAppId = i.MarketAppID.ValueStringPointer()
 	opts.Reference = i.Reference.ValueStringPointer()
 	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
 
@@ -389,7 +389,7 @@ func adaptSdkInstanceToResourceInstance(
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
-		MarketAppId:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 
 	image, err := utils.AdaptSdkModelToResourceObject(
@@ -412,7 +412,7 @@ func adaptSdkInstanceToResourceInstance(
 	if err != nil {
 		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
-	instance.Ips = ips
+	instance.IPs = ips
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
@@ -440,7 +440,7 @@ func adaptSdkInstanceDetailsToResourceInstance(
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.RootDiskStorageType)),
-		MarketAppId:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
 
 	image, err := utils.AdaptSdkModelToResourceObject(
@@ -463,7 +463,7 @@ func adaptSdkInstanceDetailsToResourceInstance(
 	if err != nil {
 		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
-	instance.Ips = ips
+	instance.IPs = ips
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Contract,
