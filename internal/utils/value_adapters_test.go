@@ -196,6 +196,26 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	)
 }
 
+func TestAdaptStringPointerValueToNullableString(t *testing.T) {
+	t.Run("returns nil when value is unknown", func(t *testing.T) {
+		value := basetypes.NewStringUnknown()
+		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
+	})
+
+	t.Run("returns pointer when value is set", func(t *testing.T) {
+		target := "tralala"
+		value := basetypes.NewStringPointerValue(&target)
+
+		assert.Equal(t, target, *AdaptStringPointerValueToNullableString(value))
+	})
+
+	t.Run("returns nil when value is not set", func(t *testing.T) {
+		value := basetypes.NewStringPointerValue(nil)
+
+		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
+	})
+}
+
 func ExampleAdaptNullableTimeToStringValue() {
 	nullableTime, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	value := AdaptNullableTimeToStringValue(&nullableTime)
@@ -274,6 +294,25 @@ func TestReturnError(t *testing.T) {
 
 		assert.NoError(t, got)
 	})
+}
+
+func ExampleAdaptStringPointerValueToNullableString() {
+	value := "tralala"
+	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
+
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(*convertedValue)
+	// Output: tralala
+}
+
+func ExampleAdaptStringPointerValueToNullableString_second() {
+	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
+
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(convertedValue)
+	// Output: <nil>
 }
 
 func ExampleReturnError() {
