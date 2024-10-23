@@ -498,12 +498,12 @@ func adaptSdkInstanceToResourceInstance(
 	instance := resourceModelInstance{
 		ID:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
-		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 
 	image, err := utils.AdaptSdkModelToResourceObject(
@@ -549,12 +549,12 @@ func adaptSdkInstanceDetailsToResourceInstance(
 	instance := resourceModelInstance{
 		ID:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
-		Reference:           utils.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
+		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.State)),
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.Type)),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.RootDiskSize)),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.RootDiskStorageType)),
-		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstanceDetails.MarketAppId.Get()),
+		MarketAppId:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
 
 	image, err := utils.AdaptSdkModelToResourceObject(

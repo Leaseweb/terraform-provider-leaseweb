@@ -63,7 +63,7 @@ func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) data
 	return dataSourceModelInstance{
 		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
 		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
-		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
+		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
 		Image:               adaptSdkImageToDatasourceImage(sdkInstance.GetImage()),
 		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
@@ -71,7 +71,7 @@ func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) data
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		Ips:                 ips,
 		Contract:            newDataSourceModelContract(sdkInstance.GetContract()),
-		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
+		MarketAppId:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 }
 

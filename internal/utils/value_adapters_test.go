@@ -151,41 +151,6 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	})
 }
 
-func TestAdaptNullableStringToStringValue(t *testing.T) {
-	value := "tralala"
-
-	type args struct {
-		value *string
-	}
-	tests := []struct {
-		name string
-		args args
-		want basetypes.StringValue
-	}{
-		{
-			name: "value has been set to nil",
-			args: args{value: nil},
-			want: basetypes.NewStringNull(),
-		},
-		{
-			name: "value has been set",
-			args: args{value: &value},
-			want: basetypes.NewStringValue("tralala"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(
-				t,
-				tt.want,
-				AdaptNullableStringToStringValue(tt.args.value),
-				"AdaptNullableStringToStringValue(%v)",
-				tt.args.value,
-			)
-		})
-	}
-}
-
 func TestAdaptDomainSliceToListValue(t *testing.T) {
 	entity := mockDomainEntity{}
 
@@ -287,21 +252,6 @@ func ExampleAdaptNullableTimeToStringValue() {
 
 func ExampleAdaptNullableTimeToStringValue_second() {
 	value := AdaptNullableTimeToStringValue(nil)
-
-	fmt.Println(value)
-	// Output: <null>
-}
-
-func ExampleAdaptNullableStringToStringValue() {
-	nullableString := "tralala"
-	value := AdaptNullableStringToStringValue(&nullableString)
-
-	fmt.Println(value)
-	// Output: "tralala"
-}
-
-func ExampleAdaptNullableStringToStringValue_second() {
-	value := AdaptNullableStringToStringValue(nil)
 
 	fmt.Println(value)
 	// Output: <null>
