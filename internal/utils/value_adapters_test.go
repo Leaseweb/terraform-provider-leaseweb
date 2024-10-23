@@ -151,41 +151,6 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	})
 }
 
-func TestAdaptNullableStringToStringValue(t *testing.T) {
-	value := "tralala"
-
-	type args struct {
-		value *string
-	}
-	tests := []struct {
-		name string
-		args args
-		want basetypes.StringValue
-	}{
-		{
-			name: "value has been set to nil",
-			args: args{value: nil},
-			want: basetypes.NewStringNull(),
-		},
-		{
-			name: "value has been set",
-			args: args{value: &value},
-			want: basetypes.NewStringValue("tralala"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(
-				t,
-				tt.want,
-				AdaptNullableStringToStringValue(tt.args.value),
-				"AdaptNullableStringToStringValue(%v)",
-				tt.args.value,
-			)
-		})
-	}
-}
-
 func TestAdaptDomainSliceToListValue(t *testing.T) {
 	entity := mockDomainEntity{}
 
@@ -257,26 +222,6 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	)
 }
 
-func TestAdaptStringPointerValueToNullableString(t *testing.T) {
-	t.Run("returns nil when value is unknown", func(t *testing.T) {
-		value := basetypes.NewStringUnknown()
-		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
-	})
-
-	t.Run("returns pointer when value is set", func(t *testing.T) {
-		target := "tralala"
-		value := basetypes.NewStringPointerValue(&target)
-
-		assert.Equal(t, target, *AdaptStringPointerValueToNullableString(value))
-	})
-
-	t.Run("returns nil when value is not set", func(t *testing.T) {
-		value := basetypes.NewStringPointerValue(nil)
-
-		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
-	})
-}
-
 func ExampleAdaptNullableTimeToStringValue() {
 	nullableTime, _ := time.Parse(time.RFC3339, "2019-09-08T00:00:00Z")
 	value := AdaptNullableTimeToStringValue(&nullableTime)
@@ -287,21 +232,6 @@ func ExampleAdaptNullableTimeToStringValue() {
 
 func ExampleAdaptNullableTimeToStringValue_second() {
 	value := AdaptNullableTimeToStringValue(nil)
-
-	fmt.Println(value)
-	// Output: <null>
-}
-
-func ExampleAdaptNullableStringToStringValue() {
-	nullableString := "tralala"
-	value := AdaptNullableStringToStringValue(&nullableString)
-
-	fmt.Println(value)
-	// Output: "tralala"
-}
-
-func ExampleAdaptNullableStringToStringValue_second() {
-	value := AdaptNullableStringToStringValue(nil)
 
 	fmt.Println(value)
 	// Output: <null>
@@ -349,25 +279,6 @@ func ExampleAdaptSdkModelsToListValue() {
 
 	fmt.Println(listValue)
 	// Output: [{"ip":"1.2.3.4"}]
-}
-
-func ExampleAdaptStringPointerValueToNullableString() {
-	value := "tralala"
-	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
-
-	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
-
-	fmt.Println(*convertedValue)
-	// Output: tralala
-}
-
-func ExampleAdaptStringPointerValueToNullableString_second() {
-	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
-
-	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
-
-	fmt.Println(convertedValue)
-	// Output: <nil>
 }
 
 func TestReturnError(t *testing.T) {

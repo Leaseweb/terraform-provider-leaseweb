@@ -85,6 +85,16 @@ Required:
 
 - `id` (String) Can be either an Operating System or a UUID in case of a Custom Image ID.**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 
+Read-Only:
+
+- `custom` (Boolean) Standard or Custom image
+- `flavour` (String)
+- `market_apps` (List of String)
+- `name` (String)
+- `region` (String)
+- `state` (String)
+- `storage_types` (List of String) The supported storage types for the instance type
+
 
 <a id="nestedatt--ips"></a>
 ### Nested Schema for `ips`

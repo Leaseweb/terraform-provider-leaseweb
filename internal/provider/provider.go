@@ -162,6 +162,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		NewDedicatedServerControlPanelsDataSource,
 		NewDedicatedServerOperatingSystemsDataSource,
 		NewDedicatedServerCredentialDataSource,
+		publiccloud.NewImagesDataSource,
 	}
 }
 
@@ -173,5 +174,6 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 		NewDataTrafficNotificationSettingResource,
 		NewBandwidthNotificationSettingResource,
 		NewDedicatedServerInstallationResource,
+		publiccloud.NewImageResource,
 	}
 }

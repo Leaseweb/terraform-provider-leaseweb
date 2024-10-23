@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.24.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.10.0
-	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241015120826-266ec5273abf
+	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241023073856-0cfe118498fe
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -29,7 +29,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fatih/color v1.17.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
-	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241015120826-266ec5273abf
+	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241023073856-0cfe118498fe
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect

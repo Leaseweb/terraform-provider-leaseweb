@@ -90,7 +90,7 @@ func TestAccInstancesDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_instances.test",
 						"instances.#",
-						"1",
+						"4",
 					),
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_instances.test",
@@ -150,6 +150,21 @@ resource "leaseweb_public_cloud_instance" "test" {
 							"leaseweb_public_cloud_instance.test",
 							"image.id",
 							"UBUNTU_20_04_64BIT",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.name",
+							"Ubuntu 20.04 LTS (x86_64)",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.custom",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.flavour",
+							"ubuntu",
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
@@ -849,6 +864,163 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
+					},
+				},
+			})
+		},
+	)
+}
+
+func TestAccImagesDataSource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Read testing
+			{
+				Config: providerConfig + `data "leaseweb_public_cloud_images" "test" {}`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.#",
+						"18",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.id",
+						"UBUNTU_24_04_64BIT",
+					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInstanceImage(t *testing.T) {
+	t.Run("creates & updates an image", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+  name = "Custom image - 03"
+}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"name",
+							"Custom image - 03",
+						),
+					),
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_public_cloud_image.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+  name = "Custom image - 03"
+}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"name",
+							"Custom image - 03",
+						),
+					),
+				},
+				// Delete testing automatically occurs in TestCase
+			},
+		})
+	})
+
+	t.Run(
+		"instanceId must be valid when creating a custom image",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "tralala"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile("Attribute id value must be one of"),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"instance connected to instanceId must have a `STOPPED` state",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "f28ba2af-7508-4594-a63a-aa663db4fb3e"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile("not have state"),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"instance connected to instanceId must not have a large rootDiskSize",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "6871686d-36c4-44f5-b692-a548e62dcf25"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile(`rootDiskSize`),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"instance connected to instanceId must not windows os",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "9c095e3a-e9e3-403b-8d1b-37bb21b5598e"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile(`windows`),
 					},
 				},
 			})
