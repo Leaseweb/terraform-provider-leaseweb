@@ -391,10 +391,8 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 		*sdkRootDiskStorageType,
 	)
 
-	opts.MarketAppId = utils.AdaptStringPointerValueToNullableString(
-		i.MarketAppId,
-	)
-	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.MarketAppId = i.MarketAppId.ValueStringPointer()
+	opts.Reference = i.Reference.ValueStringPointer()
 	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
 
 	return opts, nil
@@ -405,8 +403,14 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 	error,
 ) {
 	opts := publicCloud.NewUpdateInstanceOpts()
-	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+
+	if i.Reference.ValueStringPointer() != nil {
+		opts.SetReference(*i.Reference.ValueStringPointer())
+	}
+
+	if i.RootDiskSize.ValueInt64Pointer() != nil {
+		opts.SetRootDiskSize(int32(*i.RootDiskSize.ValueInt64Pointer()))
+	}
 
 	contract := resourceModelContract{}
 	diags := i.Contract.As(

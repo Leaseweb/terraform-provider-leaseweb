@@ -121,16 +121,6 @@ func AdaptSdkModelsToListValue[T any, U any](
 	return listObject, nil
 }
 
-// AdaptStringPointerValueToNullableString converts a Terraform
-// StringPointerValue to a nullable string.
-func AdaptStringPointerValueToNullableString(value types.String) *string {
-	if value.IsUnknown() {
-		return nil
-	}
-
-	return value.ValueStringPointer()
-}
-
 // ReturnError returns the first diagnostics error as a golang Error.
 func ReturnError(functionName string, diags diag.Diagnostics) error {
 	for _, diagError := range diags {

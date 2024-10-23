@@ -640,6 +640,9 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instance := generateInstanceModel()
+		instance.MarketAppId = basetypes.NewStringPointerValue(nil)
+		instance.Reference = basetypes.NewStringPointerValue(nil)
+		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
 
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 
@@ -651,6 +654,15 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.ContractType)
 		assert.Equal(t, publicCloud.CONTRACTTERM__3, got.ContractTerm)
 		assert.Equal(t, publicCloud.BILLINGFREQUENCY__1, got.BillingFrequency)
+
+		marketAppId, _ := got.GetMarketAppIdOk()
+		assert.Nil(t, marketAppId)
+
+		reference, _ := got.GetReferenceOk()
+		assert.Nil(t, reference)
+
+		rootDiskSize, _ := got.GetRootDiskSizeOk()
+		assert.Nil(t, rootDiskSize)
 	})
 
 	t.Run("optional values are passed", func(t *testing.T) {
