@@ -6,360 +6,159 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	terraformValidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_contractTermValidator_ValidateObject(t *testing.T) {
-	t.Run(
-		"does not set error if contract term is correct",
-		func(t *testing.T) {
-			contract := resourceModelContract{}
-			configValue, _ := types.ObjectValueFrom(
-				context.TODO(),
-				contract.AttributeTypes(),
-				contract,
-			)
-
-			request := terraformValidator.ObjectRequest{
-				ConfigValue: configValue,
-			}
-
-			response := terraformValidator.ObjectResponse{}
-
-			validator := contractTermValidator{}
-			validator.ValidateObject(context.TODO(), request, &response)
-
-			assert.Len(t, response.Diagnostics.Errors(), 0)
-		},
+func Test_newDataSourceModelContract(t *testing.T) {
+	endsAt, _ := time.Parse(
+		"2006-01-02 15:04:05",
+		"2023-12-14 17:09:47",
 	)
-
-	t.Run(
-		"returns expected error if contract term cannot be 0",
-		func(t *testing.T) {
-			contract := resourceModelContract{
-				Type: basetypes.NewStringValue("MONTHLY"),
-				Term: basetypes.NewInt64Value(0),
-			}
-			configValue, _ := types.ObjectValueFrom(
-				context.TODO(),
-				contract.AttributeTypes(),
-				contract,
-			)
-
-			request := terraformValidator.ObjectRequest{
-				ConfigValue: configValue,
-			}
-
-			response := terraformValidator.ObjectResponse{}
-
-			validator := contractTermValidator{}
-			validator.ValidateObject(context.TODO(), request, &response)
-
-			assert.Len(t, response.Diagnostics.Errors(), 1)
-			assert.Contains(
-				t,
-				response.Diagnostics.Errors()[0].Detail(),
-				"MONTHLY",
-			)
-		},
-	)
-
-	t.Run(
-		"returns expected error if contract term must be 0",
-		func(t *testing.T) {
-			contract := resourceModelContract{
-				Type: basetypes.NewStringValue("HOURLY"),
-				Term: basetypes.NewInt64Value(3),
-			}
-			configValue, _ := types.ObjectValueFrom(
-				context.TODO(),
-				contract.AttributeTypes(),
-				contract,
-			)
-
-			request := terraformValidator.ObjectRequest{
-				ConfigValue: configValue,
-			}
-
-			response := terraformValidator.ObjectResponse{}
-
-			validator := contractTermValidator{}
-			validator.ValidateObject(context.TODO(), request, &response)
-
-			assert.Len(t, response.Diagnostics.Errors(), 1)
-			assert.Contains(
-				t,
-				response.Diagnostics.Errors()[0].Detail(),
-				"HOURLY",
-			)
-		},
-	)
-}
-
-func Test_instanceTerminationValidator_ValidateObject(t *testing.T) {
-	t.Run("ConfigValue populate errors bubble up", func(t *testing.T) {
-		request := terraformValidator.ObjectRequest{}
-		response := terraformValidator.ObjectResponse{}
-
-		validator := instanceTerminationValidator{}
-		validator.ValidateObject(context.TODO(), request, &response)
-
-		assert.True(t, response.Diagnostics.HasError())
-		assert.Contains(
-			t,
-			response.Diagnostics[0].Summary(),
-			"Value Conversion Error",
-		)
-	})
-
-	t.Run(
-		"does not set a diagnostics error if instance is allowed to be terminated",
-		func(t *testing.T) {
-			instance := generateInstanceModelForValidator()
-			instanceObject, _ := basetypes.NewObjectValueFrom(
-				context.TODO(),
-				instance.AttributeTypes(),
-				instance,
-			)
-			request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
-			response := terraformValidator.ObjectResponse{}
-
-			validator := instanceTerminationValidator{}
-			validator.ValidateObject(context.TODO(), request, &response)
-
-			assert.False(t, response.Diagnostics.HasError())
-		},
-	)
-
-	t.Run(
-		"sets a diagnostics error if instance is not allowed to be terminated",
-		func(t *testing.T) {
-			instance := generateInstanceModelForValidator()
-			instance.State = basetypes.NewStringValue("DESTROYED")
-			instanceObject, _ := basetypes.NewObjectValueFrom(
-				context.TODO(),
-				instance.AttributeTypes(),
-				instance,
-			)
-			request := terraformValidator.ObjectRequest{ConfigValue: instanceObject}
-			response := terraformValidator.ObjectResponse{}
-
-			validator := instanceTerminationValidator{}
-			validator.ValidateObject(context.TODO(), request, &response)
-
-			assert.True(t, response.Diagnostics.HasError())
-			assert.Contains(t, response.Diagnostics[0].Detail(), "DESTROYED")
-		},
-	)
-}
-
-func generateInstanceModelForValidator() resourceModelInstance {
-	contract := resourceModelContract{}
-	contractObject, _ := types.ObjectValueFrom(
-		context.TODO(),
-		contract.AttributeTypes(),
-		contract,
-	)
-
-	return resourceModelInstance{
-		Id:        basetypes.NewStringUnknown(),
-		Region:    basetypes.NewStringUnknown(),
-		Reference: basetypes.NewStringUnknown(),
-		Image: basetypes.NewObjectUnknown(
-			resourceModelImage{}.AttributeTypes(),
-		),
-		State:               basetypes.NewStringUnknown(),
-		Type:                basetypes.NewStringUnknown(),
-		RootDiskSize:        basetypes.NewInt64Unknown(),
-		RootDiskStorageType: basetypes.NewStringUnknown(),
-		Ips: basetypes.NewListUnknown(
-			types.ObjectType{
-				AttrTypes: resourceModelIp{}.AttributeTypes(),
-			},
-		),
-		Contract:    contractObject,
-		MarketAppId: basetypes.NewStringUnknown(),
+	sdkContract := publicCloud.Contract{
+		BillingFrequency: publicCloud.BILLINGFREQUENCY__1,
+		Term:             publicCloud.CONTRACTTERM__3,
+		Type:             publicCloud.CONTRACTTYPE_HOURLY,
+		EndsAt:           *publicCloud.NewNullableTime(&endsAt),
+		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
+
+	want := dataSourceModelContract{
+		BillingFrequency: basetypes.NewInt64Value(1),
+		Term:             basetypes.NewInt64Value(3),
+		Type:             basetypes.NewStringValue("HOURLY"),
+		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
+		State:            basetypes.NewStringValue("ACTIVE"),
+	}
+	got := newDataSourceModelContract(sdkContract)
+
+	assert.Equal(t, want, got)
 }
 
-func Test_instanceTypeValidator_ValidateString(t *testing.T) {
-	t.Run("nothing happens if instanceType is unknown", func(t *testing.T) {
-		countIsInstanceTypeAvailableForRegionIsCalled := 0
-		countCanInstanceTypeBeUsedWithInstanceIsCalled := 0
+func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
+	reference := "reference"
+	marketAppId := "marketAppId"
 
-		validator := instanceTypeValidator{}
-
-		response := terraformValidator.StringResponse{}
-		validator.ValidateString(
-			context.TODO(),
-			terraformValidator.StringRequest{ConfigValue: basetypes.NewStringUnknown()},
-			&response,
-		)
-
-		assert.Equal(t, 0, countIsInstanceTypeAvailableForRegionIsCalled)
-		assert.Equal(t, 0, countCanInstanceTypeBeUsedWithInstanceIsCalled)
-	})
-
-	t.Run("nothing happens if instanceType does not change", func(t *testing.T) {
-		countIsInstanceTypeAvailableForRegionIsCalled := 0
-		countCanInstanceTypeBeUsedWithInstanceIsCalled := 0
-
-		validator := instanceTypeValidator{}
-
-		response := terraformValidator.StringResponse{}
-		validator.ValidateString(
-			context.TODO(),
-			terraformValidator.StringRequest{
-				ConfigValue: basetypes.NewStringNull(),
-			},
-			&response,
-		)
-
-		assert.Equal(t, 0, countIsInstanceTypeAvailableForRegionIsCalled)
-		assert.Equal(t, 0, countCanInstanceTypeBeUsedWithInstanceIsCalled)
-	})
-
-	t.Run(
-		"attributeError added to response if instanceType cannot be found",
-		func(t *testing.T) {
-			validator := instanceTypeValidator{
-				availableInstanceTypes: []string{"tralala"},
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.ValidateString(
-				context.TODO(),
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("doesNotExist"),
-				},
-				&response,
-			)
-
-			assert.Contains(
-				t,
-				response.Diagnostics[0].Detail(),
-				"tralala",
-			)
-			assert.Contains(
-				t,
-				response.Diagnostics[0].Detail(),
-				"doesNotExist",
-			)
+	sdkInstance := publicCloud.Instance{
+		Id:        "id",
+		Region:    "region",
+		Reference: *publicCloud.NewNullableString(&reference),
+		Image: publicCloud.Image{
+			Id: "imageId",
 		},
-	)
-
-	t.Run(
-		"attributeError not added to response if instanceType can be found",
-		func(t *testing.T) {
-			validator := instanceTypeValidator{
-				availableInstanceTypes: []string{"tralala"},
-			}
-
-			response := terraformValidator.StringResponse{}
-			validator.ValidateString(
-				context.TODO(),
-				terraformValidator.StringRequest{
-					ConfigValue: basetypes.NewStringValue("tralala"),
-				},
-				&response,
-			)
-
-			assert.Len(t, response.Diagnostics, 0)
+		State:               publicCloud.STATE_CREATING,
+		Type:                publicCloud.TYPENAME_C3_2XLARGE,
+		RootDiskSize:        50,
+		RootDiskStorageType: publicCloud.STORAGETYPE_CENTRAL,
+		Ips: []publicCloud.Ip{
+			{Ip: "127.0.0.1"},
 		},
-	)
+		Contract: publicCloud.Contract{
+			Term: publicCloud.CONTRACTTERM__1,
+		},
+		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
+	}
+
+	got := adaptSdkInstanceToDatasourceInstance(sdkInstance)
+
+	assert.Equal(t, "id", got.ID.ValueString())
+	assert.Equal(t, "region", got.Region.ValueString())
+	assert.Equal(t, "reference", got.Reference.ValueString())
+	assert.Equal(t, "imageId", got.Image.ID.ValueString())
+	assert.Equal(t, "CREATING", got.State.ValueString())
+	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
+	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
+	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
+	assert.Len(t, got.Ips, 1)
+	assert.Equal(t, "127.0.0.1", got.Ips[0].Ip.ValueString())
+	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
+	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
 }
 
-func Test_newInstanceTypeValidator(t *testing.T) {
-	validator := newInstanceTypeValidator(
-		basetypes.NewStringValue("currentInstanceType"),
-		[]string{"type1"},
-	)
+func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
+	sdkInstances := []publicCloud.Instance{
+		{Id: "id"},
+	}
 
-	assert.Equal(
-		t,
-		[]string{"type1", "currentInstanceType"},
-		validator.availableInstanceTypes,
-	)
+	got := adaptSdkInstancesToDatasourceInstances(sdkInstances)
+
+	assert.Len(t, got.Instances, 1)
+	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
 
-func Test_regionValidator_ValidateString(t *testing.T) {
-	t.Run("does not set errors if the region exists", func(t *testing.T) {
-		request := terraformValidator.StringRequest{
-			ConfigValue: basetypes.NewStringValue("region"),
-		}
+func Test_adaptSdkIpToDatasourceIp(t *testing.T) {
+	sdkIp := publicCloud.Ip{
+		Ip: "127.0.0.1",
+	}
 
-		response := terraformValidator.StringResponse{}
+	want := dataSourceModelIp{
+		Ip: basetypes.NewStringValue("127.0.0.1"),
+	}
+	got := adaptSdkIpToDatasourceIp(sdkIp)
 
-		validator := regionValidator{
-			regions: []string{"region"},
-		}
-		validator.ValidateString(context.TODO(), request, &response)
+	assert.Equal(t, want, got)
+}
 
-		assert.Len(t, response.Diagnostics.Errors(), 0)
-	})
+func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
+	sdkImage := publicCloud.Image{
+		Id:      "imageId",
+		Name:    "name",
+		Custom:  true,
+		Flavour: "flavour",
+	}
 
-	t.Run(
-		"does not set errors if the region is unknown",
-		func(t *testing.T) {
-			request := terraformValidator.StringRequest{
-				ConfigValue: basetypes.NewStringUnknown(),
-			}
+	want := dataSourceModelImage{
+		ID:      basetypes.NewStringValue("imageId"),
+		Name:    basetypes.NewStringValue("name"),
+		Custom:  basetypes.NewBoolValue(true),
+		Flavour: basetypes.NewStringValue("flavour"),
+	}
+	got := adaptSdkImageToDatasourceImage(sdkImage)
 
-			response := terraformValidator.StringResponse{}
+	assert.Equal(t, want, got)
+}
 
-			validator := regionValidator{}
-			validator.ValidateString(context.TODO(), request, &response)
+func Test_adaptSdkImageDetailsToDatasourceImage(t *testing.T) {
+	state := publicCloud.IMAGESTATE_READY
+	region := publicCloud.REGIONNAME_EU_WEST_3
 
-			assert.Len(t, response.Diagnostics.Errors(), 0)
-		},
-	)
+	sdkImageDetails := publicCloud.ImageDetails{
+		Id:           "imageId",
+		Name:         "name",
+		Custom:       true,
+		State:        *publicCloud.NewNullableImageState(&state),
+		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
+		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
+		Flavour:      "flavour",
+		Region:       *publicCloud.NewNullableRegionName(&region),
+	}
 
-	t.Run(
-		"does not set errors if the region is null",
-		func(t *testing.T) {
-			request := terraformValidator.StringRequest{
-				ConfigValue: basetypes.NewStringNull(),
-			}
+	want := dataSourceModelImage{
+		ID:           basetypes.NewStringValue("imageId"),
+		Name:         basetypes.NewStringValue("name"),
+		Custom:       basetypes.NewBoolValue(true),
+		State:        basetypes.NewStringValue("READY"),
+		MarketApps:   []string{"CPANEL_30"},
+		StorageTypes: []string{"CENTRAL"},
+		Flavour:      basetypes.NewStringValue("flavour"),
+		Region:       basetypes.NewStringValue("eu-west-3"),
+	}
+	got := adaptSdkImageDetailsToDatasourceImage(sdkImageDetails)
 
-			response := terraformValidator.StringResponse{}
+	assert.Equal(t, want, got)
+}
 
-			validator := regionValidator{}
-			validator.ValidateString(context.TODO(), request, &response)
+func Test_adaptSdkImagesToDatasourceImages(t *testing.T) {
+	sdkImages := []publicCloud.ImageDetails{
+		{Id: "id"},
+	}
 
-			assert.Len(t, response.Diagnostics.Errors(), 0)
-		},
-	)
+	got := adaptSdkImagesToDatasourceImages(sdkImages)
 
-	t.Run("sets an error if the region does not exist", func(t *testing.T) {
-		request := terraformValidator.StringRequest{
-			ConfigValue: basetypes.NewStringValue("region"),
-		}
-
-		response := terraformValidator.StringResponse{}
-
-		validator := regionValidator{
-			regions: []string{"tralala"},
-		}
-
-		validator.ValidateString(context.TODO(), request, &response)
-
-		assert.Len(t, response.Diagnostics.Errors(), 1)
-		assert.Contains(
-			t,
-			response.Diagnostics.Errors()[0].Detail(),
-			"region",
-		)
-		assert.Contains(
-			t,
-			response.Diagnostics.Errors()[0].Detail(),
-			"tralala",
-		)
-	})
+	assert.Len(t, got.Images, 1)
+	assert.Equal(t, "id", got.Images[0].ID.ValueString())
 }
 
 func Test_resourceModelContract_attributeTypes(t *testing.T) {
@@ -372,7 +171,7 @@ func Test_resourceModelContract_attributeTypes(t *testing.T) {
 	assert.Nil(t, diags, "attributes should be correct")
 }
 
-func Test_newResourceModelContract(t *testing.T) {
+func Test_adaptSdkContractToResourceContract(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -392,7 +191,7 @@ func Test_newResourceModelContract(t *testing.T) {
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got, err := newResourceModelContract(context.TODO(), sdkContract)
+	got, err := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
@@ -407,7 +206,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_MONTHLY,
 			}
 
-			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
+			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -424,7 +223,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
+			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -441,7 +240,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
+			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -449,6 +248,74 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 			assert.Equal(t, reasonNone, reason)
 		},
 	)
+}
+
+func Test_adaptSdkImageToResourceImage(t *testing.T) {
+	sdkImage := publicCloud.Image{
+		Id:      "imageId",
+		Name:    "name",
+		Custom:  true,
+		Flavour: "flavour",
+	}
+
+	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
+	want := resourceModelImage{
+		ID:           basetypes.NewStringValue("imageId"),
+		Name:         basetypes.NewStringValue("name"),
+		Custom:       basetypes.NewBoolValue(true),
+		Flavour:      basetypes.NewStringValue("flavour"),
+		MarketApps:   emptyList,
+		StorageTypes: emptyList,
+	}
+	got, err := adaptSdkImageToResourceImage(context.TODO(), sdkImage)
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, *got)
+}
+
+func Test_adaptSdkImageDetailsToResourceImage(t *testing.T) {
+	state := publicCloud.IMAGESTATE_READY
+	region := publicCloud.REGIONNAME_EU_WEST_3
+
+	sdkImageDetails := publicCloud.ImageDetails{
+		Id:           "imageId",
+		Name:         "name",
+		Custom:       true,
+		State:        *publicCloud.NewNullableImageState(&state),
+		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
+		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
+		Flavour:      "flavour",
+		Region:       *publicCloud.NewNullableRegionName(&region),
+	}
+
+	marketApps, _ := basetypes.NewListValueFrom(
+		context.TODO(),
+		types.StringType,
+		[]string{"CPANEL_30"},
+	)
+	storageTypes, _ := basetypes.NewListValueFrom(
+		context.TODO(),
+		types.StringType,
+		[]string{"CENTRAL"},
+	)
+
+	want := resourceModelImage{
+		ID:           basetypes.NewStringValue("imageId"),
+		Name:         basetypes.NewStringValue("name"),
+		Custom:       basetypes.NewBoolValue(true),
+		State:        basetypes.NewStringValue("READY"),
+		MarketApps:   marketApps,
+		StorageTypes: storageTypes,
+		Flavour:      basetypes.NewStringValue("flavour"),
+		Region:       basetypes.NewStringValue("eu-west-3"),
+	}
+	got, err := adaptSdkImageDetailsToResourceImage(
+		context.TODO(),
+		sdkImageDetails,
+	)
+
+	assert.NoError(t, err)
+	assert.Equal(t, want, *got)
 }
 
 func generateContractObject(
@@ -507,7 +374,7 @@ func generateInstanceModel() resourceModelInstance {
 	)
 
 	instance := resourceModelInstance{
-		Id:                  basetypes.NewStringValue("id"),
+		ID:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
 		RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
@@ -521,7 +388,7 @@ func generateInstanceModel() resourceModelInstance {
 	return instance
 }
 
-func Test_newResourceInstanceModelFromInstance(t *testing.T) {
+func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -547,11 +414,11 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 		},
 	}
 
-	got, err := newResourceModelInstanceFromInstance(instance, context.TODO())
+	got, err := adaptSdkInstanceToResourceInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
@@ -574,11 +441,11 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
 }
 
-func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
+func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
-	instanceDetails := publicCloud.InstanceDetails{
+	instance := publicCloud.InstanceDetails{
 		Id:                  "id",
 		Type:                publicCloud.TYPENAME_C3_2XLARGE,
 		Region:              "region",
@@ -600,11 +467,11 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 		},
 	}
 
-	got, err := newResourceModelInstanceFromInstanceDetails(instanceDetails, context.TODO())
+	got, err := adaptSdkInstanceDetailsToResourceInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
@@ -630,6 +497,9 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instance := generateInstanceModel()
+		instance.MarketAppId = basetypes.NewStringPointerValue(nil)
+		instance.Reference = basetypes.NewStringPointerValue(nil)
+		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
 
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 
@@ -641,6 +511,15 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.ContractType)
 		assert.Equal(t, publicCloud.CONTRACTTERM__3, got.ContractTerm)
 		assert.Equal(t, publicCloud.BILLINGFREQUENCY__1, got.BillingFrequency)
+
+		marketAppId, _ := got.GetMarketAppIdOk()
+		assert.Nil(t, marketAppId)
+
+		reference, _ := got.GetReferenceOk()
+		assert.Nil(t, reference)
+
+		rootDiskSize, _ := got.GetRootDiskSizeOk()
+		assert.Nil(t, rootDiskSize)
 	})
 
 	t.Run("optional values are passed", func(t *testing.T) {
@@ -950,7 +829,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 	)
 }
 
-func Test_newFromIp(t *testing.T) {
+func Test_adaptSdkIpToResourceIp(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
@@ -958,13 +837,13 @@ func Test_newFromIp(t *testing.T) {
 	want := resourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := newResourceModelIpFromIp(context.TODO(), sdkIp)
+	got, err := adaptSdkIpToResourceIp(context.TODO(), sdkIp)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
 }
 
-func Test_newFromIpDetails(t *testing.T) {
+func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
 	sdkIpDetails := publicCloud.IpDetails{
 		Ip: "127.0.0.1",
 	}
@@ -972,25 +851,34 @@ func Test_newFromIpDetails(t *testing.T) {
 	want := resourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := newResourceModelIpFromIpDetails(context.TODO(), sdkIpDetails)
+	got, err := adaptSdkIpDetailsToResourceIp(context.TODO(), sdkIpDetails)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
 }
 
-func Test_instanceResource_Metadata(t *testing.T) {
-	resp := resource.MetadataResponse{}
-	instanceResource := NewInstanceResource()
+func Test_resourceModelImage_GetUpdateImageOpts(t *testing.T) {
+	image := resourceModelImage{
+		Name: basetypes.NewStringValue("name"),
+	}
+	got := image.GetUpdateImageOpts()
 
-	instanceResource.Metadata(
-		context.TODO(),
-		resource.MetadataRequest{ProviderTypeName: "tralala"},
-		&resp,
-	)
+	want := publicCloud.UpdateImageOpts{Name: "name"}
 
-	assert.Equal(t,
-		"tralala_public_cloud_instance",
-		resp.TypeName,
-		"Type name should be tralala_public_cloud_instance",
-	)
+	assert.Equal(t, want, got)
+}
+
+func Test_resourceModelImage_GetCreateImageOpts(t *testing.T) {
+	image := resourceModelImage{
+		ID:   basetypes.NewStringValue("instanceId"),
+		Name: basetypes.NewStringValue("name"),
+	}
+	got := image.GetCreateImageOpts()
+
+	want := publicCloud.CreateImageOpts{
+		Name:       "name",
+		InstanceId: "instanceId",
+	}
+
+	assert.Equal(t, want, got)
 }

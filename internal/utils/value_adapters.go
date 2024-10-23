@@ -38,16 +38,6 @@ func AdaptNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
 	return basetypes.NewStringValue(value.String())
 }
 
-// AdaptNullableStringToStringValue converts a nullable string to a Terraform
-// StringValue.
-func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
-	if value == nil {
-		return basetypes.NewStringNull()
-	}
-
-	return basetypes.NewStringValue(*value)
-}
-
 // AdaptSdkModelToResourceObject converts an sdk model to a Terraform resource object.
 func AdaptSdkModelToResourceObject[T any, U any](
 	sdkModel T,
@@ -129,16 +119,6 @@ func AdaptSdkModelsToListValue[T any, U any](
 	}
 
 	return listObject, nil
-}
-
-// AdaptStringPointerValueToNullableString converts a Terraform
-// StringPointerValue to a nullable string.
-func AdaptStringPointerValueToNullableString(value types.String) *string {
-	if value.IsUnknown() {
-		return nil
-	}
-
-	return value.ValueStringPointer()
 }
 
 // ReturnError returns the first diagnostics error as a golang Error.
