@@ -403,7 +403,7 @@ func adaptSdkInstanceDetailsToResourceInstance(
 }
 
 type resourceModelIP struct {
-	Ip types.String `tfsdk:"ip"`
+	IP types.String `tfsdk:"ip"`
 }
 
 func (i resourceModelIP) AttributeTypes() map[string]attr.Type {
@@ -417,7 +417,7 @@ func adaptSdkIpToResourceIP(
 	sdkIp publicCloud.Ip,
 ) (*resourceModelIP, error) {
 	return &resourceModelIP{
-		Ip: basetypes.NewStringValue(sdkIp.Ip),
+		IP: basetypes.NewStringValue(sdkIp.Ip),
 	}, nil
 }
 
@@ -426,7 +426,7 @@ func adaptSdkIpDetailsToResourceIP(
 	sdkIpDetails publicCloud.IpDetails,
 ) (*resourceModelIP, error) {
 	return &resourceModelIP{
-		Ip: basetypes.NewStringValue(sdkIpDetails.Ip),
+		IP: basetypes.NewStringValue(sdkIpDetails.Ip),
 	}, nil
 }
 
