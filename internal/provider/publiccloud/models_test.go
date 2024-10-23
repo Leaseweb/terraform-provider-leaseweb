@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newDataSourceModelContract(t *testing.T) {
+func Test_adaptSdkContractToDatasourceContract(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -32,7 +32,7 @@ func Test_newDataSourceModelContract(t *testing.T) {
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got := newDataSourceModelContract(sdkContract)
+	got := adaptSdkContractToDatasourceContract(sdkContract)
 
 	assert.Equal(t, want, got)
 }

@@ -20,7 +20,7 @@ type dataSourceModelContract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func newDataSourceModelContract(sdkContract publicCloud.Contract) dataSourceModelContract {
+func adaptSdkContractToDatasourceContract(sdkContract publicCloud.Contract) dataSourceModelContract {
 	return dataSourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
@@ -60,7 +60,7 @@ func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) data
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		Ips:                 ips,
-		Contract:            newDataSourceModelContract(sdkInstance.GetContract()),
+		Contract:            adaptSdkContractToDatasourceContract(sdkInstance.GetContract()),
 		MarketAppId:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 }
