@@ -150,7 +150,7 @@ func GenerateContractObject(
 	return contract
 }
 
-func GenerateInstanceModel() resourceModelInstance {
+func generateInstanceModel() resourceModelInstance {
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
 		resourceModelImage{}.AttributeTypes(),
@@ -228,7 +228,7 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []resourceModelIp
+	var ips []resourceModelIP
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -281,7 +281,7 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []resourceModelIp
+	var ips []resourceModelIP
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
@@ -289,7 +289,7 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 
 func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		instance := GenerateInstanceModel()
+		instance := generateInstanceModel()
 		instance.MarketAppID = basetypes.NewStringPointerValue(nil)
 		instance.Reference = basetypes.NewStringPointerValue(nil)
 		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
@@ -316,7 +316,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("optional values are passed", func(t *testing.T) {
-		instance := GenerateInstanceModel()
+		instance := generateInstanceModel()
 
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 
@@ -329,7 +329,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid rootDiskStorageType is passed",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.RootDiskStorageType = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -342,7 +342,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -356,7 +356,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			contract := GenerateContractObject(
 				nil,
 				nil,
@@ -376,7 +376,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			contract := GenerateContractObject(
 				nil,
 				&contractTerm,
@@ -396,7 +396,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			contract := GenerateContractObject(
 				&billingFrequency,
 				nil,
@@ -415,7 +415,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid region is passed",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.Region = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -428,7 +428,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if resourceModelImage resource is incorrect",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -441,7 +441,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if resourceModelContract resource is incorrect",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -455,7 +455,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 
 	t.Run("optional values are set", func(t *testing.T) {
-		instance := GenerateInstanceModel()
+		instance := generateInstanceModel()
 
 		got, diags := instance.GetUpdateInstanceOpts(context.TODO())
 
@@ -471,7 +471,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -485,7 +485,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			contract := GenerateContractObject(
 				nil,
 				nil,
@@ -505,7 +505,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			contract := GenerateContractObject(
 				nil,
 				&contractTerm,
@@ -525,7 +525,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			contract := GenerateContractObject(
 				&billingFrequency,
 				nil,
@@ -544,7 +544,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if resourceModelContract resource is incorrect",
 		func(t *testing.T) {
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -557,7 +557,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 
 func Test_instance_CanBeTerminated(t *testing.T) {
 	t.Run("instance can be terminated", func(t *testing.T) {
-		instance := GenerateInstanceModel()
+		instance := generateInstanceModel()
 		instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 
 		got := instance.CanBeTerminated(context.TODO())
@@ -591,7 +591,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 			}
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
-					instance := GenerateInstanceModel()
+					instance := generateInstanceModel()
 					instance.State = basetypes.NewStringValue(string(tt.state))
 
 					got := instance.CanBeTerminated(context.TODO())
@@ -610,7 +610,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 
 			contract := GenerateContractObject(nil, nil, nil, &endsAt)
 
-			instance := GenerateInstanceModel()
+			instance := generateInstanceModel()
 			instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 			instance.Contract = contract
 
@@ -627,10 +627,10 @@ func Test_adaptSdkIpToResourceIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := resourceModelIp{
+	want := resourceModelIP{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpToResourceIp(context.TODO(), sdkIp)
+	got, err := adaptSdkIpToResourceIP(context.TODO(), sdkIp)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
@@ -641,10 +641,10 @@ func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := resourceModelIp{
+	want := resourceModelIP{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpDetailsToResourceIp(context.TODO(), sdkIpDetails)
+	got, err := adaptSdkIpDetailsToResourceIP(context.TODO(), sdkIpDetails)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)

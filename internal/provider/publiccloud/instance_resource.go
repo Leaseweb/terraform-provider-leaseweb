@@ -133,7 +133,7 @@ func (i resourceModelInstance) AttributeTypes() map[string]attr.Type {
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
-				AttrTypes: resourceModelIp{}.AttributeTypes(),
+				AttrTypes: resourceModelIP{}.AttributeTypes(),
 			},
 		},
 		"contract": types.ObjectType{
@@ -338,9 +338,9 @@ func adaptSdkInstanceToResourceInstance(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		resourceModelIp{}.AttributeTypes(),
+		resourceModelIP{}.AttributeTypes(),
 		ctx,
-		adaptSdkIpToResourceIp,
+		adaptSdkIpToResourceIP,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
@@ -389,9 +389,9 @@ func adaptSdkInstanceDetailsToResourceInstance(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
-		resourceModelIp{}.AttributeTypes(),
+		resourceModelIP{}.AttributeTypes(),
 		ctx,
-		adaptSdkIpDetailsToResourceIp,
+		adaptSdkIpDetailsToResourceIP,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
@@ -412,30 +412,30 @@ func adaptSdkInstanceDetailsToResourceInstance(
 	return &instance, nil
 }
 
-type resourceModelIp struct {
+type resourceModelIP struct {
 	Ip types.String `tfsdk:"ip"`
 }
 
-func (i resourceModelIp) AttributeTypes() map[string]attr.Type {
+func (i resourceModelIP) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"ip": types.StringType,
 	}
 }
 
-func adaptSdkIpToResourceIp(
+func adaptSdkIpToResourceIP(
 	_ context.Context,
 	sdkIp publicCloud.Ip,
-) (*resourceModelIp, error) {
-	return &resourceModelIp{
+) (*resourceModelIP, error) {
+	return &resourceModelIP{
 		Ip: basetypes.NewStringValue(sdkIp.Ip),
 	}, nil
 }
 
-func adaptSdkIpDetailsToResourceIp(
+func adaptSdkIpDetailsToResourceIP(
 	_ context.Context,
 	sdkIpDetails publicCloud.IpDetails,
-) (*resourceModelIp, error) {
-	return &resourceModelIp{
+) (*resourceModelIP, error) {
+	return &resourceModelIP{
 		Ip: basetypes.NewStringValue(sdkIpDetails.Ip),
 	}, nil
 }

@@ -175,7 +175,7 @@ func generateInstanceModelForValidator() resourceModelInstance {
 		RootDiskStorageType: basetypes.NewStringUnknown(),
 		IPs: basetypes.NewListUnknown(
 			types.ObjectType{
-				AttrTypes: resourceModelIp{}.AttributeTypes(),
+				AttrTypes: resourceModelIP{}.AttributeTypes(),
 			},
 		),
 		Contract:    contractObject,
