@@ -414,13 +414,13 @@ func (i resourceModelIP) AttributeTypes() map[string]attr.Type {
 
 func adaptSdkIpToResourceIP(sdkIp publicCloud.Ip) resourceModelIP {
 	return resourceModelIP{
-		IP: basetypes.NewStringValue(sdkIp.Ip),
+		IP: basetypes.NewStringValue(sdkIp.GetIp()),
 	}
 }
 
 func adaptSdkIpDetailsToResourceIP(sdkIpDetails publicCloud.IpDetails) resourceModelIP {
 	return resourceModelIP{
-		IP: basetypes.NewStringValue(sdkIpDetails.Ip),
+		IP: basetypes.NewStringValue(sdkIpDetails.GetIp()),
 	}
 }
 
