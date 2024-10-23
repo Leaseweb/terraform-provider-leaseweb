@@ -372,7 +372,7 @@ func Test_resourceModelContract_attributeTypes(t *testing.T) {
 	assert.Nil(t, diags, "attributes should be correct")
 }
 
-func Test_newResourceModelContract(t *testing.T) {
+func Test_adaptSdkContractToResourceContract(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -392,7 +392,7 @@ func Test_newResourceModelContract(t *testing.T) {
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got, err := newResourceModelContract(context.TODO(), sdkContract)
+	got, err := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
@@ -407,7 +407,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_MONTHLY,
 			}
 
-			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
+			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -424,7 +424,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
+			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -441,7 +441,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := newResourceModelContract(context.TODO(), sdkContract)
+			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -451,7 +451,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 	)
 }
 
-func Test_newResourceModelImage(t *testing.T) {
+func Test_adaptSdkImageToResourceImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
@@ -459,7 +459,7 @@ func Test_newResourceModelImage(t *testing.T) {
 	want := resourceModelImage{
 		Id: basetypes.NewStringValue("imageId"),
 	}
-	got, err := newResourceModelImage(context.TODO(), sdkImage)
+	got, err := adaptSdkImageToResourceImage(context.TODO(), sdkImage)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
@@ -531,7 +531,7 @@ func generateInstanceModel() resourceModelInstance {
 	return instance
 }
 
-func Test_newResourceInstanceModelFromInstance(t *testing.T) {
+func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -557,7 +557,7 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 		},
 	}
 
-	got, err := newResourceModelInstanceFromInstance(instance, context.TODO())
+	got, err := adaptSdkInstanceToResourceInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -584,7 +584,7 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
 }
 
-func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
+func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -610,7 +610,7 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 		},
 	}
 
-	got, err := newResourceModelInstanceFromInstanceDetails(instance, context.TODO())
+	got, err := adaptSdkInstanceDetailsToResourceInstance(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -960,7 +960,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 	)
 }
 
-func Test_newFromIp(t *testing.T) {
+func Test_adaptSdkIpToResourceIp(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
@@ -968,13 +968,13 @@ func Test_newFromIp(t *testing.T) {
 	want := resourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := newResourceModelIpFromIp(context.TODO(), sdkIp)
+	got, err := adaptSdkIpToResourceIp(context.TODO(), sdkIp)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)
 }
 
-func Test_newFromIpDetails(t *testing.T) {
+func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
 	sdkIpDetails := publicCloud.IpDetails{
 		Ip: "127.0.0.1",
 	}
@@ -982,7 +982,7 @@ func Test_newFromIpDetails(t *testing.T) {
 	want := resourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := newResourceModelIpFromIpDetails(context.TODO(), sdkIpDetails)
+	got, err := adaptSdkIpDetailsToResourceIp(context.TODO(), sdkIpDetails)
 
 	assert.NoError(t, err)
 	assert.Equal(t, want, *got)

@@ -251,7 +251,7 @@ func (c resourceModelContract) IsContractTermValid() (bool, reason) {
 	return true, reasonNone
 }
 
-func newResourceModelContract(
+func adaptSdkContractToResourceContract(
 	_ context.Context,
 	sdkContract publicCloud.Contract,
 ) (*resourceModelContract, error) {
@@ -274,7 +274,7 @@ func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newResourceModelImage(
+func adaptSdkImageToResourceImage(
 	_ context.Context,
 	sdkImage publicCloud.Image,
 ) (*resourceModelImage, error) {
@@ -491,7 +491,7 @@ func (i resourceModelInstance) CanBeTerminated(ctx context.Context) *reasonInsta
 	return nil
 }
 
-func newResourceModelInstanceFromInstance(
+func adaptSdkInstanceToResourceInstance(
 	sdkInstance publicCloud.Instance,
 	ctx context.Context,
 ) (*resourceModelInstance, error) {
@@ -510,10 +510,10 @@ func newResourceModelInstanceFromInstance(
 		sdkInstance.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
-		newResourceModelImage,
+		adaptSdkImageToResourceImage,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
+		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
 	instance.Image = image
 
@@ -521,10 +521,10 @@ func newResourceModelInstanceFromInstance(
 		sdkInstance.Ips,
 		resourceModelIp{}.AttributeTypes(),
 		ctx,
-		newResourceModelIpFromIp,
+		adaptSdkIpToResourceIp,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
+		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
 	instance.Ips = ips
 
@@ -532,17 +532,17 @@ func newResourceModelInstanceFromInstance(
 		sdkInstance.Contract,
 		resourceModelContract{}.AttributeTypes(),
 		ctx,
-		newResourceModelContract,
+		adaptSdkContractToResourceContract,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
+		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
 	instance.Contract = contract
 
 	return &instance, nil
 }
 
-func newResourceModelInstanceFromInstanceDetails(
+func adaptSdkInstanceDetailsToResourceInstance(
 	sdkInstanceDetails publicCloud.InstanceDetails,
 	ctx context.Context,
 ) (*resourceModelInstance, error) {
@@ -561,10 +561,10 @@ func newResourceModelInstanceFromInstanceDetails(
 		sdkInstanceDetails.Image,
 		resourceModelImage{}.AttributeTypes(),
 		ctx,
-		newResourceModelImage,
+		adaptSdkImageToResourceImage,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
+		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
 	instance.Image = image
 
@@ -572,10 +572,10 @@ func newResourceModelInstanceFromInstanceDetails(
 		sdkInstanceDetails.Ips,
 		resourceModelIp{}.AttributeTypes(),
 		ctx,
-		newResourceModelIpFromIpDetails,
+		adaptSdkIpDetailsToResourceIp,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
+		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
 	instance.Ips = ips
 
@@ -583,10 +583,10 @@ func newResourceModelInstanceFromInstanceDetails(
 		sdkInstanceDetails.Contract,
 		resourceModelContract{}.AttributeTypes(),
 		ctx,
-		newResourceModelContract,
+		adaptSdkContractToResourceContract,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newResourceModelInstanceFromInstance: %w", err)
+		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
 	}
 	instance.Contract = contract
 
@@ -603,7 +603,7 @@ func (i resourceModelIp) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func newResourceModelIpFromIp(
+func adaptSdkIpToResourceIp(
 	_ context.Context,
 	sdkIp publicCloud.Ip,
 ) (*resourceModelIp, error) {
@@ -612,7 +612,7 @@ func newResourceModelIpFromIp(
 	}, nil
 }
 
-func newResourceModelIpFromIpDetails(
+func adaptSdkIpDetailsToResourceIp(
 	_ context.Context,
 	sdkIpDetails publicCloud.IpDetails,
 ) (*resourceModelIp, error) {
@@ -702,7 +702,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, resourceErr := newResourceModelInstanceFromInstance(*sdkInstance, ctx)
+	instance, resourceErr := adaptSdkInstanceToResourceInstance(*sdkInstance, ctx)
 	if resourceErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating public cloud instance resource",
@@ -1013,7 +1013,7 @@ func (i *instanceResource) Read(
 		"Create public cloud instance resource for %q",
 		state.ID.ValueString(),
 	))
-	instance, resourceErr := newResourceModelInstanceFromInstanceDetails(
+	instance, resourceErr := adaptSdkInstanceDetailsToResourceInstance(
 		*sdkInstance,
 		ctx,
 	)

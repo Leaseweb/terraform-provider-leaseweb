@@ -36,7 +36,7 @@ func Test_newDataSourceModelContract(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func Test_newDataSourceModelInstance(t *testing.T) {
+func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
 	reference := "reference"
 	marketAppId := "marketAppId"
 
@@ -60,7 +60,7 @@ func Test_newDataSourceModelInstance(t *testing.T) {
 		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
 	}
 
-	got := newDataSourceModelInstance(sdkInstance)
+	got := adaptSdkInstanceToDatasourceInstance(sdkInstance)
 
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
@@ -76,18 +76,18 @@ func Test_newDataSourceModelInstance(t *testing.T) {
 	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
 }
 
-func Test_newDataSourceInstances(t *testing.T) {
+func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
 	sdkInstances := []publicCloud.Instance{
 		{Id: "id"},
 	}
 
-	got := newDataSourceModelInstances(sdkInstances)
+	got := adaptSdkInstancesToDatasourceInstances(sdkInstances)
 
 	assert.Len(t, got.Instances, 1)
 	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
 
-func Test_newDataSourceModelIp(t *testing.T) {
+func Test_adaptSdkIpToDatasourceIp(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
@@ -95,12 +95,12 @@ func Test_newDataSourceModelIp(t *testing.T) {
 	want := dataSourceModelIp{
 		Ip: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got := newDataSourceModelIp(sdkIp)
+	got := adaptSdkIpToDatasourceIp(sdkIp)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_newDataSourceModelImage(t *testing.T) {
+func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
@@ -108,7 +108,7 @@ func Test_newDataSourceModelImage(t *testing.T) {
 	want := dataSourceModelImage{
 		Id: basetypes.NewStringValue("imageId"),
 	}
-	got := newDataSourceModelImage(sdkImage)
+	got := adaptSdkImageToDatasourceImage(sdkImage)
 
 	assert.Equal(t, want, got)
 }
