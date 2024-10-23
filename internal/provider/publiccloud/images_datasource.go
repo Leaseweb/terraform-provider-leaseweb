@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
@@ -17,67 +16,6 @@ import (
 var (
 	_ datasource.DataSourceWithConfigure = &ImagesDataSource{}
 )
-
-type dataSourceModelImage struct {
-	ID           types.String `tfsdk:"id"`
-	Name         types.String `tfsdk:"name"`
-	Custom       types.Bool   `tfsdk:"custom"`
-	State        types.String `tfsdk:"state"`
-	MarketApps   []string     `tfsdk:"market_apps"`
-	StorageTypes []string     `tfsdk:"storage_types"`
-	Flavour      types.String `tfsdk:"flavour"`
-	Region       types.String `tfsdk:"region"`
-}
-
-func mapSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
-	return dataSourceModelImage{
-		ID:      basetypes.NewStringValue(sdkImage.GetId()),
-		Name:    basetypes.NewStringValue(sdkImage.GetName()),
-		Custom:  basetypes.NewBoolValue(sdkImage.GetCustom()),
-		Flavour: basetypes.NewStringValue(string(sdkImage.GetFlavour())),
-	}
-}
-
-func mapSdkImageDetailsToDatasourceImage(
-	sdkImageDetails publicCloud.ImageDetails,
-) dataSourceModelImage {
-	var marketApps []string
-	var storageTypes []string
-
-	for _, marketApp := range sdkImageDetails.GetMarketApps() {
-		marketApps = append(marketApps, string(marketApp))
-	}
-
-	for _, storageType := range sdkImageDetails.GetStorageTypes() {
-		storageTypes = append(storageTypes, string(storageType))
-	}
-
-	return dataSourceModelImage{
-		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
-		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
-		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
-		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
-		MarketApps:   marketApps,
-		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.GetFlavour())),
-		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
-	}
-}
-
-type dataSourceModelImages struct {
-	Images []dataSourceModelImage `tfsdk:"images"`
-}
-
-func mapSdkImagesToDatasourceImages(sdkImages []publicCloud.ImageDetails) dataSourceModelImages {
-	var images dataSourceModelImages
-
-	for _, sdkImageDetails := range sdkImages {
-		image := mapSdkImageDetailsToDatasourceImage(sdkImageDetails)
-		images.Images = append(images.Images, image)
-	}
-
-	return images
-}
 
 func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	[]publicCloud.ImageDetails,
@@ -205,7 +143,7 @@ func (i *ImagesDataSource) Read(
 		return
 	}
 
-	state := mapSdkImagesToDatasourceImages(images)
+	state := adaptSdkImagesToDatasourceImages(images)
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
