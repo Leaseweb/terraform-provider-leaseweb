@@ -11,6 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
+var (
+	_ validator.Object = contractTermValidator{}
+	_ validator.Object = instanceTerminationValidator{}
+	_ validator.String = regionValidator{}
+	_ validator.String = instanceTypeValidator{}
+)
+
 // Checks that contractType/contractTerm combination is valid.
 type contractTermValidator struct {
 }

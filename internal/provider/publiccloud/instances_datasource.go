@@ -18,7 +18,6 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &InstancesDataSource{}
 	_ datasource.DataSourceWithConfigure = &InstancesDataSource{}
 )
 

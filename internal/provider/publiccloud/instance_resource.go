@@ -27,10 +27,6 @@ var (
 	_ resource.ResourceWithConfigure   = &instanceResource{}
 	_ resource.ResourceWithImportState = &instanceResource{}
 	_ resource.ResourceWithModifyPlan  = &instanceResource{}
-	_ validator.Object                 = contractTermValidator{}
-	_ validator.Object                 = instanceTerminationValidator{}
-	_ validator.String                 = regionValidator{}
-	_ validator.String                 = instanceTypeValidator{}
 )
 
 type reason string
