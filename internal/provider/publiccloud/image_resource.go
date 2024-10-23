@@ -119,6 +119,8 @@ func mapSdkImageToResourceImage(
 	}, nil
 }
 
+const maxRootDiskSize = 100
+
 // - Does not yet test
 // that the customer has an object storage in the given entity,
 // as there's currently no public endpoint for this.
@@ -146,7 +148,6 @@ func (i instanceIdForCustomImageValidator) ValidateString(
 	request validator.StringRequest,
 	response *validator.StringResponse,
 ) {
-	const maxRootDiskSize = 100
 
 	// If the instanceId is unknown or null, there is nothing to validate.
 	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
@@ -227,7 +228,7 @@ func newInstanceIdForCustomImageValidator(instances []publicCloud.Instance) inst
 	var validIds []string
 
 	for _, instance := range instances {
-		if instance.GetState() == publicCloud.STATE_STOPPED {
+		if instance.GetState() == publicCloud.STATE_STOPPED && instance.GetRootDiskSize() < maxRootDiskSize && instance.GetImage().Flavour != publicCloud.FLAVOUR_WINDOWS {
 			validIds = append(validIds, instance.Id)
 		}
 	}

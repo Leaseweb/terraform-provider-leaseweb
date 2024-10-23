@@ -252,19 +252,64 @@ func Test_instanceIdForCustomImageValidator_ValidateString(t *testing.T) {
 }
 
 func Test_newInstanceIdForCustomImageValidator(t *testing.T) {
-	t.Run("validIds are set correctly", func(t *testing.T) {
-		instances := []publicCloud.Instance{
-			{
-				Id:    "id",
-				State: publicCloud.STATE_STOPPED,
-			},
-			{
-				Id:    "id",
-				State: publicCloud.STATE_RUNNING,
-			},
-		}
-		instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
+	t.Run(
+		"only ids for instances with state `STOPPED` are set",
+		func(t *testing.T) {
+			instances := []publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+				},
+				{
+					Id:    "id2",
+					State: publicCloud.STATE_RUNNING,
+				},
+			}
+			instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
 
-		assert.Equal(t, []string{"id"}, instanceIdValidator.validIds)
-	})
+			assert.Equal(t, []string{"id"}, instanceIdValidator.validIds)
+		},
+	)
+
+	t.Run(
+		"only ids for instances with rootDiskSize <= 100 are set",
+		func(t *testing.T) {
+			instances := []publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+				},
+				{
+					Id:           "id2",
+					State:        publicCloud.STATE_STOPPED,
+					RootDiskSize: 101,
+				},
+			}
+			instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
+
+			assert.Equal(t, []string{"id"}, instanceIdValidator.validIds)
+		},
+	)
+
+	t.Run(
+		"only ids for instances with non windows OS are set",
+		func(t *testing.T) {
+			instances := []publicCloud.Instance{
+				{
+					Id:    "id",
+					State: publicCloud.STATE_STOPPED,
+				},
+				{
+					Id:    "id2",
+					State: publicCloud.STATE_STOPPED,
+					Image: publicCloud.Image{
+						Flavour: publicCloud.FLAVOUR_WINDOWS,
+					},
+				},
+			}
+			instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
+
+			assert.Equal(t, []string{"id"}, instanceIdValidator.validIds)
+		},
+	)
 }
