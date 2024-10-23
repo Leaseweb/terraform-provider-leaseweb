@@ -89,7 +89,7 @@ func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
 
 func adaptSdkImageToResourceImage(sdkImage publicCloud.Image) resourceModelImage {
 	return resourceModelImage{
-		ID: basetypes.NewStringValue(sdkImage.Id),
+		ID: basetypes.NewStringValue(sdkImage.GetId()),
 	}
 }
 
@@ -305,13 +305,13 @@ func adaptSdkInstanceToResourceInstance(
 	ctx context.Context,
 ) (*resourceModelInstance, error) {
 	instance := resourceModelInstance{
-		ID:                  basetypes.NewStringValue(sdkInstance.Id),
-		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
+		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
+		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
-		State:               basetypes.NewStringValue(string(sdkInstance.State)),
-		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
+		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
+		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 
@@ -356,13 +356,13 @@ func adaptSdkInstanceDetailsToResourceInstance(
 	ctx context.Context,
 ) (*resourceModelInstance, error) {
 	instance := resourceModelInstance{
-		ID:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
-		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
+		ID:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
+		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.GetRegion())),
 		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
-		State:               basetypes.NewStringValue(string(sdkInstanceDetails.State)),
-		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.Type)),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.RootDiskSize)),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.RootDiskStorageType)),
+		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
+		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
 

@@ -80,7 +80,7 @@ type dataSourceModelImage struct {
 
 func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
-		ID: basetypes.NewStringValue(sdkImage.Id),
+		ID: basetypes.NewStringValue(sdkImage.GetId()),
 	}
 }
 
