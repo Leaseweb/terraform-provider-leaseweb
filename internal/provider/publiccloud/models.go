@@ -47,7 +47,7 @@ type dataSourceModelInstance struct {
 func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) dataSourceModelInstance {
 	var ips []dataSourceModelIP
 	for _, ip := range sdkInstance.Ips {
-		ips = append(ips, adaptSdkIpToDatasourceModelIP(ip))
+		ips = append(ips, dataSourceModelIP{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
 	return dataSourceModelInstance{
@@ -77,12 +77,6 @@ func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelI
 
 type dataSourceModelIP struct {
 	IP types.String `tfsdk:"ip"`
-}
-
-func adaptSdkIpToDatasourceModelIP(sdkIp publicCloud.Ip) dataSourceModelIP {
-	return dataSourceModelIP{
-		IP: basetypes.NewStringValue(sdkIp.Ip),
-	}
 }
 
 type dataSourceModelInstances struct {

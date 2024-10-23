@@ -88,19 +88,6 @@ func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
 	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
 
-func Test_adaptSdkIpToDatasourceIP(t *testing.T) {
-	sdkIp := publicCloud.Ip{
-		Ip: "127.0.0.1",
-	}
-
-	want := dataSourceModelIP{
-		IP: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := adaptSdkIpToDatasourceModelIP(sdkIp)
-
-	assert.Equal(t, want, got)
-}
-
 func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",

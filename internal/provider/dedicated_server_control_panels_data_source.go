@@ -134,7 +134,7 @@ func (d *dedicatedServerControlPanelsDataSource) Schema(ctx context.Context, req
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:    true,
-							Description: "ID of the control panel.",
+							Description: "Id of the control panel.",
 						},
 						"name": schema.StringAttribute{
 							Computed:    true,
