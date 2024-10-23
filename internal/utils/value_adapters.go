@@ -43,18 +43,9 @@ func AdaptSdkModelToResourceObject[T any, U any](
 	sdkModel T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateResourceObject func(
-		ctx context.Context,
-		sdkModel T,
-	) (*U, error),
+	generateResourceObject func(sdkModel T) U,
 ) (basetypes.ObjectValue, error) {
-	resourceObject, err := generateResourceObject(ctx, sdkModel)
-	if err != nil {
-		return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-			"unable to convert sdk sdkModel to resource: %w",
-			err,
-		)
-	}
+	resourceObject := generateResourceObject(sdkModel)
 
 	objectValue, diags := types.ObjectValueFrom(
 		ctx,

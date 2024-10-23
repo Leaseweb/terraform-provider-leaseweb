@@ -42,10 +42,9 @@ func Test_adaptSdkContractToResourceContract(t *testing.T) {
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got, err := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+	got := adaptSdkContractToResourceContract(sdkContract)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+	assert.Equal(t, want, got)
 }
 
 func Test_contract_IsContractTermValid(t *testing.T) {
@@ -57,7 +56,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_MONTHLY,
 			}
 
-			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+			contract := adaptSdkContractToResourceContract(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -74,7 +73,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+			contract := adaptSdkContractToResourceContract(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -91,7 +90,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+			contract := adaptSdkContractToResourceContract(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -109,10 +108,9 @@ func Test_adaptSdkImageToResourceImage(t *testing.T) {
 	want := resourceModelImage{
 		ID: basetypes.NewStringValue("imageId"),
 	}
-	got, err := adaptSdkImageToResourceImage(context.TODO(), sdkImage)
+	got := adaptSdkImageToResourceImage(sdkImage)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+	assert.Equal(t, want, got)
 }
 
 func GenerateContractObject(

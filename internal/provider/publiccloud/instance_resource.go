@@ -71,17 +71,14 @@ func (c resourceModelContract) IsContractTermValid() (bool, reason) {
 	return true, reasonNone
 }
 
-func adaptSdkContractToResourceContract(
-	_ context.Context,
-	sdkContract publicCloud.Contract,
-) (*resourceModelContract, error) {
-	return &resourceModelContract{
+func adaptSdkContractToResourceContract(sdkContract publicCloud.Contract) resourceModelContract {
+	return resourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
 		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
 		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
-	}, nil
+	}
 }
 
 type resourceModelImage struct {
@@ -94,13 +91,10 @@ func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func adaptSdkImageToResourceImage(
-	_ context.Context,
-	sdkImage publicCloud.Image,
-) (*resourceModelImage, error) {
-	return &resourceModelImage{
+func adaptSdkImageToResourceImage(sdkImage publicCloud.Image) resourceModelImage {
+	return resourceModelImage{
 		ID: basetypes.NewStringValue(sdkImage.Id),
-	}, nil
+	}
 }
 
 type reasonInstanceCannotBeTerminated string

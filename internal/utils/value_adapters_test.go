@@ -95,35 +95,13 @@ func TestAdaptNullableTimeToStringValue(t *testing.T) {
 func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
-	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := AdaptSdkModelToResourceObject(
-			entity,
-			map[string]attr.Type{},
-			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-				return nil, errors.New("tralala")
-			},
-		)
-
-		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
 		got, err := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-
-				return &mockModel{}, nil
+			func(entity mockDomainEntity) (model mockModel) {
+				return mockModel{}
 			},
 		)
 
@@ -137,12 +115,8 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 			entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (*mockModel, error) {
-
-				return &mockModel{Value: "tralala"}, nil
+			func(entity mockDomainEntity) mockModel {
+				return mockModel{Value: "tralala"}
 			},
 		)
 
@@ -248,10 +222,10 @@ func ExampleAdaptSdkModelToResourceObject() {
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, image publicCloud.Image) (*Image, error) {
-			return &Image{
+		func(image publicCloud.Image) Image {
+			return Image{
 				Id: basetypes.NewStringValue(image.Id),
-			}, nil
+			}
 		},
 	)
 
