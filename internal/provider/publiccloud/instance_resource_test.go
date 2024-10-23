@@ -167,7 +167,7 @@ func generateInstanceModelForValidator() resourceModelInstance {
 	)
 
 	return resourceModelInstance{
-		Id:        basetypes.NewStringUnknown(),
+		ID:        basetypes.NewStringUnknown(),
 		Region:    basetypes.NewStringUnknown(),
 		Reference: basetypes.NewStringUnknown(),
 		Image: basetypes.NewObjectUnknown(
@@ -517,7 +517,7 @@ func generateInstanceModel() resourceModelInstance {
 	)
 
 	instance := resourceModelInstance{
-		Id:                  basetypes.NewStringValue("id"),
+		ID:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
 		RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
@@ -561,7 +561,7 @@ func Test_newResourceInstanceModelFromInstance(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
@@ -614,7 +614,7 @@ func Test_newResourceModelInstanceFromInstanceDetails(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())

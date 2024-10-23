@@ -286,7 +286,7 @@ func newResourceModelImage(
 type reasonInstanceCannotBeTerminated string
 
 type resourceModelInstance struct {
-	Id                  types.String `tfsdk:"id"`
+	ID                  types.String `tfsdk:"id"`
 	Region              types.String `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
 	Image               types.Object `tfsdk:"image"`
@@ -496,7 +496,7 @@ func newResourceModelInstanceFromInstance(
 	ctx context.Context,
 ) (*resourceModelInstance, error) {
 	instance := resourceModelInstance{
-		Id:                  basetypes.NewStringValue(sdkInstance.Id),
+		ID:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.State)),
@@ -547,7 +547,7 @@ func newResourceModelInstanceFromInstanceDetails(
 	ctx context.Context,
 ) (*resourceModelInstance, error) {
 	instance := resourceModelInstance{
-		Id:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
+		ID:                  basetypes.NewStringValue(sdkInstanceDetails.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.Region)),
 		Reference:           utils.AdaptNullableStringToStringValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.State)),
@@ -733,9 +733,9 @@ func (i *instanceResource) Delete(
 
 	tflog.Info(ctx, fmt.Sprintf(
 		"Terminate public cloud instance %q",
-		state.Id.ValueString(),
+		state.ID.ValueString(),
 	))
-	err := terminateInstance(state.Id.ValueString(), ctx, i.client.PublicCloudAPI)
+	err := terminateInstance(state.ID.ValueString(), ctx, i.client.PublicCloudAPI)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -752,7 +752,7 @@ func (i *instanceResource) Delete(
 			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Error terminating public cloud instance %q",
-				state.Id.ValueString(),
+				state.ID.ValueString(),
 			),
 			err.Error(),
 		)
@@ -988,10 +988,10 @@ func (i *instanceResource) Read(
 
 	tflog.Info(ctx, fmt.Sprintf(
 		"Read public cloud instance %q",
-		state.Id.ValueString(),
+		state.ID.ValueString(),
 	))
 	sdkInstance, err := getInstance(
-		state.Id.ValueString(),
+		state.ID.ValueString(),
 		ctx,
 		i.client.PublicCloudAPI,
 	)
@@ -1002,7 +1002,7 @@ func (i *instanceResource) Read(
 			ctx,
 			err.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf("Unable to read resourceModelInstance %q", state.Id.ValueString()),
+			fmt.Sprintf("Unable to read resourceModelInstance %q", state.ID.ValueString()),
 			err.Error(),
 		)
 
@@ -1011,7 +1011,7 @@ func (i *instanceResource) Read(
 
 	tflog.Info(ctx, fmt.Sprintf(
 		"Create public cloud instance resource for %q",
-		state.Id.ValueString(),
+		state.ID.ValueString(),
 	))
 	instance, resourceErr := newResourceModelInstanceFromInstanceDetails(
 		*sdkInstance,
@@ -1048,7 +1048,7 @@ func (i *instanceResource) Update(
 
 	tflog.Info(ctx, fmt.Sprintf(
 		"Update public cloud instance %q",
-		plan.Id.ValueString(),
+		plan.ID.ValueString(),
 	))
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
@@ -1060,7 +1060,7 @@ func (i *instanceResource) Update(
 	}
 
 	sdkInstance, repositoryErr := updateInstance(
-		plan.Id.ValueString(),
+		plan.ID.ValueString(),
 		*opts,
 		ctx,
 		i.client.PublicCloudAPI,
@@ -1077,7 +1077,7 @@ func (i *instanceResource) Update(
 			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Unable to update public cloud instance %q",
-				plan.Id.ValueString(),
+				plan.ID.ValueString(),
 			),
 			repositoryErr.Error(),
 		)
@@ -1265,7 +1265,7 @@ func (i *instanceResource) ModifyPlan(
 
 	availableInstanceTypes := i.getAvailableInstanceTypes(
 		response,
-		stateInstance.Id,
+		stateInstance.ID,
 		planInstance.Region.ValueString(),
 		ctx,
 	)

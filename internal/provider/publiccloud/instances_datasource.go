@@ -41,7 +41,7 @@ func newDataSourceModelContract(sdkContract publicCloud.Contract) dataSourceMode
 }
 
 type dataSourceModelInstance struct {
-	Id                  types.String            `tfsdk:"id"`
+	ID                  types.String            `tfsdk:"id"`
 	Region              types.String            `tfsdk:"region"`
 	Reference           types.String            `tfsdk:"reference"`
 	Image               dataSourceModelImage    `tfsdk:"image"`
@@ -61,7 +61,7 @@ func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceMode
 	}
 
 	return dataSourceModelInstance{
-		Id:                  basetypes.NewStringValue(sdkInstance.Id),
+		ID:                  basetypes.NewStringValue(sdkInstance.Id),
 		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
 		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
 		Image:               newDataSourceModelImage(sdkInstance.Image),

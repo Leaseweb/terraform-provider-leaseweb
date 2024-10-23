@@ -62,7 +62,7 @@ func Test_newDataSourceModelInstance(t *testing.T) {
 
 	got := newDataSourceModelInstance(sdkInstance)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "imageId", got.Image.Id.ValueString())
@@ -84,7 +84,7 @@ func Test_newDataSourceInstances(t *testing.T) {
 	got := newDataSourceModelInstances(sdkInstances)
 
 	assert.Len(t, got.Instances, 1)
-	assert.Equal(t, "id", got.Instances[0].Id.ValueString())
+	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
 
 func Test_newDataSourceModelIp(t *testing.T) {
