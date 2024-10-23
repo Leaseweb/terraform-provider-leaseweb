@@ -404,13 +404,8 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 ) {
 	opts := publicCloud.NewUpdateInstanceOpts()
 
-	if i.Reference.ValueStringPointer() != nil {
-		opts.SetReference(*i.Reference.ValueStringPointer())
-	}
-
-	if i.RootDiskSize.ValueInt64Pointer() != nil {
-		opts.SetRootDiskSize(int32(*i.RootDiskSize.ValueInt64Pointer()))
-	}
+	opts.Reference = i.Reference.ValueStringPointer()
+	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
 
 	contract := resourceModelContract{}
 	diags := i.Contract.As(
