@@ -19,7 +19,7 @@ var (
 	_ provider.Provider = &leasewebProvider{}
 )
 
-func NewProvider(version string) func() provider.Provider {
+func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &leasewebProvider{
 			version: version,

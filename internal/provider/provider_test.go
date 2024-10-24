@@ -29,12 +29,12 @@ var (
 		tfprotov6.ProviderServer,
 		error,
 	){
-		"leaseweb": providerserver.NewProtocol6WithError(NewProvider("test")()),
+		"leaseweb": providerserver.NewProtocol6WithError(New("test")()),
 	}
 )
 
 func TestLeasewebProvider_Metadata(t *testing.T) {
-	leasewebProvider := NewProvider("dev")
+	leasewebProvider := New("dev")
 	metadataResponse := provider.MetadataResponse{}
 	leasewebProvider().Metadata(
 		context.TODO(),
@@ -54,7 +54,7 @@ func TestLeasewebProvider_Metadata(t *testing.T) {
 }
 
 func TestLeasewebProvider_Schema(t *testing.T) {
-	leasewebProvider := NewProvider("dev")
+	leasewebProvider := New("dev")
 	schemaResponse := provider.SchemaResponse{}
 	leasewebProvider().Schema(
 		context.TODO(),
