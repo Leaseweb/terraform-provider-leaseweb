@@ -34,7 +34,7 @@ func main() {
 
 	err := providerserver.Serve(
 		context.Background(),
-		provider.NewProvider(version),
+		provider.New(version),
 		opts,
 	)
 
