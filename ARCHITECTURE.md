@@ -20,7 +20,7 @@ Datasource model structs should adhere to the following convention:
 #### Datasource adaptation functions
 
 Adapt functions to convert SDK models to datasource models have the following
-naming convention: `adaptSdk<SDKMODEL_NAME>ToDatasource<DATASOURCE_MODEL_NAME>`.
+naming convention: `adaptSdk<SDK_MODEL_NAME>ToDatasource<DATASOURCE_MODEL_NAME>`.
 So the function to adapt an SDK Instance to an Instance Datasource would be
 named `adaptSdkInstanceToDatasourceInstance`.
 
@@ -40,7 +40,7 @@ Datasource model structs should adhere to the following convention:
 #### Resource adaptation functions
 
 Adapt functions to convert SDK models to resource models have the following
-naming convention: `adaptSdk<SDKMODEL_NAME>ToResource<Resource_MODEL_NAME>`.
+naming convention: `adaptSdk<SDK_MODEL_NAME>ToResource<Resource_MODEL_NAME>`.
 So the function to adapt an SDK Instance to an Instance Resource would be
 named `adaptSdkInstanceToResourceInstance`.
 
