@@ -49,6 +49,8 @@ To run the full suite of Acceptance tests, run `make testacc`.
 
 _Note:_ Acceptance tests create real resources, and often cost money to run.
 
+Code architecture is discussed in a [separate file](ARCHITECTURE.md).
+
 ```shell
 make testacc
 ```
@@ -82,6 +84,6 @@ All commits must adhere to the [conventional commit spec](https://www.convention
 For the acceptance tests to run properly make sure to run ```docker-compose up -d```
 before committing anything or the commit will fail.
 
-### API Stability 
+### API Stability
 
-Given that the public cloud API is currently in its beta version, we are maintaining the Terraform plugin in beta as well, despite the stability of our Dedicated Server API. 
+Given that the public cloud API is currently in its beta version, we are maintaining the Terraform plugin in beta as well, despite the stability of our Dedicated Server API.
