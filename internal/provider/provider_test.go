@@ -855,3 +855,129 @@ resource "leaseweb_public_cloud_instance" "test" {
 		},
 	)
 }
+
+func TestAccPublicCloudCredentialDataSource(t *testing.T) {
+	t.Run("reading data for public cloud credential",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+        data "leaseweb_public_cloud_credential" "test" {
+          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+          type                = "OPERATING_SYSTEM"
+          username            = "root"
+        }`,
+						Check: resource.ComposeAggregateTestCheckFunc(
+							resource.TestCheckResourceAttr(
+								"data.leaseweb_public_cloud_credential.test",
+								"instance_id",
+								"695ddd91-051f-4dd6-9120-938a927a47d0",
+							),
+							resource.TestCheckResourceAttr(
+								"data.leaseweb_public_cloud_credential.test",
+								"type",
+								"OPERATING_SYSTEM",
+							),
+							resource.TestCheckResourceAttr(
+								"data.leaseweb_public_cloud_credential.test",
+								"username",
+								"root",
+							),
+							resource.TestCheckResourceAttr(
+								"data.leaseweb_public_cloud_credential.test",
+								"password",
+								"12341234",
+							),
+						),
+					},
+				},
+			})
+		})
+
+	t.Run(
+		"instance id should be in the request",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+        data "leaseweb_public_cloud_credential" "test" {
+          type                = "OPERATING_SYSTEM"
+          username            = "root"
+        }`,
+						ExpectError: regexp.MustCompile(
+							"The argument \"instance_id\" is required, but no definition was found",
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"type should be in the request",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+        data "leaseweb_public_cloud_credential" "test" {
+          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+          username            = "root"
+        }`,
+						ExpectError: regexp.MustCompile(
+							"The argument \"type\" is required, but no definition was found",
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"username should be in the request",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+        data "leaseweb_public_cloud_credential" "test" {
+          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+          type                = "OPERATING_SYSTEM"
+        }`,
+						ExpectError: regexp.MustCompile(
+							"The argument \"username\" is required, but no definition was found",
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"type should be one of these values OPERATING_SYSTEM CONTROL_PANEL",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+        data "leaseweb_public_cloud_credential" "test" {
+          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+          type                = "A_WRONG_TYPE"
+          username            = "root"
+        }`,
+						ExpectError: regexp.MustCompile(
+							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"\]`,
+						),
+					},
+				},
+			})
+		},
+	)
+}
