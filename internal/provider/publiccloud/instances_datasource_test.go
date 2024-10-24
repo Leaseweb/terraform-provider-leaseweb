@@ -22,7 +22,7 @@ func Test_adaptSdkContractToDatasourceContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := dataSourceModelContract{
+	want := datasourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
@@ -90,7 +90,7 @@ func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
 		Id: "imageId",
 	}
 
-	want := dataSourceModelImage{
+	want := datasourceModelImage{
 		ID: basetypes.NewStringValue("imageId"),
 	}
 	got := adaptSdkImageToDatasourceImage(sdkImage)
