@@ -1,17 +1,15 @@
 package publiccloud
 
 import (
-	"context"
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newDataSourceModelContract(t *testing.T) {
+func Test_adaptSdkContractToDatasourceContract(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -31,12 +29,12 @@ func Test_newDataSourceModelContract(t *testing.T) {
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got := newDataSourceModelContract(sdkContract)
+	got := adaptSdkContractToDatasourceContract(sdkContract)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_newDataSourceModelInstance(t *testing.T) {
+func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
 	reference := "reference"
 	marketAppId := "marketAppId"
 
@@ -60,73 +58,42 @@ func Test_newDataSourceModelInstance(t *testing.T) {
 		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
 	}
 
-	got := newDataSourceModelInstance(sdkInstance)
+	got := adaptSdkInstanceToDatasourceInstance(sdkInstance)
 
-	assert.Equal(t, "id", got.Id.ValueString())
+	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
-	assert.Equal(t, "imageId", got.Image.Id.ValueString())
+	assert.Equal(t, "imageId", got.Image.ID.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Len(t, got.Ips, 1)
-	assert.Equal(t, "127.0.0.1", got.Ips[0].Ip.ValueString())
+	assert.Len(t, got.IPs, 1)
+	assert.Equal(t, "127.0.0.1", got.IPs[0].IP.ValueString())
 	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 }
 
-func Test_newDataSourceInstances(t *testing.T) {
+func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
 	sdkInstances := []publicCloud.Instance{
 		{Id: "id"},
 	}
 
-	got := newDataSourceModelInstances(sdkInstances)
+	got := adaptSdkInstancesToDatasourceInstances(sdkInstances)
 
 	assert.Len(t, got.Instances, 1)
-	assert.Equal(t, "id", got.Instances[0].Id.ValueString())
+	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
 
-func Test_newDataSourceModelIp(t *testing.T) {
-	sdkIp := publicCloud.Ip{
-		Ip: "127.0.0.1",
-	}
-
-	want := dataSourceModelIp{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := newDataSourceModelIp(sdkIp)
-
-	assert.Equal(t, want, got)
-}
-
-func Test_newDataSourceModelImage(t *testing.T) {
+func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
 
 	want := dataSourceModelImage{
-		Id: basetypes.NewStringValue("imageId"),
+		ID: basetypes.NewStringValue("imageId"),
 	}
-	got := newDataSourceModelImage(sdkImage)
+	got := adaptSdkImageToDatasourceImage(sdkImage)
 
 	assert.Equal(t, want, got)
-}
-
-func Test_instancesDataSource_Metadata(t *testing.T) {
-	resp := datasource.MetadataResponse{}
-	instancesDataSource := NewInstancesDataSource()
-
-	instancesDataSource.Metadata(
-		context.TODO(),
-		datasource.MetadataRequest{ProviderTypeName: "tralala"},
-		&resp,
-	)
-
-	assert.Equal(
-		t,
-		"tralala_public_cloud_instances",
-		resp.TypeName,
-		"Type name should be tralala_public_cloud_instances",
-	)
 }

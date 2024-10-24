@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -95,35 +94,13 @@ func TestAdaptNullableTimeToStringValue(t *testing.T) {
 func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
-	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := AdaptSdkModelToResourceObject(
-			entity,
-			map[string]attr.Type{},
-			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-				return nil, errors.New("tralala")
-			},
-		)
-
-		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
 		got, err := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-
-				return &mockModel{}, nil
+			func(entity mockDomainEntity) (model mockModel) {
+				return mockModel{}
 			},
 		)
 
@@ -137,53 +114,14 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 			entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (*mockModel, error) {
-
-				return &mockModel{Value: "tralala"}, nil
+			func(entity mockDomainEntity) mockModel {
+				return mockModel{Value: "tralala"}
 			},
 		)
 
 		assert.Nil(t, diags)
 		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
 	})
-}
-
-func TestAdaptNullableStringToStringValue(t *testing.T) {
-	value := "tralala"
-
-	type args struct {
-		value *string
-	}
-	tests := []struct {
-		name string
-		args args
-		want basetypes.StringValue
-	}{
-		{
-			name: "value has been set to nil",
-			args: args{value: nil},
-			want: basetypes.NewStringNull(),
-		},
-		{
-			name: "value has been set",
-			args: args{value: &value},
-			want: basetypes.NewStringValue("tralala"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(
-				t,
-				tt.want,
-				AdaptNullableStringToStringValue(tt.args.value),
-				"AdaptNullableStringToStringValue(%v)",
-				tt.args.value,
-			)
-		})
-	}
 }
 
 func TestAdaptDomainSliceToListValue(t *testing.T) {
@@ -196,12 +134,8 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-
-					return &mockModel{Value: "tralala"}, nil
+				func(entity mockDomainEntity) mockModel {
+					return mockModel{Value: "tralala"}
 				},
 			)
 
@@ -216,38 +150,14 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	)
 
 	t.Run(
-		"error is returned if list element cannot be converted",
-		func(t *testing.T) {
-			_, err := AdaptSdkModelsToListValue(
-				[]mockDomainEntity{entity},
-				map[string]attr.Type{"value": types.StringType},
-				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-					return nil, errors.New("tralala")
-				},
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
-		},
-	)
-
-	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
 			_, err := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-
-					return &mockModel{Value: "tralala"}, nil
+				func(entity mockDomainEntity) mockModel {
+					return mockModel{Value: "tralala"}
 				},
 			)
 
@@ -292,21 +202,6 @@ func ExampleAdaptNullableTimeToStringValue_second() {
 	// Output: <null>
 }
 
-func ExampleAdaptNullableStringToStringValue() {
-	nullableString := "tralala"
-	value := AdaptNullableStringToStringValue(&nullableString)
-
-	fmt.Println(value)
-	// Output: "tralala"
-}
-
-func ExampleAdaptNullableStringToStringValue_second() {
-	value := AdaptNullableStringToStringValue(nil)
-
-	fmt.Println(value)
-	// Output: <null>
-}
-
 func ExampleAdaptSdkModelToResourceObject() {
 	type Image struct {
 		Id types.String `tfsdk:"id"`
@@ -318,10 +213,10 @@ func ExampleAdaptSdkModelToResourceObject() {
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, image publicCloud.Image) (*Image, error) {
-			return &Image{
+		func(image publicCloud.Image) Image {
+			return Image{
 				Id: basetypes.NewStringValue(image.Id),
-			}, nil
+			}
 		},
 	)
 
@@ -340,34 +235,15 @@ func ExampleAdaptSdkModelsToListValue() {
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, ip publicCloud.Ip) (*Ip, error) {
-			return &Ip{
+		func(ip publicCloud.Ip) Ip {
+			return Ip{
 				Ip: basetypes.NewStringValue(ip.Ip),
-			}, nil
+			}
 		},
 	)
 
 	fmt.Println(listValue)
 	// Output: [{"ip":"1.2.3.4"}]
-}
-
-func ExampleAdaptStringPointerValueToNullableString() {
-	value := "tralala"
-	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
-
-	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
-
-	fmt.Println(*convertedValue)
-	// Output: tralala
-}
-
-func ExampleAdaptStringPointerValueToNullableString_second() {
-	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
-
-	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
-
-	fmt.Println(convertedValue)
-	// Output: <nil>
 }
 
 func TestReturnError(t *testing.T) {
@@ -389,6 +265,25 @@ func TestReturnError(t *testing.T) {
 
 		assert.NoError(t, got)
 	})
+}
+
+func ExampleAdaptStringPointerValueToNullableString() {
+	value := "tralala"
+	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
+
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(*convertedValue)
+	// Output: tralala
+}
+
+func ExampleAdaptStringPointerValueToNullableString_second() {
+	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
+
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(convertedValue)
+	// Output: <nil>
 }
 
 func ExampleReturnError() {
