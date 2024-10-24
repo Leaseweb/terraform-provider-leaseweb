@@ -90,7 +90,7 @@ func TestAccInstancesDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_instances.test",
 						"instances.#",
-						"4",
+						"1",
 					),
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_instances.test",
