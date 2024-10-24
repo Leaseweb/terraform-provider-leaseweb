@@ -17,6 +17,13 @@ Datasource model structs should adhere to the following convention:
 `datasourceModel<MODEL_NAME>`. So the instances data model would be named
 `dataSourceModelinstances`
 
+#### Datasource adaptation functions
+
+Adapt functions to convert SDK models to datasource models have the following
+naming convention: `adaptSdk<SDKMODEL_NAME>ToDatasource<DATASOURCE_MODEL_NAME>`.
+So the function to adapt an SDK Instance to an Instance Datasource would be
+named `adaptSdkInstanceToDatasourceInstance`.
+
 ## Resources
 
 All code pertaining to resources, including models, belongs in the resource
@@ -29,6 +36,13 @@ Datasource model structs should adhere to the following convention:
 
 `resourceModel<MODEL_NAME>`. So the instance data model would be named
 `resourceModelinstance`
+
+#### Resource adaptation functions
+
+Adapt functions to convert SDK models to resource models have the following
+naming convention: `adaptSdk<SDKMODEL_NAME>ToResource<Resource_MODEL_NAME>`.
+So the function to adapt an SDK Instance to an Instance Resource would be
+named `adaptSdkInstanceToResourceInstance`.
 
 ## Validators
 
