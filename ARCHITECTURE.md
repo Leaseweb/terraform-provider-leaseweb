@@ -14,7 +14,7 @@ instances the filename would be `publiccloud_instances_datasource.go`
 
 Datasource model structs should adhere to the following convention:
 
-`datasourceModel<ModelName>`. So the instances data model would be called
+`datasourceModel<ModelName>`. So the instances data model would be named
 `dataSourceModelinstances`
 
 ## Resources
@@ -27,7 +27,7 @@ instances the filename would be `publiccloud_instances_resource.go`
 
 Datasource model structs should adhere to the following convention:
 
-`resourceModel<ModelName>`. So the instances data model would be called
+`resourceModel<ModelName>`. So the instance data model would be named
 `resourceModelinstance`
 
 ## Validators
