@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -101,8 +102,8 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 
 	if err != nil {
 		summary := "Error reading control panels"
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 

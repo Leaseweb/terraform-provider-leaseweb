@@ -16,6 +16,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -145,8 +146,8 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating bandwidth notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
@@ -176,8 +177,8 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
@@ -212,8 +213,8 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error updating bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
@@ -243,8 +244,8 @@ func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req r
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 }

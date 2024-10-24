@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
@@ -109,8 +110,8 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading dedicated server with id: %q", data.Id.ValueString())
-		resp.Diagnostics.AddError(summary, NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, NewError(response, err).Error()))
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
