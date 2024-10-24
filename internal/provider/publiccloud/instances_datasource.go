@@ -21,7 +21,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &InstancesDataSource{}
 )
 
-type dataSourceModelContract struct {
+type datasourceModelContract struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
@@ -29,8 +29,8 @@ type dataSourceModelContract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func adaptSdkContractToDatasourceContract(sdkContract publicCloud.Contract) dataSourceModelContract {
-	return dataSourceModelContract{
+func adaptSdkContractToDatasourceContract(sdkContract publicCloud.Contract) datasourceModelContract {
+	return datasourceModelContract{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
 		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
@@ -39,27 +39,27 @@ func adaptSdkContractToDatasourceContract(sdkContract publicCloud.Contract) data
 	}
 }
 
-type dataSourceModelInstance struct {
+type datasourceModelInstance struct {
 	ID                  types.String            `tfsdk:"id"`
 	Region              types.String            `tfsdk:"region"`
 	Reference           types.String            `tfsdk:"reference"`
-	Image               dataSourceModelImage    `tfsdk:"image"`
+	Image               datasourceModelImage    `tfsdk:"image"`
 	State               types.String            `tfsdk:"state"`
 	Type                types.String            `tfsdk:"type"`
 	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String            `tfsdk:"root_disk_storage_type"`
-	IPs                 []dataSourceModelIP     `tfsdk:"ips"`
-	Contract            dataSourceModelContract `tfsdk:"contract"`
+	IPs                 []datasourceModelIp     `tfsdk:"ips"`
+	Contract            datasourceModelContract `tfsdk:"contract"`
 	MarketAppID         types.String            `tfsdk:"market_app_id"`
 }
 
-func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) dataSourceModelInstance {
-	var ips []dataSourceModelIP
+func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) datasourceModelInstance {
+	var ips []datasourceModelIp
 	for _, ip := range sdkInstance.Ips {
-		ips = append(ips, dataSourceModelIP{IP: basetypes.NewStringValue(ip.GetIp())})
+		ips = append(ips, datasourceModelIp{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
-	return dataSourceModelInstance{
+	return datasourceModelInstance{
 		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
 		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
@@ -74,26 +74,26 @@ func adaptSdkInstanceToDatasourceInstance(sdkInstance publicCloud.Instance) data
 	}
 }
 
-type dataSourceModelImage struct {
+type datasourceModelImage struct {
 	ID types.String `tfsdk:"id"`
 }
 
-func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
-	return dataSourceModelImage{
+func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) datasourceModelImage {
+	return datasourceModelImage{
 		ID: basetypes.NewStringValue(sdkImage.GetId()),
 	}
 }
 
-type dataSourceModelIP struct {
+type datasourceModelIp struct {
 	IP types.String `tfsdk:"ip"`
 }
 
-type dataSourceModelInstances struct {
-	Instances []dataSourceModelInstance `tfsdk:"instances"`
+type datasourceModelInstances struct {
+	Instances []datasourceModelInstance `tfsdk:"instances"`
 }
 
-func adaptSdkInstancesToDatasourceInstances(sdkInstances []publicCloud.Instance) dataSourceModelInstances {
-	var instances dataSourceModelInstances
+func adaptSdkInstancesToDatasourceInstances(sdkInstances []publicCloud.Instance) datasourceModelInstances {
+	var instances datasourceModelInstances
 
 	for _, sdkInstance := range sdkInstances {
 		instance := adaptSdkInstanceToDatasourceInstance(sdkInstance)
