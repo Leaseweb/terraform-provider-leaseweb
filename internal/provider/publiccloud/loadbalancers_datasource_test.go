@@ -32,7 +32,7 @@ func Test_adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(t *testing.T) {
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 	assert.Len(t, got.IPs, 1)
-	assert.Equal(t, "127.0.0.1", got.IPs[0].Ip.ValueString())
+	assert.Equal(t, "127.0.0.1", got.IPs[0].IP.ValueString())
 	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
 }
 
