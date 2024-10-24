@@ -229,7 +229,7 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	var ips []resourceModelIP
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
-	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
+	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
 func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
@@ -282,7 +282,7 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	var ips []resourceModelIP
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
-	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
+	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
 func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
@@ -626,12 +626,11 @@ func Test_adaptSdkIpToResourceIp(t *testing.T) {
 	}
 
 	want := resourceModelIP{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
+		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpToResourceIP(context.TODO(), sdkIp)
+	got := adaptSdkIpToResourceIP(sdkIp)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+	assert.Equal(t, want, got)
 }
 
 func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
@@ -640,10 +639,9 @@ func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
 	}
 
 	want := resourceModelIP{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
+		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpDetailsToResourceIP(context.TODO(), sdkIpDetails)
+	got := adaptSdkIpDetailsToResourceIP(sdkIpDetails)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+	assert.Equal(t, want, got)
 }

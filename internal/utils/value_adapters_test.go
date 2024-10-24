@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -135,12 +134,8 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-
-					return &mockModel{Value: "tralala"}, nil
+				func(entity mockDomainEntity) mockModel {
+					return mockModel{Value: "tralala"}
 				},
 			)
 
@@ -155,38 +150,14 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	)
 
 	t.Run(
-		"error is returned if list element cannot be converted",
-		func(t *testing.T) {
-			_, err := AdaptSdkModelsToListValue(
-				[]mockDomainEntity{entity},
-				map[string]attr.Type{"value": types.StringType},
-				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-					return nil, errors.New("tralala")
-				},
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
-		},
-	)
-
-	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
 			_, err := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-
-					return &mockModel{Value: "tralala"}, nil
+				func(entity mockDomainEntity) mockModel {
+					return mockModel{Value: "tralala"}
 				},
 			)
 
@@ -264,10 +235,10 @@ func ExampleAdaptSdkModelsToListValue() {
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, ip publicCloud.Ip) (*Ip, error) {
-			return &Ip{
+		func(ip publicCloud.Ip) Ip {
+			return Ip{
 				Ip: basetypes.NewStringValue(ip.Ip),
-			}, nil
+			}
 		},
 	)
 

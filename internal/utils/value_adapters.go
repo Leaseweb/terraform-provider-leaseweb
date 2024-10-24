@@ -72,24 +72,12 @@ func AdaptSdkModelsToListValue[T any, U any](
 	sdkModels []T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateModel func(
-		ctx context.Context,
-		sdkModel T,
-	) (*U, error),
+	generateModel func(sdkModel T) U,
 ) (basetypes.ListValue, error) {
 	var listValues []U
 
 	for _, value := range sdkModels {
-		resourceObject, err := generateModel(ctx, value)
-		if err != nil {
-			return types.ListUnknown(
-					types.ObjectType{AttrTypes: attributeTypes}),
-				fmt.Errorf(
-					"unable to convert sdk model to resource: %w",
-					err,
-				)
-		}
-		listValues = append(listValues, *resourceObject)
+		listValues = append(listValues, generateModel(value))
 	}
 
 	listObject, diags := types.ListValueFrom(
