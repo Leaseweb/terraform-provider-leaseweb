@@ -208,9 +208,6 @@ func (l *loadBalancersDataSource) Read(
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (l *loadBalancersDataSource) Configure(
