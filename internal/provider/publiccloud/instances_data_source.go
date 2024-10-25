@@ -18,11 +18,10 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &InstancesDataSource{}
-	_ datasource.DataSourceWithConfigure = &InstancesDataSource{}
+	_ datasource.DataSourceWithConfigure = &instancesDataSource{}
 )
 
-type dataSourceModelContract struct {
+type contractDataSourceModel struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
@@ -30,80 +29,74 @@ type dataSourceModelContract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func newDataSourceModelContract(sdkContract publicCloud.Contract) dataSourceModelContract {
-	return dataSourceModelContract{
-		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.BillingFrequency)),
-		Term:             basetypes.NewInt64Value(int64(sdkContract.Term)),
-		Type:             basetypes.NewStringValue(string(sdkContract.Type)),
+func adaptContractToContractDataSource(sdkContract publicCloud.Contract) contractDataSourceModel {
+	return contractDataSourceModel{
+		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
 		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
-		State:            basetypes.NewStringValue(string(sdkContract.State)),
+		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
 	}
 }
 
-type dataSourceModelInstance struct {
-	Id                  types.String            `tfsdk:"id"`
+type instanceDataSourceModel struct {
+	ID                  types.String            `tfsdk:"id"`
 	Region              types.String            `tfsdk:"region"`
 	Reference           types.String            `tfsdk:"reference"`
-	Image               dataSourceModelImage    `tfsdk:"image"`
+	Image               imageDataSourceModel    `tfsdk:"image"`
 	State               types.String            `tfsdk:"state"`
 	Type                types.String            `tfsdk:"type"`
 	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String            `tfsdk:"root_disk_storage_type"`
-	Ips                 []dataSourceModelIp     `tfsdk:"ips"`
-	Contract            dataSourceModelContract `tfsdk:"contract"`
-	MarketAppId         types.String            `tfsdk:"market_app_id"`
+	IPs                 []iPDataSourceModel     `tfsdk:"ips"`
+	Contract            contractDataSourceModel `tfsdk:"contract"`
+	MarketAppID         types.String            `tfsdk:"market_app_id"`
 }
 
-func newDataSourceModelInstance(sdkInstance publicCloud.Instance) dataSourceModelInstance {
-	var ips []dataSourceModelIp
+func adaptInstanceToInstanceDataSource(sdkInstance publicCloud.Instance) instanceDataSourceModel {
+	var ips []iPDataSourceModel
 	for _, ip := range sdkInstance.Ips {
-		ips = append(ips, newDataSourceModelIp(ip))
+		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
-	return dataSourceModelInstance{
-		Id:                  basetypes.NewStringValue(sdkInstance.Id),
-		Region:              basetypes.NewStringValue(string(sdkInstance.Region)),
-		Reference:           utils.AdaptNullableStringToStringValue(sdkInstance.Reference.Get()),
-		Image:               newDataSourceModelImage(sdkInstance.Image),
-		State:               basetypes.NewStringValue(string(sdkInstance.State)),
-		Type:                basetypes.NewStringValue(string(sdkInstance.Type)),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.RootDiskSize)),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.RootDiskStorageType)),
-		Ips:                 ips,
-		Contract:            newDataSourceModelContract(sdkInstance.Contract),
-		MarketAppId:         utils.AdaptNullableStringToStringValue(sdkInstance.MarketAppId.Get()),
-	}
-}
-
-type dataSourceModelImage struct {
-	Id types.String `tfsdk:"id"`
-}
-
-func newDataSourceModelImage(sdkImage publicCloud.Image) dataSourceModelImage {
-	return dataSourceModelImage{
-		Id: basetypes.NewStringValue(sdkImage.Id),
+	return instanceDataSourceModel{
+		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
+		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
+		Image:               adaptImageToImageDataSource(sdkInstance.GetImage()),
+		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
+		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
+		IPs:                 ips,
+		Contract:            adaptContractToContractDataSource(sdkInstance.GetContract()),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
 }
 
-type dataSourceModelIp struct {
-	Ip types.String `tfsdk:"ip"`
+type imageDataSourceModel struct {
+	ID types.String `tfsdk:"id"`
 }
 
-func newDataSourceModelIp(sdkIp publicCloud.Ip) dataSourceModelIp {
-	return dataSourceModelIp{
-		Ip: basetypes.NewStringValue(sdkIp.Ip),
+func adaptImageToImageDataSource(sdkImage publicCloud.Image) imageDataSourceModel {
+	return imageDataSourceModel{
+		ID: basetypes.NewStringValue(sdkImage.GetId()),
 	}
 }
 
-type dataSourceModelInstances struct {
-	Instances []dataSourceModelInstance `tfsdk:"instances"`
+type iPDataSourceModel struct {
+	IP types.String `tfsdk:"ip"`
 }
 
-func newDataSourceModelInstances(sdkInstances []publicCloud.Instance) dataSourceModelInstances {
-	var instances dataSourceModelInstances
+type datasourceModelInstances struct {
+	Instances []instanceDataSourceModel `tfsdk:"instances"`
+}
+
+func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) datasourceModelInstances {
+	var instances datasourceModelInstances
 
 	for _, sdkInstance := range sdkInstances {
-		instance := newDataSourceModelInstance(sdkInstance)
+		instance := adaptInstanceToInstanceDataSource(sdkInstance)
 		instances.Instances = append(instances.Instances, instance)
 	}
 
@@ -152,15 +145,15 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	return instances, nil
 }
 
-func NewInstancesDataSource() datasource.DataSource {
-	return &InstancesDataSource{}
+func NewInstancesDatasource() datasource.DataSource {
+	return &instancesDataSource{}
 }
 
-type InstancesDataSource struct {
+type instancesDataSource struct {
 	client client.Client
 }
 
-func (d *InstancesDataSource) Configure(
+func (d *instancesDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -185,7 +178,7 @@ func (d *InstancesDataSource) Configure(
 	d.client = coreClient
 }
 
-func (d *InstancesDataSource) Metadata(
+func (d *instancesDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -193,7 +186,7 @@ func (d *InstancesDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_public_cloud_instances"
 }
 
-func (d *InstancesDataSource) Read(
+func (d *instancesDataSource) Read(
 	ctx context.Context,
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
@@ -215,7 +208,7 @@ func (d *InstancesDataSource) Read(
 		return
 	}
 
-	state := newDataSourceModelInstances(instances)
+	state := adaptInstancesToInstancesDataSource(instances)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -224,7 +217,7 @@ func (d *InstancesDataSource) Read(
 	}
 }
 
-func (d *InstancesDataSource) Schema(
+func (d *instancesDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,

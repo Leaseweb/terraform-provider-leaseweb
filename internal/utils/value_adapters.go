@@ -38,33 +38,14 @@ func AdaptNullableTimeToStringValue(value *time.Time) basetypes.StringValue {
 	return basetypes.NewStringValue(value.String())
 }
 
-// AdaptNullableStringToStringValue converts a nullable string to a Terraform
-// StringValue.
-func AdaptNullableStringToStringValue(value *string) basetypes.StringValue {
-	if value == nil {
-		return basetypes.NewStringNull()
-	}
-
-	return basetypes.NewStringValue(*value)
-}
-
 // AdaptSdkModelToResourceObject converts an sdk model to a Terraform resource object.
 func AdaptSdkModelToResourceObject[T any, U any](
 	sdkModel T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateResourceObject func(
-		ctx context.Context,
-		sdkModel T,
-	) (*U, error),
+	generateResourceObject func(sdkModel T) U,
 ) (basetypes.ObjectValue, error) {
-	resourceObject, err := generateResourceObject(ctx, sdkModel)
-	if err != nil {
-		return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-			"unable to convert sdk sdkModel to resource: %w",
-			err,
-		)
-	}
+	resourceObject := generateResourceObject(sdkModel)
 
 	objectValue, diags := types.ObjectValueFrom(
 		ctx,
@@ -91,24 +72,12 @@ func AdaptSdkModelsToListValue[T any, U any](
 	sdkModels []T,
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
-	generateModel func(
-		ctx context.Context,
-		sdkModel T,
-	) (*U, error),
+	generateModel func(sdkModel T) U,
 ) (basetypes.ListValue, error) {
 	var listValues []U
 
 	for _, value := range sdkModels {
-		resourceObject, err := generateModel(ctx, value)
-		if err != nil {
-			return types.ListUnknown(
-					types.ObjectType{AttrTypes: attributeTypes}),
-				fmt.Errorf(
-					"unable to convert sdk model to resource: %w",
-					err,
-				)
-		}
-		listValues = append(listValues, *resourceObject)
+		listValues = append(listValues, generateModel(value))
 	}
 
 	listObject, diags := types.ListValueFrom(
