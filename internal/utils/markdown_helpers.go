@@ -37,3 +37,12 @@ func NewIntMarkdownList[T ~int32](values []T) IntMarkdownList {
 
 	return i
 }
+
+// StringTypeArrayToMarkdown converts any slice of custom types that are underlying string types to markdown string.
+func StringTypeArrayToMarkdown[T ~string](enumValues []T) string {
+	markdown := "\n"
+	for _, v := range enumValues {
+		markdown += "  - *" + string(v) + "*\n"
+	}
+	return markdown
+}
