@@ -856,6 +856,154 @@ resource "leaseweb_public_cloud_instance" "test" {
 	)
 }
 
+func TestAccPublicCloudCredentialResource(t *testing.T) {
+	t.Run("creates and updates a credential", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+	resource "leaseweb_public_cloud_credential" "test" {
+		instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	   	username = "root"
+	   	type = "OPERATING_SYSTEM"
+	   	password = "12341234"
+	}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"instance_id",
+							"695ddd91-051f-4dd6-9120-938a927a47d0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"username",
+							"root",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"type",
+							"OPERATING_SYSTEM",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"password",
+							"12341234",
+						),
+					),
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+				resource "leaseweb_public_cloud_credential" "test" {
+					instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+				   	username = "root"
+				   	type = "OPERATING_SYSTEM"
+				   	password = "12341234"
+				}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"instance_id",
+							"695ddd91-051f-4dd6-9120-938a927a47d0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"username",
+							"root",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"type",
+							"OPERATING_SYSTEM",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_credential.test",
+							"password",
+							"12341234",
+						),
+					),
+				},
+				// Delete testing automatically occurs in TestCase
+			},
+		})
+	})
+
+	t.Run(
+		"username should not be empty",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+	
+		resource "leaseweb_public_cloud_credential" "test" {
+			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+		   	username = ""
+		   	type = "OPERATING_SYSTEM"
+		   	password = "blah"
+		}`,
+						ExpectError: regexp.MustCompile(
+							`Attribute username string length must be at least 1, got: 0`,
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"password should not be empty",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+	
+		resource "leaseweb_public_cloud_credential" "test" {
+			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+		   	username = "root"
+		   	type = "OPERATING_SYSTEM"
+		   	password = ""
+		}`,
+						ExpectError: regexp.MustCompile(
+							`Attribute password string length must be at least 1, got: 0`,
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"type must be a valid one",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+	
+		resource "leaseweb_public_cloud_credential" "test" {
+			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+		   	username = "root"
+		   	type = "invalid"
+		   	password = "12341234"
+		}`,
+
+						ExpectError: regexp.MustCompile(
+							`Attribute type value must be one of:`,
+						),
+					},
+				},
+			})
+		},
+	)
+}
+
 func TestAccPublicCloudCredentialDataSource(t *testing.T) {
 	t.Run("reading data for public cloud credential",
 		func(t *testing.T) {
