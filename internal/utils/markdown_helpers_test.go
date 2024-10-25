@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,4 +46,21 @@ func TestNewIntMarkdownList(t *testing.T) {
 	got := NewIntMarkdownList([]int32{1})
 
 	assert.Equal(t, []int64{1}, got.ToInt64())
+}
+
+func TestGenerateMarkdownFromEnumsSlice(t *testing.T) {
+	got := GenerateMarkdownFromEnumsSlice(publicCloud.AllowedContractTypeEnumValues)
+	want := "\n  - *HOURLY*\n  - *MONTHLY*\n"
+	assert.Equal(t, want, got)
+}
+
+func ExampleGenerateMarkdownFromEnumsSlice() {
+	list := GenerateMarkdownFromEnumsSlice(publicCloud.AllowedContractTypeEnumValues)
+
+	fmt.Println(list)
+	/**
+	  Output:
+	  - *HOURLY*
+	  - *MONTHLY*
+	*/
 }
