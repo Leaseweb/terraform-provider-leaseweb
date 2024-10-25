@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithConfigure = &ImagesDataSource{}
+	_ datasource.DataSourceWithConfigure = &imagesDataSource{}
 )
 
 type dataSourceModelImage struct {
@@ -29,7 +29,7 @@ type dataSourceModelImage struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelImage {
+func adaptImageToImageDataSource(sdkImage publicCloud.Image) dataSourceModelImage {
 	return dataSourceModelImage{
 		ID:      basetypes.NewStringValue(sdkImage.GetId()),
 		Name:    basetypes.NewStringValue(sdkImage.GetName()),
@@ -38,7 +38,7 @@ func adaptSdkImageToDatasourceImage(sdkImage publicCloud.Image) dataSourceModelI
 	}
 }
 
-func adaptSdkImageDetailsToDatasourceImage(
+func adaptImageDetailsToImageDataSource(
 	sdkImageDetails publicCloud.ImageDetails,
 ) dataSourceModelImage {
 	var marketApps []string
@@ -64,15 +64,15 @@ func adaptSdkImageDetailsToDatasourceImage(
 	}
 }
 
-type dataSourceModelImages struct {
+type imagesDataSourceModel struct {
 	Images []dataSourceModelImage `tfsdk:"images"`
 }
 
-func adaptSdkImagesToDatasourceImages(sdkImages []publicCloud.ImageDetails) dataSourceModelImages {
-	var images dataSourceModelImages
+func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesDataSourceModel {
+	var images imagesDataSourceModel
 
 	for _, sdkImageDetails := range sdkImages {
-		image := adaptSdkImageDetailsToDatasourceImage(sdkImageDetails)
+		image := adaptImageDetailsToImageDataSource(sdkImageDetails)
 		images.Images = append(images.Images, image)
 	}
 
@@ -155,21 +155,21 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 	}
 }
 
-type ImagesDataSource struct {
+type imagesDataSource struct {
 	client client.Client
 }
 
-func (i *ImagesDataSource) Metadata(
-	ctx context.Context,
+func (i *imagesDataSource) Metadata(
+	_ context.Context,
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
 	response.TypeName = request.ProviderTypeName + "_public_cloud_images"
 }
 
-func (i *ImagesDataSource) Schema(
-	ctx context.Context,
-	request datasource.SchemaRequest,
+func (i *imagesDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
 	response *datasource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{
@@ -184,28 +184,31 @@ func (i *ImagesDataSource) Schema(
 	}
 }
 
-func (i *ImagesDataSource) Read(
+func (i *imagesDataSource) Read(
 	ctx context.Context,
-	request datasource.ReadRequest,
+	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	tflog.Info(ctx, "Read public cloud images")
+	tflog.Info(ctx, "Read publiccloud images")
 	images, err := getAllImages(ctx, i.client.PublicCloudAPI)
 
 	if err != nil {
-		response.Diagnostics.AddError("Unable to read images", err.Error())
+		response.Diagnostics.AddError(
+			"Unable to read publiccloud images",
+			err.Error(),
+		)
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&response.Diagnostics,
-			"Unable to read images",
+			"Unable to read publiccloud images",
 			err.Error(),
 		)
 
 		return
 	}
 
-	state := adaptSdkImagesToDatasourceImages(images)
+	state := adaptImagesToImagesDataSource(images)
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
@@ -214,7 +217,7 @@ func (i *ImagesDataSource) Read(
 	}
 }
 
-func (i *ImagesDataSource) Configure(
+func (i *imagesDataSource) Configure(
 	ctx context.Context,
 	request datasource.ConfigureRequest,
 	response *datasource.ConfigureResponse,
@@ -240,5 +243,5 @@ func (i *ImagesDataSource) Configure(
 }
 
 func NewImagesDataSource() datasource.DataSource {
-	return &ImagesDataSource{}
+	return &imagesDataSource{}
 }

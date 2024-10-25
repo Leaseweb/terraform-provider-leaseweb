@@ -63,7 +63,7 @@ func adaptInstanceToInstanceDataSource(sdkInstance publicCloud.Instance) instanc
 		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
 		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
-		Image:               adaptSdkImageToDatasourceImage(sdkInstance.GetImage()),
+		Image:               adaptImageToImageDataSource(sdkInstance.GetImage()),
 		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
 		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),

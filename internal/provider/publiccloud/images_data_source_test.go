@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
+func Test_adaptImageToImageDataSource(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id:      "imageId",
 		Name:    "name",
@@ -22,12 +22,12 @@ func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
 		Custom:  basetypes.NewBoolValue(true),
 		Flavour: basetypes.NewStringValue("flavour"),
 	}
-	got := adaptSdkImageToDatasourceImage(sdkImage)
+	got := adaptImageToImageDataSource(sdkImage)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_adaptSdkImageDetailsToDatasourceImage(t *testing.T) {
+func Test_adaptImageDetailsToImageDataSource(t *testing.T) {
 	state := publicCloud.IMAGESTATE_READY
 	region := publicCloud.REGIONNAME_EU_WEST_3
 
@@ -52,17 +52,17 @@ func Test_adaptSdkImageDetailsToDatasourceImage(t *testing.T) {
 		Flavour:      basetypes.NewStringValue("flavour"),
 		Region:       basetypes.NewStringValue("eu-west-3"),
 	}
-	got := adaptSdkImageDetailsToDatasourceImage(sdkImageDetails)
+	got := adaptImageDetailsToImageDataSource(sdkImageDetails)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_adaptSdkImagesToDatasourceImages(t *testing.T) {
+func Test_adaptImagesToImagesDataSource(t *testing.T) {
 	sdkImages := []publicCloud.ImageDetails{
 		{Id: "id"},
 	}
 
-	got := adaptSdkImagesToDatasourceImages(sdkImages)
+	got := adaptImagesToImagesDataSource(sdkImages)
 
 	assert.Len(t, got.Images, 1)
 	assert.Equal(t, "id", got.Images[0].ID.ValueString())
