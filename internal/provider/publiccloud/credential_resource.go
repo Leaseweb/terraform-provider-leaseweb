@@ -85,13 +85,16 @@ func (c *credentialResource) Schema(
 			"username": schema.StringAttribute{
 				Required:    true,
 				Description: `The username for the credentials`,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: `The type of the credential. Valid options are: "OPERATING_SYSTEM", "CONTROL_PANEL"`,
+				Description: `The type of the credential. Valid options are ` + utils.StringTypeArrayToMarkdown(publicCloud.AllowedCredentialTypeEnumValues),
 				Validators: []validator.String{
 					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedCredentialTypeEnumValues)...),
 				},
@@ -141,9 +144,6 @@ func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	diags = resp.State.Set(ctx, data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -171,9 +171,6 @@ func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 	diags = resp.State.Set(ctx, data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -204,9 +201,6 @@ func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 	diags = resp.State.Set(ctx, data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *credentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

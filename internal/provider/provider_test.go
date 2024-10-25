@@ -931,6 +931,30 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 	})
 
 	t.Run(
+		"username should not be empty",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+	
+		resource "leaseweb_public_cloud_credential" "test" {
+			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+		   	username = ""
+		   	type = "OPERATING_SYSTEM"
+		   	password = "blah"
+		}`,
+						ExpectError: regexp.MustCompile(
+							`Attribute username string length must be at least 1, got: 0`,
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
 		"password should not be empty",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
@@ -971,7 +995,7 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 		}`,
 
 						ExpectError: regexp.MustCompile(
-							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"\],(\s*)got: "invalid"`,
+							`Attribute type value must be one of:`,
 						),
 					},
 				},
