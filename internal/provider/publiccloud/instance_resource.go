@@ -36,7 +36,7 @@ const (
 	reasonNone                     reason = ""
 )
 
-type resourceModelContract struct {
+type contractResourceModel struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
@@ -44,7 +44,7 @@ type resourceModelContract struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func (c resourceModelContract) AttributeTypes() map[string]attr.Type {
+func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"billing_frequency": types.Int64Type,
 		"term":              types.Int64Type,
@@ -54,7 +54,7 @@ func (c resourceModelContract) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (c resourceModelContract) IsContractTermValid() (bool, reason) {
+func (c contractResourceModel) IsContractTermValid() (bool, reason) {
 	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
 		return false, reasonContractTermCannotBeZero
 	}
@@ -66,8 +66,8 @@ func (c resourceModelContract) IsContractTermValid() (bool, reason) {
 	return true, reasonNone
 }
 
-func adaptSdkContractToResourceContract(sdkContract publicCloud.Contract) resourceModelContract {
-	return resourceModelContract{
+func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
+	return contractResourceModel{
 		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
 		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
@@ -76,25 +76,25 @@ func adaptSdkContractToResourceContract(sdkContract publicCloud.Contract) resour
 	}
 }
 
-type resourceModelImage struct {
+type imageResourceModel struct {
 	ID types.String `tfsdk:"id"`
 }
 
-func (i resourceModelImage) AttributeTypes() map[string]attr.Type {
+func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id": types.StringType,
 	}
 }
 
-func adaptSdkImageToResourceImage(sdkImage publicCloud.Image) resourceModelImage {
-	return resourceModelImage{
+func adaptImageToImageResource(sdkImage publicCloud.Image) imageResourceModel {
+	return imageResourceModel{
 		ID: basetypes.NewStringValue(sdkImage.GetId()),
 	}
 }
 
 type reasonInstanceCannotBeTerminated string
 
-type resourceModelInstance struct {
+type instanceResourceModel struct {
 	ID                  types.String `tfsdk:"id"`
 	Region              types.String `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
@@ -108,13 +108,13 @@ type resourceModelInstance struct {
 	MarketAppID         types.String `tfsdk:"market_app_id"`
 }
 
-func (i resourceModelInstance) AttributeTypes() map[string]attr.Type {
+func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":        types.StringType,
 		"region":    types.StringType,
 		"reference": types.StringType,
 		"image": types.ObjectType{
-			AttrTypes: resourceModelImage{}.AttributeTypes(),
+			AttrTypes: imageResourceModel{}.AttributeTypes(),
 		},
 		"state":                  types.StringType,
 		"type":                   types.StringType,
@@ -122,17 +122,17 @@ func (i resourceModelInstance) AttributeTypes() map[string]attr.Type {
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
-				AttrTypes: resourceModelIP{}.AttributeTypes(),
+				AttrTypes: iPResourceModel{}.AttributeTypes(),
 			},
 		},
 		"contract": types.ObjectType{
-			AttrTypes: resourceModelContract{}.AttributeTypes(),
+			AttrTypes: contractResourceModel{}.AttributeTypes(),
 		},
 		"market_app_id": types.StringType,
 	}
 }
 
-func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
+func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 	*publicCloud.LaunchInstanceOpts,
 	error,
 ) {
@@ -143,13 +143,13 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 		return nil, err
 	}
 
-	image := resourceModelImage{}
+	image := imageResourceModel{}
 	imageDiags := i.Image.As(ctx, &image, basetypes.ObjectAsOptions{})
 	if imageDiags != nil {
 		return nil, utils.ReturnError("GetLaunchInstanceOpts", imageDiags)
 	}
 
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	contractDiags := i.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	if contractDiags != nil {
 		return nil, utils.ReturnError("GetLaunchInstanceOpts", contractDiags)
@@ -207,7 +207,7 @@ func (i resourceModelInstance) GetLaunchInstanceOpts(ctx context.Context) (
 	return opts, nil
 }
 
-func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
+func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	*publicCloud.UpdateInstanceOpts,
 	error,
 ) {
@@ -216,7 +216,7 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
 	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
 
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	diags := i.Contract.As(
 		ctx,
 		&contract,
@@ -269,8 +269,8 @@ func (i resourceModelInstance) GetUpdateInstanceOpts(ctx context.Context) (
 	return opts, nil
 }
 
-func (i resourceModelInstance) CanBeTerminated(ctx context.Context) *reasonInstanceCannotBeTerminated {
-	contract := resourceModelContract{}
+func (i instanceResourceModel) CanBeTerminated(ctx context.Context) *reasonInstanceCannotBeTerminated {
+	contract := contractResourceModel{}
 	contractDiags := i.Contract.As(
 		ctx,
 		&contract,
@@ -299,11 +299,11 @@ func (i resourceModelInstance) CanBeTerminated(ctx context.Context) *reasonInsta
 	return nil
 }
 
-func adaptSdkInstanceToResourceInstance(
+func adaptInstanceToInstanceResource(
 	sdkInstance publicCloud.Instance,
 	ctx context.Context,
-) (*resourceModelInstance, error) {
-	instance := resourceModelInstance{
+) (*instanceResourceModel, error) {
+	instance := instanceResourceModel{
 		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
 		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
@@ -316,45 +316,45 @@ func adaptSdkInstanceToResourceInstance(
 
 	image, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstance.Image,
-		resourceModelImage{}.AttributeTypes(),
+		imageResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkImageToResourceImage,
+		adaptImageToImageResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
 	}
 	instance.Image = image
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		resourceModelIP{}.AttributeTypes(),
+		iPResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkIpToResourceIP,
+		adaptIpToIPResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
 	}
 	instance.IPs = ips
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstance.Contract,
-		resourceModelContract{}.AttributeTypes(),
+		contractResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkContractToResourceContract,
+		adaptContractToContractResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
 	}
 	instance.Contract = contract
 
 	return &instance, nil
 }
 
-func adaptSdkInstanceDetailsToResourceInstance(
+func adaptInstanceDetailsToInstanceResource(
 	sdkInstanceDetails publicCloud.InstanceDetails,
 	ctx context.Context,
-) (*resourceModelInstance, error) {
-	instance := resourceModelInstance{
+) (*instanceResourceModel, error) {
+	instance := instanceResourceModel{
 		ID:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
 		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.GetRegion())),
 		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
@@ -367,58 +367,58 @@ func adaptSdkInstanceDetailsToResourceInstance(
 
 	image, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Image,
-		resourceModelImage{}.AttributeTypes(),
+		imageResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkImageToResourceImage,
+		adaptImageToImageResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
 	}
 	instance.Image = image
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
-		resourceModelIP{}.AttributeTypes(),
+		iPResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkIpDetailsToResourceIP,
+		adaptIpDetailsToIPResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
 	}
 	instance.IPs = ips
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkInstanceDetails.Contract,
-		resourceModelContract{}.AttributeTypes(),
+		contractResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkContractToResourceContract,
+		adaptContractToContractResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
 	}
 	instance.Contract = contract
 
 	return &instance, nil
 }
 
-type resourceModelIP struct {
+type iPResourceModel struct {
 	IP types.String `tfsdk:"ip"`
 }
 
-func (i resourceModelIP) AttributeTypes() map[string]attr.Type {
+func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"ip": types.StringType,
 	}
 }
 
-func adaptSdkIpToResourceIP(sdkIp publicCloud.Ip) resourceModelIP {
-	return resourceModelIP{
+func adaptIpToIPResource(sdkIp publicCloud.Ip) iPResourceModel {
+	return iPResourceModel{
 		IP: basetypes.NewStringValue(sdkIp.GetIp()),
 	}
 }
 
-func adaptSdkIpDetailsToResourceIP(sdkIpDetails publicCloud.IpDetails) resourceModelIP {
-	return resourceModelIP{
+func adaptIpDetailsToIPResource(sdkIpDetails publicCloud.IpDetails) iPResourceModel {
+	return iPResourceModel{
 		IP: basetypes.NewStringValue(sdkIpDetails.GetIp()),
 	}
 }
@@ -462,7 +462,7 @@ func (i *instanceResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan resourceModelInstance
+	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -504,7 +504,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, resourceErr := adaptSdkInstanceToResourceInstance(*sdkInstance, ctx)
+	instance, resourceErr := adaptInstanceToInstanceResource(*sdkInstance, ctx)
 	if resourceErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating publiccloud instance resource",
@@ -526,7 +526,7 @@ func (i *instanceResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state resourceModelInstance
+	var state instanceResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -727,7 +727,7 @@ func (i *instanceResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state resourceModelInstance
+	var state instanceResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -769,7 +769,7 @@ func (i *instanceResource) Read(
 			state.ID.ValueString(),
 		),
 	)
-	instance, sdkErr := adaptSdkInstanceDetailsToResourceInstance(
+	instance, sdkErr := adaptInstanceDetailsToInstanceResource(
 		*sdkInstance,
 		ctx,
 	)
@@ -794,7 +794,7 @@ func (i *instanceResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan resourceModelInstance
+	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -877,7 +877,7 @@ func (i *instanceResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.GenerateMarkdownFromEnumsSlice(publicCloud.AllowedRegionNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publicCloud.AllowedRegionNameEnumValues),
 				),
 				Validators: []validator.String{
 					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedRegionNameEnumValues)...),
@@ -912,7 +912,7 @@ func (i *instanceResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.GenerateMarkdownFromEnumsSlice(publicCloud.AllowedTypeNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publicCloud.AllowedTypeNameEnumValues),
 				),
 				Validators: []validator.String{
 					stringvalidator.AlsoRequires(
@@ -998,16 +998,16 @@ func (i *instanceResource) ModifyPlan(
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
 ) {
-	planInstance := resourceModelInstance{}
+	planInstance := instanceResourceModel{}
 	request.Plan.Get(ctx, &planInstance)
 
-	planImage := resourceModelImage{}
+	planImage := imageResourceModel{}
 	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
 
-	stateInstance := resourceModelInstance{}
+	stateInstance := instanceResourceModel{}
 	request.State.Get(ctx, &stateInstance)
 
-	stateImage := resourceModelImage{}
+	stateImage := imageResourceModel{}
 	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
 
 	// Before deletion, determine if the instance is allowed to be deleted
@@ -1054,7 +1054,7 @@ func (i *instanceResource) ModifyPlan(
 	}
 }
 
-// When creating a new resourceModelInstance,
+// When creating a new instanceResourceModel,
 // any instanceType available in the region is good.
 // On update, the criteria is more limited.
 func (i *instanceResource) getAvailableInstanceTypes(
@@ -1063,7 +1063,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	region string,
 	ctx context.Context,
 ) []string {
-	// resourceModelInstance is being created.
+	// instanceResourceModel is being created.
 	if id.IsNull() {
 		availableInstanceTypes, err := getInstanceTypesForRegion(
 			region,
@@ -1138,13 +1138,13 @@ func (i *instanceResource) validateInstanceType(
 
 // Checks if instance can be deleted.
 func (i *instanceResource) validateInstance(
-	instance resourceModelInstance,
+	instance instanceResourceModel,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,
 ) {
 	instanceObject, diags := basetypes.NewObjectValueFrom(
 		ctx,
-		resourceModelInstance{}.AttributeTypes(),
+		instanceResourceModel{}.AttributeTypes(),
 		instance,
 	)
 	if diags.HasError() {

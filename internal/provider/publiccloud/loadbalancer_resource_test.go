@@ -33,7 +33,7 @@ func Test_adaptSdkLoadBalancerDetailsToResourceLoadBalancer(t *testing.T) {
 		assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 		assert.Nil(t, got.Reference.ValueStringPointer())
 
-		contract := resourceModelContract{}
+		contract := contractResourceModel{}
 		got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 		assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 	})
@@ -110,7 +110,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 		func(t *testing.T) {
 			contractType := "tralala"
 			loadBalancer := generateLoadBalancerModel()
-			contract := GenerateContractObject(
+			contract := generateContractObject(
 				nil,
 				nil,
 				&contractType,
@@ -130,7 +130,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 		func(t *testing.T) {
 			contractTerm := 555
 			loadBalancer := generateLoadBalancerModel()
-			contract := GenerateContractObject(
+			contract := generateContractObject(
 				nil,
 				&contractTerm,
 				nil,
@@ -150,7 +150,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 		func(t *testing.T) {
 			billingFrequency := 555
 			loadBalancer := generateLoadBalancerModel()
-			contract := GenerateContractObject(
+			contract := generateContractObject(
 				&billingFrequency,
 				nil,
 				nil,
@@ -187,7 +187,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelContract")
+			assert.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
@@ -223,7 +223,7 @@ func Test_resourceModelLoadBalancer_GetUpdateLoadBalancerOpts(t *testing.T) {
 }
 
 func generateLoadBalancerModel() resourceModelLoadBalancer {
-	contract := GenerateContractObject(
+	contract := generateContractObject(
 		nil,
 		nil,
 		nil,

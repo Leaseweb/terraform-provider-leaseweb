@@ -38,12 +38,11 @@ func NewIntMarkdownList[T ~int32](values []T) IntMarkdownList {
 	return i
 }
 
-// GenerateMarkdownFromEnumsSlice converts an array of SDK enums to a Markdown list string.
-func GenerateMarkdownFromEnumsSlice[T ~string](values []T) string {
+// StringTypeArrayToMarkdown converts any slice of custom types that are underlying string types to markdown string.
+func StringTypeArrayToMarkdown[T ~string](enumValues []T) string {
 	markdown := "\n"
-	for _, value := range values {
-		markdown += "  - *" + string(value) + "*\n"
+	for _, v := range enumValues {
+		markdown += "  - *" + string(v) + "*\n"
 	}
-
 	return markdown
 }

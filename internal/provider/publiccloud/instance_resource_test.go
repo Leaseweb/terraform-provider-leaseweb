@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_resourceModelContract_attributeTypes(t *testing.T) {
+func Test_contractResourceModel_attributeTypes(t *testing.T) {
 	_, diags := types.ObjectValueFrom(
 		context.TODO(),
-		resourceModelContract{}.AttributeTypes(),
-		resourceModelContract{},
+		contractResourceModel{}.AttributeTypes(),
+		contractResourceModel{},
 	)
 
 	assert.Nil(t, diags, "attributes should be correct")
 }
 
-func Test_adaptSdkContractToResourceContract(t *testing.T) {
+func Test_adaptContractToContractResource(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -35,19 +35,19 @@ func Test_adaptSdkContractToResourceContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := resourceModelContract{
+	want := contractResourceModel{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got := adaptSdkContractToResourceContract(sdkContract)
+	got := adaptContractToContractResource(sdkContract)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_contract_IsContractTermValid(t *testing.T) {
+func Test_contractResourceModel_IsContractTermValid(t *testing.T) {
 	t.Run(
 		"false is returned when contract term is monthly and contract term is 0",
 		func(t *testing.T) {
@@ -56,7 +56,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_MONTHLY,
 			}
 
-			contract := adaptSdkContractToResourceContract(sdkContract)
+			contract := adaptContractToContractResource(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -73,7 +73,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract := adaptSdkContractToResourceContract(sdkContract)
+			contract := adaptContractToContractResource(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -90,7 +90,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract := adaptSdkContractToResourceContract(sdkContract)
+			contract := adaptContractToContractResource(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -100,20 +100,20 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 	)
 }
 
-func Test_adaptSdkImageToResourceImage(t *testing.T) {
+func Test_adaptImageToImageResource(t *testing.T) {
 	sdkImage := publicCloud.Image{
 		Id: "imageId",
 	}
 
-	want := resourceModelImage{
+	want := imageResourceModel{
 		ID: basetypes.NewStringValue("imageId"),
 	}
-	got := adaptSdkImageToResourceImage(sdkImage)
+	got := adaptImageToImageResource(sdkImage)
 
 	assert.Equal(t, want, got)
 }
 
-func GenerateContractObject(
+func generateContractObject(
 	billingFrequency *int,
 	contractTerm *int,
 	contractType *string,
@@ -135,8 +135,8 @@ func GenerateContractObject(
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		resourceModelContract{}.AttributeTypes(),
-		resourceModelContract{
+		contractResourceModel{}.AttributeTypes(),
+		contractResourceModel{
 			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
 			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
@@ -148,23 +148,23 @@ func GenerateContractObject(
 	return contract
 }
 
-func generateInstanceModel() resourceModelInstance {
+func generateInstanceResourceModel() instanceResourceModel {
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		resourceModelImage{}.AttributeTypes(),
-		resourceModelImage{
+		imageResourceModel{}.AttributeTypes(),
+		imageResourceModel{
 			ID: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 		},
 	)
 
-	contract := GenerateContractObject(
+	contract := generateContractObject(
 		nil,
 		nil,
 		nil,
 		nil,
 	)
 
-	instance := resourceModelInstance{
+	instance := instanceResourceModel{
 		ID:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
@@ -179,7 +179,7 @@ func generateInstanceModel() resourceModelInstance {
 	return instance
 }
 
-func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
+func Test_adaptInstanceToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -205,7 +205,7 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 		},
 	}
 
-	got, err := adaptSdkInstanceToResourceInstance(instance, context.TODO())
+	got, err := adaptInstanceToInstanceResource(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -218,21 +218,21 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := resourceModelImage{}
+	image := imageResourceModel{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []resourceModelIP
+	var ips []iPResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
-func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
+func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -258,7 +258,7 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 		},
 	}
 
-	got, err := adaptSdkInstanceDetailsToResourceInstance(instance, context.TODO())
+	got, err := adaptInstanceDetailsToInstanceResource(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -271,23 +271,23 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := resourceModelImage{}
+	image := imageResourceModel{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []resourceModelIP
+	var ips []iPResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
-func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
+func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 		instance.MarketAppID = basetypes.NewStringPointerValue(nil)
 		instance.Reference = basetypes.NewStringPointerValue(nil)
 		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
@@ -314,7 +314,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("optional values are passed", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 
@@ -327,7 +327,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid rootDiskStorageType is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.RootDiskStorageType = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -340,7 +340,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -354,8 +354,8 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			instance := generateInstanceModel()
-			contract := GenerateContractObject(
+			instance := generateInstanceResourceModel()
+			contract := generateContractObject(
 				nil,
 				nil,
 				&contractType,
@@ -374,8 +374,8 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			instance := generateInstanceModel()
-			contract := GenerateContractObject(
+			instance := generateInstanceResourceModel()
+			contract := generateContractObject(
 				nil,
 				&contractTerm,
 				nil,
@@ -394,8 +394,8 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			instance := generateInstanceModel()
-			contract := GenerateContractObject(
+			instance := generateInstanceResourceModel()
+			contract := generateContractObject(
 				&billingFrequency,
 				nil,
 				nil,
@@ -413,7 +413,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid region is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Region = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -424,35 +424,35 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if resourceModelImage resource is incorrect",
+		"returns error if imageResourceModel resource is incorrect",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelImage")
+			assert.ErrorContains(t, err, ".imageResourceModel")
 		},
 	)
 
 	t.Run(
-		"returns error if resourceModelContract resource is incorrect",
+		"returns error if contractResourceModel resource is incorrect",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelContract")
+			assert.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
 
-func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
+func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 
 		got, err := instance.GetUpdateInstanceOpts(context.TODO())
 
@@ -468,7 +468,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -482,8 +482,8 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			instance := generateInstanceModel()
-			contract := GenerateContractObject(
+			instance := generateInstanceResourceModel()
+			contract := generateContractObject(
 				nil,
 				nil,
 				&contractType,
@@ -502,8 +502,8 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			instance := generateInstanceModel()
-			contract := GenerateContractObject(
+			instance := generateInstanceResourceModel()
+			contract := generateContractObject(
 				nil,
 				&contractTerm,
 				nil,
@@ -522,8 +522,8 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			instance := generateInstanceModel()
-			contract := GenerateContractObject(
+			instance := generateInstanceResourceModel()
+			contract := generateContractObject(
 				&billingFrequency,
 				nil,
 				nil,
@@ -539,22 +539,22 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if resourceModelContract resource is incorrect",
+		"returns error if contractResourceModel resource is incorrect",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelContract")
+			assert.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
 
-func Test_instance_CanBeTerminated(t *testing.T) {
+func Test_instanceResourceModel_CanBeTerminated(t *testing.T) {
 	t.Run("instance can be terminated", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 		instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 
 		got := instance.CanBeTerminated(context.TODO())
@@ -588,7 +588,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 			}
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
-					instance := generateInstanceModel()
+					instance := generateInstanceResourceModel()
 					instance.State = basetypes.NewStringValue(string(tt.state))
 
 					got := instance.CanBeTerminated(context.TODO())
@@ -605,9 +605,9 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 		func(t *testing.T) {
 			endsAt := "2023-12-14 17:09:47 +0000 UTC"
 
-			contract := GenerateContractObject(nil, nil, nil, &endsAt)
+			contract := generateContractObject(nil, nil, nil, &endsAt)
 
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 			instance.Contract = contract
 
@@ -619,28 +619,28 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 	)
 }
 
-func Test_adaptSdkIpToResourceIp(t *testing.T) {
+func Test_adaptIpToIPResource(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
 
-	want := resourceModelIP{
+	want := iPResourceModel{
 		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got := adaptSdkIpToResourceIP(sdkIp)
+	got := adaptIpToIPResource(sdkIp)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
+func Test_adaptIpDetailsToIPResource(t *testing.T) {
 	sdkIpDetails := publicCloud.IpDetails{
 		Ip: "127.0.0.1",
 	}
 
-	want := resourceModelIP{
+	want := iPResourceModel{
 		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got := adaptSdkIpDetailsToResourceIP(sdkIpDetails)
+	got := adaptIpDetailsToIPResource(sdkIpDetails)
 
 	assert.Equal(t, want, got)
 }

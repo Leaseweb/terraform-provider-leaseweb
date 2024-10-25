@@ -42,7 +42,7 @@ func (l *resourceModelLoadBalancer) AttributeTypes() map[string]attr.Type {
 		"type":      types.StringType,
 		"reference": types.StringType,
 		"contract": types.ObjectType{
-			AttrTypes: resourceModelContract{}.AttributeTypes(),
+			AttrTypes: contractResourceModel{}.AttributeTypes(),
 		},
 	}
 }
@@ -51,7 +51,7 @@ func (l *resourceModelLoadBalancer) GetLaunchLoadBalancerOpts(ctx context.Contex
 	*publicCloud.LaunchLoadBalancerOpts,
 	error,
 ) {
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	contractDiags := l.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	if contractDiags != nil {
 		return nil, utils.ReturnError("GetLaunchLoadBalancerOpts", contractDiags)
@@ -138,9 +138,9 @@ func adaptSdkLoadBalancerDetailsToResourceLoadBalancer(
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
 		sdkLoadBalancerDetails.Contract,
-		resourceModelContract{}.AttributeTypes(),
+		contractResourceModel{}.AttributeTypes(),
 		ctx,
-		adaptSdkContractToResourceContract,
+		adaptContractToContractResource,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
@@ -267,7 +267,7 @@ func (l *loadBalancerResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.GenerateMarkdownFromEnumsSlice(publicCloud.AllowedRegionNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publicCloud.AllowedRegionNameEnumValues),
 				),
 				Validators: []validator.String{
 					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedRegionNameEnumValues)...),
@@ -281,7 +281,7 @@ func (l *loadBalancerResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.GenerateMarkdownFromEnumsSlice(publicCloud.AllowedTypeNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publicCloud.AllowedTypeNameEnumValues),
 				),
 				Validators: []validator.String{
 					stringvalidator.AlsoRequires(
