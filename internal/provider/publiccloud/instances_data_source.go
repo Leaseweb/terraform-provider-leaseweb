@@ -43,7 +43,7 @@ type instanceDataSourceModel struct {
 	ID                  types.String            `tfsdk:"id"`
 	Region              types.String            `tfsdk:"region"`
 	Reference           types.String            `tfsdk:"reference"`
-	Image               imageDataSourceModel    `tfsdk:"image"`
+	Image               imageModelDataSource    `tfsdk:"image"`
 	State               types.String            `tfsdk:"state"`
 	Type                types.String            `tfsdk:"type"`
 	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`
@@ -74,26 +74,16 @@ func adaptInstanceToInstanceDataSource(sdkInstance publicCloud.Instance) instanc
 	}
 }
 
-type imageDataSourceModel struct {
-	ID types.String `tfsdk:"id"`
-}
-
-func adaptImageToImageDataSource(sdkImage publicCloud.Image) imageDataSourceModel {
-	return imageDataSourceModel{
-		ID: basetypes.NewStringValue(sdkImage.GetId()),
-	}
-}
-
 type iPDataSourceModel struct {
 	IP types.String `tfsdk:"ip"`
 }
 
-type datasourceModelInstances struct {
+type instancesDataSourceModel struct {
 	Instances []instanceDataSourceModel `tfsdk:"instances"`
 }
 
-func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) datasourceModelInstances {
-	var instances datasourceModelInstances
+func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) instancesDataSourceModel {
+	var instances instancesDataSourceModel
 
 	for _, sdkInstance := range sdkInstances {
 		instance := adaptInstanceToInstanceDataSource(sdkInstance)
@@ -145,7 +135,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	return instances, nil
 }
 
-func NewInstancesDatasource() datasource.DataSource {
+func NewInstancesDataSource() datasource.DataSource {
 	return &instancesDataSource{}
 }
 
@@ -249,13 +239,8 @@ func (d *instancesDataSource) Schema(
 							Description: "The identifying name set to the instance",
 						},
 						"image": schema.SingleNestedAttribute{
-							Computed: true,
-							Attributes: map[string]schema.Attribute{
-								"id": schema.StringAttribute{
-									Computed:    true,
-									Description: "Image ID",
-								},
-							},
+							Computed:   true,
+							Attributes: imageSchemaAttributes(),
 						},
 						"state": schema.StringAttribute{
 							Computed:    true,

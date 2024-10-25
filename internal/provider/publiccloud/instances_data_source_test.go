@@ -84,16 +84,3 @@ func Test_adaptInstancesToInstancesDatasource(t *testing.T) {
 	assert.Len(t, got.Instances, 1)
 	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
 }
-
-func Test_adaptImageToImageDatasource(t *testing.T) {
-	sdkImage := publicCloud.Image{
-		Id: "imageId",
-	}
-
-	want := imageDataSourceModel{
-		ID: basetypes.NewStringValue("imageId"),
-	}
-	got := adaptImageToImageDataSource(sdkImage)
-
-	assert.Equal(t, want, got)
-}
