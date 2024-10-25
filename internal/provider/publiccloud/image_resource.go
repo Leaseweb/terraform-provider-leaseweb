@@ -135,40 +135,6 @@ func getImage(
 	return nil, nil
 }
 
-func updateImage(
-	ID string,
-	opts publicCloud.UpdateImageOpts,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ImageDetails, *utils.SdkError) {
-	image, response, err := api.UpdateImage(
-		ctx,
-		ID,
-	).UpdateImageOpts(opts).Execute()
-	if err != nil {
-		return nil, utils.NewSdkError(
-			fmt.Sprintf("updateImage %q", ID),
-			err,
-			response,
-		)
-	}
-
-	return image, nil
-}
-
-func createImage(
-	opts publicCloud.CreateImageOpts,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ImageDetails, *utils.SdkError) {
-	image, response, err := api.CreateImage(ctx).CreateImageOpts(opts).Execute()
-	if err != nil {
-		return nil, utils.NewSdkError("createImage", err, response)
-	}
-
-	return image, nil
-}
-
 type imageResource struct {
 	client client.Client
 }
@@ -282,8 +248,11 @@ func (i *imageResource) Create(
 
 	opts := plan.GetCreateImageOpts()
 
-	sdkImage, sdkErr := createImage(opts, ctx, i.client.PublicCloudAPI)
-	if sdkErr != nil {
+	sdkImage, apiResponse, err := i.client.PublicCloudAPI.CreateImage(ctx).
+		CreateImageOpts(opts).
+		Execute()
+	if err != nil {
+		sdkErr := utils.NewSdkError("", err, apiResponse)
 		response.Diagnostics.AddError(
 			"Error creating publiccloud image",
 			sdkErr.Error(),
@@ -300,7 +269,7 @@ func (i *imageResource) Create(
 		return
 	}
 
-	instance, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
+	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(
 			"Error creating publiccloud image resource",
@@ -310,14 +279,15 @@ func (i *imageResource) Create(
 		return
 	}
 
-	diags = response.State.Set(ctx, instance)
+	diags = response.State.Set(ctx, image)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 }
 
-func (i *imageResource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
+func (i *imageResource) Read(
+	ctx context.Context,
+	request resource.ReadRequest,
+	response *resource.ReadResponse,
+) {
 	var state imageResourceModel
 
 	diags := request.State.Get(ctx, &state)
@@ -377,13 +347,12 @@ func (i *imageResource) Update(
 	))
 	opts := plan.GetUpdateImageOpts()
 
-	sdkImageDetails, sdkErr := updateImage(
-		plan.ID.ValueString(),
-		opts,
+	sdkImageDetails, apiResponse, err := i.client.PublicCloudAPI.UpdateImage(
 		ctx,
-		i.client.PublicCloudAPI,
-	)
-	if sdkErr != nil {
+		plan.ID.ValueString(),
+	).UpdateImageOpts(opts).Execute()
+	if err != nil {
+		sdkErr := utils.NewSdkError("", err, apiResponse)
 		response.Diagnostics.AddError(
 			"Error updating publiccloud image",
 			sdkErr.Error(),
