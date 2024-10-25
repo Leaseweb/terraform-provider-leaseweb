@@ -69,9 +69,9 @@ func (d *credentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: "The type of the credential. Valid options are " + utils.EnumToMarkdown(publicCloud.AllowedCredentialTypeEnumValues),
+				Description: "The type of the credential. Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedCredentialTypeEnumValues),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.EnumToSlice(publicCloud.AllowedCredentialTypeEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedCredentialTypeEnumValues)...),
 				},
 			},
 			"username": schema.StringAttribute{

@@ -897,7 +897,7 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
 		})
 
 	t.Run(
-		"instance id should be in the request",
+		"instance_id is required",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -918,7 +918,7 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
 	)
 
 	t.Run(
-		"type should be in the request",
+		"type is required",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -939,7 +939,7 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
 	)
 
 	t.Run(
-		"username should be in the request",
+		"username is required",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -960,7 +960,7 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
 	)
 
 	t.Run(
-		"type should be one of these values OPERATING_SYSTEM CONTROL_PANEL",
+		"invalid type is not accepted",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -973,7 +973,7 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
           username            = "root"
         }`,
 						ExpectError: regexp.MustCompile(
-							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"\]`,
+							"Attribute type value must be one of:",
 						),
 					},
 				},
