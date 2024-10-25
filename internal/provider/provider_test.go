@@ -982,27 +982,26 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
 	)
 }
 
-
 func TestAccImagesDataSource(t *testing.T) {
-  resource.Test(t, resource.TestCase{
-    ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-    Steps: []resource.TestStep{
-      // Read testing
-      {
-        Config: providerConfig + `data "leaseweb_public_cloud_images" "test" {}`,
-        Check: resource.ComposeAggregateTestCheckFunc(
-          resource.TestCheckResourceAttr(
-            "data.leaseweb_public_cloud_images.test",
-            "images.#",
-            "18",
-          ),
-          resource.TestCheckResourceAttr(
-            "data.leaseweb_public_cloud_images.test",
-            "images.0.id",
-            "UBUNTU_24_04_64BIT",
-          ),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Read testing
+			{
+				Config: providerConfig + `data "leaseweb_public_cloud_images" "test" {}`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.#",
+						"18",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.id",
+						"UBUNTU_24_04_64BIT",
+					),
+				),
+			},
+		},
+	})
 }
