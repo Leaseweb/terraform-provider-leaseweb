@@ -4,62 +4,68 @@
 
 Each package corresponds to a product group, i.e.: `publiccloud`
 
-## Datasources
+## DataSources
 
-### Datasource files
+### DataSource files
 
-All code pertaining to datasources, including models, belongs in the datasource
-file. The format for this file is `datasource_<ENDPOINT>.go`. Ie: for
-instances the filename would be `datasource_instances.go`
+All code pertaining to dataSources, including models, belongs in the dataSource
+file.
+The format for this file is `<ENDPOINT>_datasource.go`.
+For instances the filename would be `instances_datasource.go`
 
-### Datasource structs
+### DataSource structs
 
-Structs should adhere to the following naming convention: `datasource<NAME>`.
-`<NAME>` is always plural.
-So for `instances` this would be `datasourceInstances`
+DataSource structs should adhere to the following naming convention:
+`<NAME>DataSource`.
+For `instances` this would be `instancesDataSource`
 
-### Datasource models
+### DataSource models
 
-Datasource model structs should adhere to the following convention:
+DataSource model structs should adhere to the following convention:
+`<MODEL_NAME>DataSourceModel`.
+The `instances` data model would be named `instancesDataSourceModel`.
 
-`datasourceModel<MODEL_NAME>`. So the `instances` data model would be named
-`datasourceModelInstances`.
+#### DataSource adaptation functions
 
-#### Datasource adaptation functions
-
-Adapt functions to convert SDK models to datasource models have the following
-naming convention: `adaptSdk<SDK_MODEL_NAME>ToDatasource<DATASOURCE_MODEL_NAME>`.
-So the function to adapt an SDK Instance to an Instance Datasource would be
-named `adaptSdkInstanceToDatasourceInstance`.
+Adapt functions to convert SDK models to dataSource models have the following
+naming convention: `adapt<SDK_MODEL_NAME>To<DATASOURCE_MODEL_NAME>DataSource`.
+The function to adapt an SDK Instance to an Instance Datasource would be
+named `adaptInstanceToInstanceDataSource`.
 
 ## Resources
 
 ### Resource files
 
 All code pertaining to resources, including models, belongs in the resource
-file. The format for this file is `resource_<ENDPOINT>.go`. Ie: for
-instances the filename would be `resource_instance.go`
+file.
+The format for this file is `<ENDPOINT>_resource.go`.
+For instances the filename would be `instance_resource.go`
 
 ### Resource structs
 
-Structs should adhere to the following naming convention: `resource<NAME>`.
-So for `instance` this would be `resourceInstance`.
+Resource structs should adhere to the following naming convention:
+`<NAME>Resource`.
+For `instance` this would be `instanceResource`.
 
 ### Resource models
 
-Datasource model structs should adhere to the following convention:
-
-`resourceModel<MODEL_NAME>`. So the `instance` data model would be named
-`resourceModelInstance`
+Resource model structs should adhere to the following convention:
+`<MODEL_NAME>ResourceModel`.
+The `instance` data model would be named `instanceResourceModel`
 
 #### Resource adaptation functions
 
 Adapt functions to convert SDK models to resource models have the following
-naming convention: `adaptSdk<SDK_MODEL_NAME>ToResource<Resource_MODEL_NAME>`.
-So the function to adapt an SDK Instance to an Instance Resource would be
-named `adaptSdkInstanceToResourceInstance`.
+naming convention: `adapt<SDK_MODEL_NAME>To<RESOURCE_MODEL_NAME>Resource`.
+The function to adapt an SDK Instance to an Instance Resource would be
+named `adaptInstanceToInstanceResource`.
 
 ## Validators
 
 As validators are often shared between resource they belong in the `validators.go`
 file.
+
+## SDK
+
+Where possible, use the SDK getters.
+Instead of `sdkInstance.Id` use `sdkInstance.GetId()`.
