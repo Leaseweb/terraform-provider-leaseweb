@@ -10,8 +10,8 @@ Each package corresponds to a product group, i.e.: `publiccloud`
 
 All code pertaining to dataSources, including models, belongs in the dataSource
 file.
-The format for this file is `<ENDPOINT>_datasource.go`.
-For instances the filename would be `instances_datasource.go`
+The format for this file is `<ENDPOINT>_data_source.go`.
+For instances the filename would be `instances_data_source.go`
 
 ### DataSource structs
 
