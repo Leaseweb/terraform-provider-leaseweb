@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithConfigure = &LoadBalancersDataSource{}
+	_ datasource.DataSourceWithConfigure = &loadBalancersDataSource{}
 )
 
-type datasourceModelLoadBalancer struct {
+type loadBalancerDataSourceModel struct {
 	ID        types.String            `tfsdk:"id"`
 	IPs       []iPDataSourceModel     `tfsdk:"ips"`
 	Reference types.String            `tfsdk:"reference"`
@@ -29,17 +29,17 @@ type datasourceModelLoadBalancer struct {
 	Type      types.String            `tfsdk:"type"`
 }
 
-type datasourceModelLoadBalancers struct {
-	LoadBalancers []datasourceModelLoadBalancer `tfsdk:"loadbalancers"`
+type loadBalancersDataSourceModel struct {
+	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"loadbalancers"`
 }
 
-func adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(sdkLoadBalancerDetails publicCloud.LoadBalancerDetails) datasourceModelLoadBalancer {
+func adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails publicCloud.LoadBalancerDetails) loadBalancerDataSourceModel {
 	var ips []iPDataSourceModel
 	for _, ip := range sdkLoadBalancerDetails.Ips {
 		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
-	return datasourceModelLoadBalancer{
+	return loadBalancerDataSourceModel{
 		ID:        basetypes.NewStringValue(sdkLoadBalancerDetails.GetId()),
 		IPs:       ips,
 		Reference: basetypes.NewStringPointerValue(sdkLoadBalancerDetails.Reference.Get()),
@@ -50,11 +50,11 @@ func adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(sdkLoadBalancerDetails 
 	}
 }
 
-func adaptSdkLoadBalancersToDatasourceLoadBalancers(sdkLoadBalancers []publicCloud.LoadBalancerDetails) datasourceModelLoadBalancers {
-	var loadBalancers datasourceModelLoadBalancers
+func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.LoadBalancerDetails) loadBalancersDataSourceModel {
+	var loadBalancers loadBalancersDataSourceModel
 
 	for _, sdkLoadBalancerDetails := range sdkLoadBalancers {
-		loadBalancer := adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(sdkLoadBalancerDetails)
+		loadBalancer := adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails)
 		loadBalancers.LoadBalancers = append(loadBalancers.LoadBalancers, loadBalancer)
 	}
 
@@ -103,11 +103,11 @@ func getAllLoadBalancers(
 	return loadBalancers, nil
 }
 
-type LoadBalancersDataSource struct {
+type loadBalancersDataSource struct {
 	client client.Client
 }
 
-func (l *LoadBalancersDataSource) Metadata(
+func (l *loadBalancersDataSource) Metadata(
 	_ context.Context,
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
@@ -115,7 +115,7 @@ func (l *LoadBalancersDataSource) Metadata(
 	response.TypeName = request.ProviderTypeName + "_public_cloud_loadbalancers"
 }
 
-func (l *LoadBalancersDataSource) Schema(
+func (l *loadBalancersDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	response *datasource.SchemaResponse,
@@ -178,7 +178,7 @@ func (l *LoadBalancersDataSource) Schema(
 	}
 }
 
-func (l *LoadBalancersDataSource) Read(
+func (l *loadBalancersDataSource) Read(
 	ctx context.Context,
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
@@ -199,7 +199,7 @@ func (l *LoadBalancersDataSource) Read(
 		return
 	}
 
-	state := adaptSdkLoadBalancersToDatasourceLoadBalancers(loadBalancers)
+	state := adaptLoadBalancersToLoadBalancersDataSource(loadBalancers)
 
 	diags := response.State.Set(ctx, &state)
 	response.Diagnostics.Append(diags...)
@@ -208,7 +208,7 @@ func (l *LoadBalancersDataSource) Read(
 	}
 }
 
-func (l *LoadBalancersDataSource) Configure(
+func (l *loadBalancersDataSource) Configure(
 	_ context.Context,
 	request datasource.ConfigureRequest,
 	response *datasource.ConfigureResponse,
@@ -234,5 +234,5 @@ func (l *LoadBalancersDataSource) Configure(
 }
 
 func NewLoadBalancersDataSource() datasource.DataSource {
-	return &LoadBalancersDataSource{}
+	return &loadBalancersDataSource{}
 }

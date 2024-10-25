@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(t *testing.T) {
+func Test_adaptLoadBalancerDetailsToLoadBalancerDataSource(t *testing.T) {
 	reference := "reference"
 
 	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{
@@ -24,7 +24,7 @@ func Test_adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(t *testing.T) {
 		},
 	}
 
-	got := adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(sdkLoadBalancerDetails)
+	got := adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails)
 
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
@@ -36,12 +36,12 @@ func Test_adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(t *testing.T) {
 	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
 }
 
-func Test_adaptSdkLoadBalancersToDatasourceLoadBalancers(t *testing.T) {
+func Test_adaptLoadBalancersToLoadBalancersDatasource(t *testing.T) {
 	sdkLoadBalancers := []publicCloud.LoadBalancerDetails{
 		{Id: "id"},
 	}
 
-	got := adaptSdkLoadBalancersToDatasourceLoadBalancers(sdkLoadBalancers)
+	got := adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers)
 
 	assert.Len(t, got.LoadBalancers, 1)
 	assert.Equal(t, "id", got.LoadBalancers[0].ID.ValueString())
