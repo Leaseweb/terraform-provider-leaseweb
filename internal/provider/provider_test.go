@@ -1014,7 +1014,7 @@ func TestAccLoadBalancerResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
   reference = "my-loadbalancer1"
@@ -1026,37 +1026,37 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"id",
 							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"region",
 							"eu-west-3",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"type",
 							"lsw.m3.large",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"reference",
 							"my-loadbalancer1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"contract.billing_frequency",
 							"1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"contract.term",
 							"0",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"contract.type",
 							"HOURLY",
 						),
@@ -1064,14 +1064,14 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 				},
 				// ImportState testing
 				{
-					ResourceName:      "leaseweb_public_cloud_loadbalancer.test",
+					ResourceName:      "leaseweb_public_cloud_load_balancer.test",
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
   reference = "my-loadbalancer1"
@@ -1083,37 +1083,37 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"id",
 							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"region",
 							"eu-west-3",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"type",
 							"lsw.m3.large",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"reference",
 							"my-loadbalancer1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"contract.billing_frequency",
 							"1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"contract.term",
 							"0",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_loadbalancer.test",
+							"leaseweb_public_cloud_load_balancer.test",
 							"contract.type",
 							"HOURLY",
 						),
@@ -1132,7 +1132,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
   reference = "my-loadbalancer1"
@@ -1157,7 +1157,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
   reference = "my-loadbalancer1"
@@ -1180,7 +1180,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "tralala"
   reference = "my-loadbalancer1"
@@ -1204,7 +1204,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "tralala"
   type = "lsw.m4.2xlarge"
   reference = "my-loadbalancer1"
@@ -1226,7 +1226,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.2xlarge"
   reference = "my-loadbalancer1"
@@ -1250,7 +1250,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.2xlarge"
   reference = "my-loadbalancer1"
@@ -1274,7 +1274,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.2xlarge"
   reference = "my-loadbalancer1"
@@ -1323,7 +1323,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   contract = {}
 }`,
 						ExpectError: regexp.MustCompile(scenario.expectedError),
@@ -1333,55 +1333,13 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 		})
 	}
 
-	/**
-	  	  	t.Run(
-	  	  		"upgrading to invalid instanceType is not allowed",
-	  	  		func(t *testing.T) {
-	  	  			resource.Test(t, resource.TestCase{
-	  	  				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-	  	  				Steps: []resource.TestStep{
-	  	  					{
-	  	  						Config: providerConfig + `
-	  	  resource "leaseweb_public_cloud_instance" "test" {
-	  	    region = "eu-west-3"
-	  	    type = "lsw.m3.large"
-	        reference = "my-loadbalancer1"
-	  	    contract = {
-	  	      billing_frequency = 1
-	  	      term              = 0
-	  	      type              = "HOURLY"
-	  	    }
-	  	  }`,
-	  	  					},
-	  	  					{
-	  	  						Config: providerConfig + `
-	  	  resource "leaseweb_public_cloud_instance" "test" {
-	  	    region = "eu-west-3"
-	  	    type = "lsw.m4.large"
-	        reference = "my-loadbalancer1"
-	  	    contract = {
-	  	      billing_frequency = 1
-	  	      term              = 0
-	  	      type              = "HOURLY"
-	  	    }
-	  	  }`,
-	  	  						ExpectError: regexp.MustCompile(
-	  	  							"Attribute type value must be one of:",
-	  	  						),
-	  	  					},
-	  	  				},
-	  	  			})
-	  	  		},
-	  	  	)
-	*/
-
 	t.Run("changing the region triggers replacement", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
   reference = "my-loadbalancer1"
@@ -1396,7 +1354,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 					ConfigPlanChecks: resource.ConfigPlanChecks{
 						PreApply: []plancheck.PlanCheck{
 							plancheck.ExpectResourceAction(
-								"leaseweb_public_cloud_loadbalancer.test",
+								"leaseweb_public_cloud_load_balancer.test",
 								plancheck.ResourceActionDestroyBeforeCreate,
 							),
 						},
@@ -1406,7 +1364,7 @@ resource "leaseweb_public_cloud_loadbalancer" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_loadbalancer" "test" {
+resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-2"
   type = "lsw.m3.large"
   reference = "my-loadbalancer1"

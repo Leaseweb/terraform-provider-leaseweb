@@ -24,10 +24,9 @@ import (
 var (
 	_ resource.ResourceWithConfigure   = &loadBalancerResource{}
 	_ resource.ResourceWithImportState = &loadBalancerResource{}
-	_ resource.ResourceWithModifyPlan  = &loadBalancerResource{}
 )
 
-type resourceModelLoadBalancer struct {
+type loadBalancerResourceModel struct {
 	ID        types.String `tfsdk:"id"`
 	Region    types.String `tfsdk:"region"`
 	Type      types.String `tfsdk:"type"`
@@ -35,7 +34,7 @@ type resourceModelLoadBalancer struct {
 	Contract  types.Object `tfsdk:"contract"`
 }
 
-func (l *resourceModelLoadBalancer) AttributeTypes() map[string]attr.Type {
+func (l *loadBalancerResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":        types.StringType,
 		"region":    types.StringType,
@@ -47,7 +46,7 @@ func (l *resourceModelLoadBalancer) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (l *resourceModelLoadBalancer) GetLaunchLoadBalancerOpts(ctx context.Context) (
+func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Context) (
 	*publicCloud.LaunchLoadBalancerOpts,
 	error,
 ) {
@@ -105,7 +104,7 @@ func (l *resourceModelLoadBalancer) GetLaunchLoadBalancerOpts(ctx context.Contex
 	return opts, nil
 }
 
-func (l *resourceModelLoadBalancer) GetUpdateLoadBalancerOpts() (
+func (l *loadBalancerResourceModel) GetUpdateLoadBalancerOpts() (
 	*publicCloud.UpdateLoadBalancerOpts,
 	error,
 ) {
@@ -125,11 +124,11 @@ func (l *resourceModelLoadBalancer) GetUpdateLoadBalancerOpts() (
 	return opts, nil
 }
 
-func adaptSdkLoadBalancerDetailsToResourceLoadBalancer(
+func adaptLoadBalancerDetailsToLoadBalancerResource(
 	sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
 	ctx context.Context,
-) (*resourceModelLoadBalancer, error) {
-	loadBalancer := resourceModelLoadBalancer{
+) (*loadBalancerResourceModel, error) {
+	loadBalancer := loadBalancerResourceModel{
 		ID:        basetypes.NewStringValue(sdkLoadBalancerDetails.GetId()),
 		Region:    basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetRegion())),
 		Type:      basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetType())),
@@ -198,7 +197,7 @@ func (l *loadBalancerResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_loadbalancer"
+	response.TypeName = request.ProviderTypeName + "_public_cloud_load_balancer"
 }
 
 func (l *loadBalancerResource) Schema(
@@ -299,7 +298,7 @@ func (l *loadBalancerResource) Create(
 	request resource.CreateRequest,
 	response *resource.CreateResponse,
 ) {
-	var plan resourceModelLoadBalancer
+	var plan loadBalancerResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
 	response.Diagnostics.Append(diags...)
@@ -307,12 +306,12 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	tflog.Info(ctx, "Launch publiccloud loadBalancer")
+	tflog.Info(ctx, "Launch Public Cloud load balancer")
 
 	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Error creating launch loadBalancer opts",
+			"Error creating Public Cloud load balancer LaunchLoadBalancerOpts",
 			err.Error(),
 		)
 
@@ -326,7 +325,7 @@ func (l *loadBalancerResource) Create(
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
 		response.Diagnostics.AddError(
-			"Error launching loadBalancer",
+			"Error launching Public Cloud load balancer",
 			sdkErr.Error(),
 		)
 
@@ -334,20 +333,20 @@ func (l *loadBalancerResource) Create(
 			ctx,
 			sdkErr.ErrorResponse,
 			&response.Diagnostics,
-			"Error launching publiccloud loadBalancer",
+			"Error launching Public Cloud load balancer",
 			sdkErr.Error(),
 		)
 
 		return
 	}
 
-	loadBalancer, resourceErr := adaptSdkLoadBalancerDetailsToResourceLoadBalancer(
+	loadBalancer, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(
 		*sdkLoadBalancer,
 		ctx,
 	)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(
-			"Error creating publiccloud loadBalancer resource",
+			"Error creating Public Cloud load balancer resource",
 			resourceErr.Error(),
 		)
 
@@ -356,9 +355,6 @@ func (l *loadBalancerResource) Create(
 
 	diags = response.State.Set(ctx, loadBalancer)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (l *loadBalancerResource) Read(
@@ -366,7 +362,7 @@ func (l *loadBalancerResource) Read(
 	request resource.ReadRequest,
 	response *resource.ReadResponse,
 ) {
-	var state resourceModelLoadBalancer
+	var state loadBalancerResourceModel
 	diags := request.State.Get(ctx, &state)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
@@ -376,7 +372,7 @@ func (l *loadBalancerResource) Read(
 	tflog.Info(
 		ctx,
 		fmt.Sprintf(
-			"Read publiccloud loadBalancer %q",
+			"Read Public Cloud load balancer %q",
 			state.ID.ValueString(),
 		),
 	)
@@ -386,7 +382,7 @@ func (l *loadBalancerResource) Read(
 	if err != nil {
 		sdkError := utils.NewSdkError("", err, apiResponse)
 		response.Diagnostics.AddError(
-			"Error reading publiccloud loadBalancer",
+			"Error reading Public Cloud load balancer",
 			sdkError.Error(),
 		)
 
@@ -395,7 +391,7 @@ func (l *loadBalancerResource) Read(
 			sdkError.ErrorResponse,
 			&response.Diagnostics,
 			fmt.Sprintf(
-				"Unable to read publiccloud loadBalancer %q",
+				"Unable to read Public Cloud load balancer %q",
 				state.ID.ValueString(),
 			),
 			err.Error(),
@@ -408,7 +404,7 @@ func (l *loadBalancerResource) Read(
 		"Create publiccloud loadBalancer resource for %q",
 		state.ID.ValueString(),
 	))
-	instance, resourceErr := adaptSdkLoadBalancerDetailsToResourceLoadBalancer(
+	instance, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(
 		*sdkLoadBalancerDetails,
 		ctx,
 	)
@@ -423,9 +419,6 @@ func (l *loadBalancerResource) Read(
 
 	diags = response.State.Set(ctx, instance)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (l *loadBalancerResource) Update(
@@ -433,7 +426,7 @@ func (l *loadBalancerResource) Update(
 	request resource.UpdateRequest,
 	response *resource.UpdateResponse,
 ) {
-	var plan resourceModelLoadBalancer
+	var plan loadBalancerResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
 	response.Diagnostics.Append(diags...)
@@ -442,13 +435,13 @@ func (l *loadBalancerResource) Update(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf(
-		"Update publiccloud loadBalancer %q",
+		"Update Public Cloud load balancer %q",
 		plan.ID.ValueString(),
 	))
 	opts, err := plan.GetUpdateLoadBalancerOpts()
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Error creating UpdateInstanceOpts",
+			"Error creating Public Cloud load balancer UpdateInstanceOpts",
 			err.Error(),
 		)
 		return
@@ -462,7 +455,7 @@ func (l *loadBalancerResource) Update(
 		sdkErr := utils.NewSdkError("", err, apiResponse)
 
 		response.Diagnostics.AddError(
-			"Error updating publiccloud loadBalancer",
+			"Error updating Public Cloud load balancer",
 			sdkErr.Error(),
 		)
 
@@ -471,7 +464,7 @@ func (l *loadBalancerResource) Update(
 			sdkErr.ErrorResponse,
 			&response.Diagnostics,
 			fmt.Sprintf(
-				"Unable to update publiccloud loadBalancer %q",
+				"Unable to update Public Cloud load balancer %q",
 				plan.ID.ValueString(),
 			),
 			sdkErr.Error(),
@@ -482,13 +475,14 @@ func (l *loadBalancerResource) Update(
 
 	diags = response.State.Set(ctx, sdkLoadBalancer)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 }
 
-func (l *loadBalancerResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
-	var state resourceModelLoadBalancer
+func (l *loadBalancerResource) Delete(
+	ctx context.Context,
+	request resource.DeleteRequest,
+	response *resource.DeleteResponse,
+) {
+	var state loadBalancerResourceModel
 	diags := request.State.Get(ctx, &state)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
@@ -496,16 +490,16 @@ func (l *loadBalancerResource) Delete(ctx context.Context, request resource.Dele
 	}
 
 	tflog.Info(ctx, fmt.Sprintf(
-		"Terminate publiccloud loadBalancer %q",
+		"Terminate Public Cloud load balancer %q",
 		state.ID.ValueString(),
 	))
 	err := terminateInstance(state.ID.ValueString(), ctx, l.client.PublicCloudAPI)
 
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Error terminating publiccloud loadBalancer",
+			"Error terminating Public Cloud load balancer",
 			fmt.Sprintf(
-				"Could not terminate publiccloud loadBalancer, unexpected error: %q",
+				"Could not terminate Public Cloud load balancer, unexpected error: %q",
 				err.Error(),
 			),
 		)
@@ -515,7 +509,7 @@ func (l *loadBalancerResource) Delete(ctx context.Context, request resource.Dele
 			err.ErrorResponse,
 			&response.Diagnostics,
 			fmt.Sprintf(
-				"Error terminating publiccloud loadBalancer %q",
+				"Error terminating Public Cloud load balancer %q",
 				state.ID.ValueString(),
 			),
 			err.Error(),
@@ -523,13 +517,6 @@ func (l *loadBalancerResource) Delete(ctx context.Context, request resource.Dele
 
 		return
 	}
-}
-
-func (l *loadBalancerResource) ModifyPlan(
-	_ context.Context,
-	_ resource.ModifyPlanRequest,
-	_ *resource.ModifyPlanResponse,
-) {
 }
 
 func NewLoadBalancerResource() resource.Resource {

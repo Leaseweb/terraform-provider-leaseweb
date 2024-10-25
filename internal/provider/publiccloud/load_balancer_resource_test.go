@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_adaptSdkLoadBalancerDetailsToResourceLoadBalancer(t *testing.T) {
+func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
 		loadBalancerDetails := publicCloud.LoadBalancerDetails{
 			Id:        "id",
@@ -22,7 +22,7 @@ func Test_adaptSdkLoadBalancerDetailsToResourceLoadBalancer(t *testing.T) {
 			},
 		}
 
-		got, err := adaptSdkLoadBalancerDetailsToResourceLoadBalancer(
+		got, err := adaptLoadBalancerDetailsToLoadBalancerResource(
 			loadBalancerDetails,
 			context.TODO(),
 		)
@@ -51,7 +51,7 @@ func Test_adaptSdkLoadBalancerDetailsToResourceLoadBalancer(t *testing.T) {
 			},
 		}
 
-		got, err := adaptSdkLoadBalancerDetailsToResourceLoadBalancer(
+		got, err := adaptLoadBalancerDetailsToLoadBalancerResource(
 			loadBalancerDetails,
 			context.TODO(),
 		)
@@ -62,9 +62,9 @@ func Test_adaptSdkLoadBalancerDetailsToResourceLoadBalancer(t *testing.T) {
 
 }
 
-func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
+func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		loadBalancer := generateLoadBalancerModel()
+		loadBalancer := generateLoadBalancerResourceModel()
 		loadBalancer.Reference = basetypes.NewStringPointerValue(nil)
 
 		got, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
@@ -83,7 +83,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 	t.Run("optional values are passed", func(t *testing.T) {
 		reference := "reference"
 
-		loadBalancer := generateLoadBalancerModel()
+		loadBalancer := generateLoadBalancerResourceModel()
 		loadBalancer.Reference = basetypes.NewStringPointerValue(&reference)
 
 		got, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
@@ -95,7 +95,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			loadBalancer.Type = basetypes.NewStringValue("tralala")
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
@@ -109,7 +109,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			contract := generateContractObject(
 				nil,
 				nil,
@@ -129,7 +129,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			contract := generateContractObject(
 				nil,
 				&contractTerm,
@@ -149,7 +149,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			contract := generateContractObject(
 				&billingFrequency,
 				nil,
@@ -168,7 +168,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid region is passed",
 		func(t *testing.T) {
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			loadBalancer.Region = basetypes.NewStringValue("tralala")
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
@@ -181,7 +181,7 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 	t.Run(
 		"returns error if resourceModelContract resource is incorrect",
 		func(t *testing.T) {
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			loadBalancer.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
@@ -192,12 +192,12 @@ func Test_resourceModelLoadBalancer_GetLaunchLoadBalancerOpts(t *testing.T) {
 	)
 }
 
-func Test_resourceModelLoadBalancer_GetUpdateLoadBalancerOpts(t *testing.T) {
+func Test_loadBalancerResourceModel_GetUpdateLoadBalancerOpts(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
 		reference := "reference"
 		loadBalancerType := string(publicCloud.TYPENAME_C3_2XLARGE)
 
-		loadBalancer := generateLoadBalancerModel()
+		loadBalancer := generateLoadBalancerResourceModel()
 		loadBalancer.Type = basetypes.NewStringPointerValue(&loadBalancerType)
 		loadBalancer.Reference = basetypes.NewStringPointerValue(&reference)
 
@@ -211,7 +211,7 @@ func Test_resourceModelLoadBalancer_GetUpdateLoadBalancerOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			loadBalancer := generateLoadBalancerModel()
+			loadBalancer := generateLoadBalancerResourceModel()
 			loadBalancer.Type = basetypes.NewStringValue("tralala")
 
 			_, err := loadBalancer.GetUpdateLoadBalancerOpts()
@@ -222,7 +222,7 @@ func Test_resourceModelLoadBalancer_GetUpdateLoadBalancerOpts(t *testing.T) {
 	)
 }
 
-func generateLoadBalancerModel() resourceModelLoadBalancer {
+func generateLoadBalancerResourceModel() loadBalancerResourceModel {
 	contract := generateContractObject(
 		nil,
 		nil,
@@ -230,7 +230,7 @@ func generateLoadBalancerModel() resourceModelLoadBalancer {
 		nil,
 	)
 
-	return resourceModelLoadBalancer{
+	return loadBalancerResourceModel{
 		ID:        basetypes.NewStringValue("305c0bd8-b157-4a9c-885a-e07df86a714f"),
 		Region:    basetypes.NewStringValue(string(publicCloud.REGIONNAME_EU_WEST_3)),
 		Type:      basetypes.NewStringValue(string(publicCloud.TYPENAME_C3_2XLARGE)),
