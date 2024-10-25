@@ -35,7 +35,7 @@ func (v contractTermValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	request.ConfigValue.As(ctx, &contract, basetypes.ObjectAsOptions{})
 	valid, reason := contract.IsContractTermValid()
 
@@ -61,7 +61,7 @@ func (v contractTermValidator) ValidateObject(
 	}
 }
 
-// instanceTerminationValidator validates if the resourceModelInstance is allowed to be terminated.
+// instanceTerminationValidator validates if the instanceResourceModel is allowed to be terminated.
 type instanceTerminationValidator struct{}
 
 func (i instanceTerminationValidator) Description(_ context.Context) string {
@@ -87,7 +87,7 @@ func (i instanceTerminationValidator) ValidateObject(
 	request validator.ObjectRequest,
 	response *validator.ObjectResponse,
 ) {
-	instance := resourceModelInstance{}
+	instance := instanceResourceModel{}
 
 	diags := request.ConfigValue.As(ctx, &instance, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
@@ -99,7 +99,7 @@ func (i instanceTerminationValidator) ValidateObject(
 
 	if reason != nil {
 		response.Diagnostics.AddError(
-			"resourceModelInstance is not allowed to be terminated",
+			"instance is not allowed to be terminated",
 			string(*reason),
 		)
 	}

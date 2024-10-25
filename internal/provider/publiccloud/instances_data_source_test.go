@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_adaptSdkContractToDatasourceContract(t *testing.T) {
+func Test_adaptContractToContractDataSource(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -22,19 +22,19 @@ func Test_adaptSdkContractToDatasourceContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := dataSourceModelContract{
+	want := contractDataSourceModel{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got := adaptSdkContractToDatasourceContract(sdkContract)
+	got := adaptContractToContractDataSource(sdkContract)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
+func Test_adaptInstanceToInstanceDataSource(t *testing.T) {
 	reference := "reference"
 	marketAppId := "marketAppId"
 
@@ -58,7 +58,7 @@ func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
 		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
 	}
 
-	got := adaptSdkInstanceToDatasourceInstance(sdkInstance)
+	got := adaptInstanceToInstanceDataSource(sdkInstance)
 
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
@@ -74,12 +74,12 @@ func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
 	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 }
 
-func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
+func Test_adaptInstancesToInstancesDatasource(t *testing.T) {
 	sdkInstances := []publicCloud.Instance{
 		{Id: "id"},
 	}
 
-	got := adaptSdkInstancesToDatasourceInstances(sdkInstances)
+	got := adaptInstancesToInstancesDataSource(sdkInstances)
 
 	assert.Len(t, got.Instances, 1)
 	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
