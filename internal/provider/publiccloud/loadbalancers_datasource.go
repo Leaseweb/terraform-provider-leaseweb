@@ -21,9 +21,9 @@ var (
 
 type datasourceModelLoadBalancer struct {
 	ID        types.String            `tfsdk:"id"`
-	IPs       []dataSourceModelIP     `tfsdk:"ips"`
+	IPs       []iPDataSourceModel     `tfsdk:"ips"`
 	Reference types.String            `tfsdk:"reference"`
-	Contract  dataSourceModelContract `tfsdk:"contract"`
+	Contract  contractDataSourceModel `tfsdk:"contract"`
 	State     types.String            `tfsdk:"state"`
 	Region    types.String            `tfsdk:"region"`
 	Type      types.String            `tfsdk:"type"`
@@ -34,16 +34,16 @@ type datasourceModelLoadBalancers struct {
 }
 
 func adaptSdkLoadBalancerDetailsToDatasourceLoadBalancer(sdkLoadBalancerDetails publicCloud.LoadBalancerDetails) datasourceModelLoadBalancer {
-	var ips []dataSourceModelIP
+	var ips []iPDataSourceModel
 	for _, ip := range sdkLoadBalancerDetails.Ips {
-		ips = append(ips, dataSourceModelIP{IP: basetypes.NewStringValue(ip.GetIp())})
+		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
 	return datasourceModelLoadBalancer{
 		ID:        basetypes.NewStringValue(sdkLoadBalancerDetails.GetId()),
 		IPs:       ips,
 		Reference: basetypes.NewStringPointerValue(sdkLoadBalancerDetails.Reference.Get()),
-		Contract:  adaptSdkContractToDatasourceContract(sdkLoadBalancerDetails.GetContract()),
+		Contract:  adaptContractToContractDataSource(sdkLoadBalancerDetails.GetContract()),
 		State:     basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetState())),
 		Region:    basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetRegion())),
 		Type:      basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetType())),

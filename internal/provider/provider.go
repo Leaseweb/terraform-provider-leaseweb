@@ -19,7 +19,7 @@ var (
 	_ provider.Provider = &leasewebProvider{}
 )
 
-func NewProvider(version string) func() provider.Provider {
+func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &leasewebProvider{
 			version: version,
@@ -157,11 +157,13 @@ func (p *leasewebProvider) Configure(
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		publiccloud.NewInstancesDataSource,
+		publiccloud.NewCredentialDataSource,
 		NewDedicatedServerDataSource,
 		NewDedicatedServersDataSource,
 		NewDedicatedServerControlPanelsDataSource,
 		NewDedicatedServerOperatingSystemsDataSource,
 		NewDedicatedServerCredentialDataSource,
+		publiccloud.NewImagesDataSource,
 		publiccloud.NewLoadBalancersDataSource,
 	}
 }

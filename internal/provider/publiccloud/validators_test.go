@@ -14,7 +14,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"does not set error if contract term is correct",
 		func(t *testing.T) {
-			contract := resourceModelContract{}
+			contract := contractResourceModel{}
 			configValue, _ := types.ObjectValueFrom(
 				context.TODO(),
 				contract.AttributeTypes(),
@@ -37,7 +37,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"returns expected error if contract term cannot be 0",
 		func(t *testing.T) {
-			contract := resourceModelContract{
+			contract := contractResourceModel{
 				Type: basetypes.NewStringValue("MONTHLY"),
 				Term: basetypes.NewInt64Value(0),
 			}
@@ -68,7 +68,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 	t.Run(
 		"returns expected error if contract term must be 0",
 		func(t *testing.T) {
-			contract := resourceModelContract{
+			contract := contractResourceModel{
 				Type: basetypes.NewStringValue("HOURLY"),
 				Term: basetypes.NewInt64Value(3),
 			}
@@ -154,20 +154,20 @@ func Test_instanceTerminationValidator_ValidateObject(t *testing.T) {
 	)
 }
 
-func generateInstanceModelForValidator() resourceModelInstance {
-	contract := resourceModelContract{}
+func generateInstanceModelForValidator() instanceResourceModel {
+	contract := contractResourceModel{}
 	contractObject, _ := types.ObjectValueFrom(
 		context.TODO(),
 		contract.AttributeTypes(),
 		contract,
 	)
 
-	return resourceModelInstance{
+	return instanceResourceModel{
 		ID:        basetypes.NewStringUnknown(),
 		Region:    basetypes.NewStringUnknown(),
 		Reference: basetypes.NewStringUnknown(),
 		Image: basetypes.NewObjectUnknown(
-			resourceModelImage{}.AttributeTypes(),
+			imageResourceModel{}.AttributeTypes(),
 		),
 		State:               basetypes.NewStringUnknown(),
 		Type:                basetypes.NewStringUnknown(),
@@ -175,7 +175,7 @@ func generateInstanceModelForValidator() resourceModelInstance {
 		RootDiskStorageType: basetypes.NewStringUnknown(),
 		IPs: basetypes.NewListUnknown(
 			types.ObjectType{
-				AttrTypes: resourceModelIP{}.AttributeTypes(),
+				AttrTypes: iPResourceModel{}.AttributeTypes(),
 			},
 		),
 		Contract:    contractObject,
