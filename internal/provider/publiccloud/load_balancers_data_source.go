@@ -30,7 +30,7 @@ type loadBalancerDataSourceModel struct {
 }
 
 type loadBalancersDataSourceModel struct {
-	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"loadbalancers"`
+	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"load_balancers"`
 }
 
 func adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails publicCloud.LoadBalancerDetails) loadBalancerDataSourceModel {
@@ -96,7 +96,11 @@ func getAllLoadBalancers(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllImages", err, response)
+			return nil, utils.NewSdkError(
+				"getAllLoadBalancers",
+				err,
+				response,
+			)
 		}
 	}
 
@@ -112,7 +116,7 @@ func (l *loadBalancersDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_loadbalancers"
+	response.TypeName = request.ProviderTypeName + "_public_cloud_load_balancers"
 }
 
 func (l *loadBalancersDataSource) Schema(
@@ -122,7 +126,7 @@ func (l *loadBalancersDataSource) Schema(
 ) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"loadbalancers": schema.ListNestedAttribute{
+			"load_balancers": schema.ListNestedAttribute{
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -183,16 +187,19 @@ func (l *loadBalancersDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	tflog.Info(ctx, "Read publiccloud loadBalancers")
+	tflog.Info(ctx, "Read Public Cloud load balancers")
 	loadBalancers, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
 
 	if err != nil {
-		response.Diagnostics.AddError("Unable to read loadBalancers", err.Error())
+		response.Diagnostics.AddError(
+			"Unable to read Public Cloud load balancers",
+			err.Error(),
+		)
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&response.Diagnostics,
-			"Unable to read loadBalancers",
+			"Unable to read Public Cloud load balancers",
 			err.Error(),
 		)
 

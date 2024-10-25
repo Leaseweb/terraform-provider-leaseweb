@@ -1012,16 +1012,16 @@ func TestAccLoadBalancersDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: providerConfig + `data "leaseweb_public_cloud_loadbalancers" "test" {}`,
+				Config: providerConfig + `data "leaseweb_public_cloud_load_balancers" "test" {}`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"data.leaseweb_public_cloud_loadbalancers.test",
-						"loadbalancers.#",
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.#",
 						"1",
 					),
 					resource.TestCheckResourceAttr(
-						"data.leaseweb_public_cloud_loadbalancers.test",
-						"loadbalancers.0.id",
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.id",
 						"5fd135a9-3ff6-4794-8b92-8cd8747a3ea3",
 					),
 				),
