@@ -49,7 +49,7 @@ To run the full suite of Acceptance tests, run `make testacc`.
 
 _Note:_ Acceptance tests create real resources, and often cost money to run.
 
-Code architecture is discussed in a [separate file](ARCHITECTURE.md).
+Code architecture is discussed in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```shell
 make testacc
