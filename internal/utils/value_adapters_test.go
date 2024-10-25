@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -95,35 +94,13 @@ func TestAdaptNullableTimeToStringValue(t *testing.T) {
 func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
-	t.Run("generateTerraformModel returns an error", func(t *testing.T) {
-		got, err := AdaptSdkModelToResourceObject(
-			entity,
-			map[string]attr.Type{},
-			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-				return nil, errors.New("tralala")
-			},
-		)
-
-		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
 		got, err := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (model *mockModel, err error) {
-
-				return &mockModel{}, nil
+			func(entity mockDomainEntity) (model mockModel) {
+				return mockModel{}
 			},
 		)
 
@@ -137,12 +114,8 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 			entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
-			func(
-				ctx context.Context,
-				entity mockDomainEntity,
-			) (*mockModel, error) {
-
-				return &mockModel{Value: "tralala"}, nil
+			func(entity mockDomainEntity) mockModel {
+				return mockModel{Value: "tralala"}
 			},
 		)
 
@@ -161,12 +134,8 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-
-					return &mockModel{Value: "tralala"}, nil
+				func(entity mockDomainEntity) mockModel {
+					return mockModel{Value: "tralala"}
 				},
 			)
 
@@ -181,38 +150,14 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	)
 
 	t.Run(
-		"error is returned if list element cannot be converted",
-		func(t *testing.T) {
-			_, err := AdaptSdkModelsToListValue(
-				[]mockDomainEntity{entity},
-				map[string]attr.Type{"value": types.StringType},
-				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-					return nil, errors.New("tralala")
-				},
-			)
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
-		},
-	)
-
-	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
 			_, err := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
-				func(
-					ctx context.Context,
-					entity mockDomainEntity,
-				) (*mockModel, error) {
-
-					return &mockModel{Value: "tralala"}, nil
+				func(entity mockDomainEntity) mockModel {
+					return mockModel{Value: "tralala"}
 				},
 			)
 
@@ -220,6 +165,26 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 			assert.ErrorContains(t, err, "Value Conversion Error")
 		},
 	)
+}
+
+func TestAdaptStringPointerValueToNullableString(t *testing.T) {
+	t.Run("returns nil when value is unknown", func(t *testing.T) {
+		value := basetypes.NewStringUnknown()
+		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
+	})
+
+	t.Run("returns pointer when value is set", func(t *testing.T) {
+		target := "tralala"
+		value := basetypes.NewStringPointerValue(&target)
+
+		assert.Equal(t, target, *AdaptStringPointerValueToNullableString(value))
+	})
+
+	t.Run("returns nil when value is not set", func(t *testing.T) {
+		value := basetypes.NewStringPointerValue(nil)
+
+		assert.Nil(t, AdaptStringPointerValueToNullableString(value))
+	})
 }
 
 func ExampleAdaptNullableTimeToStringValue() {
@@ -248,10 +213,10 @@ func ExampleAdaptSdkModelToResourceObject() {
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, image publicCloud.Image) (*Image, error) {
-			return &Image{
+		func(image publicCloud.Image) Image {
+			return Image{
 				Id: basetypes.NewStringValue(image.Id),
-			}, nil
+			}
 		},
 	)
 
@@ -270,10 +235,10 @@ func ExampleAdaptSdkModelsToListValue() {
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ctx context.Context, ip publicCloud.Ip) (*Ip, error) {
-			return &Ip{
+		func(ip publicCloud.Ip) Ip {
+			return Ip{
 				Ip: basetypes.NewStringValue(ip.Ip),
-			}, nil
+			}
 		},
 	)
 
@@ -300,6 +265,25 @@ func TestReturnError(t *testing.T) {
 
 		assert.NoError(t, got)
 	})
+}
+
+func ExampleAdaptStringPointerValueToNullableString() {
+	value := "tralala"
+	terraformStringPointerValue := basetypes.NewStringPointerValue(&value)
+
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(*convertedValue)
+	// Output: tralala
+}
+
+func ExampleAdaptStringPointerValueToNullableString_second() {
+	terraformStringPointerValue := basetypes.NewStringPointerValue(nil)
+
+	convertedValue := AdaptStringPointerValueToNullableString(terraformStringPointerValue)
+
+	fmt.Println(convertedValue)
+	// Output: <nil>
 }
 
 func ExampleReturnError() {

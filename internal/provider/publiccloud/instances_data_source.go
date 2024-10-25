@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
@@ -16,8 +18,80 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithConfigure = &InstancesDataSource{}
+	_ datasource.DataSourceWithConfigure = &instancesDataSource{}
 )
+
+type contractDataSourceModel struct {
+	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
+	Term             types.Int64  `tfsdk:"term"`
+	Type             types.String `tfsdk:"type"`
+	EndsAt           types.String `tfsdk:"ends_at"`
+	State            types.String `tfsdk:"state"`
+}
+
+func adaptContractToContractDataSource(sdkContract publicCloud.Contract) contractDataSourceModel {
+	return contractDataSourceModel{
+		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
+		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
+	}
+}
+
+type instanceDataSourceModel struct {
+	ID                  types.String            `tfsdk:"id"`
+	Region              types.String            `tfsdk:"region"`
+	Reference           types.String            `tfsdk:"reference"`
+	Image               imageModelDataSource    `tfsdk:"image"`
+	State               types.String            `tfsdk:"state"`
+	Type                types.String            `tfsdk:"type"`
+	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`
+	RootDiskStorageType types.String            `tfsdk:"root_disk_storage_type"`
+	IPs                 []iPDataSourceModel     `tfsdk:"ips"`
+	Contract            contractDataSourceModel `tfsdk:"contract"`
+	MarketAppID         types.String            `tfsdk:"market_app_id"`
+}
+
+func adaptInstanceToInstanceDataSource(sdkInstance publicCloud.Instance) instanceDataSourceModel {
+	var ips []iPDataSourceModel
+	for _, ip := range sdkInstance.Ips {
+		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
+	}
+
+	return instanceDataSourceModel{
+		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
+		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
+		Image:               adaptImageToImageDataSource(sdkInstance.GetImage()),
+		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
+		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
+		IPs:                 ips,
+		Contract:            adaptContractToContractDataSource(sdkInstance.GetContract()),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
+	}
+}
+
+type iPDataSourceModel struct {
+	IP types.String `tfsdk:"ip"`
+}
+
+type instancesDataSourceModel struct {
+	Instances []instanceDataSourceModel `tfsdk:"instances"`
+}
+
+func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) instancesDataSourceModel {
+	var instances instancesDataSourceModel
+
+	for _, sdkInstance := range sdkInstances {
+		instance := adaptInstanceToInstanceDataSource(sdkInstance)
+		instances.Instances = append(instances.Instances, instance)
+	}
+
+	return instances
+}
 
 func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	[]publicCloud.Instance,
@@ -62,14 +136,14 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 }
 
 func NewInstancesDataSource() datasource.DataSource {
-	return &InstancesDataSource{}
+	return &instancesDataSource{}
 }
 
-type InstancesDataSource struct {
+type instancesDataSource struct {
 	client client.Client
 }
 
-func (d *InstancesDataSource) Configure(
+func (d *instancesDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -94,7 +168,7 @@ func (d *InstancesDataSource) Configure(
 	d.client = coreClient
 }
 
-func (d *InstancesDataSource) Metadata(
+func (d *instancesDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -102,7 +176,7 @@ func (d *InstancesDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_public_cloud_instances"
 }
 
-func (d *InstancesDataSource) Read(
+func (d *instancesDataSource) Read(
 	ctx context.Context,
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
@@ -123,13 +197,13 @@ func (d *InstancesDataSource) Read(
 		return
 	}
 
-	state := adaptSdkInstancesToDatasourceInstances(instances)
+	state := adaptInstancesToInstancesDataSource(instances)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 }
 
-func (d *InstancesDataSource) Schema(
+func (d *instancesDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,

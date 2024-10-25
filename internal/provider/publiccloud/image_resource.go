@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
@@ -19,8 +21,99 @@ var (
 	_ resource.ResourceWithConfigure   = &imageResource{}
 	_ resource.ResourceWithImportState = &imageResource{}
 	_ resource.ResourceWithModifyPlan  = &imageResource{}
-	_ validator.String                 = instanceIdForCustomImageValidator{}
 )
+
+type imageResourceModel struct {
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Custom       types.Bool   `tfsdk:"custom"`
+	State        types.String `tfsdk:"state"`
+	MarketApps   types.List   `tfsdk:"market_apps"`
+	StorageTypes types.List   `tfsdk:"storage_types"`
+	Flavour      types.String `tfsdk:"flavour"`
+	Region       types.String `tfsdk:"region"`
+}
+
+func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":            types.StringType,
+		"name":          types.StringType,
+		"custom":        types.BoolType,
+		"state":         types.StringType,
+		"market_apps":   types.ListType{ElemType: types.StringType},
+		"storage_types": types.ListType{ElemType: types.StringType},
+		"flavour":       types.StringType,
+		"region":        types.StringType,
+	}
+}
+
+func (i imageResourceModel) GetUpdateImageOpts() publicCloud.UpdateImageOpts {
+	return publicCloud.UpdateImageOpts{
+		Name: i.Name.ValueString(),
+	}
+}
+
+func (i imageResourceModel) GetCreateImageOpts() publicCloud.CreateImageOpts {
+	return publicCloud.CreateImageOpts{
+		Name:       i.Name.ValueString(),
+		InstanceId: i.ID.ValueString(),
+	}
+}
+
+func adaptImageDetailsToImageResource(
+	ctx context.Context,
+	sdkImageDetails publicCloud.ImageDetails,
+) (*imageResourceModel, error) {
+	marketApps, diags := basetypes.NewListValueFrom(
+		ctx,
+		basetypes.StringType{},
+		sdkImageDetails.MarketApps,
+	)
+	if diags.HasError() {
+		return nil, fmt.Errorf(
+			diags.Errors()[0].Summary(),
+			diags.Errors()[0].Detail(),
+		)
+	}
+
+	storageTypes, diags := basetypes.NewListValueFrom(
+		ctx,
+		basetypes.StringType{},
+		sdkImageDetails.StorageTypes,
+	)
+	if diags.HasError() {
+		return nil, fmt.Errorf(
+			diags.Errors()[0].Summary(),
+			diags.Errors()[0].Detail(),
+		)
+	}
+
+	image := imageResourceModel{
+		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
+		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
+		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
+		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
+		MarketApps:   marketApps,
+		StorageTypes: storageTypes,
+		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
+		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
+	}
+
+	return &image, nil
+}
+
+func adaptImageToImageResource(sdkImage publicCloud.Image) imageResourceModel {
+	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
+
+	return imageResourceModel{
+		ID:           basetypes.NewStringValue(sdkImage.GetId()),
+		Name:         basetypes.NewStringValue(sdkImage.GetName()),
+		Custom:       basetypes.NewBoolValue(sdkImage.GetCustom()),
+		Flavour:      basetypes.NewStringValue(string(sdkImage.GetFlavour())),
+		MarketApps:   emptyList,
+		StorageTypes: emptyList,
+	}
+}
 
 func getImage(
 	ID string,
@@ -85,7 +178,7 @@ func (i *imageResource) ModifyPlan(
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
 ) {
-	planImage := resourceModelImage{}
+	planImage := imageResourceModel{}
 	request.Plan.Get(ctx, &planImage)
 
 	instances, err := getAllInstances(ctx, i.client.PublicCloudAPI)
@@ -177,7 +270,7 @@ func (i *imageResource) Create(
 	request resource.CreateRequest,
 	response *resource.CreateResponse,
 ) {
-	var plan resourceModelImage
+	var plan imageResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
 	response.Diagnostics.Append(diags...)
@@ -207,7 +300,7 @@ func (i *imageResource) Create(
 		return
 	}
 
-	instance, resourceErr := adaptSdkImageDetailsToResourceImage(ctx, *sdkImage)
+	instance, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(
 			"Error creating publiccloud image resource",
@@ -225,7 +318,7 @@ func (i *imageResource) Create(
 }
 
 func (i *imageResource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
-	var state resourceModelImage
+	var state imageResourceModel
 
 	diags := request.State.Get(ctx, &state)
 	response.Diagnostics.Append(diags...)
@@ -251,7 +344,7 @@ func (i *imageResource) Read(ctx context.Context, request resource.ReadRequest, 
 		"Create publiccloud image resource for %q",
 		state.ID.ValueString(),
 	))
-	instance, resourceErr := adaptSdkImageDetailsToResourceImage(ctx, *sdkImage)
+	instance, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(
 			"Error creating publiccloud image resource",
@@ -270,7 +363,7 @@ func (i *imageResource) Update(
 	request resource.UpdateRequest,
 	response *resource.UpdateResponse,
 ) {
-	var plan resourceModelImage
+	var plan imageResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
 	response.Diagnostics.Append(diags...)

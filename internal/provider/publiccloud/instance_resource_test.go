@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newDataSourceModelContract(t *testing.T) {
+func Test_adaptContractToContractResource(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
@@ -25,179 +25,19 @@ func Test_newDataSourceModelContract(t *testing.T) {
 		State:            publicCloud.CONTRACTSTATE_ACTIVE,
 	}
 
-	want := dataSourceModelContract{
+	want := contractResourceModel{
 		BillingFrequency: basetypes.NewInt64Value(1),
 		Term:             basetypes.NewInt64Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
 	}
-	got := newDataSourceModelContract(sdkContract)
+	got := adaptContractToContractResource(sdkContract)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_adaptSdkInstanceToDatasourceInstance(t *testing.T) {
-	reference := "reference"
-	marketAppId := "marketAppId"
-
-	sdkInstance := publicCloud.Instance{
-		Id:        "id",
-		Region:    "region",
-		Reference: *publicCloud.NewNullableString(&reference),
-		Image: publicCloud.Image{
-			Id: "imageId",
-		},
-		State:               publicCloud.STATE_CREATING,
-		Type:                publicCloud.TYPENAME_C3_2XLARGE,
-		RootDiskSize:        50,
-		RootDiskStorageType: publicCloud.STORAGETYPE_CENTRAL,
-		Ips: []publicCloud.Ip{
-			{Ip: "127.0.0.1"},
-		},
-		Contract: publicCloud.Contract{
-			Term: publicCloud.CONTRACTTERM__1,
-		},
-		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
-	}
-
-	got := adaptSdkInstanceToDatasourceInstance(sdkInstance)
-
-	assert.Equal(t, "id", got.ID.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
-	assert.Equal(t, "reference", got.Reference.ValueString())
-	assert.Equal(t, "imageId", got.Image.ID.ValueString())
-	assert.Equal(t, "CREATING", got.State.ValueString())
-	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
-	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
-	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Len(t, got.Ips, 1)
-	assert.Equal(t, "127.0.0.1", got.Ips[0].Ip.ValueString())
-	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
-}
-
-func Test_adaptSdkInstancesToDatasourceInstances(t *testing.T) {
-	sdkInstances := []publicCloud.Instance{
-		{Id: "id"},
-	}
-
-	got := adaptSdkInstancesToDatasourceInstances(sdkInstances)
-
-	assert.Len(t, got.Instances, 1)
-	assert.Equal(t, "id", got.Instances[0].ID.ValueString())
-}
-
-func Test_adaptSdkIpToDatasourceIp(t *testing.T) {
-	sdkIp := publicCloud.Ip{
-		Ip: "127.0.0.1",
-	}
-
-	want := dataSourceModelIp{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := adaptSdkIpToDatasourceIp(sdkIp)
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptSdkImageToDatasourceImage(t *testing.T) {
-	sdkImage := publicCloud.Image{
-		Id:      "imageId",
-		Name:    "name",
-		Custom:  true,
-		Flavour: "flavour",
-	}
-
-	want := dataSourceModelImage{
-		ID:      basetypes.NewStringValue("imageId"),
-		Name:    basetypes.NewStringValue("name"),
-		Custom:  basetypes.NewBoolValue(true),
-		Flavour: basetypes.NewStringValue("flavour"),
-	}
-	got := adaptSdkImageToDatasourceImage(sdkImage)
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptSdkImageDetailsToDatasourceImage(t *testing.T) {
-	state := publicCloud.IMAGESTATE_READY
-	region := publicCloud.REGIONNAME_EU_WEST_3
-
-	sdkImageDetails := publicCloud.ImageDetails{
-		Id:           "imageId",
-		Name:         "name",
-		Custom:       true,
-		State:        *publicCloud.NewNullableImageState(&state),
-		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
-		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
-		Flavour:      "flavour",
-		Region:       *publicCloud.NewNullableRegionName(&region),
-	}
-
-	want := dataSourceModelImage{
-		ID:           basetypes.NewStringValue("imageId"),
-		Name:         basetypes.NewStringValue("name"),
-		Custom:       basetypes.NewBoolValue(true),
-		State:        basetypes.NewStringValue("READY"),
-		MarketApps:   []string{"CPANEL_30"},
-		StorageTypes: []string{"CENTRAL"},
-		Flavour:      basetypes.NewStringValue("flavour"),
-		Region:       basetypes.NewStringValue("eu-west-3"),
-	}
-	got := adaptSdkImageDetailsToDatasourceImage(sdkImageDetails)
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptSdkImagesToDatasourceImages(t *testing.T) {
-	sdkImages := []publicCloud.ImageDetails{
-		{Id: "id"},
-	}
-
-	got := adaptSdkImagesToDatasourceImages(sdkImages)
-
-	assert.Len(t, got.Images, 1)
-	assert.Equal(t, "id", got.Images[0].ID.ValueString())
-}
-
-func Test_resourceModelContract_attributeTypes(t *testing.T) {
-	_, diags := types.ObjectValueFrom(
-		context.TODO(),
-		resourceModelContract{}.AttributeTypes(),
-		resourceModelContract{},
-	)
-
-	assert.Nil(t, diags, "attributes should be correct")
-}
-
-func Test_adaptSdkContractToResourceContract(t *testing.T) {
-	endsAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2023-12-14 17:09:47",
-	)
-	sdkContract := publicCloud.Contract{
-		BillingFrequency: publicCloud.BILLINGFREQUENCY__1,
-		Term:             publicCloud.CONTRACTTERM__3,
-		Type:             publicCloud.CONTRACTTYPE_HOURLY,
-		EndsAt:           *publicCloud.NewNullableTime(&endsAt),
-		State:            publicCloud.CONTRACTSTATE_ACTIVE,
-	}
-
-	want := resourceModelContract{
-		BillingFrequency: basetypes.NewInt64Value(1),
-		Term:             basetypes.NewInt64Value(3),
-		Type:             basetypes.NewStringValue("HOURLY"),
-		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
-		State:            basetypes.NewStringValue("ACTIVE"),
-	}
-	got, err := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
-
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
-}
-
-func Test_contract_IsContractTermValid(t *testing.T) {
+func Test_contractResourceModel_IsContractTermValid(t *testing.T) {
 	t.Run(
 		"false is returned when contract term is monthly and contract term is 0",
 		func(t *testing.T) {
@@ -206,7 +46,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_MONTHLY,
 			}
 
-			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+			contract := adaptContractToContractResource(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -223,7 +63,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+			contract := adaptContractToContractResource(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -240,7 +80,7 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 				Type: publicCloud.CONTRACTTYPE_HOURLY,
 			}
 
-			contract, _ := adaptSdkContractToResourceContract(context.TODO(), sdkContract)
+			contract := adaptContractToContractResource(sdkContract)
 
 			got, reason := contract.IsContractTermValid()
 
@@ -248,74 +88,6 @@ func Test_contract_IsContractTermValid(t *testing.T) {
 			assert.Equal(t, reasonNone, reason)
 		},
 	)
-}
-
-func Test_adaptSdkImageToResourceImage(t *testing.T) {
-	sdkImage := publicCloud.Image{
-		Id:      "imageId",
-		Name:    "name",
-		Custom:  true,
-		Flavour: "flavour",
-	}
-
-	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
-	want := resourceModelImage{
-		ID:           basetypes.NewStringValue("imageId"),
-		Name:         basetypes.NewStringValue("name"),
-		Custom:       basetypes.NewBoolValue(true),
-		Flavour:      basetypes.NewStringValue("flavour"),
-		MarketApps:   emptyList,
-		StorageTypes: emptyList,
-	}
-	got, err := adaptSdkImageToResourceImage(context.TODO(), sdkImage)
-
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
-}
-
-func Test_adaptSdkImageDetailsToResourceImage(t *testing.T) {
-	state := publicCloud.IMAGESTATE_READY
-	region := publicCloud.REGIONNAME_EU_WEST_3
-
-	sdkImageDetails := publicCloud.ImageDetails{
-		Id:           "imageId",
-		Name:         "name",
-		Custom:       true,
-		State:        *publicCloud.NewNullableImageState(&state),
-		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
-		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
-		Flavour:      "flavour",
-		Region:       *publicCloud.NewNullableRegionName(&region),
-	}
-
-	marketApps, _ := basetypes.NewListValueFrom(
-		context.TODO(),
-		types.StringType,
-		[]string{"CPANEL_30"},
-	)
-	storageTypes, _ := basetypes.NewListValueFrom(
-		context.TODO(),
-		types.StringType,
-		[]string{"CENTRAL"},
-	)
-
-	want := resourceModelImage{
-		ID:           basetypes.NewStringValue("imageId"),
-		Name:         basetypes.NewStringValue("name"),
-		Custom:       basetypes.NewBoolValue(true),
-		State:        basetypes.NewStringValue("READY"),
-		MarketApps:   marketApps,
-		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue("flavour"),
-		Region:       basetypes.NewStringValue("eu-west-3"),
-	}
-	got, err := adaptSdkImageDetailsToResourceImage(
-		context.TODO(),
-		sdkImageDetails,
-	)
-
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
 }
 
 func generateContractObject(
@@ -340,8 +112,8 @@ func generateContractObject(
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		resourceModelContract{}.AttributeTypes(),
-		resourceModelContract{
+		contractResourceModel{}.AttributeTypes(),
+		contractResourceModel{
 			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
 			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
@@ -353,13 +125,13 @@ func generateContractObject(
 	return contract
 }
 
-func generateInstanceModel() resourceModelInstance {
+func generateInstanceResourceModel() instanceResourceModel {
 	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
 
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		resourceModelImage{}.AttributeTypes(),
-		resourceModelImage{
+		imageResourceModel{}.AttributeTypes(),
+		imageResourceModel{
 			ID:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			MarketApps:   emptyList,
 			StorageTypes: emptyList,
@@ -373,7 +145,7 @@ func generateInstanceModel() resourceModelInstance {
 		nil,
 	)
 
-	instance := resourceModelInstance{
+	instance := instanceResourceModel{
 		ID:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
@@ -381,14 +153,14 @@ func generateInstanceModel() resourceModelInstance {
 		RootDiskSize:        basetypes.NewInt64Value(int64(55)),
 		Image:               image,
 		Contract:            contract,
-		MarketAppId:         basetypes.NewStringValue("marketAppId"),
+		MarketAppID:         basetypes.NewStringValue("marketAppId"),
 		Reference:           basetypes.NewStringValue("reference"),
 	}
 
 	return instance
 }
 
-func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
+func Test_adaptInstanceToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -414,7 +186,7 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 		},
 	}
 
-	got, err := adaptSdkInstanceToResourceInstance(instance, context.TODO())
+	got, err := adaptInstanceToInstanceResource(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -423,25 +195,25 @@ func Test_adaptSdkInstanceToResourceInstance(t *testing.T) {
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := resourceModelImage{}
+	image := imageResourceModel{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []resourceModelIp
-	got.Ips.ElementsAs(context.TODO(), &ips, false)
+	var ips []iPResourceModel
+	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
-	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
+	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
-func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
+func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
@@ -467,7 +239,7 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 		},
 	}
 
-	got, err := adaptSdkInstanceDetailsToResourceInstance(instance, context.TODO())
+	got, err := adaptInstanceDetailsToInstanceResource(instance, context.TODO())
 
 	assert.NoError(t, err)
 
@@ -476,28 +248,28 @@ func Test_adaptSdkInstanceDetailsToResourceInstance(t *testing.T) {
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Equal(t, "marketAppId", got.MarketAppId.ValueString())
+	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
 
-	image := resourceModelImage{}
+	image := imageResourceModel{}
 	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
 
-	contract := resourceModelContract{}
+	contract := contractResourceModel{}
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []resourceModelIp
-	got.Ips.ElementsAs(context.TODO(), &ips, false)
+	var ips []iPResourceModel
+	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
-	assert.Equal(t, "127.0.0.1", ips[0].Ip.ValueString())
+	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
-func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
+func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		instance := generateInstanceModel()
-		instance.MarketAppId = basetypes.NewStringPointerValue(nil)
+		instance := generateInstanceResourceModel()
+		instance.MarketAppID = basetypes.NewStringPointerValue(nil)
 		instance.Reference = basetypes.NewStringPointerValue(nil)
 		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
 
@@ -523,7 +295,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	})
 
 	t.Run("optional values are passed", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 
@@ -536,7 +308,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid rootDiskStorageType is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.RootDiskStorageType = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -549,7 +321,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -563,7 +335,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			contract := generateContractObject(
 				nil,
 				nil,
@@ -583,7 +355,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			contract := generateContractObject(
 				nil,
 				&contractTerm,
@@ -603,7 +375,7 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			contract := generateContractObject(
 				&billingFrequency,
 				nil,
@@ -619,50 +391,46 @@ func TestInstance_GetLaunchInstanceOpts(t *testing.T) {
 		},
 	)
 
-	t.Run(
-		"returns error if invalid region is passed",
-		func(t *testing.T) {
-			instance := generateInstanceModel()
-			instance.Region = basetypes.NewStringValue("tralala")
+	t.Run("returns error if invalid region is passed", func(t *testing.T) {
+		instance := generateInstanceResourceModel()
+		instance.Region = basetypes.NewStringValue("tralala")
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+		_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
-		},
-	)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
 
 	t.Run(
-		"returns error if resourceModelImage resource is incorrect",
+		"returns error if image resource is incorrect",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelImage")
+			assert.ErrorContains(t, err, ".imageResourceModel")
 		},
 	)
 
 	t.Run(
-		"returns error if resourceModelContract resource is incorrect",
+		"returns error if contractResourceModel resource is incorrect",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelContract")
+			assert.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
 
-func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
-
+func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 
 		got, diags := instance.GetUpdateInstanceOpts(context.TODO())
 
@@ -678,7 +446,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	t.Run(
 		"returns error if invalid instanceType is passed",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -692,7 +460,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid contractType is passed",
 		func(t *testing.T) {
 			contractType := "tralala"
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			contract := generateContractObject(
 				nil,
 				nil,
@@ -712,7 +480,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid contractTerm is passed",
 		func(t *testing.T) {
 			contractTerm := 555
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			contract := generateContractObject(
 				nil,
 				&contractTerm,
@@ -732,7 +500,7 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 		"returns error if invalid billingFrequency is passed",
 		func(t *testing.T) {
 			billingFrequency := 555
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			contract := generateContractObject(
 				&billingFrequency,
 				nil,
@@ -749,22 +517,22 @@ func TestInstance_GetUpdateInstanceOpts(t *testing.T) {
 	)
 
 	t.Run(
-		"returns error if resourceModelContract resource is incorrect",
+		"returns error if contractResourceModel resource is incorrect",
 		func(t *testing.T) {
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
 
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".resourceModelContract")
+			assert.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
 
-func Test_instance_CanBeTerminated(t *testing.T) {
+func Test_instanceResourceModel_CanBeTerminated(t *testing.T) {
 	t.Run("instance can be terminated", func(t *testing.T) {
-		instance := generateInstanceModel()
+		instance := generateInstanceResourceModel()
 		instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 
 		got := instance.CanBeTerminated(context.TODO())
@@ -798,7 +566,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 			}
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
-					instance := generateInstanceModel()
+					instance := generateInstanceResourceModel()
 					instance.State = basetypes.NewStringValue(string(tt.state))
 
 					got := instance.CanBeTerminated(context.TODO())
@@ -817,7 +585,7 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 
 			contract := generateContractObject(nil, nil, nil, &endsAt)
 
-			instance := generateInstanceModel()
+			instance := generateInstanceResourceModel()
 			instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
 			instance.Contract = contract
 
@@ -829,56 +597,28 @@ func Test_instance_CanBeTerminated(t *testing.T) {
 	)
 }
 
-func Test_adaptSdkIpToResourceIp(t *testing.T) {
+func Test_adaptIpToIPResource(t *testing.T) {
 	sdkIp := publicCloud.Ip{
 		Ip: "127.0.0.1",
 	}
 
-	want := resourceModelIp{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
+	want := iPResourceModel{
+		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
-	got, err := adaptSdkIpToResourceIp(context.TODO(), sdkIp)
-
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
-}
-
-func Test_adaptSdkIpDetailsToResourceIp(t *testing.T) {
-	sdkIpDetails := publicCloud.IpDetails{
-		Ip: "127.0.0.1",
-	}
-
-	want := resourceModelIp{
-		Ip: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got, err := adaptSdkIpDetailsToResourceIp(context.TODO(), sdkIpDetails)
-
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
-}
-
-func Test_resourceModelImage_GetUpdateImageOpts(t *testing.T) {
-	image := resourceModelImage{
-		Name: basetypes.NewStringValue("name"),
-	}
-	got := image.GetUpdateImageOpts()
-
-	want := publicCloud.UpdateImageOpts{Name: "name"}
+	got := adaptIpToIPResource(sdkIp)
 
 	assert.Equal(t, want, got)
 }
 
-func Test_resourceModelImage_GetCreateImageOpts(t *testing.T) {
-	image := resourceModelImage{
-		ID:   basetypes.NewStringValue("instanceId"),
-		Name: basetypes.NewStringValue("name"),
+func Test_adaptIpDetailsToIPResource(t *testing.T) {
+	sdkIpDetails := publicCloud.IpDetails{
+		Ip: "127.0.0.1",
 	}
-	got := image.GetCreateImageOpts()
 
-	want := publicCloud.CreateImageOpts{
-		Name:       "name",
-		InstanceId: "instanceId",
+	want := iPResourceModel{
+		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
+	got := adaptIpDetailsToIPResource(sdkIpDetails)
 
 	assert.Equal(t, want, got)
 }

@@ -3,9 +3,11 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -21,14 +23,390 @@ import (
 )
 
 var (
+	_ resource.Resource                = &instanceResource{}
 	_ resource.ResourceWithConfigure   = &instanceResource{}
 	_ resource.ResourceWithImportState = &instanceResource{}
 	_ resource.ResourceWithModifyPlan  = &instanceResource{}
-	_ validator.Object                 = contractTermValidator{}
-	_ validator.Object                 = instanceTerminationValidator{}
-	_ validator.String                 = regionValidator{}
-	_ validator.String                 = instanceTypeValidator{}
 )
+
+type reason string
+
+const (
+	reasonContractTermCannotBeZero reason = "contract.term cannot be 0 when contract type is MONTHLY"
+	reasonContractTermMustBeZero   reason = "contract.term must be 0 when contract type is HOURLY"
+	reasonNone                     reason = ""
+)
+
+type contractResourceModel struct {
+	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
+	Term             types.Int64  `tfsdk:"term"`
+	Type             types.String `tfsdk:"type"`
+	EndsAt           types.String `tfsdk:"ends_at"`
+	State            types.String `tfsdk:"state"`
+}
+
+func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"billing_frequency": types.Int64Type,
+		"term":              types.Int64Type,
+		"type":              types.StringType,
+		"ends_at":           types.StringType,
+		"state":             types.StringType,
+	}
+}
+
+func (c contractResourceModel) IsContractTermValid() (bool, reason) {
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
+		return false, reasonContractTermCannotBeZero
+	}
+
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt64() != 0 {
+		return false, reasonContractTermMustBeZero
+	}
+
+	return true, reasonNone
+}
+
+func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
+	return contractResourceModel{
+		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
+		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
+	}
+}
+
+type reasonInstanceCannotBeTerminated string
+
+type instanceResourceModel struct {
+	ID                  types.String `tfsdk:"id"`
+	Region              types.String `tfsdk:"region"`
+	Reference           types.String `tfsdk:"reference"`
+	Image               types.Object `tfsdk:"image"`
+	State               types.String `tfsdk:"state"`
+	Type                types.String `tfsdk:"type"`
+	RootDiskSize        types.Int64  `tfsdk:"root_disk_size"`
+	RootDiskStorageType types.String `tfsdk:"root_disk_storage_type"`
+	IPs                 types.List   `tfsdk:"ips"`
+	Contract            types.Object `tfsdk:"contract"`
+	MarketAppID         types.String `tfsdk:"market_app_id"`
+}
+
+func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":        types.StringType,
+		"region":    types.StringType,
+		"reference": types.StringType,
+		"image": types.ObjectType{
+			AttrTypes: imageResourceModel{}.AttributeTypes(),
+		},
+		"state":                  types.StringType,
+		"type":                   types.StringType,
+		"root_disk_size":         types.Int64Type,
+		"root_disk_storage_type": types.StringType,
+		"ips": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: iPResourceModel{}.AttributeTypes(),
+			},
+		},
+		"contract": types.ObjectType{
+			AttrTypes: contractResourceModel{}.AttributeTypes(),
+		},
+		"market_app_id": types.StringType,
+	}
+}
+
+func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
+	*publicCloud.LaunchInstanceOpts,
+	error,
+) {
+	sdkRootDiskStorageType, err := publicCloud.NewStorageTypeFromValue(
+		i.RootDiskStorageType.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	image := imageResourceModel{}
+	imageDiags := i.Image.As(ctx, &image, basetypes.ObjectAsOptions{})
+	if imageDiags != nil {
+		return nil, utils.ReturnError("GetLaunchInstanceOpts", imageDiags)
+	}
+
+	contract := contractResourceModel{}
+	contractDiags := i.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
+	if contractDiags != nil {
+		return nil, utils.ReturnError("GetLaunchInstanceOpts", contractDiags)
+	}
+
+	sdkContractType, err := publicCloud.NewContractTypeFromValue(
+		contract.Type.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
+		int32(contract.Term.ValueInt64()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+		int32(contract.BillingFrequency.ValueInt64()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkRegionName, err := publicCloud.NewRegionNameFromValue(
+		i.Region.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkInstanceType, err := publicCloud.NewTypeNameFromValue(
+		i.Type.ValueString(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := publicCloud.NewLaunchInstanceOpts(
+		*sdkRegionName,
+		*sdkInstanceType,
+		image.ID.ValueString(),
+		*sdkContractType,
+		*sdkContractTerm,
+		*sdkBillingFrequency,
+		*sdkRootDiskStorageType,
+	)
+
+	opts.MarketAppId = utils.AdaptStringPointerValueToNullableString(i.MarketAppID)
+	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+
+	return opts, nil
+}
+
+func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
+	*publicCloud.UpdateInstanceOpts,
+	error,
+) {
+	opts := publicCloud.NewUpdateInstanceOpts()
+
+	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
+	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+
+	contract := contractResourceModel{}
+	diags := i.Contract.As(
+		ctx,
+		&contract,
+		basetypes.ObjectAsOptions{},
+	)
+	if diags.HasError() {
+		return nil, utils.ReturnError("GetUpdateInstanceOpts", diags)
+	}
+
+	if contract.Type.ValueString() != "" {
+		contractType, err := publicCloud.NewContractTypeFromValue(
+			contract.Type.ValueString(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
+		}
+		opts.ContractType = contractType
+	}
+
+	if contract.Term.ValueInt64() != 0 {
+		contractTerm, err := publicCloud.NewContractTermFromValue(
+			int32(contract.Term.ValueInt64()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
+		}
+		opts.ContractTerm = contractTerm
+	}
+
+	if contract.BillingFrequency.ValueInt64() != 0 {
+		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+			int32(contract.BillingFrequency.ValueInt64()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
+		}
+		opts.BillingFrequency = billingFrequency
+	}
+
+	if i.Type.ValueString() != "" {
+		instanceType, err := publicCloud.NewTypeNameFromValue(
+			i.Type.ValueString(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
+		}
+		opts.Type = instanceType
+	}
+
+	return opts, nil
+}
+
+func (i instanceResourceModel) CanBeTerminated(ctx context.Context) *reasonInstanceCannotBeTerminated {
+	contract := contractResourceModel{}
+	contractDiags := i.Contract.As(
+		ctx,
+		&contract,
+		basetypes.ObjectAsOptions{},
+	)
+	if contractDiags != nil {
+		log.Fatal("cannot convert contract objectType to model")
+	}
+
+	if i.State.ValueString() == string(publicCloud.STATE_CREATING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYED) {
+		reason := reasonInstanceCannotBeTerminated(
+			fmt.Sprintf("state is %q", i.State),
+		)
+
+		return &reason
+	}
+
+	if !contract.EndsAt.IsNull() {
+		reason := reasonInstanceCannotBeTerminated(
+			fmt.Sprintf("contract.endsAt is %q", contract.EndsAt.ValueString()),
+		)
+
+		return &reason
+	}
+
+	return nil
+}
+
+func adaptInstanceToInstanceResource(
+	sdkInstance publicCloud.Instance,
+	ctx context.Context,
+) (*instanceResourceModel, error) {
+	instance := instanceResourceModel{
+		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
+		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
+		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
+		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
+	}
+
+	image, err := utils.AdaptSdkModelToResourceObject(
+		sdkInstance.Image,
+		imageResourceModel{}.AttributeTypes(),
+		ctx,
+		adaptImageToImageResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.Image = image
+
+	ips, err := utils.AdaptSdkModelsToListValue(
+		sdkInstance.Ips,
+		iPResourceModel{}.AttributeTypes(),
+		ctx,
+		adaptIpToIPResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.IPs = ips
+
+	contract, err := utils.AdaptSdkModelToResourceObject(
+		sdkInstance.Contract,
+		contractResourceModel{}.AttributeTypes(),
+		ctx,
+		adaptContractToContractResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.Contract = contract
+
+	return &instance, nil
+}
+
+func adaptInstanceDetailsToInstanceResource(
+	sdkInstanceDetails publicCloud.InstanceDetails,
+	ctx context.Context,
+) (*instanceResourceModel, error) {
+	instance := instanceResourceModel{
+		ID:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
+		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
+		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
+		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
+		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.GetRootDiskSize())),
+		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
+		MarketAppID:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
+	}
+
+	image, err := utils.AdaptSdkModelToResourceObject(
+		sdkInstanceDetails.Image,
+		imageResourceModel{}.AttributeTypes(),
+		ctx,
+		adaptImageToImageResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.Image = image
+
+	ips, err := utils.AdaptSdkModelsToListValue(
+		sdkInstanceDetails.Ips,
+		iPResourceModel{}.AttributeTypes(),
+		ctx,
+		adaptIpDetailsToIPResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.IPs = ips
+
+	contract, err := utils.AdaptSdkModelToResourceObject(
+		sdkInstanceDetails.Contract,
+		contractResourceModel{}.AttributeTypes(),
+		ctx,
+		adaptContractToContractResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.Contract = contract
+
+	return &instance, nil
+}
+
+type iPResourceModel struct {
+	IP types.String `tfsdk:"ip"`
+}
+
+func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"ip": types.StringType,
+	}
+}
+
+func adaptIpToIPResource(sdkIp publicCloud.Ip) iPResourceModel {
+	return iPResourceModel{
+		IP: basetypes.NewStringValue(sdkIp.GetIp()),
+	}
+}
+
+func adaptIpDetailsToIPResource(sdkIpDetails publicCloud.IpDetails) iPResourceModel {
+	return iPResourceModel{
+		IP: basetypes.NewStringValue(sdkIpDetails.GetIp()),
+	}
+}
 
 func NewInstanceResource() resource.Resource {
 	return &instanceResource{}
@@ -69,7 +447,7 @@ func (i *instanceResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan resourceModelInstance
+	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -107,7 +485,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, resourceErr := adaptSdkInstanceToResourceInstance(*sdkInstance, ctx)
+	instance, resourceErr := adaptInstanceToInstanceResource(*sdkInstance, ctx)
 	if resourceErr != nil {
 		resp.Diagnostics.AddError(
 			"Error creating publiccloud instance resource",
@@ -129,7 +507,7 @@ func (i *instanceResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state resourceModelInstance
+	var state instanceResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -144,9 +522,9 @@ func (i *instanceResource) Delete(
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error terminating Public Cloud resourceModelInstance",
+			"Error terminating publiccloud instance",
 			fmt.Sprintf(
-				"Could not terminate Public Cloud resourceModelInstance, unexpected error: %q",
+				"Could not terminate publiccloud instance, unexpected error: %q",
 				err.Error(),
 			),
 		)
@@ -383,7 +761,7 @@ func (i *instanceResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state resourceModelInstance
+	var state instanceResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -417,7 +795,7 @@ func (i *instanceResource) Read(
 		"Create public cloud instance resource for %q",
 		state.ID.ValueString(),
 	))
-	instance, resourceErr := adaptSdkInstanceDetailsToResourceInstance(
+	instance, resourceErr := adaptInstanceDetailsToInstanceResource(
 		*sdkInstance,
 		ctx,
 	)
@@ -439,7 +817,7 @@ func (i *instanceResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan resourceModelInstance
+	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -652,16 +1030,16 @@ func (i *instanceResource) ModifyPlan(
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
 ) {
-	planInstance := resourceModelInstance{}
+	planInstance := instanceResourceModel{}
 	request.Plan.Get(ctx, &planInstance)
 
-	planImage := resourceModelImage{}
+	planImage := imageResourceModel{}
 	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
 
-	stateInstance := resourceModelInstance{}
+	stateInstance := instanceResourceModel{}
 	request.State.Get(ctx, &stateInstance)
 
-	stateImage := resourceModelImage{}
+	stateImage := imageResourceModel{}
 	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
 
 	// Before deletion, determine if the instance is allowed to be deleted
@@ -708,7 +1086,7 @@ func (i *instanceResource) ModifyPlan(
 	}
 }
 
-// When creating a new resourceModelInstance,
+// When creating a new instance,
 // any instanceType available in the region is good.
 // On update, the criteria is more limited.
 func (i *instanceResource) getAvailableInstanceTypes(
@@ -717,7 +1095,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	region string,
 	ctx context.Context,
 ) []string {
-	// resourceModelInstance is being created.
+	// instanceResourceModel is being created.
 	if id.IsNull() {
 		availableInstanceTypes, err := getInstanceTypesForRegion(
 			region,
@@ -792,13 +1170,13 @@ func (i *instanceResource) validateInstanceType(
 
 // Checks if instance can be deleted.
 func (i *instanceResource) validateInstance(
-	instance resourceModelInstance,
+	instance instanceResourceModel,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,
 ) {
 	instanceObject, diags := basetypes.NewObjectValueFrom(
 		ctx,
-		resourceModelInstance{}.AttributeTypes(),
+		instanceResourceModel{}.AttributeTypes(),
 		instance,
 	)
 	if diags.HasError() {
