@@ -23,10 +23,10 @@ import (
 )
 
 var (
-	_ resource.Resource                = &instanceResource{}
-	_ resource.ResourceWithConfigure   = &instanceResource{}
-	_ resource.ResourceWithImportState = &instanceResource{}
-	_ resource.ResourceWithModifyPlan  = &instanceResource{}
+	_ resource.Resource                = &resourceInstance{}
+	_ resource.ResourceWithConfigure   = &resourceInstance{}
+	_ resource.ResourceWithImportState = &resourceInstance{}
+	_ resource.ResourceWithModifyPlan  = &resourceInstance{}
 )
 
 type reason string
@@ -424,15 +424,15 @@ func adaptSdkIpDetailsToResourceIP(sdkIpDetails publicCloud.IpDetails) resourceM
 	}
 }
 
-func NewInstanceResource() resource.Resource {
-	return &instanceResource{}
+func NewResourceInstance() resource.Resource {
+	return &resourceInstance{}
 }
 
-type instanceResource struct {
+type resourceInstance struct {
 	client client.Client
 }
 
-func (i *instanceResource) Configure(
+func (i *resourceInstance) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
 	resp *resource.ConfigureResponse,
@@ -458,7 +458,7 @@ func (i *instanceResource) Configure(
 	i.client = coreClient
 }
 
-func (i *instanceResource) Create(
+func (i *resourceInstance) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
@@ -522,7 +522,7 @@ func (i *instanceResource) Create(
 	}
 }
 
-func (i *instanceResource) Delete(
+func (i *resourceInstance) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
@@ -755,7 +755,7 @@ func getInstanceTypesForRegion(
 	return instanceTypes, nil
 }
 
-func (i *instanceResource) ImportState(
+func (i *resourceInstance) ImportState(
 	ctx context.Context,
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
@@ -769,7 +769,7 @@ func (i *instanceResource) ImportState(
 	)
 }
 
-func (i *instanceResource) Metadata(
+func (i *resourceInstance) Metadata(
 	_ context.Context,
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
@@ -777,7 +777,7 @@ func (i *instanceResource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_public_cloud_instance"
 }
 
-func (i *instanceResource) Read(
+func (i *resourceInstance) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
@@ -836,7 +836,7 @@ func (i *instanceResource) Read(
 	}
 }
 
-func (i *instanceResource) Update(
+func (i *resourceInstance) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
@@ -895,7 +895,7 @@ func (i *instanceResource) Update(
 	}
 }
 
-func (i *instanceResource) Schema(
+func (i *resourceInstance) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -1027,7 +1027,7 @@ func (i *instanceResource) Schema(
 // ModifyPlan calls validators that require access to the handler.
 // This needs to be done here as client.Client isn't properly initialized when
 // the schema is called.
-func (i *instanceResource) ModifyPlan(
+func (i *resourceInstance) ModifyPlan(
 	ctx context.Context,
 	request resource.ModifyPlanRequest,
 	response *resource.ModifyPlanResponse,
@@ -1091,7 +1091,7 @@ func (i *instanceResource) ModifyPlan(
 // When creating a new resourceModelInstance,
 // any instanceType available in the region is good.
 // On update, the criteria is more limited.
-func (i *instanceResource) getAvailableInstanceTypes(
+func (i *resourceInstance) getAvailableInstanceTypes(
 	response *resource.ModifyPlanResponse,
 	id basetypes.StringValue,
 	region string,
@@ -1131,7 +1131,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	return availableInstanceTypes
 }
 
-func (i *instanceResource) validateRegion(
+func (i *resourceInstance) validateRegion(
 	plannedValue types.String,
 	response *resource.ModifyPlanResponse,
 	regions []string,
@@ -1149,7 +1149,7 @@ func (i *instanceResource) validateRegion(
 	}
 }
 
-func (i *instanceResource) validateInstanceType(
+func (i *resourceInstance) validateInstanceType(
 	instanceType types.String,
 	currentInstanceType types.String,
 	response *resource.ModifyPlanResponse,
@@ -1171,7 +1171,7 @@ func (i *instanceResource) validateInstanceType(
 }
 
 // Checks if instance can be deleted.
-func (i *instanceResource) validateInstance(
+func (i *resourceInstance) validateInstance(
 	instance resourceModelInstance,
 	response *resource.ModifyPlanResponse,
 	ctx context.Context,

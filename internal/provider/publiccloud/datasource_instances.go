@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithConfigure = &InstancesDataSource{}
+	_ datasource.DataSourceWithConfigure = &DatasourceInstances{}
 )
 
 type datasourceModelContract struct {
@@ -145,15 +145,15 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	return instances, nil
 }
 
-func NewInstancesDataSource() datasource.DataSource {
-	return &InstancesDataSource{}
+func NewDatasourceInstances() datasource.DataSource {
+	return &DatasourceInstances{}
 }
 
-type InstancesDataSource struct {
+type DatasourceInstances struct {
 	client client.Client
 }
 
-func (d *InstancesDataSource) Configure(
+func (d *DatasourceInstances) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -178,7 +178,7 @@ func (d *InstancesDataSource) Configure(
 	d.client = coreClient
 }
 
-func (d *InstancesDataSource) Metadata(
+func (d *DatasourceInstances) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -186,7 +186,7 @@ func (d *InstancesDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_public_cloud_instances"
 }
 
-func (d *InstancesDataSource) Read(
+func (d *DatasourceInstances) Read(
 	ctx context.Context,
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
@@ -217,7 +217,7 @@ func (d *InstancesDataSource) Read(
 	}
 }
 
-func (d *InstancesDataSource) Schema(
+func (d *DatasourceInstances) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,

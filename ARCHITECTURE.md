@@ -7,15 +7,15 @@ Each package corresponds to a product group, i.e.: `publiccloud`
 ## Datasources
 
 All code pertaining to datasources, including models, belongs in the datasource
-file. The format for this file is `<PRODUCT>_<ENDPOINT>_datasource.go`. Ie: for
-instances the filename would be `publiccloud_instances_datasource.go`
+file. The format for this file is `datasource_<ENDPOINT>.go`. Ie: for
+instances the filename would be `datasource_instances.go`
 
 ### Datasource models
 
 Datasource model structs should adhere to the following convention:
 
 `datasourceModel<MODEL_NAME>`. So the instances data model would be named
-`dataSourceModelinstances`
+`datasourceModelInstances`
 
 #### Datasource adaptation functions
 
@@ -27,15 +27,15 @@ named `adaptSdkInstanceToDatasourceInstance`.
 ## Resources
 
 All code pertaining to resources, including models, belongs in the resource
-file. The format for this file is `<PRODUCT>_<ENDPOINT>_resource.go`. Ie: for
-instances the filename would be `publiccloud_instances_resource.go`
+file. The format for this file is `resource_<ENDPOINT>.go`. Ie: for
+instances the filename would be `resource_instance.go`
 
 ### Resource models
 
 Datasource model structs should adhere to the following convention:
 
 `resourceModel<MODEL_NAME>`. So the instance data model would be named
-`resourceModelinstance`
+`resourceModelInstance`
 
 #### Resource adaptation functions
 

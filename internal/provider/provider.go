@@ -156,7 +156,7 @@ func (p *leasewebProvider) Configure(
 
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		publiccloud.NewInstancesDataSource,
+		publiccloud.NewDatasourceInstances,
 		NewDedicatedServerDataSource,
 		NewDedicatedServersDataSource,
 		NewDedicatedServerControlPanelsDataSource,
@@ -167,7 +167,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		publiccloud.NewInstanceResource,
+		publiccloud.NewResourceInstance,
 		NewDedicatedServerResource,
 		NewDedicatedServerCredentialResource,
 		NewDataTrafficNotificationSettingResource,
