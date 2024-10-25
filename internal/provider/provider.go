@@ -156,7 +156,7 @@ func (p *leasewebProvider) Configure(
 
 func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		publiccloud.NewInstancesDataSource,
+		publiccloud.NewInstancesDatasource,
 		NewDedicatedServerDataSource,
 		NewDedicatedServersDataSource,
 		NewDedicatedServerControlPanelsDataSource,
