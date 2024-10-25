@@ -74,4 +74,30 @@ func TestGetHttpErrorMessage(t *testing.T) {
 		message := NewError(resp, errors.New("error content")).Error()
 		assert.Equal(t, "map[a:b c:d]", message)
 	})
+
+	t.Run("errorMessage must return if response with error details if they exists", func(t *testing.T) {
+		errorContent, _ := json.Marshal(map[string]interface{}{
+			"errorMessage": map[string]string{"a": "b", "c": "d"},
+			"errorDetails": map[string][]string{
+				"password": {
+					"this value should not be blank",
+					"blah blah",
+				},
+				"email": {
+					"this value should be valid",
+					"blah2 blah2",
+				},
+			},
+		})
+		resp := &http.Response{
+			StatusCode: 404,
+			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
+		}
+		message := NewError(resp, errors.New("error content")).Error()
+		assert.Contains(t, message, "map[a:b c:d]")
+		assert.Contains(t, message, "password")
+		assert.Contains(t, message, "this value should not be blank")
+		assert.Contains(t, message, "email")
+		assert.Contains(t, message, "blah2 blah2")
+	})
 }

@@ -28,6 +28,6 @@ resource "leaseweb_public_cloud_credential" "example" {
 ### Required
 
 - `instance_id` (String) The ID of the instance.
-- `password` (String) The password for the credentials
+- `password` (String, Sensitive) The password for the credentials
 - `type` (String) The type of the credential. Valid options are: "OPERATING_SYSTEM", "CONTROL_PANEL"
 - `username` (String) The username for the credentials

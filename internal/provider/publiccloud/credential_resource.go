@@ -27,7 +27,7 @@ type credentialResource struct {
 	client client.Client
 }
 
-type credentialResourceData struct {
+type credentialResourceModel struct {
 	InstanceID types.String `tfsdk:"instance_id"`
 	Username   types.String `tfsdk:"username"`
 	Type       types.String `tfsdk:"type"`
@@ -93,7 +93,7 @@ func (c *credentialResource) Schema(
 				Required:    true,
 				Description: `The type of the credential. Valid options are: "OPERATING_SYSTEM", "CONTROL_PANEL"`,
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"OPERATING_SYSTEM", "CONTROL_PANEL"}...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedCredentialTypeEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -101,14 +101,18 @@ func (c *credentialResource) Schema(
 			},
 			"password": schema.StringAttribute{
 				Required:    true,
+				Sensitive:   true,
 				Description: `The password for the credentials`,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 		},
 	}
 }
 
 func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data credentialResourceData
+	var data credentialResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -129,7 +133,7 @@ func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	data = credentialResourceData{
+	data = credentialResourceModel{
 		InstanceID: data.InstanceID,
 		Type:       types.StringValue(string(result.GetType())),
 		Password:   types.StringValue(result.GetPassword()),
@@ -143,7 +147,7 @@ func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data credentialResourceData
+	var data credentialResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -159,7 +163,7 @@ func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	data = credentialResourceData{
+	data = credentialResourceModel{
 		InstanceID: data.InstanceID,
 		Type:       types.StringValue(string(result.GetType())),
 		Password:   types.StringValue(result.GetPassword()),
@@ -173,7 +177,7 @@ func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data credentialResourceData
+	var data credentialResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -192,7 +196,7 @@ func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	data = credentialResourceData{
+	data = credentialResourceModel{
 		InstanceID: data.InstanceID,
 		Type:       types.StringValue(string(result.GetType())),
 		Password:   types.StringValue(result.GetPassword()),
@@ -206,7 +210,7 @@ func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 }
 
 func (c *credentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data credentialResourceData
+	var data credentialResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
