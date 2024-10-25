@@ -43,7 +43,7 @@ type instanceDataSourceModel struct {
 	ID                  types.String            `tfsdk:"id"`
 	Region              types.String            `tfsdk:"region"`
 	Reference           types.String            `tfsdk:"reference"`
-	Image               dataSourceModelImage    `tfsdk:"image"`
+	Image               imageModelDataSource    `tfsdk:"image"`
 	State               types.String            `tfsdk:"state"`
 	Type                types.String            `tfsdk:"type"`
 	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`

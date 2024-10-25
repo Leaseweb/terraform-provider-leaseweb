@@ -18,7 +18,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &imagesDataSource{}
 )
 
-type dataSourceModelImage struct {
+type imageModelDataSource struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Custom       types.Bool   `tfsdk:"custom"`
@@ -29,8 +29,8 @@ type dataSourceModelImage struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func adaptImageToImageDataSource(sdkImage publicCloud.Image) dataSourceModelImage {
-	return dataSourceModelImage{
+func adaptImageToImageDataSource(sdkImage publicCloud.Image) imageModelDataSource {
+	return imageModelDataSource{
 		ID:      basetypes.NewStringValue(sdkImage.GetId()),
 		Name:    basetypes.NewStringValue(sdkImage.GetName()),
 		Custom:  basetypes.NewBoolValue(sdkImage.GetCustom()),
@@ -40,7 +40,7 @@ func adaptImageToImageDataSource(sdkImage publicCloud.Image) dataSourceModelImag
 
 func adaptImageDetailsToImageDataSource(
 	sdkImageDetails publicCloud.ImageDetails,
-) dataSourceModelImage {
+) imageModelDataSource {
 	var marketApps []string
 	var storageTypes []string
 
@@ -52,7 +52,7 @@ func adaptImageDetailsToImageDataSource(
 		storageTypes = append(storageTypes, string(storageType))
 	}
 
-	return dataSourceModelImage{
+	return imageModelDataSource{
 		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
 		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
 		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
@@ -65,7 +65,7 @@ func adaptImageDetailsToImageDataSource(
 }
 
 type imagesDataSourceModel struct {
-	Images []dataSourceModelImage `tfsdk:"images"`
+	Images []imageModelDataSource `tfsdk:"images"`
 }
 
 func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesDataSourceModel {

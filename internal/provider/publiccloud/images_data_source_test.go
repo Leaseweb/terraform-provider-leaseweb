@@ -16,7 +16,7 @@ func Test_adaptImageToImageDataSource(t *testing.T) {
 		Flavour: "flavour",
 	}
 
-	want := dataSourceModelImage{
+	want := imageModelDataSource{
 		ID:      basetypes.NewStringValue("imageId"),
 		Name:    basetypes.NewStringValue("name"),
 		Custom:  basetypes.NewBoolValue(true),
@@ -42,7 +42,7 @@ func Test_adaptImageDetailsToImageDataSource(t *testing.T) {
 		Region:       *publicCloud.NewNullableRegionName(&region),
 	}
 
-	want := dataSourceModelImage{
+	want := imageModelDataSource{
 		ID:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
 		Custom:       basetypes.NewBoolValue(true),
