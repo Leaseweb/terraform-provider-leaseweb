@@ -103,6 +103,7 @@ func (d *credentialDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	if err != nil {
 		summary := fmt.Sprintf("Error reading data public_cloud_credential for instance %q", instanceID)
+		// TODO: Need change after a proper error logging implementation.
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
