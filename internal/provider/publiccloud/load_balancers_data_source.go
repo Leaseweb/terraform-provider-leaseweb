@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -164,7 +163,6 @@ func (l *loadBalancersDataSource) Schema(
 									Computed: true,
 								},
 							},
-							Validators: []validator.Object{contractTermValidator{}},
 						},
 						"state": schema.StringAttribute{
 							Computed: true,
