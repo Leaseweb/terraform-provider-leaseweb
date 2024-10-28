@@ -153,6 +153,21 @@ resource "leaseweb_public_cloud_instance" "test" {
 						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
+							"image.name",
+							"Ubuntu 20.04 LTS (x86_64)",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.custom",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.flavour",
+							"ubuntu",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
 							"root_disk_storage_type",
 							"CENTRAL",
 						),
@@ -966,7 +981,7 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	
+
 		resource "leaseweb_public_cloud_credential" "test" {
 			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
 		   	username = ""
@@ -990,7 +1005,7 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	
+
 		resource "leaseweb_public_cloud_credential" "test" {
 			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
 		   	username = "root"
@@ -1014,7 +1029,7 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	
+
 		resource "leaseweb_public_cloud_credential" "test" {
 			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
 		   	username = "root"
@@ -1182,26 +1197,160 @@ func TestAccImagesDataSource(t *testing.T) {
 	})
 }
 
-func TestAccLoadBalancersDataSource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				Config: providerConfig + `data "leaseweb_public_cloud_load_balancers" "test" {}`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"data.leaseweb_public_cloud_load_balancers.test",
-						"load_balancers.#",
-						"1",
+func TestAccInstanceImage(t *testing.T) {
+	t.Run("creates & updates an image", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+  name = "Custom image - 03"
+}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"name",
+							"Custom image - 03",
+						),
 					),
-					resource.TestCheckResourceAttr(
-						"data.leaseweb_public_cloud_load_balancers.test",
-						"load_balancers.0.id",
-						"5fd135a9-3ff6-4794-8b92-8cd8747a3ea3",
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_public_cloud_image.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+  name = "Custom image - 03"
+}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"name",
+							"Custom image - 03",
+						),
 					),
-				),
+				},
+				// Delete testing automatically occurs in TestCase
 			},
-		},
+		})
 	})
+
+	t.Run(
+		"instanceId must be valid when creating a custom image",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "tralala"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile("Attribute id value must be one of"),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"instance connected to instanceId must have a `STOPPED` state",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "f28ba2af-7508-4594-a63a-aa663db4fb3e"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile("not have state"),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"instance connected to instanceId must not have a large rootDiskSize",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "6871686d-36c4-44f5-b692-a548e62dcf25"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile(`rootDiskSize`),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"instance connected to instanceId must not windows os",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_image" "test" {
+  id = "9c095e3a-e9e3-403b-8d1b-37bb21b5598e"
+  name = "Custom image"
+}`,
+						ExpectError: regexp.MustCompile(`windows`),
+					},
+				},
+			})
+		},
+	)
+}
+
+
+func TestAccLoadBalancersDataSource(t *testing.T) {
+  resource.Test(t, resource.TestCase{
+    ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+    Steps: []resource.TestStep{
+      // Read testing
+      {
+        Config: providerConfig + `data "leaseweb_public_cloud_load_balancers" "test" {}`,
+        Check: resource.ComposeAggregateTestCheckFunc(
+          resource.TestCheckResourceAttr(
+            "data.leaseweb_public_cloud_load_balancers.test",
+            "load_balancers.#",
+            "1",
+          ),
+          resource.TestCheckResourceAttr(
+            "data.leaseweb_public_cloud_load_balancers.test",
+            "load_balancers.0.id",
+            "5fd135a9-3ff6-4794-8b92-8cd8747a3ea3",
+          ),
+        ),
+      },
+    },
+  })
 }

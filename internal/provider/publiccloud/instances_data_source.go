@@ -104,7 +104,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, utils.NewSdkError("GetAllInstances", err, response)
+		return nil, utils.NewSdkError("getAllInstances", err, response)
 	}
 
 	metadata := result.GetMetadata()
@@ -117,7 +117,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("getAllInstances", err, response)
 		}
 
 		instances = append(instances, result.Instances...)
@@ -128,7 +128,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
+			return nil, utils.NewSdkError("getAllInstances", err, response)
 		}
 	}
 
@@ -181,7 +181,6 @@ func (d *instancesDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
 	tflog.Info(ctx, "Read public cloud instances")
 	instances, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
@@ -202,9 +201,6 @@ func (d *instancesDataSource) Read(
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (d *instancesDataSource) Schema(

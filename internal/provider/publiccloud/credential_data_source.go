@@ -99,7 +99,7 @@ func (d *credentialDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	type_ := state.Type.ValueString()
 	username := state.Username.ValueString()
 
-	credentail, response, err := d.client.GetCredential(ctx, instanceID, type_, username).Execute()
+	credential, response, err := d.client.GetCredential(ctx, instanceID, type_, username).Execute()
 
 	if err != nil {
 		summary := fmt.Sprintf("Error reading data public_cloud_credential for instance %q", instanceID)
@@ -109,7 +109,7 @@ func (d *credentialDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	state.Password = types.StringValue(credentail.GetPassword())
+	state.Password = types.StringValue(credential.GetPassword())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return

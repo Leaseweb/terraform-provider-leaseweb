@@ -13,7 +13,7 @@ description: |-
 ## Example Usage
 
 ```terraform
-# List all Public Cloud instances
+# List all Public Cloud images
 data "leaseweb_public_cloud_images" "all" {}
 ```
 
