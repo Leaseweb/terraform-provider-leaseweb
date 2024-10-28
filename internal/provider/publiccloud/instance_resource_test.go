@@ -451,13 +451,12 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 }
 
 func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
-
 	t.Run("optional values are set", func(t *testing.T) {
 		instance := generateInstanceResourceModel()
 
-		got, diags := instance.GetUpdateInstanceOpts(context.TODO())
+		got, err := instance.GetUpdateInstanceOpts(context.TODO())
 
-		assert.Nil(t, diags)
+		assert.NoError(t, err)
 		assert.Equal(t, publicCloud.TYPENAME_M5A_4XLARGE, *got.Type)
 		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, *got.ContractType)
 		assert.Equal(t, publicCloud.CONTRACTTERM__3, *got.ContractTerm)

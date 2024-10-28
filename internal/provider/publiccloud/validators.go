@@ -14,7 +14,6 @@ import (
 var (
 	_ validator.Object = contractTermValidator{}
 	_ validator.Object = instanceTerminationValidator{}
-	_ validator.String = regionValidator{}
 	_ validator.String = instanceTypeValidator{}
 )
 
@@ -101,44 +100,6 @@ func (i instanceTerminationValidator) ValidateObject(
 		response.Diagnostics.AddError(
 			"instance is not allowed to be terminated",
 			string(*reason),
-		)
-	}
-}
-
-// regionValidator validates if a region exists.
-type regionValidator struct {
-	regions []string
-}
-
-func (r regionValidator) Description(_ context.Context) string {
-	return `Determines whether a region exists`
-}
-
-func (r regionValidator) MarkdownDescription(ctx context.Context) string {
-	return r.Description(ctx)
-}
-
-func (r regionValidator) ValidateString(
-	_ context.Context,
-	request validator.StringRequest,
-	response *validator.StringResponse,
-) {
-	// If the region is unknown or null, there is nothing to validate.
-	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
-		return
-	}
-
-	regionExists := slices.Contains(r.regions, request.ConfigValue.ValueString())
-
-	if !regionExists {
-		response.Diagnostics.AddAttributeError(
-			request.Path,
-			"Invalid Region",
-			fmt.Sprintf(
-				"Attribute region value must be one of: %q, got: %q",
-				r.regions,
-				request.ConfigValue.ValueString(),
-			),
 		)
 	}
 }

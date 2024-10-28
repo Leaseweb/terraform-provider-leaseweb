@@ -307,7 +307,7 @@ resource "leaseweb_public_cloud_instance" "test" {
 			},
 		})
 	})
-	t.Run("invalid instanceType", func(t *testing.T) {
+	t.Run("non existing instanceType is no accepted", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
@@ -316,6 +316,34 @@ resource "leaseweb_public_cloud_instance" "test" {
 resource "leaseweb_public_cloud_instance" "test" {
   region = "eu-west-3"
   type = "tralala"
+  reference = "my webserver"
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  contract = {
+    billing_frequency = 1
+    term              = 0
+    type              = "HOURLY"
+  }
+}`,
+					ExpectError: regexp.MustCompile(
+						"Attribute type value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("instanceType not in region is not accepted", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m5.large"
   reference = "my webserver"
   image = {
     id = "UBUNTU_20_04_64BIT"
@@ -441,7 +469,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Invalid Region"),
+					ExpectError: regexp.MustCompile("Attribute region value must be one of"),
 				},
 			},
 		})
