@@ -72,7 +72,7 @@ Instead of `sdkInstance.Id` use `sdkInstance.GetId()`.
 
 ## Metadata
 
-For both resources & dataSources,
+For both resources & data sources,
 the following naming conventions apply for type names:
 
 - types names must be lowercase
