@@ -604,50 +604,6 @@ func getAvailableInstanceTypesForUpdate(
 	return instanceTypes, nil
 }
 
-func getRegions(
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]string, *utils.SdkError) {
-	var regions []string
-
-	request := api.GetRegionList(ctx)
-
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError("getRegions", err, response)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
-	for {
-		result, response, err := request.Execute()
-		if err != nil {
-			return nil, utils.NewSdkError("getRegions", err, response)
-		}
-
-		for _, sdkRegion := range result.Regions {
-			regions = append(regions, string(sdkRegion.Name))
-		}
-
-		if !pagination.CanIncrement() {
-			break
-		}
-
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
-		}
-	}
-
-	return regions, nil
-}
-
 func getInstanceTypesForRegion(
 	region string,
 	ctx context.Context,
@@ -1018,20 +974,6 @@ func (i *instanceResource) ModifyPlan(
 		}
 	}
 
-	regions, err := getRegions(ctx, i.client.PublicCloudAPI)
-	if err != nil {
-		response.Diagnostics.AddError("Cannot get regions", err.Error())
-		return
-	}
-
-	// The Region has
-	//to be validated first or getAvailableInstanceTypes will throw an error on creation,
-	//as the region could be invalid.
-	i.validateRegion(planInstance.Region, response, regions, ctx)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
 	availableInstanceTypes := i.getAvailableInstanceTypes(
 		response,
 		stateInstance.ID,
@@ -1095,24 +1037,6 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	}
 
 	return availableInstanceTypes
-}
-
-func (i *instanceResource) validateRegion(
-	plannedValue types.String,
-	response *resource.ModifyPlanResponse,
-	regions []string,
-	ctx context.Context,
-) {
-	request := validator.StringRequest{ConfigValue: plannedValue}
-	regionResponse := validator.StringResponse{}
-
-	regionValidator := regionValidator{
-		regions: regions,
-	}
-	regionValidator.ValidateString(ctx, request, &regionResponse)
-	if regionResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
-	}
 }
 
 func (i *instanceResource) validateInstanceType(
