@@ -191,6 +191,7 @@ func (i *imageResource) Schema(
 	response *resource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{
+		Description: "Once created, an image resource cannot be deleted via Terraform",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Required: true,
