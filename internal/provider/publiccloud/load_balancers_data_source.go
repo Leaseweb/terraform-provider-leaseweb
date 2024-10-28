@@ -84,7 +84,7 @@ func getAllLoadBalancers(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllImages", err, response)
+			return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
 		}
 
 		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
