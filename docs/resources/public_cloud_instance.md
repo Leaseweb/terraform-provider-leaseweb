@@ -37,9 +37,90 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 - `contract` (Attributes) (see [below for nested schema](#nestedatt--contract))
 - `image` (Attributes) (see [below for nested schema](#nestedatt--image))
-- `region` (String) Our current regions can be found in the [developer documentation](https://developer.leaseweb.com/api-docs/publiccloud_v1.html#tag/Instances/operation/launchInstance)**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
+- `region` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created. Valid options are 
+  - *eu-west-3*
+  - *us-east-1*
+  - *eu-central-1*
+  - *ap-southeast-1*
+  - *us-west-1*
+  - *eu-west-2*
+  - *ca-central-1*
 - `root_disk_storage_type` (String) The root disk's storage type. Can be *LOCAL* or *CENTRAL*. **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
-- `type` (String)
+- `type` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created. Valid options are 
+  - *lsw.m3.large*
+  - *lsw.m3.xlarge*
+  - *lsw.m3.2xlarge*
+  - *lsw.m4.large*
+  - *lsw.m4.xlarge*
+  - *lsw.m4.2xlarge*
+  - *lsw.m4.4xlarge*
+  - *lsw.m5.large*
+  - *lsw.m5.xlarge*
+  - *lsw.m5.2xlarge*
+  - *lsw.m5.4xlarge*
+  - *lsw.m5a.large*
+  - *lsw.m5a.xlarge*
+  - *lsw.m5a.2xlarge*
+  - *lsw.m5a.4xlarge*
+  - *lsw.m5a.8xlarge*
+  - *lsw.m5a.12xlarge*
+  - *lsw.m6a.large*
+  - *lsw.m6a.xlarge*
+  - *lsw.m6a.2xlarge*
+  - *lsw.m6a.4xlarge*
+  - *lsw.m6a.8xlarge*
+  - *lsw.m6a.12xlarge*
+  - *lsw.m6a.16xlarge*
+  - *lsw.m6a.24xlarge*
+  - *lsw.c3.large*
+  - *lsw.c3.xlarge*
+  - *lsw.c3.2xlarge*
+  - *lsw.c3.4xlarge*
+  - *lsw.c4.large*
+  - *lsw.c4.xlarge*
+  - *lsw.c4.2xlarge*
+  - *lsw.c4.4xlarge*
+  - *lsw.c5.large*
+  - *lsw.c5.xlarge*
+  - *lsw.c5.2xlarge*
+  - *lsw.c5.4xlarge*
+  - *lsw.c5a.large*
+  - *lsw.c5a.xlarge*
+  - *lsw.c5a.2xlarge*
+  - *lsw.c5a.4xlarge*
+  - *lsw.c5a.9xlarge*
+  - *lsw.c5a.12xlarge*
+  - *lsw.c6a.large*
+  - *lsw.c6a.xlarge*
+  - *lsw.c6a.2xlarge*
+  - *lsw.c6a.4xlarge*
+  - *lsw.c6a.8xlarge*
+  - *lsw.c6a.12xlarge*
+  - *lsw.c6a.16xlarge*
+  - *lsw.c6a.24xlarge*
+  - *lsw.r3.large*
+  - *lsw.r3.xlarge*
+  - *lsw.r3.2xlarge*
+  - *lsw.r4.large*
+  - *lsw.r4.xlarge*
+  - *lsw.r4.2xlarge*
+  - *lsw.r5.large*
+  - *lsw.r5.xlarge*
+  - *lsw.r5.2xlarge*
+  - *lsw.r5a.large*
+  - *lsw.r5a.xlarge*
+  - *lsw.r5a.2xlarge*
+  - *lsw.r5a.4xlarge*
+  - *lsw.r5a.8xlarge*
+  - *lsw.r5a.12xlarge*
+  - *lsw.r6a.large*
+  - *lsw.r6a.xlarge*
+  - *lsw.r6a.2xlarge*
+  - *lsw.r6a.4xlarge*
+  - *lsw.r6a.8xlarge*
+  - *lsw.r6a.12xlarge*
+  - *lsw.r6a.16xlarge*
+  - *lsw.r6a.24xlarge*
 
 ### Optional
 
