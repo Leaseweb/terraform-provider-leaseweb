@@ -526,7 +526,7 @@ func (i *instanceResource) Delete(
 		state.ID.ValueString(),
 	).Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse, )
+		sdkErr := utils.NewSdkError("", err, apiResponse)
 
 		resp.Diagnostics.AddError(
 			"Error terminating Public Cloud instance",
