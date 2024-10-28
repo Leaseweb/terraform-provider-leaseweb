@@ -218,7 +218,7 @@ func (i *imagesDataSource) Read(
 }
 
 func (i *imagesDataSource) Configure(
-	ctx context.Context,
+	_ context.Context,
 	request datasource.ConfigureRequest,
 	response *datasource.ConfigureResponse,
 ) {

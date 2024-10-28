@@ -12,7 +12,7 @@ type ProviderData struct {
 	Scheme *string
 }
 
-// The Client handles instantiation of the facades.
+// The Client handles instantiation of the SDK.
 type Client struct {
 	ProviderData   ProviderData
 	PublicCloudAPI publicCloud.PublicCloudAPI
