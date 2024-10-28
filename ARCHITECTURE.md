@@ -69,3 +69,13 @@ file.
 
 Where possible, use the SDK getters.
 Instead of `sdkInstance.Id` use `sdkInstance.GetId()`.
+
+## Metadata
+
+For both resources & data sources,
+the following naming conventions apply for type names:
+
+- `response.TypeName` names must be lowercase
+- an underscore must replace non-alphabetic characters
+
+`Public Cloud Load Balancers` thus becomes `public_cloud_load_balancers`
