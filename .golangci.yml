@@ -1,8 +1,9 @@
 # Visit https://golangci-lint.run/ for usage documentation
 # and information on other useful linters
 issues:
-  max-issues-per-linter: 0
+  max-per-linter: 0
   max-same-issues: 0
+
 linters:
   disable-all: true
   enable:

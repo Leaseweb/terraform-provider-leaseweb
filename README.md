@@ -43,13 +43,11 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
-To generate or update documentation, run `go generate ./...`.
+To generate or update documentation, run `make generate`.
 
 To run the full suite of Acceptance tests, run `make testacc`.
 
 _Note:_ Acceptance tests create real resources, and often cost money to run.
-
-Code architecture is discussed in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```shell
 make testacc
@@ -87,3 +85,7 @@ before committing anything or the commit will fail.
 ### API Stability
 
 Given that the public cloud API is currently in its beta version, we are maintaining the Terraform plugin in beta as well, despite the stability of our Dedicated Server API.
+
+## Architecture
+
+Code architecture is discussed in [ARCHITECTURE.md](ARCHITECTURE.md).
