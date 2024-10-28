@@ -89,7 +89,7 @@ func adaptImageDetailsToImageResource(
 		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.Flavour)),
+		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.GetFlavour())),
 		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
 	}
 
