@@ -76,22 +76,6 @@ func adaptContractToContractResource(sdkContract publicCloud.Contract) contractR
 	}
 }
 
-type imageResourceModel struct {
-	ID types.String `tfsdk:"id"`
-}
-
-func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id": types.StringType,
-	}
-}
-
-func adaptImageToImageResource(sdkImage publicCloud.Image) imageResourceModel {
-	return imageResourceModel{
-		ID: basetypes.NewStringValue(sdkImage.GetId()),
-	}
-}
-
 type reasonInstanceCannotBeTerminated string
 
 type instanceResourceModel struct {
@@ -542,11 +526,7 @@ func (i *instanceResource) Delete(
 		state.ID.ValueString(),
 	).Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError(
-			"",
-			err,
-			apiResponse,
-		)
+		sdkErr := utils.NewSdkError("", err, apiResponse)
 
 		resp.Diagnostics.AddError(
 			"Error terminating Public Cloud instance",
@@ -731,9 +711,6 @@ func (i *instanceResource) Read(
 
 	diags = resp.State.Set(ctx, instance)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (i *instanceResource) Update(
@@ -790,9 +767,6 @@ func (i *instanceResource) Update(
 
 	diags = resp.State.Set(ctx, sdkInstance)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (i *instanceResource) Schema(
@@ -847,6 +821,31 @@ func (i *instanceResource) Schema(
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
 						},
+					},
+					"name": schema.StringAttribute{
+						Computed: true,
+					},
+					"custom": schema.BoolAttribute{
+						Computed:    true,
+						Description: "Standard or Custom image",
+					},
+					"state": schema.StringAttribute{
+						Computed: true,
+					},
+					"market_apps": schema.ListAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+					},
+					"storage_types": schema.ListAttribute{
+						Computed:    true,
+						Description: "The supported storage types for the instance type",
+						ElementType: types.StringType,
+					},
+					"flavour": schema.StringAttribute{
+						Computed: true,
+					},
+					"region": schema.StringAttribute{
+						Computed: true,
 					},
 				},
 			},
@@ -987,7 +986,7 @@ func (i *instanceResource) ModifyPlan(
 	}
 }
 
-// When creating a new instanceResourceModel,
+// When creating a new instance,
 // any instanceType available in the region is good.
 // On update, the criteria is more limited.
 func (i *instanceResource) getAvailableInstanceTypes(

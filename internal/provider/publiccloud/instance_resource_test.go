@@ -12,16 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_contractResourceModel_attributeTypes(t *testing.T) {
-	_, diags := types.ObjectValueFrom(
-		context.TODO(),
-		contractResourceModel{}.AttributeTypes(),
-		contractResourceModel{},
-	)
-
-	assert.Nil(t, diags, "attributes should be correct")
-}
-
 func Test_adaptContractToContractResource(t *testing.T) {
 	endsAt, _ := time.Parse(
 		"2006-01-02 15:04:05",
@@ -100,19 +90,6 @@ func Test_contractResourceModel_IsContractTermValid(t *testing.T) {
 	)
 }
 
-func Test_adaptImageToImageResource(t *testing.T) {
-	sdkImage := publicCloud.Image{
-		Id: "imageId",
-	}
-
-	want := imageResourceModel{
-		ID: basetypes.NewStringValue("imageId"),
-	}
-	got := adaptImageToImageResource(sdkImage)
-
-	assert.Equal(t, want, got)
-}
-
 func generateContractObject(
 	billingFrequency *int,
 	contractTerm *int,
@@ -149,11 +126,15 @@ func generateContractObject(
 }
 
 func generateInstanceResourceModel() instanceResourceModel {
+	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
+
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
 		imageResourceModel{}.AttributeTypes(),
 		imageResourceModel{
-			ID: basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			ID:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
+			MarketApps:   emptyList,
+			StorageTypes: emptyList,
 		},
 	)
 
@@ -410,21 +391,18 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		},
 	)
 
-	t.Run(
-		"returns error if invalid region is passed",
-		func(t *testing.T) {
-			instance := generateInstanceResourceModel()
-			instance.Region = basetypes.NewStringValue("tralala")
+	t.Run("returns error if invalid region is passed", func(t *testing.T) {
+		instance := generateInstanceResourceModel()
+		instance.Region = basetypes.NewStringValue("tralala")
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+		_, err := instance.GetLaunchInstanceOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
-		},
-	)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
 
 	t.Run(
-		"returns error if imageResourceModel resource is incorrect",
+		"returns error if image resource is incorrect",
 		func(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
