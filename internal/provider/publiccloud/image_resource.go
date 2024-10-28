@@ -70,10 +70,7 @@ func adaptImageDetailsToImageResource(
 		sdkImageDetails.MarketApps,
 	)
 	if diags.HasError() {
-		return nil, fmt.Errorf(
-			diags.Errors()[0].Summary(),
-			diags.Errors()[0].Detail(),
-		)
+		return nil, fmt.Errorf(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
 	}
 
 	storageTypes, diags := basetypes.NewListValueFrom(
@@ -82,10 +79,7 @@ func adaptImageDetailsToImageResource(
 		sdkImageDetails.StorageTypes,
 	)
 	if diags.HasError() {
-		return nil, fmt.Errorf(
-			diags.Errors()[0].Summary(),
-			diags.Errors()[0].Detail(),
-		)
+		return nil, fmt.Errorf(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
 	}
 
 	image := imageResourceModel{
@@ -169,12 +163,7 @@ func (i *imageResource) ImportState(
 	request resource.ImportStateRequest,
 	response *resource.ImportStateResponse,
 ) {
-	resource.ImportStatePassthroughID(
-		ctx,
-		path.Root("id"),
-		request,
-		response,
-	)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
 }
 
 func (i *imageResource) Metadata(
@@ -254,10 +243,7 @@ func (i *imageResource) Create(
 		Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError(
-			"Error creating publiccloud image",
-			sdkErr.Error(),
-		)
+		response.Diagnostics.AddError("Error creating publiccloud image", sdkErr.Error())
 
 		utils.LogError(
 			ctx,
@@ -272,10 +258,7 @@ func (i *imageResource) Create(
 
 	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
-		response.Diagnostics.AddError(
-			"Error creating publiccloud image resource",
-			resourceErr.Error(),
-		)
+		response.Diagnostics.AddError("Error creating publiccloud image resource", resourceErr.Error())
 
 		return
 	}
@@ -311,16 +294,10 @@ func (i *imageResource) Read(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf(
-		"Create publiccloud image resource for %q",
-		state.ID.ValueString(),
-	))
+	tflog.Info(ctx, fmt.Sprintf("Create publiccloud image resource for %q", state.ID.ValueString()))
 	instance, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
-		response.Diagnostics.AddError(
-			"Error creating publiccloud image resource",
-			resourceErr.Error(),
-		)
+		response.Diagnostics.AddError("Error creating publiccloud image resource", resourceErr.Error())
 
 		return
 	}
@@ -342,10 +319,7 @@ func (i *imageResource) Update(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf(
-		"Update publiccloud image %q",
-		plan.ID.ValueString(),
-	))
+	tflog.Info(ctx, fmt.Sprintf("Update publiccloud image %q", plan.ID.ValueString()))
 	opts := plan.GetUpdateImageOpts()
 
 	sdkImageDetails, apiResponse, err := i.client.PublicCloudAPI.UpdateImage(
@@ -354,19 +328,13 @@ func (i *imageResource) Update(
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError(
-			"Error updating publiccloud image",
-			sdkErr.Error(),
-		)
+		response.Diagnostics.AddError("Error updating publiccloud image", sdkErr.Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&response.Diagnostics,
-			fmt.Sprintf(
-				"Unable to update publiccloud image %q",
-				plan.ID.ValueString(),
-			),
+			fmt.Sprintf("Unable to update publiccloud image %q", plan.ID.ValueString()),
 			sdkErr.Error(),
 		)
 
@@ -378,11 +346,7 @@ func (i *imageResource) Update(
 }
 
 // Delete does nothing as there is no endpoint to delete an Image.
-func (i *imageResource) Delete(
-	_ context.Context,
-	_ resource.DeleteRequest,
-	_ *resource.DeleteResponse,
-) {
+func (i *imageResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
 }
 
 func (i *imageResource) Configure(
