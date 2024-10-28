@@ -1331,13 +1331,13 @@ resource "leaseweb_public_cloud_image" "test" {
 }
 
 func TestAccLoadBalancerResource(t *testing.T) {
-  t.Run("creates and updates a loadBalancer", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        // Create and Read testing
-        {
-          Config: providerConfig + `
+	t.Run("creates and updates a loadBalancer", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
@@ -1348,53 +1348,53 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-          Check: resource.ComposeAggregateTestCheckFunc(
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "id",
-              "32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "region",
-              "eu-west-3",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "type",
-              "lsw.m3.large",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "reference",
-              "my-loadbalancer1",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "contract.billing_frequency",
-              "1",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "contract.term",
-              "0",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "contract.type",
-              "HOURLY",
-            ),
-          ),
-        },
-        // ImportState testing
-        {
-          ResourceName:      "leaseweb_public_cloud_load_balancer.test",
-          ImportState:       true,
-          ImportStateVerify: true,
-        },
-        // Update and Read testing
-        {
-          Config: providerConfig + `
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"id",
+							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"region",
+							"eu-west-3",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"type",
+							"lsw.m3.large",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"reference",
+							"my-loadbalancer1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.billing_frequency",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.term",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.type",
+							"HOURLY",
+						),
+					),
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_public_cloud_load_balancer.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
@@ -1405,57 +1405,57 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-          Check: resource.ComposeAggregateTestCheckFunc(
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "id",
-              "32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "region",
-              "eu-west-3",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "type",
-              "lsw.m3.large",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "reference",
-              "my-loadbalancer1",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "contract.billing_frequency",
-              "1",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "contract.term",
-              "0",
-            ),
-            resource.TestCheckResourceAttr(
-              "leaseweb_public_cloud_load_balancer.test",
-              "contract.type",
-              "HOURLY",
-            ),
-          ),
-        },
-        // Delete testing automatically occurs in TestCase
-      },
-    })
-  })
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"id",
+							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"region",
+							"eu-west-3",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"type",
+							"lsw.m3.large",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"reference",
+							"my-loadbalancer1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.billing_frequency",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.term",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.type",
+							"HOURLY",
+						),
+					),
+				},
+				// Delete testing automatically occurs in TestCase
+			},
+		})
+	})
 
-  t.Run(
-    "term must be 0 when contract type is HOURLY",
-    func(t *testing.T) {
-      resource.Test(t, resource.TestCase{
-        ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-        Steps: []resource.TestStep{
-          {
-            Config: providerConfig + `
+	t.Run(
+		"term must be 0 when contract type is HOURLY",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
@@ -1466,21 +1466,21 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-            ExpectError: regexp.MustCompile(
-              "Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 3",
-            ),
-          },
-        },
-      })
-    },
-  )
+						ExpectError: regexp.MustCompile(
+							"Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 3",
+						),
+					},
+				},
+			})
+		},
+	)
 
-  t.Run("term must not be 0 when contract type is MONTHLY", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+	t.Run("term must not be 0 when contract type is MONTHLY", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
@@ -1491,19 +1491,19 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "MONTHLY"
   }
 }`,
-          ExpectError: regexp.MustCompile(
-            "Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0",
-          ),
-        },
-      },
-    })
-  })
-  t.Run("invalid type", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0",
+					),
+				},
+			},
+		})
+	})
+	t.Run("invalid type", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "tralala"
@@ -1514,20 +1514,20 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-          ExpectError: regexp.MustCompile(
-            "Attribute type value must be one of:",
-          ),
-        },
-      },
-    })
-  })
+					ExpectError: regexp.MustCompile(
+						"Attribute type value must be one of:",
+					),
+				},
+			},
+		})
+	})
 
-  t.Run("invalid region", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+	t.Run("invalid region", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "tralala"
   type = "lsw.m4.2xlarge"
@@ -1538,18 +1538,18 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-          ExpectError: regexp.MustCompile("Attribute region value must be one of"),
-        },
-      },
-    })
-  })
+					ExpectError: regexp.MustCompile("Attribute region value must be one of"),
+				},
+			},
+		})
+	})
 
-  t.Run("invalid contract.billingFrequency", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+	t.Run("invalid contract.billingFrequency", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.2xlarge"
@@ -1560,20 +1560,20 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-          ExpectError: regexp.MustCompile(
-            "Attribute contract.billing_frequency value must be one of",
-          ),
-        },
-      },
-    })
-  })
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.billing_frequency value must be one of",
+					),
+				},
+			},
+		})
+	})
 
-  t.Run("invalid contract.term", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+	t.Run("invalid contract.term", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.2xlarge"
@@ -1584,20 +1584,20 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "MONTHLY"
   }
 }`,
-          ExpectError: regexp.MustCompile(
-            "Attribute contract.term value must be one of",
-          ),
-        },
-      },
-    })
-  })
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.term value must be one of",
+					),
+				},
+			},
+		})
+	})
 
-  t.Run("invalid contract.type", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+	t.Run("invalid contract.type", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.2xlarge"
@@ -1608,61 +1608,61 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "tralala"
   }
 }`,
-          ExpectError: regexp.MustCompile(
-            "Attribute contract.type value must be one of",
-          ),
-        },
-      },
-    })
-  })
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.type value must be one of",
+					),
+				},
+			},
+		})
+	})
 
-  type errorTestCases struct {
-    requiredField string
-    expectedError string
-  }
+	type errorTestCases struct {
+		requiredField string
+		expectedError string
+	}
 
-  for _, scenario := range []errorTestCases{
-    {
-      requiredField: "region",
-      expectedError: fmt.Sprintf(
-        "The argument %q is required, but no definition was found.",
-        "region",
-      ),
-    },
-    {
-      requiredField: "type",
-      expectedError: fmt.Sprintf(
-        "The argument %q is required, but no definition was found.",
-        "type",
-      ),
-    },
-    {
-      requiredField: "contract.type|contract.term|contract.billing_frequency",
-      expectedError: "Inappropriate value for attribute \"contract\": attributes \"billing_frequency\",\n\"term\", and \"type\" are required.",
-    },
-  } {
-    t.Run(scenario.requiredField+" should be set", func(t *testing.T) {
-      resource.Test(t, resource.TestCase{
-        ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-        Steps: []resource.TestStep{
-          {
-            Config: providerConfig + `
+	for _, scenario := range []errorTestCases{
+		{
+			requiredField: "region",
+			expectedError: fmt.Sprintf(
+				"The argument %q is required, but no definition was found.",
+				"region",
+			),
+		},
+		{
+			requiredField: "type",
+			expectedError: fmt.Sprintf(
+				"The argument %q is required, but no definition was found.",
+				"type",
+			),
+		},
+		{
+			requiredField: "contract.type|contract.term|contract.billing_frequency",
+			expectedError: "Inappropriate value for attribute \"contract\": attributes \"billing_frequency\",\n\"term\", and \"type\" are required.",
+		},
+	} {
+		t.Run(scenario.requiredField+" should be set", func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   contract = {}
 }`,
-            ExpectError: regexp.MustCompile(scenario.expectedError),
-          },
-        },
-      })
-    })
-  }
+						ExpectError: regexp.MustCompile(scenario.expectedError),
+					},
+				},
+			})
+		})
+	}
 
-  t.Run("changing the region triggers replacement", func(t *testing.T) {
-    resource.Test(t, resource.TestCase{
-      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-      Steps: []resource.TestStep{
-        {
-          Config: providerConfig + `
+	t.Run("changing the region triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-3"
   type = "lsw.m3.large"
@@ -1673,21 +1673,21 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-        },
-        {
-          ConfigPlanChecks: resource.ConfigPlanChecks{
-            PreApply: []plancheck.PlanCheck{
-              plancheck.ExpectResourceAction(
-                "leaseweb_public_cloud_load_balancer.test",
-                plancheck.ResourceActionDestroyBeforeCreate,
-              ),
-            },
-          },
-          // Ignore the inconsistent result as prism returns the old result.
-          ExpectError: regexp.MustCompile(
-            "Provider produced inconsistent result after apply",
-          ),
-          Config: providerConfig + `
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_load_balancer.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
 resource "leaseweb_public_cloud_load_balancer" "test" {
   region = "eu-west-2"
   type = "lsw.m3.large"
@@ -1698,8 +1698,8 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
     type              = "HOURLY"
   }
 }`,
-        },
-      },
-    })
-  })
+				},
+			},
+		})
+	})
 }
