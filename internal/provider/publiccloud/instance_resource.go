@@ -470,7 +470,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	tflog.Info(ctx, "Launch publiccloud instance")
+	tflog.Info(ctx, "Launch Public Cloud instance")
 
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
@@ -489,7 +489,7 @@ func (i *instanceResource) Create(
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
 		resp.Diagnostics.AddError(
-			"Error launching publiccloud instance",
+			"Error launching Public Cloud instance",
 			sdkErr.Error(),
 		)
 
@@ -497,7 +497,7 @@ func (i *instanceResource) Create(
 			ctx,
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
-			"Error launching publiccloud instance",
+			"Error launching Public Cloud instance",
 			sdkErr.Error(),
 		)
 
@@ -507,7 +507,7 @@ func (i *instanceResource) Create(
 	instance, resourceErr := adaptInstanceToInstanceResource(*sdkInstance, ctx)
 	if resourceErr != nil {
 		resp.Diagnostics.AddError(
-			"Error creating publiccloud instance resource",
+			"Error creating Public Cloud instance resource",
 			resourceErr.Error(),
 		)
 
@@ -534,50 +534,41 @@ func (i *instanceResource) Delete(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf(
-		"Terminate publiccloud instance %q",
+		"Terminate Public Cloud instance %q",
 		state.ID.ValueString(),
 	))
-	err := terminateInstance(state.ID.ValueString(), ctx, i.client.PublicCloudAPI)
-
+	apiResponse, err := i.client.PublicCloudAPI.TerminateInstance(
+		ctx,
+		state.ID.ValueString(),
+	).Execute()
 	if err != nil {
+		sdkErr := utils.NewSdkError(
+			"",
+			err,
+			apiResponse,
+		)
+
 		resp.Diagnostics.AddError(
-			"Error terminating publiccloud instance",
+			"Error terminating Public Cloud instance",
 			fmt.Sprintf(
-				"Could not terminate publiccloud instance, unexpected error: %q",
+				"Could not terminate Public Cloud instance, unexpected error: %q",
 				err.Error(),
 			),
 		)
 
 		utils.LogError(
 			ctx,
-			err.ErrorResponse,
+			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
-				"Error terminating publiccloud instance %q",
+				"Error terminating Public Cloud instance %q",
 				state.ID.ValueString(),
 			),
-			err.Error(),
+			sdkErr.Error(),
 		)
 
 		return
 	}
-}
-
-func terminateInstance(
-	id string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) *utils.SdkError {
-	response, err := api.TerminateInstance(ctx, id).Execute()
-	if err != nil {
-		return utils.NewSdkError(
-			fmt.Sprintf("terminateInstance %q", id),
-			err,
-			response,
-		)
-	}
-
-	return nil
 }
 
 func getAvailableInstanceTypesForUpdate(
@@ -602,50 +593,6 @@ func getAvailableInstanceTypesForUpdate(
 	}
 
 	return instanceTypes, nil
-}
-
-func getRegions(
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]string, *utils.SdkError) {
-	var regions []string
-
-	request := api.GetRegionList(ctx)
-
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError("getRegions", err, response)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
-	for {
-		result, response, err := request.Execute()
-		if err != nil {
-			return nil, utils.NewSdkError("getRegions", err, response)
-		}
-
-		for _, sdkRegion := range result.Regions {
-			regions = append(regions, string(sdkRegion.Name))
-		}
-
-		if !pagination.CanIncrement() {
-			break
-		}
-
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
-		}
-	}
-
-	return regions, nil
 }
 
 func getInstanceTypesForRegion(
@@ -736,7 +683,7 @@ func (i *instanceResource) Read(
 
 	tflog.Info(
 		ctx,
-		fmt.Sprintf("Read publiccloud instance %q", state.ID.ValueString()),
+		fmt.Sprintf("Read Public Cloud instance %q", state.ID.ValueString()),
 	)
 	sdkInstance, response, err := i.client.PublicCloudAPI.
 		GetInstance(ctx, state.ID.ValueString()).
@@ -744,7 +691,7 @@ func (i *instanceResource) Read(
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, response)
 		resp.Diagnostics.AddError(
-			"Error reading publiccloud instance",
+			"Error reading Public Cloud instance",
 			sdkErr.Error(),
 		)
 
@@ -753,7 +700,7 @@ func (i *instanceResource) Read(
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
-				"Unable to read publiccloud instance %q",
+				"Unable to read Public Cloud instance %q",
 				state.ID.ValueString(),
 			),
 			err.Error(),
@@ -775,7 +722,7 @@ func (i *instanceResource) Read(
 	)
 	if sdkErr != nil {
 		resp.Diagnostics.AddError(
-			"Error creating publiccloud instance resource",
+			"Error creating Public Cloud instance resource",
 			sdkErr.Error(),
 		)
 
@@ -804,7 +751,7 @@ func (i *instanceResource) Update(
 
 	tflog.Info(
 		ctx,
-		fmt.Sprintf("Update publiccloud instance %q", plan.ID.ValueString()),
+		fmt.Sprintf("Update Public Cloud instance %q", plan.ID.ValueString()),
 	)
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
@@ -823,7 +770,7 @@ func (i *instanceResource) Update(
 		sdkErr := utils.NewSdkError("", err, apiResponse)
 
 		resp.Diagnostics.AddError(
-			"Error updating publiccloud instance",
+			"Error updating Public Cloud instance",
 			sdkErr.Error(),
 		)
 
@@ -832,7 +779,7 @@ func (i *instanceResource) Update(
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
-				"Unable to update publiccloud instance %q",
+				"Unable to update public cloud instance %q",
 				plan.ID.ValueString(),
 			),
 			sdkErr.Error(),
@@ -1018,20 +965,6 @@ func (i *instanceResource) ModifyPlan(
 		}
 	}
 
-	regions, err := getRegions(ctx, i.client.PublicCloudAPI)
-	if err != nil {
-		response.Diagnostics.AddError("Cannot get regions", err.Error())
-		return
-	}
-
-	// The Region has
-	//to be validated first or getAvailableInstanceTypes will throw an error on creation,
-	//as the region could be invalid.
-	i.validateRegion(planInstance.Region, response, regions, ctx)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
 	availableInstanceTypes := i.getAvailableInstanceTypes(
 		response,
 		stateInstance.ID,
@@ -1095,24 +1028,6 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	}
 
 	return availableInstanceTypes
-}
-
-func (i *instanceResource) validateRegion(
-	plannedValue types.String,
-	response *resource.ModifyPlanResponse,
-	regions []string,
-	ctx context.Context,
-) {
-	request := validator.StringRequest{ConfigValue: plannedValue}
-	regionResponse := validator.StringResponse{}
-
-	regionValidator := regionValidator{
-		regions: regions,
-	}
-	regionValidator.ValidateString(ctx, request, &regionResponse)
-	if regionResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(regionResponse.Diagnostics.Errors()...)
-	}
 }
 
 func (i *instanceResource) validateInstanceType(
