@@ -537,9 +537,17 @@ func (i *instanceResource) Delete(
 		"Terminate Public Cloud instance %q",
 		state.ID.ValueString(),
 	))
-	err := terminateInstance(state.ID.ValueString(), ctx, i.client.PublicCloudAPI)
-
+	apiResponse, err := i.client.PublicCloudAPI.TerminateInstance(
+		ctx,
+		state.ID.ValueString(),
+	).Execute()
 	if err != nil {
+		sdkErr := utils.NewSdkError(
+			"",
+			err,
+			apiResponse,
+		)
+
 		resp.Diagnostics.AddError(
 			"Error terminating Public Cloud instance",
 			fmt.Sprintf(
@@ -550,34 +558,17 @@ func (i *instanceResource) Delete(
 
 		utils.LogError(
 			ctx,
-			err.ErrorResponse,
+			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Error terminating Public Cloud instance %q",
 				state.ID.ValueString(),
 			),
-			err.Error(),
+			sdkErr.Error(),
 		)
 
 		return
 	}
-}
-
-func terminateInstance(
-	id string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) *utils.SdkError {
-	response, err := api.TerminateInstance(ctx, id).Execute()
-	if err != nil {
-		return utils.NewSdkError(
-			fmt.Sprintf("terminateInstance %q", id),
-			err,
-			response,
-		)
-	}
-
-	return nil
 }
 
 func getAvailableInstanceTypesForUpdate(
