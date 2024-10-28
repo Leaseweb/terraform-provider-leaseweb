@@ -441,7 +441,7 @@ resource "leaseweb_public_cloud_instance" "test" {
     type              = "HOURLY"
   }
 }`,
-					ExpectError: regexp.MustCompile("Invalid Region"),
+					ExpectError: regexp.MustCompile("Attribute region value must be one of"),
 				},
 			},
 		})
