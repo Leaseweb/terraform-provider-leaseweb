@@ -756,7 +756,7 @@ func (i *instanceResource) Update(
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
 			fmt.Sprintf(
-				"Unable to update public cloud instance %q",
+				"Unable to update Public Cloud instance %q",
 				plan.ID.ValueString(),
 			),
 			sdkErr.Error(),
