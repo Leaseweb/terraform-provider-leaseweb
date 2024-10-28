@@ -171,6 +171,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		publiccloud.NewInstanceResource,
+		publiccloud.NewCredentialResource,
 		NewDedicatedServerResource,
 		NewDedicatedServerCredentialResource,
 		NewDataTrafficNotificationSettingResource,
