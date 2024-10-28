@@ -13,7 +13,7 @@ Once created, an image resource cannot be deleted via Terraform
 ## Example Usage
 
 ```terraform
-# Manage example Public Cloud Instance
+# Manage example Public Cloud image
 resource "leaseweb_public_cloud_image" "example" {
   id   = "396a3299-1795-464b-aa10-e1f179db1926"
   name = "Custom image"
@@ -46,6 +46,6 @@ resource "leaseweb_public_cloud_image" "example" {
 Import is supported using the following syntax:
 
 ```shell
-# Public Cloud Instance can be imported by specifying the identifier.
+# Public Cloud image can be imported by specifying the identifier.
 terraform import leaseweb_public_cloud_image.example ace712e9-a166-47f1-9065-4af0f7e7fce1
 ```
