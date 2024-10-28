@@ -13,7 +13,7 @@ description: |-
 ## Example Usage
 
 ```terraform
-# Manage example Public Cloud Instance
+# Manage example Public Cloud load balancer
 resource "leaseweb_public_cloud_load_balancer" "example" {
   contract = {
     billing_frequency = 1
@@ -153,6 +153,6 @@ Read-Only:
 Import is supported using the following syntax:
 
 ```shell
-# Public Cloud Instance can be imported by specifying the identifier.
+# Public Cloud load balancer can be imported by specifying the identifier.
 terraform import leaseweb_public_cloud_load_balancer.example ace712e9-a166-47f1-9065-4af0f7e7fce1
 ```

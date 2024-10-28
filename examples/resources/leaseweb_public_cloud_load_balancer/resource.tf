@@ -1,4 +1,4 @@
-# Manage example Public Cloud Instance
+# Manage example Public Cloud load balancer
 resource "leaseweb_public_cloud_load_balancer" "example" {
   contract = {
     billing_frequency = 1
