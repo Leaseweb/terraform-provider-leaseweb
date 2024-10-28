@@ -95,11 +95,7 @@ func getAllLoadBalancers(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError(
-				"getAllLoadBalancers",
-				err,
-				response,
-			)
+			return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
 		}
 	}
 
@@ -189,10 +185,7 @@ func (l *loadBalancersDataSource) Read(
 	loadBalancers, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
 
 	if err != nil {
-		response.Diagnostics.AddError(
-			"Unable to read Public Cloud load balancers",
-			err.Error(),
-		)
+		response.Diagnostics.AddError("Unable to read Public Cloud load balancers", err.Error())
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
