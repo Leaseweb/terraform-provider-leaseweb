@@ -10,7 +10,6 @@ import (
 
 var (
 	_ validator.Object = contractTermValidator{}
-	_ validator.Object = instanceTerminationValidator{}
 )
 
 // Checks that contractType/contractTerm combination is valid.
@@ -53,49 +52,5 @@ func (v contractTermValidator) ValidateObject(
 		default:
 			return
 		}
-	}
-}
-
-// instanceTerminationValidator validates if the instanceResourceModel is allowed to be terminated.
-type instanceTerminationValidator struct{}
-
-func (i instanceTerminationValidator) Description(_ context.Context) string {
-	return `
-Determines whether an instance can be terminated or not. An instance cannot be
-terminated if:
-
-- state is equal to Creating
-- state is equal to Destroying
-- state is equal to Destroyed
-- contract.endsAt is set
-
-In all other scenarios an instance can be terminated.
-`
-}
-
-func (i instanceTerminationValidator) MarkdownDescription(ctx context.Context) string {
-	return i.Description(ctx)
-}
-
-func (i instanceTerminationValidator) ValidateObject(
-	ctx context.Context,
-	request validator.ObjectRequest,
-	response *validator.ObjectResponse,
-) {
-	instance := instanceResourceModel{}
-
-	diags := request.ConfigValue.As(ctx, &instance, basetypes.ObjectAsOptions{})
-	if diags.HasError() {
-		response.Diagnostics.Append(diags...)
-		return
-	}
-
-	reason := instance.CanBeTerminated(ctx)
-
-	if reason != nil {
-		response.Diagnostics.AddError(
-			"instance is not allowed to be terminated",
-			string(*reason),
-		)
 	}
 }

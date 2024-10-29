@@ -3,7 +3,6 @@ package publiccloud
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -25,7 +24,6 @@ import (
 var (
 	_ resource.ResourceWithConfigure   = &instanceResource{}
 	_ resource.ResourceWithImportState = &instanceResource{}
-	_ resource.ResourceWithModifyPlan  = &instanceResource{}
 )
 
 type reason string
@@ -75,8 +73,6 @@ func adaptContractToContractResource(sdkContract publicCloud.Contract) contractR
 		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
 	}
 }
-
-type reasonInstanceCannotBeTerminated string
 
 type instanceResourceModel struct {
 	ID                  types.String `tfsdk:"id"`
@@ -251,36 +247,6 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	return opts, nil
-}
-
-func (i instanceResourceModel) CanBeTerminated(ctx context.Context) *reasonInstanceCannotBeTerminated {
-	contract := contractResourceModel{}
-	contractDiags := i.Contract.As(
-		ctx,
-		&contract,
-		basetypes.ObjectAsOptions{},
-	)
-	if contractDiags != nil {
-		log.Fatal("cannot convert contract objectType to model")
-	}
-
-	if i.State.ValueString() == string(publicCloud.STATE_CREATING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYED) {
-		reason := reasonInstanceCannotBeTerminated(
-			fmt.Sprintf("state is %q", i.State),
-		)
-
-		return &reason
-	}
-
-	if !contract.EndsAt.IsNull() {
-		reason := reasonInstanceCannotBeTerminated(
-			fmt.Sprintf("contract.endsAt is %q", contract.EndsAt.ValueString()),
-		)
-
-		return &reason
-	}
-
-	return nil
 }
 
 func adaptInstanceToInstanceResource(
@@ -848,64 +814,5 @@ func (i *instanceResource) Schema(
 				},
 			},
 		},
-	}
-}
-
-// ModifyPlan calls validators that require access to the handler.
-// This needs to be done here as client.Client isn't properly initialized when
-// the schema is called.
-func (i *instanceResource) ModifyPlan(
-	ctx context.Context,
-	request resource.ModifyPlanRequest,
-	response *resource.ModifyPlanResponse,
-) {
-	planInstance := instanceResourceModel{}
-	request.Plan.Get(ctx, &planInstance)
-
-	planImage := imageResourceModel{}
-	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
-
-	stateInstance := instanceResourceModel{}
-	request.State.Get(ctx, &stateInstance)
-
-	stateImage := imageResourceModel{}
-	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
-
-	// Before deletion, determine if the instance is allowed to be deleted
-	if request.Plan.Raw.IsNull() {
-		i.validateInstance(stateInstance, response, ctx)
-		if response.Diagnostics.HasError() {
-			return
-		}
-	}
-}
-
-// Checks if instance can be deleted.
-func (i *instanceResource) validateInstance(
-	instance instanceResourceModel,
-	response *resource.ModifyPlanResponse,
-	ctx context.Context,
-) {
-	instanceObject, diags := basetypes.NewObjectValueFrom(
-		ctx,
-		instanceResourceModel{}.AttributeTypes(),
-		instance,
-	)
-	if diags.HasError() {
-		response.Diagnostics.Append(diags.Errors()...)
-		return
-	}
-
-	instanceRequest := validator.ObjectRequest{ConfigValue: instanceObject}
-	instanceResponse := validator.ObjectResponse{}
-	validateInstanceTermination := instanceTerminationValidator{}
-	validateInstanceTermination.ValidateObject(
-		ctx,
-		instanceRequest,
-		&instanceResponse,
-	)
-
-	if instanceResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(instanceResponse.Diagnostics.Errors()...)
 	}
 }
