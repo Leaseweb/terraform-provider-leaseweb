@@ -91,7 +91,8 @@ func NewError(resp *http.Response, err error) Error {
 	}
 }
 
-// normalizeErrorResponseKey converts api key paths to strings that SetAttributeErrorsFromServerResponse can handle.
+// normalizeErrorResponseKey converts an api key path to a string
+// that SetAttributeErrorsFromServerResponse can handle.
 // `instanceId` & `instance.id` both become `instance_id`.
 func normalizeErrorResponseKey(key string) string {
 	// Assume that the key has the format `contract.id`
@@ -100,6 +101,7 @@ func normalizeErrorResponseKey(key string) string {
 		return strings.ToLower(strings.Replace(key, ".", "_", -1))
 	}
 
+	// If no dots are found, assume camel case.
 	m := regexp.MustCompile("[A-Z]")
 	res := m.ReplaceAllStringFunc(key, func(s string) string {
 		return "_" + s
@@ -155,7 +157,7 @@ type ErrorResponse struct {
 	ErrorDetails  map[string][]string `json:"errorDetails"`
 }
 
-// newErrorResponse generates a new ErrorResponse object from an api response.
+// newErrorResponse generates a new ErrorResponse object from an api response body.
 func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
 	buf := new(strings.Builder)
 	_, err := io.Copy(buf, body)
@@ -173,7 +175,10 @@ func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
 	return &errorResponse, nil
 }
 
-// LogError prints the passed errorResponse as a Terraform error log.
+// LogError tries to parse the errors from the httpResponse.
+// If possible,
+// it prints an error log with the error response as an additional field.
+// Otherwise, it prints an error log without the response.
 func LogError(ctx context.Context, httpResponse *http.Response, summary string) {
 	errorResponse, err := newErrorResponse(httpResponse.Body)
 	if err == nil {
