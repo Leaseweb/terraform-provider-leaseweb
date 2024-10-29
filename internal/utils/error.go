@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 type Error struct {
@@ -73,5 +78,48 @@ func NewError(resp *http.Response, err error) Error {
 	return Error{
 		resp: resp,
 		err:  err,
+	}
+}
+
+// SetAttributeErrorsFromServerResponse takes a server response and maps errors to the appropriate attributes.
+// If an attribute cannot be found,
+// the error is shown to the user on a resource level.
+func SetAttributeErrorsFromServerResponse(
+	summary string,
+	response http.Response,
+	diags *diag.Diagnostics,
+) {
+	// Convert server response to ErrorResponse object.
+	errorResponse, err := newErrorResponse(response.Body)
+	// If error cannot be translated,
+	// Terraform will show a general error to the user.
+	if err != nil {
+		return
+	}
+
+	// Convert key
+	// returned from api to an attribute path
+	// by splitting up the cameCase to a map of lowercase words
+	// []string{"camel", "case"}.
+	for errorKey, errorDetailList := range errorResponse.ErrorDetails {
+		m := regexp.MustCompile("[A-Z]")
+		res := m.ReplaceAllStringFunc(errorKey, func(s string) string {
+			return "_" + s
+		})
+
+		res = strings.ToLower(res)
+
+		mapKeys := strings.Split(res, "_")
+		attributePath := path.Root(mapKeys[0])
+
+		// Every element in the map goes one level deeper.
+		for _, mapKey := range mapKeys[1:] {
+			attributePath = attributePath.AtMapKey(mapKey)
+		}
+
+		// Each attribute can have multiple errors.
+		for _, errorDetail := range errorDetailList {
+			diags.AddAttributeError(attributePath, summary, errorDetail)
+		}
 	}
 }

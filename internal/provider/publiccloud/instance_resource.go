@@ -471,19 +471,13 @@ func (i *instanceResource) Create(
 		Execute()
 
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		resp.Diagnostics.AddError(
-			"Error launching Public Cloud instance",
-			sdkErr.Error(),
-		)
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
-			"Error launching Public Cloud instance",
-			sdkErr.Error(),
-		)
+		if apiResponse != nil {
+			utils.SetAttributeErrorsFromServerResponse(
+				"Error launching Public Cloud instance",
+				*apiResponse,
+				&resp.Diagnostics,
+			)
+		}
 
 		return
 	}

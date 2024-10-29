@@ -20,12 +20,18 @@ type ErrorResponse struct {
 }
 
 // newErrorResponse generates a new ErrorResponse object from an api response.
-func newErrorResponse(jsonStr string) (*ErrorResponse, error) {
-	errorResponse := ErrorResponse{}
-
-	err := json.Unmarshal([]byte(jsonStr), &errorResponse)
+func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, body)
 	if err != nil {
 		return nil, err
+	}
+
+	errorResponse := ErrorResponse{}
+
+	jsonErr := json.Unmarshal([]byte(buf.String()), &errorResponse)
+	if jsonErr != nil {
+		return nil, jsonErr
 	}
 
 	return &errorResponse, nil
@@ -54,14 +60,9 @@ func NewSdkError(
 
 	// Convert the returned JSON to an ErrorResponse struct.
 	if sdkHttpResponse != nil {
-		buf := new(strings.Builder)
-		_, err := io.Copy(buf, sdkHttpResponse.Body)
+		errorResponse, err := newErrorResponse(sdkHttpResponse.Body)
 		if err == nil {
-			bodyContent := buf.String()
-			errorResponse, err := newErrorResponse(bodyContent)
-			if err == nil {
-				repositoryError.ErrorResponse = errorResponse
-			}
+			repositoryError.ErrorResponse = errorResponse
 		}
 	}
 

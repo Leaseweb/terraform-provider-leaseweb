@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -100,4 +103,139 @@ func TestGetHttpErrorMessage(t *testing.T) {
 		assert.Contains(t, message, "email")
 		assert.Contains(t, message, "blah2 blah2")
 	})
+}
+
+func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
+	t.Run(
+		"returns expected path if there are no children",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			httpResponse := http.Response{
+				StatusCode: 500,
+				Body: io.NopCloser(
+					bytes.NewReader(
+						[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attribute": ["error1", "error2"]
+  }
+}
+          `),
+					),
+				),
+			}
+
+			SetAttributeErrorsFromServerResponse(
+				"summary",
+				httpResponse,
+				&diags,
+			)
+
+			attributePath := path.Root("attribute")
+
+			want := diag.Diagnostics{}
+			want.AddAttributeError(attributePath, "summary", "error1")
+			want.AddAttributeError(attributePath, "summary", "error2")
+
+			assert.Equal(t, want, diags.Errors())
+		},
+	)
+
+	t.Run(
+		"returns expected path if there are children",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			httpResponse := http.Response{
+				StatusCode: 500,
+				Body: io.NopCloser(
+					bytes.NewReader(
+						[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attributeId": ["error1", "error2"]
+  }
+}
+          `),
+					),
+				),
+			}
+
+			SetAttributeErrorsFromServerResponse(
+				"summary",
+				httpResponse,
+				&diags,
+			)
+
+			attributePath := path.Root("attribute").AtMapKey("id")
+
+			want := diag.Diagnostics{}
+			want.AddAttributeError(attributePath, "summary", "error1")
+			want.AddAttributeError(attributePath, "summary", "error2")
+
+			assert.Equal(t, want, diags.Errors())
+		},
+	)
+
+	t.Run(
+		"sets no errors if errorResponse cannot be translated",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			httpResponse := http.Response{
+				StatusCode: 500,
+				Body: io.NopCloser(
+					bytes.NewReader(
+						[]byte(`{}`),
+					),
+				),
+			}
+
+			SetAttributeErrorsFromServerResponse(
+				"summary",
+				httpResponse,
+				&diags,
+			)
+
+			assert.False(t, diags.HasError())
+		},
+	)
+}
+
+func ExampleSetAttributeErrorsFromServerResponse() {
+	diags := diag.Diagnostics{}
+
+	httpResponse := http.Response{
+		StatusCode: 500,
+		Body: io.NopCloser(
+			bytes.NewReader(
+				[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attribute": ["error1", "error2"]
+  }
+}
+          `),
+			),
+		),
+	}
+
+	SetAttributeErrorsFromServerResponse(
+		"summary",
+		httpResponse,
+		&diags,
+	)
+
+	fmt.Println(diags.Errors())
+	// Output: [{{error1 summary} {[attribute]}} {{error2 summary} {[attribute]}}]
 }

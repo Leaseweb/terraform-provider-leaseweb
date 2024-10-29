@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -20,7 +19,6 @@ import (
 var (
 	_ resource.ResourceWithConfigure   = &imageResource{}
 	_ resource.ResourceWithImportState = &imageResource{}
-	_ resource.ResourceWithModifyPlan  = &imageResource{}
 )
 
 type imageResourceModel struct {
@@ -131,31 +129,6 @@ func getImage(
 
 type imageResource struct {
 	client client.Client
-}
-
-func (i *imageResource) ModifyPlan(
-	ctx context.Context,
-	request resource.ModifyPlanRequest,
-	response *resource.ModifyPlanResponse,
-) {
-	planImage := imageResourceModel{}
-	request.Plan.Get(ctx, &planImage)
-
-	instances, err := getAllInstances(ctx, i.client.PublicCloudAPI)
-	if err != nil {
-		response.Diagnostics.AddError("Cannot get instances", err.Error())
-		return
-	}
-
-	idRequest := validator.StringRequest{ConfigValue: planImage.ID}
-	idResponse := validator.StringResponse{}
-
-	instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
-	instanceIdValidator.ValidateString(ctx, idRequest, &idResponse)
-
-	if idResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(idResponse.Diagnostics.Errors()...)
-	}
 }
 
 func (i *imageResource) ImportState(
