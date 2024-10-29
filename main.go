@@ -9,11 +9,12 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider"
 )
 
-//go:generate terraform fmt -recursive ./examples/
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate -provider-name leaseweb
-
 var (
 	version = "dev"
+
+	// goreleaser can pass other information to the main package,
+	// such as the specific commit
+	// https://goreleaser.com/cookbooks/using-main.version/
 )
 
 func main() {
@@ -32,11 +33,7 @@ func main() {
 		Debug:   debug,
 	}
 
-	err := providerserver.Serve(
-		context.Background(),
-		provider.New(version),
-		opts,
-	)
+	err := providerserver.Serve(context.Background(), provider.New(version), opts)
 
 	if err != nil {
 		log.Fatal(err.Error())

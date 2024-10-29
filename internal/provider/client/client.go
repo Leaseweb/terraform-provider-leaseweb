@@ -5,6 +5,8 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
+const userAgent = "leaseweb-terraform"
+
 // ProviderData TODO: Refactor this part, data can be managed directly, not within client.
 type ProviderData struct {
 	ApiKey string
@@ -32,7 +34,7 @@ func NewClient(token string, optional Optional) Client {
 		cfg.Scheme = *optional.Scheme
 	}
 	cfg.AddDefaultHeader("X-LSW-Auth", token)
-
+	cfg.UserAgent = userAgent
 	publicCloudApi := publicCloud.NewAPIClient(cfg)
 
 	return Client{
