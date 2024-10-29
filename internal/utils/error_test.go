@@ -286,3 +286,46 @@ func Test_normalizeErrorResponseKey(t *testing.T) {
 	})
 
 }
+
+func Test_newErrorResponse(t *testing.T) {
+	t.Run("response is processed correctly", func(t *testing.T) {
+		httpResponse := http.Response{
+			StatusCode: 500,
+			Body: io.NopCloser(
+				bytes.NewReader(
+					[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attribute": ["error1", "error2"]
+  }
+}
+          `),
+				),
+			),
+		}
+
+		want := ErrorResponse{
+			CorrelationId: "correlationId",
+			ErrorCode:     "errorCode",
+			ErrorMessage:  "errorMessage",
+			ErrorDetails:  map[string][]string{"attribute": {"error1", "error2"}},
+		}
+		got, err := newErrorResponse(httpResponse.Body)
+
+		assert.NoError(t, err)
+		assert.Equal(t, want, *got)
+	})
+
+	t.Run("Invalid json returns error", func(t *testing.T) {
+		httpResponse := http.Response{
+			StatusCode: 500,
+			Body:       io.NopCloser(bytes.NewReader([]byte(``))),
+		}
+
+		_, err := newErrorResponse(httpResponse.Body)
+		assert.Error(t, err)
+	})
+}

@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -63,7 +64,7 @@ func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.
 func getAllLoadBalancers(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.LoadBalancerDetails, *utils.SdkError) {
+) ([]publicCloud.LoadBalancerDetails, *http.Response, error) {
 	var loadBalancers []publicCloud.LoadBalancerDetails
 
 	request := api.GetLoadBalancerList(ctx)
@@ -71,7 +72,7 @@ func getAllLoadBalancers(
 	result, response, err := request.Execute()
 
 	if err != nil {
-		return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
+		return nil, response, fmt.Errorf("getAllLoadBalancers: %w", err)
 	}
 
 	metadata := result.GetMetadata()
@@ -84,7 +85,7 @@ func getAllLoadBalancers(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
+			return nil, response, fmt.Errorf("getAllLoadBalancers: %w", err)
 		}
 
 		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
@@ -95,11 +96,11 @@ func getAllLoadBalancers(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
+			return nil, response, fmt.Errorf("getAllLoadBalancers: %w", err)
 		}
 	}
 
-	return loadBalancers, nil
+	return loadBalancers, response, nil
 }
 
 type loadBalancersDataSource struct {
@@ -182,7 +183,7 @@ func (l *loadBalancersDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read Public Cloud load balancers")
-	loadBalancers, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
+	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
 
 	if err != nil {
 		response.Diagnostics.AddError(
@@ -191,7 +192,7 @@ func (l *loadBalancersDataSource) Read(
 		)
 		utils.LogError(
 			ctx,
-			err.ErrorResponse,
+			httpResponse,
 			"Unable to read Public Cloud load balancers",
 		)
 

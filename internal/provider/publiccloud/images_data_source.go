@@ -83,7 +83,7 @@ func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesD
 func getAllImages(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.ImageDetails, *http.Response, *utils.SdkError) {
+) ([]publicCloud.ImageDetails, *http.Response, error) {
 	var images []publicCloud.ImageDetails
 
 	request := api.GetImageList(ctx)
@@ -91,7 +91,7 @@ func getAllImages(
 	result, httpResponse, err := request.Execute()
 
 	if err != nil {
-		return nil, httpResponse, utils.NewSdkError("getAllImages", err, httpResponse)
+		return nil, httpResponse, fmt.Errorf("getAllImages: %w", err)
 	}
 
 	metadata := result.GetMetadata()
@@ -104,7 +104,7 @@ func getAllImages(
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, response, utils.NewSdkError("getAllImages", err, response)
+			return nil, response, fmt.Errorf("getAllImages: %w", err)
 		}
 
 		images = append(images, result.GetImages()...)
@@ -115,7 +115,7 @@ func getAllImages(
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, response, utils.NewSdkError("getAllImages", err, response)
+			return nil, response, fmt.Errorf("getAllImages: %w", err)
 		}
 	}
 
@@ -191,7 +191,7 @@ func (i *imagesDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read Public Cloud images")
-	images, _, err := getAllImages(ctx, i.client.PublicCloudAPI)
+	images, httpResponse, err := getAllImages(ctx, i.client.PublicCloudAPI)
 
 	if err != nil {
 		response.Diagnostics.AddError(
@@ -200,7 +200,7 @@ func (i *imagesDataSource) Read(
 		)
 		utils.LogError(
 			ctx,
-			err.ErrorResponse,
+			httpResponse,
 			"Unable to read Public Cloud images",
 		)
 

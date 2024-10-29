@@ -112,7 +112,7 @@ func getImage(
 	ID string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ImageDetails, *http.Response, *utils.SdkError) {
+) (*publicCloud.ImageDetails, *http.Response, error) {
 	sdkImages, httpResponse, err := getAllImages(ctx, api)
 
 	if err != nil {
@@ -222,12 +222,7 @@ func (i *imageResource) Create(
 			&response.Diagnostics,
 		)
 
-		sdkErr := utils.NewSdkError("", err, httpResponse)
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			"Error creating publiccloud image",
-		)
+		utils.LogError(ctx, httpResponse, "Error creating publiccloud image")
 
 		return
 	}
@@ -268,7 +263,7 @@ func (i *imageResource) Read(
 			&response.Diagnostics,
 		)
 
-		utils.LogError(ctx, err.ErrorResponse, "Unable to read images")
+		utils.LogError(ctx, httpResponse, "Unable to read images")
 
 		return
 	}
@@ -312,10 +307,9 @@ func (i *imageResource) Update(
 			&response.Diagnostics,
 		)
 
-		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
 			fmt.Sprintf(
 				"Unable to update Public Cloud image %q",
 				plan.ID.ValueString(),

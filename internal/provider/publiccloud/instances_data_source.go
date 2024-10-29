@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -93,18 +94,18 @@ func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) in
 	return instances
 }
 
-func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
-	[]publicCloud.Instance,
-	*utils.SdkError,
-) {
+func getAllInstances(
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]publicCloud.Instance, *http.Response, error) {
 	var instances []publicCloud.Instance
 
 	request := api.GetInstanceList(ctx)
 
-	result, response, err := request.Execute()
+	result, httpResponse, err := request.Execute()
 
 	if err != nil {
-		return nil, utils.NewSdkError("getAllInstances", err, response)
+		return nil, httpResponse, fmt.Errorf("getAllInstances: %w", err)
 	}
 
 	metadata := result.GetMetadata()
@@ -117,7 +118,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllInstances", err, response)
+			return nil, response, fmt.Errorf("getAllInstances: %w", err)
 		}
 
 		instances = append(instances, result.Instances...)
@@ -128,11 +129,11 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllInstances", err, response)
+			return nil, httpResponse, fmt.Errorf("getAllInstances: %w", err)
 		}
 	}
 
-	return instances, nil
+	return instances, httpResponse, nil
 }
 
 func NewInstancesDataSource() datasource.DataSource {
@@ -182,11 +183,11 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, err := getAllInstances(ctx, d.client.PublicCloudAPI)
+	instances, httpResponse, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to read instances", err.Error())
-		utils.LogError(ctx, err.ErrorResponse, "Unable to read instances")
+		utils.LogError(ctx, httpResponse, "Unable to read instances")
 
 		return
 	}

@@ -423,12 +423,7 @@ func (i *instanceResource) Create(
 			&resp.Diagnostics,
 		)
 
-		sdkErr := utils.NewSdkError("", err, httpResponse)
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			"Error launching Public Cloud instance",
-		)
+		utils.LogError(ctx, httpResponse, "Error launching Public Cloud instance")
 
 		return
 	}
@@ -478,10 +473,9 @@ func (i *instanceResource) Delete(
 			&resp.Diagnostics,
 		)
 
-		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
 			fmt.Sprintf(
 				"Error terminating Public Cloud instance %q",
 				state.ID.ValueString(),
@@ -539,10 +533,9 @@ func (i *instanceResource) Read(
 			&resp.Diagnostics,
 		)
 
-		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
 			fmt.Sprintf(
 				"Unable to read Public Cloud instance %q",
 				state.ID.ValueString(),
@@ -613,10 +606,9 @@ func (i *instanceResource) Update(
 			&resp.Diagnostics,
 		)
 
-		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
 			fmt.Sprintf(
 				"Unable to update Public Cloud instance %q",
 				plan.ID.ValueString(),
