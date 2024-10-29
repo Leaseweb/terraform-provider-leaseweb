@@ -181,7 +181,7 @@ func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
 // Otherwise, it prints an error log without the response.
 func LogError(ctx context.Context, httpResponse *http.Response, summary string) {
 	errorResponse, err := newErrorResponse(httpResponse.Body)
-	if err == nil {
+	if err != nil {
 		tflog.Error(ctx, summary)
 	}
 
