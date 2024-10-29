@@ -284,7 +284,6 @@ func (d *instancesDataSource) Schema(
 									Computed: true,
 								},
 							},
-							Validators: []validator.Object{contractTermValidator{}},
 						},
 						"market_app_id": schema.StringAttribute{
 							Computed:    true,

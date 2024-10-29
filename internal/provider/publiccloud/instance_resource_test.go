@@ -13,10 +13,7 @@ import (
 )
 
 func Test_adaptContractToContractResource(t *testing.T) {
-	endsAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2023-12-14 17:09:47",
-	)
+	endsAt, _ := time.Parse("2006-01-02 15:04:05", "2023-12-14 17:09:47")
 	sdkContract := publicCloud.Contract{
 		BillingFrequency: publicCloud.BILLINGFREQUENCY__1,
 		Term:             publicCloud.CONTRACTTERM__3,
@@ -35,59 +32,6 @@ func Test_adaptContractToContractResource(t *testing.T) {
 	got := adaptContractToContractResource(sdkContract)
 
 	assert.Equal(t, want, got)
-}
-
-func Test_contractResourceModel_IsContractTermValid(t *testing.T) {
-	t.Run(
-		"false is returned when contract term is monthly and contract term is 0",
-		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
-				Term: publicCloud.CONTRACTTERM__0,
-				Type: publicCloud.CONTRACTTYPE_MONTHLY,
-			}
-
-			contract := adaptContractToContractResource(sdkContract)
-
-			got, reason := contract.IsContractTermValid()
-
-			assert.False(t, got)
-			assert.Equal(t, reasonContractTermCannotBeZero, reason)
-		},
-	)
-
-	t.Run(
-		"false is returned when contract term is hourly and contract term is not 0",
-		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
-				Term: publicCloud.CONTRACTTERM__3,
-				Type: publicCloud.CONTRACTTYPE_HOURLY,
-			}
-
-			contract := adaptContractToContractResource(sdkContract)
-
-			got, reason := contract.IsContractTermValid()
-
-			assert.False(t, got)
-			assert.Equal(t, reasonContractTermMustBeZero, reason)
-		},
-	)
-
-	t.Run(
-		"true is returned when contract term is valid",
-		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
-				Term: publicCloud.CONTRACTTERM__0,
-				Type: publicCloud.CONTRACTTYPE_HOURLY,
-			}
-
-			contract := adaptContractToContractResource(sdkContract)
-
-			got, reason := contract.IsContractTermValid()
-
-			assert.True(t, got)
-			assert.Equal(t, reasonNone, reason)
-		},
-	)
 }
 
 func generateContractObject(

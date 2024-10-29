@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -18,11 +20,17 @@ type Error struct {
 
 // TODO: we need to merge error.go and log_error.go and have unified error/logging functionality.
 func (e Error) Error() string {
-	// Check if response or its body is nil, or if the status code is not an error.
+	// Check if the response or its body is nil,
+	//or if the status code is not an error.
 	if e.resp == nil || e.resp.Body == nil || e.resp.StatusCode < 400 {
 		return e.err.Error()
 	}
-	defer e.resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("error closing response body: %v", err)
+		}
+	}(e.resp.Body)
 
 	// Try to decode the response body as JSON.
 	var errorResponse map[string]interface{}
@@ -35,11 +43,11 @@ func (e Error) Error() string {
 		return msg
 	}
 
-	// Default to original error message if no relevant information is found.
+	// Default to the original error message if no relevant information is found.
 	return e.err.Error()
 }
 
-// Helper function to build error message from the decoded JSON.
+// Helper function to build an error message from the decoded JSON.
 func buildErrorMessage(errorResponse map[string]interface{}) string {
 	var msg string
 
@@ -81,6 +89,23 @@ func NewError(resp *http.Response, err error) Error {
 	}
 }
 
+// normalizeErrorResponseKey converts api key paths to strings that SetAttributeErrorsFromServerResponse can handle.
+// `instanceId` & `instance.id` both become `instance_id`.
+func normalizeErrorResponseKey(key string) string {
+	// Assume that the key has the format `contract.id`
+	//if any dots are found.
+	if strings.Contains(key, ".") {
+		return strings.ToLower(strings.Replace(key, ".", "_", -1))
+	}
+
+	m := regexp.MustCompile("[A-Z]")
+	res := m.ReplaceAllStringFunc(key, func(s string) string {
+		return "_" + s
+	})
+
+	return strings.ToLower(res)
+}
+
 // SetAttributeErrorsFromServerResponse takes a server response and maps errors to the appropriate attributes.
 // If an attribute cannot be found,
 // the error is shown to the user on a resource level.
@@ -102,19 +127,11 @@ func SetAttributeErrorsFromServerResponse(
 		return
 	}
 
-	// Convert key
-	// returned from api to an attribute path
-	// by splitting up the cameCase to a map of lowercase words
-	// []string{"camel", "case"}.
+	// Convert key returned from api to an attribute path.
+	// I.e.: []string{"image", "id"}.
 	for errorKey, errorDetailList := range errorResponse.ErrorDetails {
-		m := regexp.MustCompile("[A-Z]")
-		res := m.ReplaceAllStringFunc(errorKey, func(s string) string {
-			return "_" + s
-		})
-
-		res = strings.ToLower(res)
-
-		mapKeys := strings.Split(res, "_")
+		normalizedErrorKey := normalizeErrorResponseKey(errorKey)
+		mapKeys := strings.Split(normalizedErrorKey, "_")
 		attributePath := path.Root(mapKeys[0])
 
 		// Every element in the map goes one level deeper.

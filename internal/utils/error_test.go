@@ -15,7 +15,6 @@ import (
 )
 
 func TestGetHttpErrorMessage(t *testing.T) {
-
 	t.Run("error must return if response is nil", func(t *testing.T) {
 		message := NewError(nil, errors.New("error content")).Error()
 		assert.Equal(t, "error content", message)
@@ -191,11 +190,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 
 			httpResponse := http.Response{
 				StatusCode: 500,
-				Body: io.NopCloser(
-					bytes.NewReader(
-						[]byte(`{}`),
-					),
-				),
+				Body:       io.NopCloser(bytes.NewReader([]byte(``))),
 			}
 
 			SetAttributeErrorsFromServerResponse(
@@ -208,20 +203,17 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 		},
 	)
 
-	t.Run(
-		"sets no errors if httpResponse is nil",
-		func(t *testing.T) {
-			diags := diag.Diagnostics{}
+	t.Run("sets no errors if httpResponse is nil", func(t *testing.T) {
+		diags := diag.Diagnostics{}
 
-			SetAttributeErrorsFromServerResponse(
-				"summary",
-				nil,
-				&diags,
-			)
+		SetAttributeErrorsFromServerResponse(
+			"summary",
+			nil,
+			&diags,
+		)
 
-			assert.False(t, diags.HasError())
-		},
-	)
+		assert.False(t, diags.HasError())
+	})
 }
 
 func ExampleSetAttributeErrorsFromServerResponse() {
@@ -276,4 +268,21 @@ func ExampleSetAttributeErrorsFromServerResponse_nested() {
 
 	fmt.Println(diags.Errors())
 	// Output: [{{error1 summary} {[attribute id]}} {{error2 summary} {[attribute id]}}]
+}
+
+func Test_normalizeErrorResponseKey(t *testing.T) {
+	t.Run("camel case is normalize correctly", func(t *testing.T) {
+		want := "instance_id"
+		got := normalizeErrorResponseKey("instanceId")
+
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("keys with dots are normalize correctly", func(t *testing.T) {
+		want := "instance_id"
+		got := normalizeErrorResponseKey("instance.Id")
+
+		assert.Equal(t, want, got)
+	})
+
 }

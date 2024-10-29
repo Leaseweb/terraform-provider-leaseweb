@@ -26,14 +26,6 @@ var (
 	_ resource.ResourceWithImportState = &instanceResource{}
 )
 
-type reason string
-
-const (
-	reasonContractTermCannotBeZero reason = "contract.term cannot be 0 when contract type is MONTHLY"
-	reasonContractTermMustBeZero   reason = "contract.term must be 0 when contract type is HOURLY"
-	reasonNone                     reason = ""
-)
-
 type contractResourceModel struct {
 	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
 	Term             types.Int64  `tfsdk:"term"`
@@ -50,18 +42,6 @@ func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 		"ends_at":           types.StringType,
 		"state":             types.StringType,
 	}
-}
-
-func (c contractResourceModel) IsContractTermValid() (bool, reason) {
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
-		return false, reasonContractTermCannotBeZero
-	}
-
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt64() != 0 {
-		return false, reasonContractTermMustBeZero
-	}
-
-	return true, reasonNone
 }
 
 func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
@@ -803,7 +783,6 @@ func (i *instanceResource) Schema(
 						Computed: true,
 					},
 				},
-				Validators: []validator.Object{contractTermValidator{}},
 			},
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
