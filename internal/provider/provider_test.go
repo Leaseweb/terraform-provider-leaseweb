@@ -350,34 +350,6 @@ resource "leaseweb_public_cloud_instance" "test" {
 		})
 	})
 
-	t.Run("instanceType not in region is not accepted", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m5.large"
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					ExpectError: regexp.MustCompile(
-						"Attribute type value must be one of:",
-					),
-				},
-			},
-		})
-	})
-
 	t.Run("rootDiskSize is too small", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -626,54 +598,6 @@ resource "leaseweb_public_cloud_instance" "test" {
 			})
 		})
 	}
-
-	t.Run(
-		"upgrading to invalid instanceType is not allowed",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-					},
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m4.large"
-  reference = "my webserver"
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute type value must be one of:",
-						),
-					},
-				},
-			})
-		},
-	)
 
 	t.Run("changing the region triggers replacement", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{

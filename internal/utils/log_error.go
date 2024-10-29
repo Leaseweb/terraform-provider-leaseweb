@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -73,9 +72,7 @@ func NewSdkError(
 func LogError(
 	ctx context.Context,
 	errorResponse *ErrorResponse,
-	diags *diag.Diagnostics,
 	summary string,
-	detail string,
 ) {
 	if errorResponse != nil {
 		tflog.Error(
@@ -84,6 +81,4 @@ func LogError(
 			map[string]interface{}{"ErrorResponse": errorResponse},
 		)
 	}
-
-	diags.AddError(summary, detail)
 }

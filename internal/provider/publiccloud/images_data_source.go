@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -79,18 +80,18 @@ func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesD
 	return images
 }
 
-func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
-	[]publicCloud.ImageDetails,
-	*utils.SdkError,
-) {
+func getAllImages(
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]publicCloud.ImageDetails, *http.Response, *utils.SdkError) {
 	var images []publicCloud.ImageDetails
 
 	request := api.GetImageList(ctx)
 
-	result, response, err := request.Execute()
+	result, httpResponse, err := request.Execute()
 
 	if err != nil {
-		return nil, utils.NewSdkError("getAllImages", err, response)
+		return nil, httpResponse, utils.NewSdkError("getAllImages", err, httpResponse)
 	}
 
 	metadata := result.GetMetadata()
@@ -103,7 +104,7 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllImages", err, response)
+			return nil, response, utils.NewSdkError("getAllImages", err, response)
 		}
 
 		images = append(images, result.GetImages()...)
@@ -114,11 +115,11 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		request, err = pagination.NextPage()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllImages", err, response)
+			return nil, response, utils.NewSdkError("getAllImages", err, response)
 		}
 	}
 
-	return images, nil
+	return images, httpResponse, nil
 }
 
 func imageSchemaAttributes() map[string]schema.Attribute {
@@ -189,20 +190,18 @@ func (i *imagesDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	tflog.Info(ctx, "Read publiccloud images")
-	images, err := getAllImages(ctx, i.client.PublicCloudAPI)
+	tflog.Info(ctx, "Read Public Cloud images")
+	images, _, err := getAllImages(ctx, i.client.PublicCloudAPI)
 
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Unable to read publiccloud images",
+			"Unable to read Public Cloud images",
 			err.Error(),
 		)
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
-			&response.Diagnostics,
-			"Unable to read publiccloud images",
-			err.Error(),
+			"Unable to read Public Cloud images",
 		)
 
 		return

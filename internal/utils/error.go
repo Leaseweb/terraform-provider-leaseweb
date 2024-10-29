@@ -86,9 +86,14 @@ func NewError(resp *http.Response, err error) Error {
 // the error is shown to the user on a resource level.
 func SetAttributeErrorsFromServerResponse(
 	summary string,
-	response http.Response,
+	response *http.Response,
 	diags *diag.Diagnostics,
 ) {
+	// Nothing to do when response does not exist.
+	if response == nil {
+		return
+	}
+
 	// Convert server response to ErrorResponse object.
 	errorResponse, err := newErrorResponse(response.Body)
 	// If error cannot be translated,

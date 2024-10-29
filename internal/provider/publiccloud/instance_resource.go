@@ -466,18 +466,23 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, apiResponse, err := i.client.PublicCloudAPI.LaunchInstance(ctx).
+	sdkInstance, httpResponse, err := i.client.PublicCloudAPI.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 
 	if err != nil {
-		if apiResponse != nil {
-			utils.SetAttributeErrorsFromServerResponse(
-				"Error launching Public Cloud instance",
-				*apiResponse,
-				&resp.Diagnostics,
-			)
-		}
+		utils.SetAttributeErrorsFromServerResponse(
+			"Error launching Public Cloud instance",
+			httpResponse,
+			&resp.Diagnostics,
+		)
+
+		sdkErr := utils.NewSdkError("", err, httpResponse)
+		utils.LogError(
+			ctx,
+			sdkErr.ErrorResponse,
+			"Error launching Public Cloud instance",
+		)
 
 		return
 	}
@@ -515,111 +520,30 @@ func (i *instanceResource) Delete(
 		"Terminate Public Cloud instance %q",
 		state.ID.ValueString(),
 	))
-	apiResponse, err := i.client.PublicCloudAPI.TerminateInstance(
+	httpResponse, err := i.client.PublicCloudAPI.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
-	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
 
-		resp.Diagnostics.AddError(
+	if err != nil {
+		utils.SetAttributeErrorsFromServerResponse(
 			"Error terminating Public Cloud instance",
-			fmt.Sprintf(
-				"Could not terminate Public Cloud instance, unexpected error: %q",
-				err.Error(),
-			),
+			httpResponse,
+			&resp.Diagnostics,
 		)
 
+		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Error terminating Public Cloud instance %q",
 				state.ID.ValueString(),
 			),
-			sdkErr.Error(),
 		)
 
 		return
 	}
-}
-
-func getAvailableInstanceTypesForUpdate(
-	id string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]string, *utils.SdkError) {
-	var instanceTypes []string
-
-	sdkInstanceTypes, response, err := api.GetUpdateInstanceTypeList(ctx, id).
-		Execute()
-	if err != nil {
-		return nil, utils.NewSdkError(
-			fmt.Sprintf("getAvailableInstanceTypesForUpdate %q", id),
-			err,
-			response,
-		)
-	}
-
-	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
-		instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
-	}
-
-	return instanceTypes, nil
-}
-
-func getInstanceTypesForRegion(
-	region string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]string, *utils.SdkError) {
-	var instanceTypes []string
-
-	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
-
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError(
-			"GetInstanceTypesForRegion",
-			err,
-			response,
-		)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
-	for {
-		result, response, err := request.Execute()
-		if err != nil {
-			return nil, utils.NewSdkError(
-				"GetInstanceTypesForRegion",
-				err,
-				response,
-			)
-		}
-
-		for _, sdkInstanceType := range result.InstanceTypes {
-			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
-		}
-
-		if !pagination.CanIncrement() {
-			break
-		}
-
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
-		}
-	}
-
-	return instanceTypes, nil
 }
 
 func (i *instanceResource) ImportState(
@@ -659,25 +583,24 @@ func (i *instanceResource) Read(
 		ctx,
 		fmt.Sprintf("Read Public Cloud instance %q", state.ID.ValueString()),
 	)
-	sdkInstance, response, err := i.client.PublicCloudAPI.
+	sdkInstance, httpResponse, err := i.client.PublicCloudAPI.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, response)
-		resp.Diagnostics.AddError(
+		utils.SetAttributeErrorsFromServerResponse(
 			"Error reading Public Cloud instance",
-			sdkErr.Error(),
+			httpResponse,
+			&resp.Diagnostics,
 		)
 
+		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Unable to read Public Cloud instance %q",
 				state.ID.ValueString(),
 			),
-			err.Error(),
 		)
 
 		return
@@ -733,27 +656,25 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, apiResponse, err := i.client.PublicCloudAPI.
+	sdkInstance, httpResponse, err := i.client.PublicCloudAPI.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-
-		resp.Diagnostics.AddError(
+		utils.SetAttributeErrorsFromServerResponse(
 			"Error updating Public Cloud instance",
-			sdkErr.Error(),
+			httpResponse,
+			&resp.Diagnostics,
 		)
 
+		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
 			fmt.Sprintf(
 				"Unable to update Public Cloud instance %q",
 				plan.ID.ValueString(),
 			),
-			sdkErr.Error(),
 		)
 
 		return
@@ -956,91 +877,6 @@ func (i *instanceResource) ModifyPlan(
 		if response.Diagnostics.HasError() {
 			return
 		}
-	}
-
-	availableInstanceTypes := i.getAvailableInstanceTypes(
-		response,
-		stateInstance.ID,
-		planInstance.Region.ValueString(),
-		ctx,
-	)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
-	i.validateInstanceType(
-		planInstance.Type,
-		stateInstance.Type,
-		response,
-		availableInstanceTypes,
-		ctx,
-	)
-	if response.Diagnostics.HasError() {
-		return
-	}
-}
-
-// When creating a new instance,
-// any instanceType available in the region is good.
-// On update, the criteria is more limited.
-func (i *instanceResource) getAvailableInstanceTypes(
-	response *resource.ModifyPlanResponse,
-	id basetypes.StringValue,
-	region string,
-	ctx context.Context,
-) []string {
-	// instanceResourceModel is being created.
-	if id.IsNull() {
-		availableInstanceTypes, err := getInstanceTypesForRegion(
-			region,
-			ctx,
-			i.client.PublicCloudAPI,
-		)
-		if err != nil {
-			response.Diagnostics.AddError(
-				"Cannot get available instanceTypes for region",
-				err.Error(),
-			)
-			return nil
-		}
-
-		return availableInstanceTypes
-	}
-
-	availableInstanceTypes, err := getAvailableInstanceTypesForUpdate(
-		id.ValueString(),
-		ctx,
-		i.client.PublicCloudAPI,
-	)
-	if err != nil {
-		response.Diagnostics.AddError(
-			"Cannot get available instanceTypes for update",
-			err.Error(),
-		)
-		return nil
-	}
-
-	return availableInstanceTypes
-}
-
-func (i *instanceResource) validateInstanceType(
-	instanceType types.String,
-	currentInstanceType types.String,
-	response *resource.ModifyPlanResponse,
-	availableInstanceTypes []string,
-	ctx context.Context,
-) {
-	request := validator.StringRequest{ConfigValue: instanceType}
-	instanceResponse := validator.StringResponse{}
-
-	instanceTypeValidator := newInstanceTypeValidator(
-		currentInstanceType,
-		availableInstanceTypes,
-	)
-
-	instanceTypeValidator.ValidateString(ctx, request, &instanceResponse)
-	if instanceResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(instanceResponse.Diagnostics.Errors()...)
 	}
 }
 

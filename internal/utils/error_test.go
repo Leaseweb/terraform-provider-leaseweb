@@ -131,7 +131,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 
 			SetAttributeErrorsFromServerResponse(
 				"summary",
-				httpResponse,
+				&httpResponse,
 				&diags,
 			)
 
@@ -170,7 +170,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 
 			SetAttributeErrorsFromServerResponse(
 				"summary",
-				httpResponse,
+				&httpResponse,
 				&diags,
 			)
 
@@ -200,7 +200,22 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 
 			SetAttributeErrorsFromServerResponse(
 				"summary",
-				httpResponse,
+				&httpResponse,
+				&diags,
+			)
+
+			assert.False(t, diags.HasError())
+		},
+	)
+
+	t.Run(
+		"sets no errors if httpResponse is nil",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			SetAttributeErrorsFromServerResponse(
+				"summary",
+				nil,
 				&diags,
 			)
 
@@ -230,12 +245,35 @@ func ExampleSetAttributeErrorsFromServerResponse() {
 		),
 	}
 
-	SetAttributeErrorsFromServerResponse(
-		"summary",
-		httpResponse,
-		&diags,
-	)
+	SetAttributeErrorsFromServerResponse("summary", &httpResponse, &diags)
 
 	fmt.Println(diags.Errors())
 	// Output: [{{error1 summary} {[attribute]}} {{error2 summary} {[attribute]}}]
+}
+
+func ExampleSetAttributeErrorsFromServerResponse_nested() {
+	diags := diag.Diagnostics{}
+
+	httpResponse := http.Response{
+		StatusCode: 500,
+		Body: io.NopCloser(
+			bytes.NewReader(
+				[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage",
+  "errorDetails":  {
+    "attributeId": ["error1", "error2"]
+  }
+}
+          `),
+			),
+		),
+	}
+
+	SetAttributeErrorsFromServerResponse("summary", &httpResponse, &diags)
+
+	fmt.Println(diags.Errors())
+	// Output: [{{error1 summary} {[attribute id]}} {{error2 summary} {[attribute id]}}]
 }

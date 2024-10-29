@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -111,20 +112,20 @@ func getImage(
 	ID string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ImageDetails, *utils.SdkError) {
-	sdkImages, err := getAllImages(ctx, api)
+) (*publicCloud.ImageDetails, *http.Response, *utils.SdkError) {
+	sdkImages, httpResponse, err := getAllImages(ctx, api)
 
 	if err != nil {
-		return nil, err
+		return nil, httpResponse, err
 	}
 
 	for _, sdkImage := range sdkImages {
 		if sdkImage.GetId() == ID {
-			return &sdkImage, nil
+			return &sdkImage, nil, nil
 		}
 	}
 
-	return nil, nil
+	return nil, nil, nil
 }
 
 type imageResource struct {
@@ -211,19 +212,21 @@ func (i *imageResource) Create(
 
 	opts := plan.GetCreateImageOpts()
 
-	sdkImage, apiResponse, err := i.client.PublicCloudAPI.CreateImage(ctx).
+	sdkImage, httpResponse, err := i.client.PublicCloudAPI.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError("Error creating publiccloud image", sdkErr.Error())
+		utils.SetAttributeErrorsFromServerResponse(
+			"Error creating Public Cloud image",
+			httpResponse,
+			&response.Diagnostics,
+		)
 
+		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
-			&response.Diagnostics,
 			"Error creating publiccloud image",
-			sdkErr.Error(),
 		)
 
 		return
@@ -253,16 +256,19 @@ func (i *imageResource) Read(
 		return
 	}
 
-	sdkImage, err := getImage(state.ID.ValueString(), ctx, i.client.PublicCloudAPI)
+	sdkImage, httpResponse, err := getImage(
+		state.ID.ValueString(),
+		ctx,
+		i.client.PublicCloudAPI,
+	)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to read images", err.Error())
-		utils.LogError(
-			ctx,
-			err.ErrorResponse,
+		utils.SetAttributeErrorsFromServerResponse(
+			"Error reading Public Cloud images",
+			httpResponse,
 			&response.Diagnostics,
-			"Unable to read images",
-			err.Error(),
 		)
+
+		utils.LogError(ctx, err.ErrorResponse, "Unable to read images")
 
 		return
 	}
@@ -295,20 +301,25 @@ func (i *imageResource) Update(
 	tflog.Info(ctx, fmt.Sprintf("Update publiccloud image %q", plan.ID.ValueString()))
 	opts := plan.GetUpdateImageOpts()
 
-	sdkImageDetails, apiResponse, err := i.client.PublicCloudAPI.UpdateImage(
+	sdkImageDetails, httpResponse, err := i.client.PublicCloudAPI.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError("Error updating publiccloud image", sdkErr.Error())
+		utils.SetAttributeErrorsFromServerResponse(
+			"Error updating Public Cloud image",
+			httpResponse,
+			&response.Diagnostics,
+		)
 
+		sdkErr := utils.NewSdkError("", err, httpResponse)
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
-			&response.Diagnostics,
-			fmt.Sprintf("Unable to update publiccloud image %q", plan.ID.ValueString()),
-			sdkErr.Error(),
+			fmt.Sprintf(
+				"Unable to update Public Cloud image %q",
+				plan.ID.ValueString(),
+			),
 		)
 
 		return

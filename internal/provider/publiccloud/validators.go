@@ -2,19 +2,15 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var (
 	_ validator.Object = contractTermValidator{}
 	_ validator.Object = instanceTerminationValidator{}
-	_ validator.String = instanceTypeValidator{}
 )
 
 // Checks that contractType/contractTerm combination is valid.
@@ -101,58 +97,5 @@ func (i instanceTerminationValidator) ValidateObject(
 			"instance is not allowed to be terminated",
 			string(*reason),
 		)
-	}
-}
-
-type instanceTypeValidator struct {
-	availableInstanceTypes []string
-}
-
-func (i instanceTypeValidator) Description(_ context.Context) string {
-	return "Determines if an instanceType can be used with an instance."
-}
-
-func (i instanceTypeValidator) MarkdownDescription(ctx context.Context) string {
-	return i.Description(ctx)
-}
-
-func (i instanceTypeValidator) ValidateString(
-	_ context.Context,
-	request validator.StringRequest,
-	response *validator.StringResponse,
-) {
-	// Nothing to validate here.
-	if request.ConfigValue.IsUnknown() || request.ConfigValue.IsNull() {
-		return
-	}
-
-	if !slices.Contains(
-		i.availableInstanceTypes,
-		request.ConfigValue.ValueString(),
-	) {
-		response.Diagnostics.AddAttributeError(
-			request.Path,
-			"Invalid Instance Type",
-			fmt.Sprintf(
-				"Attribute type value must be one of: %q, got: %q",
-				i.availableInstanceTypes,
-				request.ConfigValue.ValueString(),
-			),
-		)
-	}
-}
-
-func newInstanceTypeValidator(
-	currentInstanceType types.String,
-	availableInstanceTypes []string,
-) instanceTypeValidator {
-	// Include the current instance type as it isn't returned the by api.
-	availableInstanceTypes = append(
-		availableInstanceTypes,
-		currentInstanceType.ValueString(),
-	)
-
-	return instanceTypeValidator{
-		availableInstanceTypes: availableInstanceTypes,
 	}
 }
