@@ -183,6 +183,7 @@ func LogError(ctx context.Context, httpResponse *http.Response, summary string) 
 	errorResponse, err := newErrorResponse(httpResponse.Body)
 	if err != nil {
 		tflog.Error(ctx, summary)
+		return
 	}
 
 	tflog.Error(
