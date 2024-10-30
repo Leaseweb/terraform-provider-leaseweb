@@ -17,17 +17,17 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_servers" "test" {
+		data "leaseweb_dedicated_server_servers" "test" {
 			reference = "test-reference"
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.test",
+								"data.leaseweb_dedicated_server_servers.test",
 								"ids.#",
 								"2",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.test",
+								"data.leaseweb_dedicated_server_servers.test",
 								"reference",
 								"test-reference",
 							),
@@ -47,11 +47,11 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_servers" "test" {
+		data "leaseweb_dedicated_server_servers" "test" {
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.test",
+								"data.leaseweb_dedicated_server_servers.test",
 								"ids.#",
 								"2",
 							),
@@ -71,7 +71,7 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_servers" "filter" {
+		data "leaseweb_dedicated_server_servers" "filter" {
 			reference = "test-reference"
 			ip = "127.0.0.4"
 			mac_address = "aa:bb:cc:dd:ee:ff"
@@ -82,42 +82,42 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"ids.#",
 								"2",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"reference",
 								"test-reference",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"ip",
 								"127.0.0.4",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"mac_address",
 								"aa:bb:cc:dd:ee:ff",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"site",
 								"ams-01",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"private_rack_id",
 								"r id",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"private_network_capable",
 								"true",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
+								"data.leaseweb_dedicated_server_servers.filter",
 								"private_network_enabled",
 								"true",
 							),

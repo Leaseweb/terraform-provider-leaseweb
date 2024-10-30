@@ -75,7 +75,8 @@ Instead of `sdkInstance.Id` use `sdkInstance.GetId()`.
 For both resources & data sources,
 the following naming conventions apply for type names:
 
+- The type names must have a `leaseweb` prefix
 - `response.TypeName` names must be lowercase
 - an underscore must replace non-alphabetic characters
 
-`Public Cloud Load Balancers` thus becomes `public_cloud_load_balancers`
+`Public Cloud Load Balancers` thus becomes `leaseweb_public_cloud_load_balancers`

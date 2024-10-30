@@ -85,7 +85,7 @@ func (s *serverDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
+	resp.TypeName = req.ProviderTypeName + "_dedicated_server_server"
 }
 
 func (s *serverDataSource) Read(
