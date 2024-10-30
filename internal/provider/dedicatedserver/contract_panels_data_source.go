@@ -151,6 +151,6 @@ func (c *controlPanelsDataSource) Schema(
 	}
 }
 
-func NewDedicatedServerControlPanelsDataSource() datasource.DataSource {
+func NewControlPanelsDataSource() datasource.DataSource {
 	return &controlPanelsDataSource{}
 }

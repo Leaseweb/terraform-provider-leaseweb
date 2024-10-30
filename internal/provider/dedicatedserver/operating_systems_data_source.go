@@ -140,6 +140,6 @@ func (o *operatingSystemsDataSource) Schema(
 	}
 }
 
-func NewDedicatedServerOperatingSystemsDataSource() datasource.DataSource {
+func NewOperatingSystemsDataSource() datasource.DataSource {
 	return &operatingSystemsDataSource{}
 }

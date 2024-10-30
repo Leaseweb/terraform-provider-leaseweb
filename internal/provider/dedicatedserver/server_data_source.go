@@ -349,6 +349,6 @@ func (s *serverDataSource) Schema(
 	}
 }
 
-func NewDedicatedServerDataSource() datasource.DataSource {
+func NewServerDataSource() datasource.DataSource {
 	return &serverDataSource{}
 }

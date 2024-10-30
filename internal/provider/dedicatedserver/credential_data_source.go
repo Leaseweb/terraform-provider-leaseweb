@@ -126,6 +126,6 @@ func (c *credentialDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func NewDedicatedServerCredentialDataSource() datasource.DataSource {
+func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{}
 }

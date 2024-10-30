@@ -182,6 +182,6 @@ func (s *serversDataSource) Schema(
 	}
 }
 
-func NewDedicatedServersDataSource() datasource.DataSource {
+func NewServersDataSource() datasource.DataSource {
 	return &serversDataSource{}
 }

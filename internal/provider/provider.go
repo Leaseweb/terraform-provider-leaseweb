@@ -159,11 +159,11 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		publiccloud.NewInstancesDataSource,
 		publiccloud.NewCredentialDataSource,
-		dedicatedserver.NewDedicatedServerDataSource,
-		dedicatedserver.NewDedicatedServersDataSource,
-		dedicatedserver.NewDedicatedServerControlPanelsDataSource,
-		dedicatedserver.NewDedicatedServerOperatingSystemsDataSource,
-		dedicatedserver.NewDedicatedServerCredentialDataSource,
+		dedicatedserver.NewServerDataSource,
+		dedicatedserver.NewServersDataSource,
+		dedicatedserver.NewControlPanelsDataSource,
+		dedicatedserver.NewOperatingSystemsDataSource,
+		dedicatedserver.NewCredentialDataSource,
 		publiccloud.NewImagesDataSource,
 		publiccloud.NewLoadBalancersDataSource,
 	}
