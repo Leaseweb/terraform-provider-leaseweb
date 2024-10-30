@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -25,8 +25,6 @@ var (
 )
 
 type bandwidthNotificationSettingResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -46,24 +44,17 @@ func (b *bandwidthNotificationSettingResource) Metadata(_ context.Context, req r
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_bandwidth_notification_setting"
 }
 
-func (b *bandwidthNotificationSettingResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: b.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (b *bandwidthNotificationSettingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (b *bandwidthNotificationSettingResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -72,18 +63,11 @@ func (b *bandwidthNotificationSettingResource) Configure(ctx context.Context, re
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	b.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	b.client = apiClient.DedicatedServerAPI
+	b.client = coreClient.DedicatedServerAPI
 }
 
 func (b *bandwidthNotificationSettingResource) Schema(
@@ -142,7 +126,10 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := b.client.CreateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString()).BandwidthNotificationSettingOpts(*opts)
+	request := b.client.CreateServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating bandwidth notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
@@ -173,7 +160,11 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 		return
 	}
 
-	request := b.client.GetServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := b.client.GetServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
@@ -209,7 +200,11 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := b.client.UpdateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).BandwidthNotificationSettingOpts(*opts)
+	request := b.client.UpdateServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error updating bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
@@ -240,7 +235,11 @@ func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req r
 		return
 	}
 
-	request := b.client.DeleteServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := b.client.DeleteServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())

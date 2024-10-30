@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -24,8 +24,6 @@ var (
 )
 
 type dedicatedServerCredentialResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -44,24 +42,17 @@ func (d *dedicatedServerCredentialResource) Metadata(_ context.Context, req reso
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
 }
 
-func (d *dedicatedServerCredentialResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dedicatedServerCredentialResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -70,18 +61,11 @@ func (d *dedicatedServerCredentialResource) Configure(ctx context.Context, req r
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	d.client = coreClient.DedicatedServerAPI
 }
 
 func (d *dedicatedServerCredentialResource) Schema(
@@ -136,7 +120,10 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 		dedicatedServer.CredentialType(data.Type.ValueString()),
 		data.Username.ValueString(),
 	)
-	request := d.client.CreateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString()).CreateServerCredentialOpts(*opts)
+	request := d.client.CreateServerCredential(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+	).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
@@ -166,7 +153,12 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	request := d.client.GetServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
+	request := d.client.GetServerCredential(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		dedicatedServer.CredentialType(data.Type.ValueString()),
+		data.Username.ValueString(),
+	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
@@ -199,7 +191,12 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	opts := dedicatedServer.NewUpdateServerCredentialOpts(
 		data.Password.ValueString(),
 	)
-	request := d.client.UpdateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString()).UpdateServerCredentialOpts(*opts)
+	request := d.client.UpdateServerCredential(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		dedicatedServer.CredentialType(data.Type.ValueString()),
+		data.Username.ValueString(),
+	).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error updating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
@@ -229,7 +226,12 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	request := d.client.DeleteServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
+	request := d.client.DeleteServerCredential(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		dedicatedServer.CredentialType(data.Type.ValueString()),
+		data.Username.ValueString(),
+	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())

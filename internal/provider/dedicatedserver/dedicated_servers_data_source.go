@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -20,8 +20,6 @@ var (
 )
 
 type dedicatedServersDataSource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -36,24 +34,17 @@ type dedicatedServersDataSourceData struct {
 	PrivateNetworkEnabled types.String   `tfsdk:"private_network_enabled"`
 }
 
-func (d *dedicatedServersDataSource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServersDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dedicatedServersDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -62,21 +53,18 @@ func (d *dedicatedServersDataSource) Configure(ctx context.Context, req datasour
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	d.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServersDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *dedicatedServersDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_servers"
 }
 
@@ -84,8 +72,8 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 
 	var data dedicatedServersDataSourceData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	// NOTE: we show only latest 50 items.
-	request := d.client.GetServerList(d.authContext(ctx)).Limit(50)
+	// NOTE: we show only the latest 50 items.
+	request := d.client.GetServerList(ctx).Limit(50)
 
 	if !data.Reference.IsNull() && !data.Reference.IsUnknown() {
 		request = request.Reference(data.Reference.ValueString())
@@ -146,7 +134,11 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 	}
 }
 
-func (d *dedicatedServersDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServersDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"ids": schema.ListAttribute{

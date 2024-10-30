@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud"
 )
 
@@ -158,11 +159,11 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		publiccloud.NewInstancesDataSource,
 		publiccloud.NewCredentialDataSource,
-		NewDedicatedServerDataSource,
-		NewDedicatedServersDataSource,
-		NewDedicatedServerControlPanelsDataSource,
-		NewDedicatedServerOperatingSystemsDataSource,
-		NewDedicatedServerCredentialDataSource,
+		dedicatedserver.NewDedicatedServerDataSource,
+		dedicatedserver.NewDedicatedServersDataSource,
+		dedicatedserver.NewDedicatedServerControlPanelsDataSource,
+		dedicatedserver.NewDedicatedServerOperatingSystemsDataSource,
+		dedicatedserver.NewDedicatedServerCredentialDataSource,
 		publiccloud.NewImagesDataSource,
 		publiccloud.NewLoadBalancersDataSource,
 	}
@@ -172,11 +173,11 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		publiccloud.NewInstanceResource,
 		publiccloud.NewCredentialResource,
-		NewDedicatedServerResource,
-		NewDedicatedServerCredentialResource,
-		NewDataTrafficNotificationSettingResource,
-		NewBandwidthNotificationSettingResource,
-		NewDedicatedServerInstallationResource,
+		dedicatedserver.NewDedicatedServerResource,
+		dedicatedserver.NewDedicatedServerCredentialResource,
+		dedicatedserver.NewDataTrafficNotificationSettingResource,
+		dedicatedserver.NewBandwidthNotificationSettingResource,
+		dedicatedserver.NewDedicatedServerInstallationResource,
 		publiccloud.NewImageResource,
 	}
 }

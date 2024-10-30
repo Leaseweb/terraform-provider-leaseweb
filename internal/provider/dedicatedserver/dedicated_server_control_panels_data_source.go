@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -22,8 +22,6 @@ var (
 )
 
 type dedicatedServerControlPanelsDataSource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -37,24 +35,17 @@ type dedicatedServerControlPanelsDataSourceData struct {
 	OperatingSystemId types.String   `tfsdk:"operating_system_id"`
 }
 
-func (d *dedicatedServerControlPanelsDataSource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerControlPanelsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dedicatedServerControlPanelsDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -63,21 +54,18 @@ func (d *dedicatedServerControlPanelsDataSource) Configure(ctx context.Context, 
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	d.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *dedicatedServerControlPanelsDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_control_panels"
 }
 
@@ -91,12 +79,15 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	var response *http.Response
 	var err error
 
-	// NOTE: we show only latest 50 items.
+	// NOTE: we show only the latest 50 items.
 	if !data.OperatingSystemId.IsNull() && !data.OperatingSystemId.IsUnknown() {
-		request := d.client.GetControlPanelListByOperatingSystemId(d.authContext(ctx), data.OperatingSystemId.ValueString()).Limit(50)
+		request := d.client.GetControlPanelListByOperatingSystemId(
+			ctx,
+			data.OperatingSystemId.ValueString(),
+		).Limit(50)
 		result, response, err = request.Execute()
 	} else {
-		request := d.client.GetControlPanelList(d.authContext(ctx)).Limit(50)
+		request := d.client.GetControlPanelList(ctx).Limit(50)
 		result, response, err = request.Execute()
 	}
 
@@ -126,7 +117,11 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServerControlPanelsDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"control_panels": schema.ListNestedAttribute{

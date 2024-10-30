@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -34,8 +34,6 @@ func NewDedicatedServerInstallationResource() resource.Resource {
 }
 
 type dedicatedServerInstallationResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -76,28 +74,21 @@ func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]
 	}
 }
 
-func (r *dedicatedServerInstallationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (d *dedicatedServerInstallationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_installation"
 }
 
-func (d *dedicatedServerInstallationResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerInstallationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dedicatedServerInstallationResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -106,21 +97,14 @@ func (d *dedicatedServerInstallationResource) Configure(ctx context.Context, req
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	d.client = coreClient.DedicatedServerAPI
 }
 
-func (r *dedicatedServerInstallationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (d *dedicatedServerInstallationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	raid := func() schema.SingleNestedAttribute {
 		return schema.SingleNestedAttribute{
@@ -289,7 +273,7 @@ func (r *dedicatedServerInstallationResource) Schema(_ context.Context, _ resour
 
 }
 
-func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (d *dedicatedServerInstallationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan dedicatedServerInstallationResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
@@ -366,7 +350,7 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 	}
 
 	serverID := plan.DedicatedServerID.ValueString()
-	result, response, err := r.client.InstallOperatingSystem(r.authContext(ctx), serverID).
+	result, response, err := d.client.InstallOperatingSystem(ctx, serverID).
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
@@ -412,13 +396,25 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 
 }
 
-func (r *dedicatedServerInstallationResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
+func (d *dedicatedServerInstallationResource) Read(
+	_ context.Context,
+	_ resource.ReadRequest,
+	_ *resource.ReadResponse,
+) {
 }
 
-func (r *dedicatedServerInstallationResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (d *dedicatedServerInstallationResource) Update(
+	_ context.Context,
+	_ resource.UpdateRequest,
+	_ *resource.UpdateResponse,
+) {
 }
 
-func (r *dedicatedServerInstallationResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
+func (d *dedicatedServerInstallationResource) Delete(
+	_ context.Context,
+	_ resource.DeleteRequest,
+	_ *resource.DeleteResponse,
+) {
 }
 
 // TODO: Should goes like helper/utils.

@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -25,8 +25,6 @@ var (
 )
 
 type dataTrafficNotificationSettingResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -46,24 +44,17 @@ func (d *dataTrafficNotificationSettingResource) Metadata(_ context.Context, req
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_data_traffic_notification_setting"
 }
 
-func (d *dataTrafficNotificationSettingResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dataTrafficNotificationSettingResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -72,18 +63,11 @@ func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, 
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	d.client = coreClient.DedicatedServerAPI
 }
 
 func (d *dataTrafficNotificationSettingResource) Schema(
@@ -142,7 +126,10 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
+	request := d.client.CreateServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error creating data traffic notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
@@ -173,7 +160,11 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 		return
 	}
 
-	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := d.client.GetServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
@@ -209,7 +200,11 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
+	request := d.client.UpdateServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error updating data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
@@ -240,7 +235,11 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 		return
 	}
 
-	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := d.client.DeleteServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error deleting data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
