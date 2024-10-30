@@ -34,7 +34,7 @@ type serverResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerResourceData struct {
+type serverResourceModel struct {
 	ID                           types.String `tfsdk:"id"`
 	Reference                    types.String `tfsdk:"reference"`
 	ReverseLookup                types.String `tfsdk:"reverse_lookup"`
@@ -48,14 +48,14 @@ type dedicatedServerResourceData struct {
 	Location                     types.Object `tfsdk:"location"`
 }
 
-type dedicatedServerLocationResourceData struct {
+type locationResourceModel struct {
 	Rack  types.String `tfsdk:"rack"`
 	Site  types.String `tfsdk:"site"`
 	Suite types.String `tfsdk:"suite"`
 	Unit  types.String `tfsdk:"unit"`
 }
 
-func (l dedicatedServerLocationResourceData) AttributeTypes() map[string]attr.Type {
+func (l locationResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"rack":  types.StringType,
 		"site":  types.StringType,
@@ -203,7 +203,7 @@ func (s *serverResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data dedicatedServerResourceData
+	var data serverResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -251,14 +251,14 @@ func (s *serverResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan dedicatedServerResourceData
+	var plan serverResourceModel
 	planDiags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(planDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var state dedicatedServerResourceData
+	var state serverResourceModel
 	stateDiags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(stateDiags...)
 	if resp.Diagnostics.HasError() {
@@ -439,7 +439,7 @@ func (s *serverResource) Delete(
 func (s *serverResource) getServer(
 	ctx context.Context,
 	serverID string,
-) (*dedicatedServerResourceData, error) {
+) (*serverResourceModel, error) {
 	// Getting server info
 	serverResult, serverResponse, err := s.client.GetServer(ctx, serverID).Execute()
 	if err != nil {
@@ -483,7 +483,7 @@ func (s *serverResource) getServer(
 	}
 
 	serverLocation := serverResult.GetLocation()
-	l := dedicatedServerLocationResourceData{
+	l := locationResourceModel{
 		Rack:  types.StringValue(serverLocation.GetRack()),
 		Site:  types.StringValue(serverLocation.GetSite()),
 		Suite: types.StringValue(serverLocation.GetSuite()),
@@ -552,7 +552,7 @@ func (s *serverResource) getServer(
 		reverseLookup = ipResult.GetReverseLookup()
 	}
 
-	dedicatedServerResource := dedicatedServerResourceData{
+	dedicatedServerResource := serverResourceModel{
 		ID:                           types.StringValue(serverResult.GetId()),
 		Reference:                    types.StringValue(reference),
 		ReverseLookup:                types.StringValue(reverseLookup),

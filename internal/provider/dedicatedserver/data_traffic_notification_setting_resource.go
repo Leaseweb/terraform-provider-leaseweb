@@ -28,7 +28,7 @@ type dataTrafficNotificationSettingResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dataTrafficNotificationSettingResourceData struct {
+type dataTrafficNotificationSettingResourceModel struct {
 	Id                types.String `tfsdk:"id"`
 	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
 	Frequency         types.String `tfsdk:"frequency"`
@@ -114,7 +114,7 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 }
 
 func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data dataTrafficNotificationSettingResourceData
+	var data dataTrafficNotificationSettingResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -138,7 +138,7 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		return
 	}
 
-	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Id:                types.StringValue(result.GetId()),
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -153,7 +153,7 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 }
 
 func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data dataTrafficNotificationSettingResourceData
+	var data dataTrafficNotificationSettingResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -173,7 +173,7 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 		return
 	}
 
-	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Id:                types.StringValue(result.GetId()),
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -188,7 +188,7 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 }
 
 func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data dataTrafficNotificationSettingResourceData
+	var data dataTrafficNotificationSettingResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -213,7 +213,7 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		return
 	}
 
-	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceModel{
 		Id:                data.Id,
 		DedicatedServerId: data.DedicatedServerId,
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -228,7 +228,7 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 }
 
 func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data dataTrafficNotificationSettingResourceData
+	var data dataTrafficNotificationSettingResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

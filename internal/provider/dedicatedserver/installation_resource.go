@@ -37,7 +37,7 @@ type installationResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerInstallationResourceModel struct {
+type installationResourceModel struct {
 	ID                types.String   `tfsdk:"id"`
 	DedicatedServerID types.String   `tfsdk:"dedicated_server_id"`
 	CallbackURL       types.String   `tfsdk:"callback_url"`
@@ -54,19 +54,19 @@ type dedicatedServerInstallationResourceModel struct {
 	Timezone          types.String   `tfsdk:"timezone"`
 }
 
-type dedicatedServerInstallationRaidModel struct {
+type raidResourceModel struct {
 	Level         types.Int32  `tfsdk:"level"`
 	NumberOfDisks types.Int32  `tfsdk:"number_of_disks"`
 	Type          types.String `tfsdk:"type"`
 }
 
-type dedicatedServerInstallationPartitionsModel struct {
+type partitionsResourceModel struct {
 	Filesystem types.String `tfsdk:"filesystem"`
 	Mountpoint types.String `tfsdk:"mountpoint"`
 	Size       types.String `tfsdk:"size"`
 }
 
-func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]attr.Type {
+func (p partitionsResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"filesystem": types.StringType,
 		"mountpoint": types.StringType,
@@ -285,15 +285,15 @@ func (i *installationResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan dedicatedServerInstallationResourceModel
+	var plan installationResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	// Extract the Raid configuration from the plan
-	var raidPlan dedicatedServerInstallationRaidModel
+	var raidPlan raidResourceModel
 	plan.Raid.As(ctx, &raidPlan, basetypes.ObjectAsOptions{})
 
 	// Extract Partitions configuration from the plan into a Go slice
-	partitionsPlan := make([]dedicatedServerInstallationPartitionsModel, 0, len(plan.Partitions.Elements()))
+	partitionsPlan := make([]partitionsResourceModel, 0, len(plan.Partitions.Elements()))
 	plan.Partitions.ElementsAs(ctx, &partitionsPlan, false)
 
 	if resp.Diagnostics.HasError() {
@@ -380,7 +380,7 @@ func (i *installationResource) Create(
 	// Preparing and converting partitions into types.Object to store in the state
 	var partitionsObjects []attr.Value
 	for _, p := range payload.GetPartitions() {
-		partition := dedicatedServerInstallationPartitionsModel{
+		partition := partitionsResourceModel{
 			Filesystem: types.StringValue(p.GetFilesystem()),
 			Mountpoint: types.StringValue(p.GetMountpoint()),
 			Size:       types.StringValue(p.GetSize()),
@@ -396,7 +396,7 @@ func (i *installationResource) Create(
 	}
 
 	// Convert the slice of partition objects to a types.List and store it in the plan
-	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: dedicatedServerInstallationPartitionsModel{}.AttributeTypes()}, partitionsObjects)
+	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: partitionsResourceModel{}.AttributeTypes()}, partitionsObjects)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

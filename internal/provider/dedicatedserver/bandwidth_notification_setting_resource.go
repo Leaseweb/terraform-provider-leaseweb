@@ -28,7 +28,7 @@ type bandwidthNotificationSettingResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type bandwidthNotificationSettingResourceData struct {
+type bandwidthNotificationSettingResourceModel struct {
 	Id                types.String `tfsdk:"id"`
 	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
 	Frequency         types.String `tfsdk:"frequency"`
@@ -114,7 +114,7 @@ func (b *bandwidthNotificationSettingResource) Schema(
 }
 
 func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data bandwidthNotificationSettingResourceData
+	var data bandwidthNotificationSettingResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -138,7 +138,7 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 		return
 	}
 
-	newData := bandwidthNotificationSettingResourceData{
+	newData := bandwidthNotificationSettingResourceModel{
 		Id:        types.StringValue(result.GetId()),
 		Frequency: types.StringValue(result.GetFrequency()),
 		Threshold: types.StringValue(result.GetThreshold()),
@@ -153,7 +153,7 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 }
 
 func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data bandwidthNotificationSettingResourceData
+	var data bandwidthNotificationSettingResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -173,7 +173,7 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 		return
 	}
 
-	newData := bandwidthNotificationSettingResourceData{
+	newData := bandwidthNotificationSettingResourceModel{
 		Id:        types.StringValue(result.GetId()),
 		Frequency: types.StringValue(result.GetFrequency()),
 		Threshold: types.StringValue(result.GetThreshold()),
@@ -188,7 +188,7 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 }
 
 func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data bandwidthNotificationSettingResourceData
+	var data bandwidthNotificationSettingResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -213,7 +213,7 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 		return
 	}
 
-	newData := bandwidthNotificationSettingResourceData{
+	newData := bandwidthNotificationSettingResourceModel{
 		Id:                data.Id,
 		DedicatedServerId: data.DedicatedServerId,
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -228,7 +228,7 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 }
 
 func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data bandwidthNotificationSettingResourceData
+	var data bandwidthNotificationSettingResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

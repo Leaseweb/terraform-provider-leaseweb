@@ -27,7 +27,7 @@ type credentialResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerCredentialResourceData struct {
+type credentialResourceModel struct {
 	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
 	Username          types.String `tfsdk:"username"`
 	Type              types.String `tfsdk:"type"`
@@ -116,7 +116,7 @@ func (c *credentialResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var data dedicatedServerCredentialResourceData
+	var data credentialResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -140,7 +140,7 @@ func (c *credentialResource) Create(
 		return
 	}
 
-	data = dedicatedServerCredentialResourceData{
+	data = credentialResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Type:              types.StringValue(string(result.GetType())),
 		Password:          types.StringValue(result.GetPassword()),
@@ -158,7 +158,7 @@ func (c *credentialResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data dedicatedServerCredentialResourceData
+	var data credentialResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -179,7 +179,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	data = dedicatedServerCredentialResourceData{
+	data = credentialResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Type:              types.StringValue(string(result.GetType())),
 		Password:          types.StringValue(result.GetPassword()),
@@ -197,7 +197,7 @@ func (c *credentialResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var data dedicatedServerCredentialResourceData
+	var data credentialResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -221,7 +221,7 @@ func (c *credentialResource) Update(
 		return
 	}
 
-	data = dedicatedServerCredentialResourceData{
+	data = credentialResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Type:              types.StringValue(string(result.GetType())),
 		Password:          types.StringValue(result.GetPassword()),
@@ -239,7 +239,7 @@ func (c *credentialResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var data dedicatedServerCredentialResourceData
+	var data credentialResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
