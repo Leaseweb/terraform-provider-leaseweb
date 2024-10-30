@@ -23,7 +23,7 @@ type serversDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServersDataSourceData struct {
+type serversDataSourceModel struct {
 	Ids                   []types.String `tfsdk:"ids"`
 	Reference             types.String   `tfsdk:"reference"`
 	Ip                    types.String   `tfsdk:"ip"`
@@ -74,7 +74,7 @@ func (s *serversDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	var data dedicatedServersDataSourceData
+	var data serversDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	// NOTE: we show only the latest 50 items.
 	request := s.client.GetServerList(ctx).Limit(50)
@@ -120,7 +120,7 @@ func (s *serversDataSource) Read(
 		Ids = append(Ids, types.StringValue(server.GetId()))
 	}
 
-	data = dedicatedServersDataSourceData{
+	data = serversDataSourceModel{
 		Ids:                   Ids,
 		Reference:             data.Reference,
 		Ip:                    data.Ip,

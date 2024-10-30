@@ -24,7 +24,7 @@ type credentialDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerCredentialDataSourceModel struct {
+type credentialDataSourceModel struct {
 	DedicatedServerID types.String `tfsdk:"dedicated_server_id"`
 	Username          types.String `tfsdk:"username"`
 	Password          types.String `tfsdk:"password"`
@@ -97,7 +97,7 @@ func (c *credentialDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var data dedicatedServerCredentialDataSourceModel
+	var data credentialDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

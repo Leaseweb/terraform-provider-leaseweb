@@ -23,7 +23,7 @@ type serverDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerDataSourceData struct {
+type serverDataSourceModel struct {
 	Id                                 types.String `tfsdk:"id"`
 	AssetId                            types.String `tfsdk:"asset_id"`
 	SerialNumber                       types.String `tfsdk:"serial_number"`
@@ -94,7 +94,7 @@ func (s *serverDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var data dedicatedServerDataSourceData
+	var data serverDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	request := s.client.GetServer(ctx, data.Id.ValueString())
@@ -184,7 +184,7 @@ func (s *serverDataSource) Read(
 		}
 	}
 
-	data = dedicatedServerDataSourceData{
+	data = serverDataSourceModel{
 		Id:                                 types.StringValue(result.GetId()),
 		AssetId:                            types.StringValue(result.GetAssetId()),
 		SerialNumber:                       types.StringValue(result.GetSerialNumber()),

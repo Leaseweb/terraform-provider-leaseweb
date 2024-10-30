@@ -25,14 +25,14 @@ type controlPanelsDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type controlPanel struct {
+type controlPanelDataSourceModel struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
-type dedicatedServerControlPanelsDataSourceData struct {
-	ControlPanels     []controlPanel `tfsdk:"control_panels"`
-	OperatingSystemId types.String   `tfsdk:"operating_system_id"`
+type controlPanelsDataSourceModel struct {
+	ControlPanels     []controlPanelDataSourceModel `tfsdk:"control_panels"`
+	OperatingSystemId types.String                  `tfsdk:"operating_system_id"`
 }
 
 func (c *controlPanelsDataSource) Configure(
@@ -75,10 +75,10 @@ func (c *controlPanelsDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	var data dedicatedServerControlPanelsDataSourceData
+	var data controlPanelsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	var controlPanels []controlPanel
+	var controlPanels []controlPanelDataSourceModel
 	var result *dedicatedServer.ControlPanelList
 	var response *http.Response
 	var err error
@@ -103,13 +103,13 @@ func (c *controlPanelsDataSource) Read(
 	}
 
 	for _, cp := range result.GetControlPanels() {
-		controlPanels = append(controlPanels, controlPanel{
+		controlPanels = append(controlPanels, controlPanelDataSourceModel{
 			Id:   basetypes.NewStringValue(cp.GetId()),
 			Name: basetypes.NewStringValue(cp.GetName()),
 		})
 	}
 
-	newData := dedicatedServerControlPanelsDataSourceData{
+	newData := controlPanelsDataSourceModel{
 		ControlPanels:     controlPanels,
 		OperatingSystemId: data.OperatingSystemId,
 	}

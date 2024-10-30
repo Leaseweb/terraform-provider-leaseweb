@@ -24,14 +24,14 @@ type operatingSystemsDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type operatingSystem struct {
+type operatingSystemDataSourceModel struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
-type dedicatedServerOperatingSystemsDataSourceData struct {
-	OperatingSystems []operatingSystem `tfsdk:"operating_systems"`
-	ControlPanelId   types.String      `tfsdk:"control_panel_id"`
+type operatingSystemsDataSourceModel struct {
+	OperatingSystems []operatingSystemDataSourceModel `tfsdk:"operating_systems"`
+	ControlPanelId   types.String                     `tfsdk:"control_panel_id"`
 }
 
 func (o *operatingSystemsDataSource) Configure(
@@ -74,7 +74,7 @@ func (o *operatingSystemsDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	var data dedicatedServerOperatingSystemsDataSourceData
+	var data operatingSystemsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	request := o.client.GetOperatingSystemList(ctx)
@@ -90,15 +90,15 @@ func (o *operatingSystemsDataSource) Read(
 		return
 	}
 
-	var operatingSystems []operatingSystem
+	var operatingSystems []operatingSystemDataSourceModel
 	for _, os := range result.GetOperatingSystems() {
-		operatingSystems = append(operatingSystems, operatingSystem{
+		operatingSystems = append(operatingSystems, operatingSystemDataSourceModel{
 			Id:   basetypes.NewStringValue(os.GetId()),
 			Name: basetypes.NewStringValue(os.GetName()),
 		})
 	}
 
-	newData := dedicatedServerOperatingSystemsDataSourceData{
+	newData := operatingSystemsDataSourceModel{
 		OperatingSystems: operatingSystems,
 		ControlPanelId:   data.ControlPanelId,
 	}
