@@ -156,7 +156,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (i *imagesDataSource) Metadata(
@@ -190,7 +190,7 @@ func (i *imagesDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read publiccloud images")
-	images, err := getAllImages(ctx, i.client.PublicCloudAPI)
+	images, err := getAllImages(ctx, i.client)
 
 	if err != nil {
 		response.Diagnostics.AddError(
@@ -239,7 +239,7 @@ func (i *imagesDataSource) Configure(
 		return
 	}
 
-	i.client = coreClient
+	i.client = coreClient.PublicCloudAPI
 }
 
 func NewImagesDataSource() datasource.DataSource {
