@@ -44,7 +44,7 @@ func TestAccOperatingSystemsDataSource(t *testing.T) {
 	)
 
 	t.Run(
-		"filterring operating systems by control_panel_id",
+		"filtering operating systems by control_panel_id",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

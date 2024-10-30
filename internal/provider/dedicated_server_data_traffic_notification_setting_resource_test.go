@@ -129,7 +129,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
   unit = "blah"
 }`,
 						ExpectError: regexp.MustCompile(
-							`Attribute unit value must be one of: \["MB" "GB" "TB"\], got: "blah"`,
+							`Attribute unit value must be one of: \["MB" "GB" "TB"], got: "blah"`,
 						),
 					},
 				},
@@ -152,7 +152,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
   unit = "GB"
 }`,
 						ExpectError: regexp.MustCompile(
-							`Attribute frequency value must be one of: \["DAILY" "WEEKLY" "MONTHLY"\], got:`,
+							`Attribute frequency value must be one of: \["DAILY" "WEEKLY" "MONTHLY"], got:`,
 						),
 					},
 				},

@@ -96,7 +96,7 @@ resource "leaseweb_dedicated_server_credential" "test" {
    	password = "mys3cr3tp@ssw0rd"
 }`,
 						ExpectError: regexp.MustCompile(
-							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"(\s*)"REMOTE_MANAGEMENT" "RESCUE_MODE" "SWITCH" "PDU" "FIREWALL" "LOAD_BALANCER"\],(\s*)got: "invalid"`,
+							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"(\s*)"REMOTE_MANAGEMENT" "RESCUE_MODE" "SWITCH" "PDU" "FIREWALL" "LOAD_BALANCER"],(\s*)got: "invalid"`,
 						),
 					},
 				},

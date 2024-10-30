@@ -39,7 +39,7 @@ func TestAccControlPanelsDataSource(t *testing.T) {
 	)
 
 	t.Run(
-		"filterring control panels by operating_system_id",
+		"filtering control panels by operating_system_id",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

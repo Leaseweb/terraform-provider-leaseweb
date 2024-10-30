@@ -98,7 +98,7 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
       }
     }`,
 						ExpectError: regexp.MustCompile(
-							`Attribute raid.level value must be one of: \["0" "1" "5" "10"\]`,
+							`Attribute raid.level value must be one of: \["0" "1" "5" "10"]`,
 						),
 					},
 				},
@@ -122,7 +122,7 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
       }
     }`,
 						ExpectError: regexp.MustCompile(
-							`Attribute raid.type value must be one of: \["HW" "SW" "NONE"\]`,
+							`Attribute raid.type value must be one of: \["HW" "SW" "NONE"]`,
 						),
 					},
 				},

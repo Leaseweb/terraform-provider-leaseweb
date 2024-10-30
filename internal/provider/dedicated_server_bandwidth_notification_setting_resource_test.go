@@ -90,7 +90,7 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 	   unit = "Gbps"
 	}`,
 						ExpectError: regexp.MustCompile(
-							`Attribute frequency value must be one of: \["DAILY" "WEEKLY" "MONTHLY"\]`,
+							`Attribute frequency value must be one of: \["DAILY" "WEEKLY" "MONTHLY"]`,
 						),
 					},
 				},
@@ -136,7 +136,7 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 	   unit = "Kbps"
 	}`,
 						ExpectError: regexp.MustCompile(
-							`Attribute unit value must be one of: \["Mbps" "Gbps"\], got: "Kbps"`,
+							`Attribute unit value must be one of: \["Mbps" "Gbps"], got: "Kbps"`,
 						),
 					},
 				},
