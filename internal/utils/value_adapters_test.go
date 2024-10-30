@@ -312,3 +312,33 @@ func ExampleAdaptStringTypeArrayToStringArray() {
 	fmt.Println(stringTypes)
 	// Output: [value]
 }
+
+func TestAdaptBoolPointerValueToNullableBool(t *testing.T) {
+	t.Run("returns nil when value is unknown", func(t *testing.T) {
+		value := basetypes.NewBoolUnknown()
+		assert.Nil(t, AdaptBoolPointerValueToNullableBool(value))
+	})
+
+	t.Run("returns pointer when value is set", func(t *testing.T) {
+		target := true
+		value := basetypes.NewBoolPointerValue(&target)
+
+		assert.Equal(t, target, *AdaptBoolPointerValueToNullableBool(value))
+	})
+
+	t.Run("returns nil when value is not set", func(t *testing.T) {
+		value := basetypes.NewBoolPointerValue(nil)
+
+		assert.Nil(t, AdaptBoolPointerValueToNullableBool(value))
+	})
+}
+
+func ExampleAdaptBoolPointerValueToNullableBool() {
+	value := true
+	terraformBoolPointerValue := basetypes.NewBoolPointerValue(&value)
+
+	convertedValue := AdaptBoolPointerValueToNullableBool(terraformBoolPointerValue)
+
+	fmt.Println(*convertedValue)
+	// Output: true
+}

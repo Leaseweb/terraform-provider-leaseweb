@@ -55,8 +55,8 @@ type installationResourceModel struct {
 }
 
 type raidResourceModel struct {
-	Level         types.Int32  `tfsdk:"level"`
-	NumberOfDisks types.Int32  `tfsdk:"number_of_disks"`
+	Level         types.Int64  `tfsdk:"level"`
+	NumberOfDisks types.Int64  `tfsdk:"number_of_disks"`
 	Type          types.String `tfsdk:"type"`
 }
 
@@ -306,16 +306,16 @@ func (i *installationResource) Create(
 
 		for _, p := range partitionsPlan {
 			// Check if all fields are either null or unknown, if so, skip
-			if valueStringOrNil(p.Mountpoint) == nil &&
-				valueStringOrNil(p.Size) == nil &&
-				valueStringOrNil(p.Filesystem) == nil {
+			if utils.AdaptStringPointerValueToNullableString(p.Mountpoint) == nil &&
+				utils.AdaptStringPointerValueToNullableString(p.Size) == nil &&
+				utils.AdaptStringPointerValueToNullableString(p.Filesystem) == nil {
 				continue
 			}
 
 			partitions = append(partitions, dedicatedServer.Partition{
-				Filesystem: valueStringOrNil(p.Filesystem),
-				Size:       valueStringOrNil(p.Size),
-				Mountpoint: valueStringOrNil(p.Mountpoint),
+				Filesystem: utils.AdaptStringPointerValueToNullableString(p.Filesystem),
+				Size:       utils.AdaptStringPointerValueToNullableString(p.Size),
+				Mountpoint: utils.AdaptStringPointerValueToNullableString(p.Mountpoint),
 			})
 		}
 
@@ -325,37 +325,37 @@ func (i *installationResource) Create(
 	var raid *dedicatedServer.Raid
 	// Check that at least one RAID field is set before initializing the RAID struct.
 	if !plan.Raid.IsNull() && !plan.Raid.IsUnknown() &&
-		(valueInt32OrNil(raidPlan.Level) != nil ||
-			valueInt32OrNil(raidPlan.NumberOfDisks) != nil ||
-			valueStringOrNil(raidPlan.Type) != nil) {
+		(utils.AdaptInt64PointerValueToNullableInt32(raidPlan.Level) != nil ||
+			utils.AdaptInt64PointerValueToNullableInt32(raidPlan.NumberOfDisks) != nil ||
+			utils.AdaptStringPointerValueToNullableString(raidPlan.Type) != nil) {
 
 		raid = &dedicatedServer.Raid{
-			Level:         (*dedicatedServer.RaidLevel)(valueInt32OrNil(raidPlan.Level)),
-			NumberOfDisks: valueInt32OrNil(raidPlan.NumberOfDisks),
-			Type:          (*dedicatedServer.RaidType)(valueStringOrNil(raidPlan.Type)),
+			Level:         (*dedicatedServer.RaidLevel)(utils.AdaptInt64PointerValueToNullableInt32(raidPlan.Level)),
+			NumberOfDisks: utils.AdaptInt64PointerValueToNullableInt32(raidPlan.NumberOfDisks),
+			Type:          (*dedicatedServer.RaidType)(utils.AdaptStringPointerValueToNullableString(raidPlan.Type)),
 		}
 	}
 
 	// Preparing SSH keys for the installation options, combining them into a single string
 	var SSHKeysList []string
 	for _, k := range plan.SSHKeys {
-		if valueStringOrNil(k) != nil {
+		if utils.AdaptStringPointerValueToNullableString(k) != nil {
 			SSHKeysList = append(SSHKeysList, k.ValueString())
 		}
 	}
 	SSHKeys := strings.Join(SSHKeysList, "\n")
 
 	opts := dedicatedServer.NewInstallOperatingSystemOpts(plan.OperatingSystemID.ValueString())
-	opts.CallbackUrl = valueStringOrNil(plan.CallbackURL)
-	opts.ControlPanelId = valueStringOrNil(plan.ControlPanelID)
-	opts.Device = valueStringOrNil(plan.Device)
-	opts.Hostname = valueStringOrNil(plan.Hostname)
+	opts.CallbackUrl = utils.AdaptStringPointerValueToNullableString(plan.CallbackURL)
+	opts.ControlPanelId = utils.AdaptStringPointerValueToNullableString(plan.ControlPanelID)
+	opts.Device = utils.AdaptStringPointerValueToNullableString(plan.Device)
+	opts.Hostname = utils.AdaptStringPointerValueToNullableString(plan.Hostname)
 	opts.Partitions = partitions
-	opts.Password = valueStringOrNil(plan.Password)
-	opts.PostInstallScript = valueStringOrNil(plan.PostInstallScript)
-	opts.PowerCycle = valueBoolOrNil(plan.PowerCycle)
+	opts.Password = utils.AdaptStringPointerValueToNullableString(plan.Password)
+	opts.PostInstallScript = utils.AdaptStringPointerValueToNullableString(plan.PostInstallScript)
+	opts.PowerCycle = utils.AdaptBoolPointerValueToNullableBool(plan.PowerCycle)
 	opts.Raid = raid
-	opts.Timezone = valueStringOrNil(plan.Timezone)
+	opts.Timezone = utils.AdaptStringPointerValueToNullableString(plan.Timezone)
 	if len(SSHKeysList) > 0 {
 		opts.SshKeys = &SSHKeys
 	}
@@ -426,26 +426,4 @@ func (i *installationResource) Delete(
 	_ resource.DeleteRequest,
 	_ *resource.DeleteResponse,
 ) {
-}
-
-// TODO: Should goes like helper/utils.
-func valueStringOrNil(s basetypes.StringValue) *string {
-	if s.IsUnknown() {
-		return nil
-	}
-	return s.ValueStringPointer()
-}
-
-func valueBoolOrNil(s basetypes.BoolValue) *bool {
-	if s.IsUnknown() {
-		return nil
-	}
-	return s.ValueBoolPointer()
-}
-
-func valueInt32OrNil(s basetypes.Int32Value) *int32 {
-	if s.IsUnknown() {
-		return nil
-	}
-	return s.ValueInt32Pointer()
 }

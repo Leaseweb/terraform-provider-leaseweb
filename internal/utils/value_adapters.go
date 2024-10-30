@@ -133,3 +133,12 @@ func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {
 
 	return convertedTypes
 }
+
+// AdaptBoolPointerValueToNullableBool converts a Terraform BoolPointerValue to a nullable string.
+func AdaptBoolPointerValueToNullableBool(value types.Bool) *bool {
+	if value.IsUnknown() {
+		return nil
+	}
+
+	return value.ValueBoolPointer()
+}
