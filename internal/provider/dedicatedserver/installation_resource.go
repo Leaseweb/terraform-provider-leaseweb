@@ -25,15 +25,15 @@ import (
 )
 
 var (
-	_ resource.Resource              = &dedicatedServerInstallationResource{}
-	_ resource.ResourceWithConfigure = &dedicatedServerInstallationResource{}
+	_ resource.Resource              = &installationResource{}
+	_ resource.ResourceWithConfigure = &installationResource{}
 )
 
-func NewDedicatedServerInstallationResource() resource.Resource {
-	return &dedicatedServerInstallationResource{}
+func NewInstallationResource() resource.Resource {
+	return &installationResource{}
 }
 
-type dedicatedServerInstallationResource struct {
+type installationResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -74,11 +74,15 @@ func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]
 	}
 }
 
-func (d *dedicatedServerInstallationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (i *installationResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_installation"
 }
 
-func (d *dedicatedServerInstallationResource) Configure(
+func (i *installationResource) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
 	resp *resource.ConfigureResponse,
@@ -101,11 +105,14 @@ func (d *dedicatedServerInstallationResource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	i.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerInstallationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-
+func (i *installationResource) Schema(
+	_ context.Context,
+	_ resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	raid := func() schema.SingleNestedAttribute {
 		return schema.SingleNestedAttribute{
 			Optional: true,
@@ -273,7 +280,11 @@ func (d *dedicatedServerInstallationResource) Schema(_ context.Context, _ resour
 
 }
 
-func (d *dedicatedServerInstallationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (i *installationResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var plan dedicatedServerInstallationResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
@@ -350,7 +361,7 @@ func (d *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 	}
 
 	serverID := plan.DedicatedServerID.ValueString()
-	result, response, err := d.client.InstallOperatingSystem(ctx, serverID).
+	result, response, err := i.client.InstallOperatingSystem(ctx, serverID).
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
@@ -396,21 +407,21 @@ func (d *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 
 }
 
-func (d *dedicatedServerInstallationResource) Read(
+func (i *installationResource) Read(
 	_ context.Context,
 	_ resource.ReadRequest,
 	_ *resource.ReadResponse,
 ) {
 }
 
-func (d *dedicatedServerInstallationResource) Update(
+func (i *installationResource) Update(
 	_ context.Context,
 	_ resource.UpdateRequest,
 	_ *resource.UpdateResponse,
 ) {
 }
 
-func (d *dedicatedServerInstallationResource) Delete(
+func (i *installationResource) Delete(
 	_ context.Context,
 	_ resource.DeleteRequest,
 	_ *resource.DeleteResponse,

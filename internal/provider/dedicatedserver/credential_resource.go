@@ -19,11 +19,11 @@ import (
 )
 
 var (
-	_ resource.Resource              = &dedicatedServerCredentialResource{}
-	_ resource.ResourceWithConfigure = &dedicatedServerCredentialResource{}
+	_ resource.Resource              = &credentialResource{}
+	_ resource.ResourceWithConfigure = &credentialResource{}
 )
 
-type dedicatedServerCredentialResource struct {
+type credentialResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -34,15 +34,19 @@ type dedicatedServerCredentialResourceData struct {
 	Password          types.String `tfsdk:"password"`
 }
 
-func NewDedicatedServerCredentialResource() resource.Resource {
-	return &dedicatedServerCredentialResource{}
+func NewCredentialResource() resource.Resource {
+	return &credentialResource{}
 }
 
-func (d *dedicatedServerCredentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (c *credentialResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
 }
 
-func (d *dedicatedServerCredentialResource) Configure(
+func (c *credentialResource) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
 	resp *resource.ConfigureResponse,
@@ -65,10 +69,10 @@ func (d *dedicatedServerCredentialResource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerCredentialResource) Schema(
+func (c *credentialResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -107,7 +111,11 @@ func (d *dedicatedServerCredentialResource) Schema(
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (c *credentialResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -120,7 +128,7 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 		dedicatedServer.CredentialType(data.Type.ValueString()),
 		data.Username.ValueString(),
 	)
-	request := d.client.CreateServerCredential(
+	request := c.client.CreateServerCredential(
 		ctx,
 		data.DedicatedServerId.ValueString(),
 	).CreateServerCredentialOpts(*opts)
@@ -145,7 +153,11 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (c *credentialResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -153,7 +165,7 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	request := d.client.GetServerCredential(
+	request := c.client.GetServerCredential(
 		ctx,
 		data.DedicatedServerId.ValueString(),
 		dedicatedServer.CredentialType(data.Type.ValueString()),
@@ -180,7 +192,11 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (c *credentialResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -191,7 +207,7 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	opts := dedicatedServer.NewUpdateServerCredentialOpts(
 		data.Password.ValueString(),
 	)
-	request := d.client.UpdateServerCredential(
+	request := c.client.UpdateServerCredential(
 		ctx,
 		data.DedicatedServerId.ValueString(),
 		dedicatedServer.CredentialType(data.Type.ValueString()),
@@ -218,7 +234,11 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (c *credentialResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -226,7 +246,7 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	request := d.client.DeleteServerCredential(
+	request := c.client.DeleteServerCredential(
 		ctx,
 		data.DedicatedServerId.ValueString(),
 		dedicatedServer.CredentialType(data.Type.ValueString()),

@@ -25,12 +25,12 @@ import (
 )
 
 var (
-	_ resource.Resource                = &dedicatedServerResource{}
-	_ resource.ResourceWithConfigure   = &dedicatedServerResource{}
-	_ resource.ResourceWithImportState = &dedicatedServerResource{}
+	_ resource.Resource                = &serverResource{}
+	_ resource.ResourceWithConfigure   = &serverResource{}
+	_ resource.ResourceWithImportState = &serverResource{}
 )
 
-type dedicatedServerResource struct {
+type serverResource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -64,15 +64,19 @@ func (l dedicatedServerLocationResourceData) AttributeTypes() map[string]attr.Ty
 	}
 }
 
-func NewDedicatedServerResource() resource.Resource {
-	return &dedicatedServerResource{}
+func NewServerResource() resource.Resource {
+	return &serverResource{}
 }
 
-func (d *dedicatedServerResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (s *serverResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
 }
 
-func (d *dedicatedServerResource) Configure(
+func (s *serverResource) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
 	resp *resource.ConfigureResponse,
@@ -95,10 +99,14 @@ func (d *dedicatedServerResource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	s.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (s *serverResource) Schema(
+	_ context.Context,
+	_ resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -190,7 +198,11 @@ func (d *dedicatedServerResource) Schema(_ context.Context, _ resource.SchemaReq
 	}
 }
 
-func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (s *serverResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var data dedicatedServerResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -198,7 +210,7 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	sdkDedicatedServer, err := d.getServer(ctx, data.ID.ValueString())
+	sdkDedicatedServer, err := s.getServer(ctx, data.ID.ValueString())
 	if err != nil {
 		summary := "Reading dedicated server"
 		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
@@ -210,8 +222,11 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 	resp.Diagnostics.Append(diags...)
 }
 
-func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
+func (s *serverResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	resource.ImportStatePassthroughID(
 		ctx,
 		path.Root("id"),
@@ -219,7 +234,7 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 		resp,
 	)
 
-	sdkDedicatedServer, err := d.getServer(ctx, req.ID)
+	sdkDedicatedServer, err := s.getServer(ctx, req.ID)
 	if err != nil {
 		summary := "Importing dedicated server"
 		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
@@ -231,7 +246,11 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 	resp.Diagnostics.Append(diags...)
 }
 
-func (d *dedicatedServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (s *serverResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var plan dedicatedServerResourceData
 	planDiags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(planDiags...)
@@ -249,7 +268,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	// Updating reference
 	if !plan.Reference.IsNull() && !plan.Reference.IsUnknown() {
 		opts := dedicatedServer.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
-		response, err := d.client.UpdateServerReference(
+		response, err := s.client.UpdateServerReference(
 			ctx,
 			state.ID.ValueString(),
 		).UpdateServerReferenceOpts(*opts).Execute()
@@ -265,7 +284,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	// Updating Power status
 	if !plan.PoweredOn.IsNull() && !plan.PoweredOn.IsUnknown() {
 		if plan.PoweredOn.ValueBool() {
-			request := d.client.PowerServerOn(ctx, state.ID.ValueString())
+			request := s.client.PowerServerOn(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error powering on for dedicated server: %q", state.ID.ValueString())
@@ -274,7 +293,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 				return
 			}
 		} else {
-			request := d.client.PowerServerOff(ctx, state.ID.ValueString())
+			request := s.client.PowerServerOff(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
 				summary := fmt.Sprintf("Error powering off for dedicated server: %q", state.ID.ValueString())
@@ -291,7 +310,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	if !plan.ReverseLookup.IsNull() && !plan.ReverseLookup.IsUnknown() && isPublicIPExists {
 		opts := dedicatedServer.NewUpdateIpProfileOpts()
 		opts.ReverseLookup = plan.ReverseLookup.ValueStringPointer()
-		_, response, err := d.client.UpdateIpProfile(
+		_, response, err := s.client.UpdateIpProfile(
 			ctx,
 			state.ID.ValueString(),
 			state.PublicIP.ValueString(),
@@ -308,7 +327,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	// Updating an IP null routing
 	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicIPNullRouted != state.PublicIPNullRouted && isPublicIPExists {
 		if plan.PublicIPNullRouted.ValueBool() {
-			_, response, err := d.client.NullIpRoute(
+			_, response, err := s.client.NullIpRoute(
 				ctx,
 				state.ID.ValueString(),
 				state.PublicIP.ValueString(),
@@ -320,7 +339,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 				return
 			}
 		} else {
-			_, response, err := d.client.RemoveNullIpRoute(
+			_, response, err := s.client.RemoveNullIpRoute(
 				ctx,
 				state.ID.ValueString(),
 				state.PublicIP.ValueString(),
@@ -339,7 +358,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	if !plan.DHCPLease.IsNull() && !plan.DHCPLease.IsUnknown() {
 		if plan.DHCPLease.ValueString() != "" {
 			opts := dedicatedServer.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
-			response, err := d.client.CreateServerDhcpReservation(
+			response, err := s.client.CreateServerDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
 			).CreateServerDhcpReservationOpts(*opts).Execute()
@@ -350,7 +369,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 				return
 			}
 		} else {
-			response, err := d.client.DeleteServerDhcpReservation(
+			response, err := s.client.DeleteServerDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
 			).Execute()
@@ -367,7 +386,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	// Updating network interface status
 	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicNetworkInterfaceOpened != state.PublicNetworkInterfaceOpened {
 		if plan.PublicNetworkInterfaceOpened.ValueBool() {
-			response, err := d.client.OpenNetworkInterface(
+			response, err := s.client.OpenNetworkInterface(
 				ctx,
 				state.ID.ValueString(),
 				dedicatedServer.NETWORKTYPEURL_PUBLIC,
@@ -379,7 +398,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 				return
 			}
 		} else {
-			response, err := d.client.CloseNetworkInterface(
+			response, err := s.client.CloseNetworkInterface(
 				ctx,
 				state.ID.ValueString(),
 				dedicatedServer.NETWORKTYPEURL_PUBLIC,
@@ -401,7 +420,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 	}
 }
 
-func (d *dedicatedServerResource) Create(
+func (s *serverResource) Create(
 	_ context.Context,
 	_ resource.CreateRequest,
 	_ *resource.CreateResponse,
@@ -409,7 +428,7 @@ func (d *dedicatedServerResource) Create(
 	panic("unimplemented")
 }
 
-func (d *dedicatedServerResource) Delete(
+func (s *serverResource) Delete(
 	_ context.Context,
 	_ resource.DeleteRequest,
 	_ *resource.DeleteResponse,
@@ -417,10 +436,12 @@ func (d *dedicatedServerResource) Delete(
 	panic("unimplemented")
 }
 
-func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string) (*dedicatedServerResourceData, error) {
-
+func (s *serverResource) getServer(
+	ctx context.Context,
+	serverID string,
+) (*dedicatedServerResourceData, error) {
 	// Getting server info
-	serverResult, serverResponse, err := d.client.GetServer(ctx, serverID).Execute()
+	serverResult, serverResponse, err := s.client.GetServer(ctx, serverID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error reading dedicated server with id: %q - %s", serverID, utils.NewError(serverResponse, err).Error())
 	}
@@ -474,7 +495,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	}
 
 	// Getting server power info
-	powerResult, powerResponse, err := d.client.GetServerPowerStatus(
+	powerResult, powerResponse, err := s.client.GetServerPowerStatus(
 		ctx,
 		serverID,
 	).Execute()
@@ -487,7 +508,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 
 	// Getting server public network interface info
 	var publicNetworkOpened bool
-	networkRequest := d.client.GetNetworkInterface(
+	networkRequest := s.client.GetNetworkInterface(
 		ctx,
 		serverID,
 		dedicatedServer.NETWORKTYPEURL_PUBLIC,
@@ -504,7 +525,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	}
 
 	// Getting server DHCP info
-	dhcpResult, dhcpResponse, err := d.client.GetServerDhcpReservationList(
+	dhcpResult, dhcpResponse, err := s.client.GetServerDhcpReservationList(
 		ctx,
 		serverID,
 	).Execute()
@@ -520,7 +541,7 @@ func (d *dedicatedServerResource) getServer(ctx context.Context, serverID string
 	// Getting server public IP info
 	var reverseLookup string
 	if publicIP != "" {
-		ipResult, ipResponse, err := d.client.GetServerIp(
+		ipResult, ipResponse, err := s.client.GetServerIp(
 			ctx,
 			serverID,
 			publicIP,

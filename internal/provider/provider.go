@@ -173,11 +173,11 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		publiccloud.NewInstanceResource,
 		publiccloud.NewCredentialResource,
-		dedicatedserver.NewDedicatedServerResource,
-		dedicatedserver.NewDedicatedServerCredentialResource,
+		dedicatedserver.NewServerResource,
+		dedicatedserver.NewCredentialResource,
 		dedicatedserver.NewDataTrafficNotificationSettingResource,
 		dedicatedserver.NewBandwidthNotificationSettingResource,
-		dedicatedserver.NewDedicatedServerInstallationResource,
+		dedicatedserver.NewInstallationResource,
 		publiccloud.NewImageResource,
 	}
 }
