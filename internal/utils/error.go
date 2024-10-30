@@ -113,13 +113,16 @@ func normalizeErrorResponseKey(key string) string {
 // SetAttributeErrorsFromServerResponse takes a server response and maps errors to the appropriate attributes.
 // If an attribute cannot be found,
 // the error is shown to the user on a resource level.
+// An error log is also created with all the relevant information.
 func SetAttributeErrorsFromServerResponse(
 	summary string,
 	response *http.Response,
 	diags *diag.Diagnostics,
+	ctx context.Context,
 ) {
 	// Nothing to do when response does not exist.
 	if response == nil {
+		LogError(ctx, response, summary)
 		return
 	}
 
@@ -128,6 +131,7 @@ func SetAttributeErrorsFromServerResponse(
 	// If error cannot be translated,
 	// Terraform will show a general error to the user.
 	if err != nil {
+		LogError(ctx, response, summary)
 		return
 	}
 
@@ -148,6 +152,8 @@ func SetAttributeErrorsFromServerResponse(
 			diags.AddAttributeError(attributePath, summary, errorDetail)
 		}
 	}
+
+	LogError(ctx, response, summary)
 }
 
 type ErrorResponse struct {
@@ -180,6 +186,13 @@ func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
 // it prints an error log with the error response as an additional field.
 // Otherwise, it prints an error log without the response.
 func LogError(ctx context.Context, httpResponse *http.Response, summary string) {
+	// Log error without additional fields if httpResponse is empty.
+	if httpResponse == nil {
+		tflog.Error(ctx, summary)
+
+		return
+	}
+
 	errorResponse, err := newErrorResponse(httpResponse.Body)
 	if err != nil {
 		tflog.Error(ctx, summary)

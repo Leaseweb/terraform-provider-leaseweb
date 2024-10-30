@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -105,16 +106,14 @@ func TestGetHttpErrorMessage(t *testing.T) {
 }
 
 func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
-	t.Run(
-		"returns expected path if there are no children",
-		func(t *testing.T) {
-			diags := diag.Diagnostics{}
+	t.Run("sets expected path if there are no children", func(t *testing.T) {
+		diags := diag.Diagnostics{}
 
-			httpResponse := http.Response{
-				StatusCode: 500,
-				Body: io.NopCloser(
-					bytes.NewReader(
-						[]byte(`
+		httpResponse := http.Response{
+			StatusCode: 500,
+			Body: io.NopCloser(
+				bytes.NewReader(
+					[]byte(`
 {
   "correlationId": "correlationId",
   "errorCode": "errorCode",
@@ -124,25 +123,25 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
   }
 }
           `),
-					),
 				),
-			}
+			),
+		}
 
-			SetAttributeErrorsFromServerResponse(
-				"summary",
-				&httpResponse,
-				&diags,
-			)
+		SetAttributeErrorsFromServerResponse(
+			"summary",
+			&httpResponse,
+			&diags,
+			context.TODO(),
+		)
 
-			attributePath := path.Root("attribute")
+		attributePath := path.Root("attribute")
 
-			want := diag.Diagnostics{}
-			want.AddAttributeError(attributePath, "summary", "error1")
-			want.AddAttributeError(attributePath, "summary", "error2")
+		want := diag.Diagnostics{}
+		want.AddAttributeError(attributePath, "summary", "error1")
+		want.AddAttributeError(attributePath, "summary", "error2")
 
-			assert.Equal(t, want, diags.Errors())
-		},
-	)
+		assert.Equal(t, want, diags.Errors())
+	})
 
 	t.Run(
 		"returns expected path if there are children",
@@ -171,6 +170,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 				"summary",
 				&httpResponse,
 				&diags,
+				context.TODO(),
 			)
 
 			attributePath := path.Root("attribute").AtMapKey("id")
@@ -197,6 +197,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 				"summary",
 				&httpResponse,
 				&diags,
+				context.TODO(),
 			)
 
 			assert.False(t, diags.HasError())
@@ -210,6 +211,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 			"summary",
 			nil,
 			&diags,
+			context.TODO(),
 		)
 
 		assert.False(t, diags.HasError())
@@ -237,7 +239,12 @@ func ExampleSetAttributeErrorsFromServerResponse() {
 		),
 	}
 
-	SetAttributeErrorsFromServerResponse("summary", &httpResponse, &diags)
+	SetAttributeErrorsFromServerResponse(
+		"summary",
+		&httpResponse,
+		&diags,
+		context.TODO(),
+	)
 
 	fmt.Println(diags.Errors())
 	// Output: [{{error1 summary} {[attribute]}} {{error2 summary} {[attribute]}}]
@@ -264,7 +271,12 @@ func ExampleSetAttributeErrorsFromServerResponse_nested() {
 		),
 	}
 
-	SetAttributeErrorsFromServerResponse("summary", &httpResponse, &diags)
+	SetAttributeErrorsFromServerResponse(
+		"summary",
+		&httpResponse,
+		&diags,
+		context.TODO(),
+	)
 
 	fmt.Println(diags.Errors())
 	// Output: [{{error1 summary} {[attribute id]}} {{error2 summary} {[attribute id]}}]

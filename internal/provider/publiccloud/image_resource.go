@@ -220,9 +220,8 @@ func (i *imageResource) Create(
 			"Error creating Public Cloud image",
 			httpResponse,
 			&response.Diagnostics,
+			ctx,
 		)
-
-		utils.LogError(ctx, httpResponse, "Error creating publiccloud image")
 
 		return
 	}
@@ -261,9 +260,8 @@ func (i *imageResource) Read(
 			"Error reading Public Cloud images",
 			httpResponse,
 			&response.Diagnostics,
+			ctx,
 		)
-
-		utils.LogError(ctx, httpResponse, "Unable to read images")
 
 		return
 	}
@@ -305,15 +303,7 @@ func (i *imageResource) Update(
 			"Error updating Public Cloud image",
 			httpResponse,
 			&response.Diagnostics,
-		)
-
-		utils.LogError(
 			ctx,
-			httpResponse,
-			fmt.Sprintf(
-				"Unable to update Public Cloud image %q",
-				plan.ID.ValueString(),
-			),
 		)
 
 		return
