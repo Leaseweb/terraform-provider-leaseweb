@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerControlPanelsDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerControlPanelsDataSource{}
+	_ datasource.DataSource              = &controlPanelsDataSource{}
+	_ datasource.DataSourceWithConfigure = &controlPanelsDataSource{}
 )
 
-type dedicatedServerControlPanelsDataSource struct {
+type controlPanelsDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -35,7 +35,7 @@ type dedicatedServerControlPanelsDataSourceData struct {
 	OperatingSystemId types.String   `tfsdk:"operating_system_id"`
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Configure(
+func (c *controlPanelsDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -58,10 +58,10 @@ func (d *dedicatedServerControlPanelsDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Metadata(
+func (c *controlPanelsDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -69,7 +69,11 @@ func (d *dedicatedServerControlPanelsDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_control_panels"
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (c *controlPanelsDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
 	var data dedicatedServerControlPanelsDataSourceData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -81,13 +85,13 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 
 	// NOTE: we show only the latest 50 items.
 	if !data.OperatingSystemId.IsNull() && !data.OperatingSystemId.IsUnknown() {
-		request := d.client.GetControlPanelListByOperatingSystemId(
+		request := c.client.GetControlPanelListByOperatingSystemId(
 			ctx,
 			data.OperatingSystemId.ValueString(),
 		).Limit(50)
 		result, response, err = request.Execute()
 	} else {
-		request := d.client.GetControlPanelList(ctx).Limit(50)
+		request := c.client.GetControlPanelList(ctx).Limit(50)
 		result, response, err = request.Execute()
 	}
 
@@ -117,7 +121,7 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Schema(
+func (c *controlPanelsDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
@@ -148,5 +152,5 @@ func (d *dedicatedServerControlPanelsDataSource) Schema(
 }
 
 func NewDedicatedServerControlPanelsDataSource() datasource.DataSource {
-	return &dedicatedServerControlPanelsDataSource{}
+	return &controlPanelsDataSource{}
 }

@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerDataSource{}
+	_ datasource.DataSource              = &serverDataSource{}
+	_ datasource.DataSourceWithConfigure = &serverDataSource{}
 )
 
-type dedicatedServerDataSource struct {
+type serverDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -55,7 +55,7 @@ type dedicatedServerDataSourceData struct {
 	CpuType                            types.String `tfsdk:"cpu_type"`
 }
 
-func (d *dedicatedServerDataSource) Configure(
+func (s *serverDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -78,10 +78,10 @@ func (d *dedicatedServerDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	s.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerDataSource) Metadata(
+func (s *serverDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -89,11 +89,15 @@ func (d *dedicatedServerDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
 }
 
-func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (s *serverDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 	var data dedicatedServerDataSourceData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	request := d.client.GetServer(ctx, data.Id.ValueString())
+	request := s.client.GetServer(ctx, data.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Error reading dedicated server with id: %q", data.Id.ValueString())
@@ -219,7 +223,7 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 }
 
-func (d *dedicatedServerDataSource) Schema(
+func (s *serverDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
@@ -346,5 +350,5 @@ func (d *dedicatedServerDataSource) Schema(
 }
 
 func NewDedicatedServerDataSource() datasource.DataSource {
-	return &dedicatedServerDataSource{}
+	return &serverDataSource{}
 }

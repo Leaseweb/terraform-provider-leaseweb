@@ -16,11 +16,11 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerOperatingSystemsDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerOperatingSystemsDataSource{}
+	_ datasource.DataSource              = &operatingSystemsDataSource{}
+	_ datasource.DataSourceWithConfigure = &operatingSystemsDataSource{}
 )
 
-type dedicatedServerOperatingSystemsDataSource struct {
+type operatingSystemsDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -34,7 +34,7 @@ type dedicatedServerOperatingSystemsDataSourceData struct {
 	ControlPanelId   types.String      `tfsdk:"control_panel_id"`
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Configure(
+func (o *operatingSystemsDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -57,10 +57,10 @@ func (d *dedicatedServerOperatingSystemsDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	o.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Metadata(
+func (o *operatingSystemsDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -68,12 +68,16 @@ func (d *dedicatedServerOperatingSystemsDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_dedicated_server_operating_systems"
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (o *operatingSystemsDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
 	var data dedicatedServerOperatingSystemsDataSourceData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	request := d.client.GetOperatingSystemList(ctx)
+	request := o.client.GetOperatingSystemList(ctx)
 	if !data.ControlPanelId.IsNull() && !data.ControlPanelId.IsUnknown() {
 		request = request.ControlPanelId(data.ControlPanelId.ValueString())
 	}
@@ -106,7 +110,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 	}
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Schema(
+func (o *operatingSystemsDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
@@ -137,5 +141,5 @@ func (d *dedicatedServerOperatingSystemsDataSource) Schema(
 }
 
 func NewDedicatedServerOperatingSystemsDataSource() datasource.DataSource {
-	return &dedicatedServerOperatingSystemsDataSource{}
+	return &operatingSystemsDataSource{}
 }

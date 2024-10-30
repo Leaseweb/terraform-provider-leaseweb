@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServersDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServersDataSource{}
+	_ datasource.DataSource              = &serversDataSource{}
+	_ datasource.DataSourceWithConfigure = &serversDataSource{}
 )
 
-type dedicatedServersDataSource struct {
+type serversDataSource struct {
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -34,7 +34,7 @@ type dedicatedServersDataSourceData struct {
 	PrivateNetworkEnabled types.String   `tfsdk:"private_network_enabled"`
 }
 
-func (d *dedicatedServersDataSource) Configure(
+func (s *serversDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -57,10 +57,10 @@ func (d *dedicatedServersDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient.DedicatedServerAPI
+	s.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServersDataSource) Metadata(
+func (s *serversDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
@@ -68,12 +68,16 @@ func (d *dedicatedServersDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_dedicated_servers"
 }
 
-func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (s *serversDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
 	var data dedicatedServersDataSourceData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	// NOTE: we show only the latest 50 items.
-	request := d.client.GetServerList(ctx).Limit(50)
+	request := s.client.GetServerList(ctx).Limit(50)
 
 	if !data.Reference.IsNull() && !data.Reference.IsUnknown() {
 		request = request.Reference(data.Reference.ValueString())
@@ -134,7 +138,7 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 	}
 }
 
-func (d *dedicatedServersDataSource) Schema(
+func (s *serversDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
@@ -179,5 +183,5 @@ func (d *dedicatedServersDataSource) Schema(
 }
 
 func NewDedicatedServersDataSource() datasource.DataSource {
-	return &dedicatedServersDataSource{}
+	return &serversDataSource{}
 }
