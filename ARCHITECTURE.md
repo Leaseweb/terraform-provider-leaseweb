@@ -80,3 +80,7 @@ the following naming conventions apply for type names:
 - an underscore must replace non-alphabetic characters
 
 `Public Cloud Load Balancers` thus becomes `leaseweb_public_cloud_load_balancers`
+
+## Tests
+
+Acceptance tests should be placed in [internal/provider/provider_test.go](internal/provider/provider_test.go).
