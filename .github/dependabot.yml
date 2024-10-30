@@ -3,7 +3,9 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/"
+    directories:
+      - "/"
+      - "/tools"
     schedule:
       interval: "daily"
   - package-ecosystem: "npm"
@@ -14,6 +16,11 @@ updates:
     directories:
       - "/docker/golang"
       - "/docker/node"
+      - "/docker/caddy"
+      - "/docker/golangci"
+      - "/docker/hadolint"
+      - "/docker/prism"
+      - "/docker/shellcheck"
     schedule:
       interval: "daily"
   - package-ecosystem: "github-actions"
