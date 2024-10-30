@@ -1,4 +1,4 @@
-package validator
+package dedicatedserver
 
 import (
 	"context"
@@ -9,8 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
-
+func Test_greaterThanZeroValidator_ValidateString(t *testing.T) {
 	t.Run("does not set errors if the int value is greater than 0", func(t *testing.T) {
 		request := schemaValidator.StringRequest{
 			ConfigValue: basetypes.NewStringValue("2"),
@@ -18,7 +17,7 @@ func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
 
 		response := schemaValidator.StringResponse{}
 
-		validator := GreaterThanZero()
+		validator := greaterThanZero()
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -31,7 +30,7 @@ func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
 
 		response := schemaValidator.StringResponse{}
 
-		validator := GreaterThanZero()
+		validator := greaterThanZero()
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 0)
@@ -44,7 +43,7 @@ func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
 
 		response := schemaValidator.StringResponse{}
 
-		validator := GreaterThanZero()
+		validator := greaterThanZero()
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 1)
@@ -57,7 +56,7 @@ func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
 
 		response := schemaValidator.StringResponse{}
 
-		validator := GreaterThanZero()
+		validator := greaterThanZero()
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 1)
@@ -70,7 +69,7 @@ func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
 
 		response := schemaValidator.StringResponse{}
 
-		validator := GreaterThanZero()
+		validator := greaterThanZero()
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 1)
@@ -83,7 +82,7 @@ func TestGreaterThanZeroValidator_ValidateString(t *testing.T) {
 
 		response := schemaValidator.StringResponse{}
 
-		validator := GreaterThanZero()
+		validator := greaterThanZero()
 		validator.ValidateString(context.TODO(), request, &response)
 
 		assert.Len(t, response.Diagnostics.Errors(), 1)

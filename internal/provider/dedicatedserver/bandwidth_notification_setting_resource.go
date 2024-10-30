@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -99,7 +98,7 @@ func (b *bandwidthNotificationSettingResource) Schema(
 				Required:    true,
 				Description: "Threshold Value. Value can be a number greater than 0.",
 				Validators: []validator.String{
-					customValidators.GreaterThanZero(),
+					greaterThanZero(),
 				},
 			},
 			"unit": schema.StringAttribute{
