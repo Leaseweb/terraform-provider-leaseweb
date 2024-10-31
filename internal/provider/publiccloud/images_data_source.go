@@ -88,14 +88,6 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 	request := api.GetImageList(ctx)
 
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError("getAllImages", err, response)
-	}
-
-	metadata := result.GetMetadata()
-
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
@@ -103,6 +95,8 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 		}
 
 		images = append(images, result.GetImages()...)
+
+		metadata := result.GetMetadata()
 
 		offset = utils.NewOffset(
 			metadata.GetLimit(),

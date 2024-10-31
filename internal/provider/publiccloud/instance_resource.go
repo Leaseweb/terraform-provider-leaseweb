@@ -585,18 +585,6 @@ func getInstanceTypesForRegion(
 
 	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
 
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError(
-			"GetInstanceTypesForRegion",
-			err,
-			response,
-		)
-	}
-
-	metadata := result.GetMetadata()
-
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
@@ -610,6 +598,8 @@ func getInstanceTypesForRegion(
 		for _, sdkInstanceType := range result.InstanceTypes {
 			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
 		}
+
+		metadata := result.GetMetadata()
 
 		offset = utils.NewOffset(
 			metadata.GetLimit(),

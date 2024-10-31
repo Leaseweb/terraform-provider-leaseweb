@@ -69,13 +69,6 @@ func getAllLoadBalancers(
 
 	request := api.GetLoadBalancerList(ctx)
 
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
-	}
-
-	metadata := result.GetMetadata()
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
@@ -83,6 +76,8 @@ func getAllLoadBalancers(
 		}
 
 		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
+
+		metadata := result.GetMetadata()
 
 		offset = utils.NewOffset(
 			metadata.GetLimit(),

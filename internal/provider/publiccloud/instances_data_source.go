@@ -102,14 +102,6 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 	request := api.GetInstanceList(ctx)
 
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError("getAllInstances", err, response)
-	}
-
-	metadata := result.GetMetadata()
-
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
@@ -117,6 +109,8 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 		}
 
 		instances = append(instances, result.Instances...)
+
+		metadata := result.GetMetadata()
 
 		offset = utils.NewOffset(
 			metadata.GetLimit(),
