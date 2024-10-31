@@ -79,3 +79,23 @@ the following naming conventions apply for type names:
 - an underscore must replace non-alphabetic characters
 
 `Public Cloud Load Balancers` thus becomes `public_cloud_load_balancers`
+
+## Configure
+
+If possible, map the SDK API as the client used by Terraform.
+
+```go
+func (i *imageResource) Configure(
+	_ context.Context,
+	request resource.ConfigureRequest,
+	response *resource.ConfigureResponse,
+) {
+  ...
+
+	coreClient, ok := request.ProviderData.(client.Client)
+
+  ...
+
+	i.client = coreClient.PublicCloudAPI
+}
+```
