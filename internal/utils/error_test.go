@@ -184,7 +184,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 	)
 
 	t.Run(
-		"sets no errors if errorResponse cannot be translated",
+		"sets expected error if errorResponse cannot be translated",
 		func(t *testing.T) {
 			diags := diag.Diagnostics{}
 
@@ -200,11 +200,17 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 				context.TODO(),
 			)
 
-			assert.False(t, diags.HasError())
+			assert.Len(t, diags.Errors(), 1)
+			assert.Equal(t, "summary", diags.Errors()[0].Summary())
+			assert.Equal(
+				t,
+				"unexpected end of JSON input",
+				diags.Errors()[0].Detail(),
+			)
 		},
 	)
 
-	t.Run("sets no errors if httpResponse is nil", func(t *testing.T) {
+	t.Run("sets expected error if httpResponse is nil", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 
 		SetAttributeErrorsFromServerResponse(
@@ -214,7 +220,9 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.False(t, diags.HasError())
+		assert.Len(t, diags.Errors(), 1)
+		assert.Equal(t, "summary", diags.Errors()[0].Summary())
+		assert.Equal(t, "cannot parse http response", diags.Errors()[0].Detail())
 	})
 }
 

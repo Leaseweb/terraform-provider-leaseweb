@@ -120,8 +120,11 @@ func SetAttributeErrorsFromServerResponse(
 	diags *diag.Diagnostics,
 	ctx context.Context,
 ) {
+	const cannotParseResponseDetail = "cannot parse http response"
+
 	// Nothing to do when response does not exist.
 	if response == nil {
+		diags.AddError(summary, cannotParseResponseDetail)
 		LogError(ctx, response, summary)
 		return
 	}
@@ -131,6 +134,7 @@ func SetAttributeErrorsFromServerResponse(
 	// If error cannot be translated,
 	// Terraform will show a general error to the user.
 	if err != nil {
+		diags.AddError(summary, err.Error())
 		LogError(ctx, response, summary)
 		return
 	}
