@@ -5,10 +5,10 @@ go 1.22.7
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.12.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.14.0
-	github.com/hashicorp/terraform-plugin-go v0.24.0
+	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.10.0
-	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241024104404-93387ffc3bbc
+	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241031124324-cd8fd7b94f93
 	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241024104404-93387ffc3bbc
 	github.com/stretchr/testify v1.9.0
 )

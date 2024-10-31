@@ -2,10 +2,14 @@ http://localhost
 
 route /publicCloud/v1/* {
 	uri strip_prefix /publicCloud/v1
-	reverse_proxy prism_publicCloud:4010
+	reverse_proxy prism_public_cloud:4010
 }
 
 route /bareMetals/v2/* {
 	uri strip_prefix /bareMetals/v2
-	reverse_proxy prism_dedicatedServer:4010
+	reverse_proxy prism_dedicated_server:4010
+}
+
+log {
+    format console
 }

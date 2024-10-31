@@ -25,7 +25,7 @@ var (
 
 type credentialResource struct {
 	name   string
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 type credentialResourceModel struct {
@@ -68,7 +68,7 @@ func (c *credentialResource) Configure(
 		return
 	}
 
-	c.client = coreClient
+	c.client = coreClient.PublicCloudAPI
 }
 
 func (c *credentialResource) Schema(
@@ -130,7 +130,10 @@ func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 		data.Username.ValueString(),
 		data.Password.ValueString(),
 	)
-	request := c.client.PublicCloudAPI.StoreCredential(ctx, data.InstanceID.ValueString()).StoreCredentialOpts(*opts)
+	request := c.client.StoreCredential(
+		ctx,
+		data.InstanceID.ValueString(),
+	).StoreCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Creating %s for username: %q and instance_id: %q", c.name, data.Username.ValueString(), data.InstanceID.ValueString())
@@ -157,7 +160,12 @@ func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	request := c.client.PublicCloudAPI.GetCredential(ctx, data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString())
+	request := c.client.GetCredential(
+		ctx,
+		data.InstanceID.ValueString(),
+		data.Type.ValueString(),
+		data.Username.ValueString(),
+	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Reading %s for username: %q and instance_id: %q", c.name, data.Username.ValueString(), data.InstanceID.ValueString())
@@ -187,7 +195,12 @@ func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 	opts := publicCloud.NewUpdateCredentialOpts(
 		data.Password.ValueString(),
 	)
-	request := c.client.PublicCloudAPI.UpdateCredential(ctx, data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString()).UpdateCredentialOpts(*opts)
+	request := c.client.UpdateCredential(
+		ctx,
+		data.InstanceID.ValueString(),
+		data.Type.ValueString(),
+		data.Username.ValueString(),
+	).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Updating %s for username: %q and instance_id: %q", c.name, data.Username.ValueString(), data.InstanceID.ValueString())
@@ -214,7 +227,12 @@ func (c *credentialResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	request := c.client.PublicCloudAPI.DeleteCredential(ctx, data.InstanceID.ValueString(), data.Type.ValueString(), data.Username.ValueString())
+	request := c.client.DeleteCredential(
+		ctx,
+		data.InstanceID.ValueString(),
+		data.Type.ValueString(),
+		data.Username.ValueString(),
+	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Deleting %s for username: %q and instance_id: %q", c.name, data.Username.ValueString(), data.InstanceID.ValueString())
