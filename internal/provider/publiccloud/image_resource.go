@@ -129,7 +129,7 @@ func getImage(
 }
 
 type imageResource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (i *imageResource) ImportState(
@@ -212,7 +212,7 @@ func (i *imageResource) Create(
 
 	opts := plan.GetCreateImageOpts()
 
-	sdkImage, httpResponse, err := i.client.PublicCloudAPI.CreateImage(ctx).
+	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
@@ -250,11 +250,7 @@ func (i *imageResource) Read(
 		return
 	}
 
-	sdkImage, httpResponse, err := getImage(
-		state.ID.ValueString(),
-		ctx,
-		i.client.PublicCloudAPI,
-	)
+	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
 		utils.SetAttributeErrorsFromServerResponse(
 			"Error reading Public Cloud images",
@@ -294,7 +290,7 @@ func (i *imageResource) Update(
 	tflog.Info(ctx, fmt.Sprintf("Update publiccloud image %q", plan.ID.ValueString()))
 	opts := plan.GetUpdateImageOpts()
 
-	sdkImageDetails, httpResponse, err := i.client.PublicCloudAPI.UpdateImage(
+	sdkImageDetails, httpResponse, err := i.client.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
@@ -340,7 +336,7 @@ func (i *imageResource) Configure(
 		return
 	}
 
-	i.client = coreClient
+	i.client = coreClient.PublicCloudAPI
 }
 
 func NewImageResource() resource.Resource {

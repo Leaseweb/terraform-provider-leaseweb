@@ -66,41 +66,34 @@ func getAllLoadBalancers(
 	api publicCloud.PublicCloudAPI,
 ) ([]publicCloud.LoadBalancerDetails, *http.Response, error) {
 	var loadBalancers []publicCloud.LoadBalancerDetails
+	var offset *int32
 
 	request := api.GetLoadBalancerList(ctx)
 
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, response, fmt.Errorf("getAllLoadBalancers: %w", err)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
 	for {
-		result, response, err := request.Execute()
+		result, httpResponse, err := request.Execute()
 		if err != nil {
-			return nil, response, fmt.Errorf("getAllLoadBalancers: %w", err)
+			return nil, httpResponse, fmt.Errorf("getAllLoadBalancers: %w", err)
 		}
 
 		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
 
-		if !pagination.CanIncrement() {
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, response, fmt.Errorf("getAllLoadBalancers: %w", err)
-		}
+		request.Offset(*offset)
 	}
 
-	return loadBalancers, response, nil
+	return loadBalancers, nil, nil
 }
 
 type loadBalancersDataSource struct {

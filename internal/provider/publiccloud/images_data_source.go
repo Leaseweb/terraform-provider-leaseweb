@@ -85,41 +85,34 @@ func getAllImages(
 	api publicCloud.PublicCloudAPI,
 ) ([]publicCloud.ImageDetails, *http.Response, error) {
 	var images []publicCloud.ImageDetails
+	var offset *int32
 
 	request := api.GetImageList(ctx)
 
-	result, httpResponse, err := request.Execute()
-
-	if err != nil {
-		return nil, httpResponse, fmt.Errorf("getAllImages: %w", err)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
 	for {
-		result, response, err := request.Execute()
+		result, httpResponse, err := request.Execute()
 		if err != nil {
-			return nil, response, fmt.Errorf("getAllImages: %w", err)
+			return nil, httpResponse, fmt.Errorf("getAllImages: %w", err)
 		}
 
 		images = append(images, result.GetImages()...)
 
-		if !pagination.CanIncrement() {
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, response, fmt.Errorf("getAllImages: %w", err)
-		}
+		request.Offset(*offset)
 	}
 
-	return images, httpResponse, nil
+	return images, nil, nil
 }
 
 func imageSchemaAttributes() map[string]schema.Attribute {
@@ -157,7 +150,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (i *imagesDataSource) Metadata(
@@ -191,7 +184,7 @@ func (i *imagesDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read Public Cloud images")
-	images, httpResponse, err := getAllImages(ctx, i.client.PublicCloudAPI)
+	images, httpResponse, err := getAllImages(ctx, i.client)
 
 	if err != nil {
 		response.Diagnostics.AddError(
@@ -238,7 +231,7 @@ func (i *imagesDataSource) Configure(
 		return
 	}
 
-	i.client = coreClient
+	i.client = coreClient.PublicCloudAPI
 }
 
 func NewImagesDataSource() datasource.DataSource {

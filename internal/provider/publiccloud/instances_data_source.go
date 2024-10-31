@@ -99,41 +99,32 @@ func getAllInstances(
 	api publicCloud.PublicCloudAPI,
 ) ([]publicCloud.Instance, *http.Response, error) {
 	var instances []publicCloud.Instance
+	var offset *int32
 
 	request := api.GetInstanceList(ctx)
 
-	result, httpResponse, err := request.Execute()
-
-	if err != nil {
-		return nil, httpResponse, fmt.Errorf("getAllInstances: %w", err)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
 	for {
-		result, response, err := request.Execute()
-		if err != nil {
-			return nil, response, fmt.Errorf("getAllInstances: %w", err)
-		}
-
-		instances = append(instances, result.Instances...)
-
-		if !pagination.CanIncrement() {
-			break
-		}
-
-		request, err = pagination.NextPage()
+		result, httpResponse, err := request.Execute()
 		if err != nil {
 			return nil, httpResponse, fmt.Errorf("getAllInstances: %w", err)
 		}
+		instances = append(instances, result.Instances...)
+
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+		if offset == nil {
+			break
+		}
+
+		request.Offset(*offset)
 	}
 
-	return instances, httpResponse, nil
+	return instances, nil, nil
 }
 
 func NewInstancesDataSource() datasource.DataSource {

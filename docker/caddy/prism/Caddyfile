@@ -9,3 +9,7 @@ route /bareMetals/v2/* {
 	uri strip_prefix /bareMetals/v2
 	reverse_proxy prism_dedicated_server:4010
 }
+
+log {
+    format console
+}

@@ -358,7 +358,7 @@ func NewInstanceResource() resource.Resource {
 }
 
 type instanceResource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (i *instanceResource) Configure(
@@ -384,7 +384,7 @@ func (i *instanceResource) Configure(
 		return
 	}
 
-	i.client = coreClient
+	i.client = coreClient.PublicCloudAPI
 }
 
 func (i *instanceResource) Create(
@@ -412,7 +412,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, httpResponse, err := i.client.PublicCloudAPI.LaunchInstance(ctx).
+	sdkInstance, httpResponse, err := i.client.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 
@@ -460,7 +460,7 @@ func (i *instanceResource) Delete(
 		"Terminate Public Cloud instance %q",
 		state.ID.ValueString(),
 	))
-	httpResponse, err := i.client.PublicCloudAPI.TerminateInstance(
+	httpResponse, err := i.client.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -514,7 +514,7 @@ func (i *instanceResource) Read(
 		ctx,
 		fmt.Sprintf("Read Public Cloud instance %q", state.ID.ValueString()),
 	)
-	sdkInstance, httpResponse, err := i.client.PublicCloudAPI.
+	sdkInstance, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -578,7 +578,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, httpResponse, err := i.client.PublicCloudAPI.
+	sdkInstance, httpResponse, err := i.client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
