@@ -156,6 +156,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
+	name   string
 	client client.Client
 }
 
@@ -164,7 +165,7 @@ func (i *imagesDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_images"
+	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
 }
 
 func (i *imagesDataSource) Schema(
@@ -193,15 +194,16 @@ func (i *imagesDataSource) Read(
 	images, err := getAllImages(ctx, i.client.PublicCloudAPI)
 
 	if err != nil {
-		response.Diagnostics.AddError(
-			"Unable to read publiccloud images",
-			err.Error(),
-		)
+		summary := fmt.Sprintf("Reading data %s", i.name)
+		// TODO: for the error details,
+		// the implementation of method getAllImages need to be change
+		response.Diagnostics.AddError(summary, err.Error())
+
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&response.Diagnostics,
-			"Unable to read publiccloud images",
+			summary,
 			err.Error(),
 		)
 
@@ -243,5 +245,7 @@ func (i *imagesDataSource) Configure(
 }
 
 func NewImagesDataSource() datasource.DataSource {
-	return &imagesDataSource{}
+	return &imagesDataSource{
+		name: "public_cloud_images",
+	}
 }

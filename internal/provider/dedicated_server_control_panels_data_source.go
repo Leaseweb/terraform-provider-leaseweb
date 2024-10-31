@@ -23,6 +23,7 @@ var (
 
 type dedicatedServerControlPanelsDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -78,7 +79,7 @@ func (d *dedicatedServerControlPanelsDataSource) Configure(ctx context.Context, 
 }
 
 func (d *dedicatedServerControlPanelsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_control_panels"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -101,7 +102,7 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 
 	if err != nil {
-		summary := "Error reading control panels"
+		summary := fmt.Sprintf("Reading data %s", d.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -153,5 +154,7 @@ func (d *dedicatedServerControlPanelsDataSource) Schema(ctx context.Context, req
 }
 
 func NewDedicatedServerControlPanelsDataSource() datasource.DataSource {
-	return &dedicatedServerControlPanelsDataSource{}
+	return &dedicatedServerControlPanelsDataSource{
+		name: "dedicated_server_control_panels",
+	}
 }

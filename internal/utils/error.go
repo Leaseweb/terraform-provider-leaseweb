@@ -2,9 +2,10 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
+
+const DefaultErrMsg = "An error has occurred in the program. Please consider opening an issue."
 
 type Error struct {
 	err  error
@@ -25,48 +26,36 @@ func (e Error) Error() string {
 		return e.err.Error()
 	}
 
-	// Build the error message from errorResponse.
-	if msg := buildErrorMessage(errorResponse); msg != "" {
+	if msg := buildErrorMessage(errorResponse); msg != "" && msg != "{}" {
 		return msg
 	}
 
-	// Default to original error message if no relevant information is found.
 	return e.err.Error()
 }
 
-// Helper function to build error message from the decoded JSON.
 func buildErrorMessage(errorResponse map[string]interface{}) string {
-	var msg string
+	// Create a map to store only the fields we care about.
+	output := make(map[string]interface{})
 
-	// Append the main error message if available.
+	if errorCode, ok := errorResponse["errorCode"]; ok {
+		output["errorCode"] = errorCode
+	}
 	if errorMessage, ok := errorResponse["errorMessage"]; ok {
-		msg += fmt.Sprintf("%v", errorMessage)
+		output["errorMessage"] = errorMessage
+	}
+	if userMessage, ok := errorResponse["userMessage"]; ok {
+		output["userMessage"] = userMessage
+	}
+	if correlationId, ok := errorResponse["correlationId"]; ok {
+		output["correlationId"] = correlationId
+	}
+	if errorDetails, ok := errorResponse["errorDetails"]; ok {
+		output["errorDetails"] = errorDetails
 	}
 
-	// Append details if available.
-	if errorDetails, ok := errorResponse["errorDetails"].(map[string]interface{}); ok {
-		msg += "\n" + formatErrorDetails(errorDetails)
-	}
-
-	return msg
-}
-
-// Helper function to format error details.
-func formatErrorDetails(errorDetails map[string]interface{}) string {
-	var detailsMsg string
-
-	for key, details := range errorDetails {
-		detailsMsg += fmt.Sprintf("%s:\n", key)
-
-		// Check if the details are a list of messages.
-		if detailList, ok := details.([]interface{}); ok {
-			for _, detail := range detailList {
-				detailsMsg += fmt.Sprintf("\t%s\n", detail)
-			}
-		}
-	}
-
-	return detailsMsg
+	// Encode the output map as a JSON string.
+	jsonOutput, _ := json.MarshalIndent(output, "", "  ")
+	return string(jsonOutput)
 }
 
 func NewError(resp *http.Response, err error) Error {

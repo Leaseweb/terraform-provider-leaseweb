@@ -22,6 +22,7 @@ var (
 
 type dedicatedServerCredentialDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -75,7 +76,7 @@ func (d *dedicatedServerCredentialDataSource) Configure(ctx context.Context, req
 }
 
 func (d *dedicatedServerCredentialDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerCredentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -120,7 +121,7 @@ func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req data
 	credential, response, err := d.client.GetServerCredential(d.authContext(ctx), serverID, credType, username).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Error reading data dedicated_server_credential for server %q", serverID)
+		summary := fmt.Sprintf("Reading data %s for dedicated_server_id %q", d.name, serverID)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -131,5 +132,7 @@ func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req data
 }
 
 func NewDedicatedServerCredentialDataSource() datasource.DataSource {
-	return &dedicatedServerCredentialDataSource{}
+	return &dedicatedServerCredentialDataSource{
+		name: "dedicated_server_credential",
+	}
 }

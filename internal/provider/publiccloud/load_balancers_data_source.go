@@ -103,6 +103,7 @@ func getAllLoadBalancers(
 }
 
 type loadBalancersDataSource struct {
+	name   string
 	client client.Client
 }
 
@@ -111,7 +112,7 @@ func (l *loadBalancersDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_load_balancers"
+	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
 }
 
 func (l *loadBalancersDataSource) Schema(
@@ -185,12 +186,15 @@ func (l *loadBalancersDataSource) Read(
 	loadBalancers, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
 
 	if err != nil {
-		response.Diagnostics.AddError("Unable to read Public Cloud load balancers", err.Error())
+		summary := fmt.Sprintf("Reading data %s", l.name)
+		// TODO: for the error details,
+		// the implementation of method getAllLoadBalancers need to be change
+		response.Diagnostics.AddError(summary, err.Error())
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&response.Diagnostics,
-			"Unable to read Public Cloud load balancers",
+			summary,
 			err.Error(),
 		)
 
@@ -229,5 +233,7 @@ func (l *loadBalancersDataSource) Configure(
 }
 
 func NewLoadBalancersDataSource() datasource.DataSource {
-	return &loadBalancersDataSource{}
+	return &loadBalancersDataSource{
+		name: "public_cloud_load_balancers",
+	}
 }
