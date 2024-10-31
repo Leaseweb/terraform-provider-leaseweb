@@ -33,6 +33,7 @@ services:
       - ./:/app
     working_dir: /app
   prism_public_cloud:
+    container_name: prism_public_cloud
     build:
       dockerfile: docker/prism/Dockerfile
     command: >
@@ -43,6 +44,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
   prism_dedicated_server:
+    container_name: prism_dedicated_server
     build:
       dockerfile: docker/prism/Dockerfile
     command: >
@@ -56,7 +58,7 @@ services:
     build:
       dockerfile: docker/caddy/Dockerfile
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/caddy/prism/Caddyfile:/etc/caddy/Caddyfile
     ports:
       - "8080:80"
     depends_on:
