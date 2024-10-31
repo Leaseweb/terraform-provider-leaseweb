@@ -84,3 +84,23 @@ the following naming conventions apply for type names:
 ## Tests
 
 Acceptance tests should be placed in [internal/provider/provider_test.go](internal/provider/provider_test.go).
+
+## Configure
+
+If possible, map the SDK API as the client used by Terraform.
+
+```go
+func (i *imageResource) Configure(
+	_ context.Context,
+	request resource.ConfigureRequest,
+	response *resource.ConfigureResponse,
+) {
+  ...
+
+	coreClient, ok := request.ProviderData.(client.Client)
+
+  ...
+
+	i.client = coreClient.PublicCloudAPI
+}
+```

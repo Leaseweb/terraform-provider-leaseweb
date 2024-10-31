@@ -412,7 +412,7 @@ func NewInstanceResource() resource.Resource {
 }
 
 type instanceResource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (i *instanceResource) Configure(
@@ -438,7 +438,7 @@ func (i *instanceResource) Configure(
 		return
 	}
 
-	i.client = coreClient
+	i.client = coreClient.PublicCloudAPI
 }
 
 func (i *instanceResource) Create(
@@ -466,7 +466,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, apiResponse, err := i.client.PublicCloudAPI.LaunchInstance(ctx).
+	sdkInstance, apiResponse, err := i.client.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 
@@ -521,7 +521,7 @@ func (i *instanceResource) Delete(
 		"Terminate Public Cloud instance %q",
 		state.ID.ValueString(),
 	))
-	apiResponse, err := i.client.PublicCloudAPI.TerminateInstance(
+	apiResponse, err := i.client.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -581,25 +581,9 @@ func getInstanceTypesForRegion(
 	api publicCloud.PublicCloudAPI,
 ) ([]string, *utils.SdkError) {
 	var instanceTypes []string
+	var offset *int32
 
 	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
-
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError(
-			"GetInstanceTypesForRegion",
-			err,
-			response,
-		)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
 
 	for {
 		result, response, err := request.Execute()
@@ -615,14 +599,19 @@ func getInstanceTypesForRegion(
 			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
 		}
 
-		if !pagination.CanIncrement() {
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
-		}
+		request.Offset(*offset)
 	}
 
 	return instanceTypes, nil
@@ -665,7 +654,7 @@ func (i *instanceResource) Read(
 		ctx,
 		fmt.Sprintf("Read Public Cloud instance %q", state.ID.ValueString()),
 	)
-	sdkInstance, response, err := i.client.PublicCloudAPI.
+	sdkInstance, response, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -739,7 +728,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, apiResponse, err := i.client.PublicCloudAPI.
+	sdkInstance, apiResponse, err := i.client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
@@ -1000,7 +989,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 		availableInstanceTypes, err := getInstanceTypesForRegion(
 			region,
 			ctx,
-			i.client.PublicCloudAPI,
+			i.client,
 		)
 		if err != nil {
 			response.Diagnostics.AddError(
@@ -1016,7 +1005,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	availableInstanceTypes, err := getAvailableInstanceTypesForUpdate(
 		id.ValueString(),
 		ctx,
-		i.client.PublicCloudAPI,
+		i.client,
 	)
 	if err != nil {
 		response.Diagnostics.AddError(

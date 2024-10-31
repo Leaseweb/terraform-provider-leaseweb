@@ -130,7 +130,7 @@ func getImage(
 }
 
 type imageResource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (i *imageResource) ModifyPlan(
@@ -141,7 +141,7 @@ func (i *imageResource) ModifyPlan(
 	planImage := imageResourceModel{}
 	request.Plan.Get(ctx, &planImage)
 
-	instances, err := getAllInstances(ctx, i.client.PublicCloudAPI)
+	instances, err := getAllInstances(ctx, i.client)
 	if err != nil {
 		response.Diagnostics.AddError("Cannot get instances", err.Error())
 		return
@@ -238,7 +238,7 @@ func (i *imageResource) Create(
 
 	opts := plan.GetCreateImageOpts()
 
-	sdkImage, apiResponse, err := i.client.PublicCloudAPI.CreateImage(ctx).
+	sdkImage, apiResponse, err := i.client.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
@@ -280,7 +280,7 @@ func (i *imageResource) Read(
 		return
 	}
 
-	sdkImage, err := getImage(state.ID.ValueString(), ctx, i.client.PublicCloudAPI)
+	sdkImage, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
 		response.Diagnostics.AddError("Unable to read images", err.Error())
 		utils.LogError(
@@ -322,7 +322,7 @@ func (i *imageResource) Update(
 	tflog.Info(ctx, fmt.Sprintf("Update publiccloud image %q", plan.ID.ValueString()))
 	opts := plan.GetUpdateImageOpts()
 
-	sdkImageDetails, apiResponse, err := i.client.PublicCloudAPI.UpdateImage(
+	sdkImageDetails, apiResponse, err := i.client.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
@@ -372,7 +372,7 @@ func (i *imageResource) Configure(
 		return
 	}
 
-	i.client = coreClient
+	i.client = coreClient.PublicCloudAPI
 }
 
 func NewImageResource() resource.Resource {

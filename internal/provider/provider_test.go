@@ -1184,7 +1184,7 @@ func TestAccImagesDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_images.test",
 						"images.#",
-						"18",
+						"6",
 					),
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_images.test",
