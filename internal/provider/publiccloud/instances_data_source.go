@@ -98,6 +98,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	*utils.SdkError,
 ) {
 	var instances []publicCloud.Instance
+	var offset *int32
 
 	request := api.GetInstanceList(ctx)
 
@@ -108,11 +109,6 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	}
 
 	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
 
 	for {
 		result, response, err := request.Execute()
@@ -122,14 +118,17 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		instances = append(instances, result.Instances...)
 
-		if !pagination.CanIncrement() {
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("getAllInstances", err, response)
-		}
+		request.Offset(*offset)
 	}
 
 	return instances, nil

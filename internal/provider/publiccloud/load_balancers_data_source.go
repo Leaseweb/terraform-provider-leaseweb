@@ -65,6 +65,7 @@ func getAllLoadBalancers(
 	api publicCloud.PublicCloudAPI,
 ) ([]publicCloud.LoadBalancerDetails, *utils.SdkError) {
 	var loadBalancers []publicCloud.LoadBalancerDetails
+	var offset *int32
 
 	request := api.GetLoadBalancerList(ctx)
 
@@ -75,12 +76,6 @@ func getAllLoadBalancers(
 	}
 
 	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
-
 	for {
 		result, response, err := request.Execute()
 		if err != nil {
@@ -89,14 +84,17 @@ func getAllLoadBalancers(
 
 		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
 
-		if !pagination.CanIncrement() {
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
-		}
+		request.Offset(*offset)
 	}
 
 	return loadBalancers, nil

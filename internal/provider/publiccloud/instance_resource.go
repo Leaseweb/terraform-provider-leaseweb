@@ -581,6 +581,7 @@ func getInstanceTypesForRegion(
 	api publicCloud.PublicCloudAPI,
 ) ([]string, *utils.SdkError) {
 	var instanceTypes []string
+	var offset *int32
 
 	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
 
@@ -595,11 +596,6 @@ func getInstanceTypesForRegion(
 	}
 
 	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
 
 	for {
 		result, response, err := request.Execute()
@@ -615,14 +611,17 @@ func getInstanceTypesForRegion(
 			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
 		}
 
-		if !pagination.CanIncrement() {
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("GetAllInstances", err, response)
-		}
+		request.Offset(*offset)
 	}
 
 	return instanceTypes, nil
