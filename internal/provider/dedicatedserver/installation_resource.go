@@ -55,8 +55,8 @@ type installationResourceModel struct {
 }
 
 type raidResourceModel struct {
-	Level         types.Int64  `tfsdk:"level"`
-	NumberOfDisks types.Int64  `tfsdk:"number_of_disks"`
+	Level         types.Int32  `tfsdk:"level"`
+	NumberOfDisks types.Int32  `tfsdk:"number_of_disks"`
 	Type          types.String `tfsdk:"type"`
 }
 
@@ -325,13 +325,13 @@ func (i *installationResource) Create(
 	var raid *dedicatedServer.Raid
 	// Check that at least one RAID field is set before initializing the RAID struct.
 	if !plan.Raid.IsNull() && !plan.Raid.IsUnknown() &&
-		(utils.AdaptInt64PointerValueToNullableInt32(raidPlan.Level) != nil ||
-			utils.AdaptInt64PointerValueToNullableInt32(raidPlan.NumberOfDisks) != nil ||
+		(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level) != nil ||
+			utils.AdaptInt32PointerValueToNullableInt32(raidPlan.NumberOfDisks) != nil ||
 			utils.AdaptStringPointerValueToNullableString(raidPlan.Type) != nil) {
 
 		raid = &dedicatedServer.Raid{
-			Level:         (*dedicatedServer.RaidLevel)(utils.AdaptInt64PointerValueToNullableInt32(raidPlan.Level)),
-			NumberOfDisks: utils.AdaptInt64PointerValueToNullableInt32(raidPlan.NumberOfDisks),
+			Level:         (*dedicatedServer.RaidLevel)(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level)),
+			NumberOfDisks: utils.AdaptInt32PointerValueToNullableInt32(raidPlan.NumberOfDisks),
 			Type:          (*dedicatedServer.RaidType)(utils.AdaptStringPointerValueToNullableString(raidPlan.Type)),
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -37,8 +37,8 @@ const (
 )
 
 type contractResourceModel struct {
-	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
-	Term             types.Int64  `tfsdk:"term"`
+	BillingFrequency types.Int32  `tfsdk:"billing_frequency"`
+	Term             types.Int32  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
 	EndsAt           types.String `tfsdk:"ends_at"`
 	State            types.String `tfsdk:"state"`
@@ -46,8 +46,8 @@ type contractResourceModel struct {
 
 func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"billing_frequency": types.Int64Type,
-		"term":              types.Int64Type,
+		"billing_frequency": types.Int32Type,
+		"term":              types.Int32Type,
 		"type":              types.StringType,
 		"ends_at":           types.StringType,
 		"state":             types.StringType,
@@ -55,11 +55,11 @@ func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 }
 
 func (c contractResourceModel) IsContractTermValid() (bool, reason) {
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt32() == 0 {
 		return false, reasonContractTermCannotBeZero
 	}
 
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt64() != 0 {
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt32() != 0 {
 		return false, reasonContractTermMustBeZero
 	}
 
@@ -68,8 +68,8 @@ func (c contractResourceModel) IsContractTermValid() (bool, reason) {
 
 func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
 	return contractResourceModel{
-		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
-		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
 		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
 		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
@@ -85,7 +85,7 @@ type instanceResourceModel struct {
 	Image               types.Object `tfsdk:"image"`
 	State               types.String `tfsdk:"state"`
 	Type                types.String `tfsdk:"type"`
-	RootDiskSize        types.Int64  `tfsdk:"root_disk_size"`
+	RootDiskSize        types.Int32  `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String `tfsdk:"root_disk_storage_type"`
 	IPs                 types.List   `tfsdk:"ips"`
 	Contract            types.Object `tfsdk:"contract"`
@@ -102,7 +102,7 @@ func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 		},
 		"state":                  types.StringType,
 		"type":                   types.StringType,
-		"root_disk_size":         types.Int64Type,
+		"root_disk_size":         types.Int32Type,
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
@@ -147,14 +147,14 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 	}
 
 	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
-		int32(contract.Term.ValueInt64()),
+		contract.Term.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
-		int32(contract.BillingFrequency.ValueInt64()),
+		contract.BillingFrequency.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 
 	opts.MarketAppId = utils.AdaptStringPointerValueToNullableString(i.MarketAppID)
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+	opts.RootDiskSize = utils.AdaptInt32PointerValueToNullableInt32(i.RootDiskSize)
 
 	return opts, nil
 }
@@ -198,7 +198,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	opts := publicCloud.NewUpdateInstanceOpts()
 
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+	opts.RootDiskSize = utils.AdaptInt32PointerValueToNullableInt32(i.RootDiskSize)
 
 	contract := contractResourceModel{}
 	diags := i.Contract.As(
@@ -220,9 +220,9 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 		opts.ContractType = contractType
 	}
 
-	if contract.Term.ValueInt64() != 0 {
+	if contract.Term.ValueInt32() != 0 {
 		contractTerm, err := publicCloud.NewContractTermFromValue(
-			int32(contract.Term.ValueInt64()),
+			contract.Term.ValueInt32(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
@@ -230,9 +230,9 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 		opts.ContractTerm = contractTerm
 	}
 
-	if contract.BillingFrequency.ValueInt64() != 0 {
+	if contract.BillingFrequency.ValueInt32() != 0 {
 		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
-			int32(contract.BillingFrequency.ValueInt64()),
+			contract.BillingFrequency.ValueInt32(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
@@ -293,7 +293,7 @@ func adaptInstanceToInstanceResource(
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskSize:        basetypes.NewInt32Value(int32(int64(sdkInstance.GetRootDiskSize()))),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
@@ -344,7 +344,7 @@ func adaptInstanceDetailsToInstanceResource(
 		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.GetRootDiskSize())),
+		RootDiskSize:        basetypes.NewInt32Value(sdkInstanceDetails.GetRootDiskSize()),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
@@ -856,12 +856,12 @@ func (i *instanceResource) Schema(
 					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedTypeNameEnumValues)...),
 				},
 			},
-			"root_disk_size": schema.Int64Attribute{
+			"root_disk_size": schema.Int32Attribute{
 				Computed:    true,
 				Optional:    true,
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
-				Validators: []validator.Int64{
-					int64validator.Between(5, 1000),
+				Validators: []validator.Int32{
+					int32validator.Between(5, 1000),
 				},
 			},
 			"root_disk_storage_type": schema.StringAttribute{
@@ -885,18 +885,18 @@ func (i *instanceResource) Schema(
 			"contract": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
-					"billing_frequency": schema.Int64Attribute{
+					"billing_frequency": schema.Int32Attribute{
 						Required:    true,
 						Description: "The billing frequency (in months). Valid options are " + billingFrequencies.Markdown(),
-						Validators: []validator.Int64{
-							int64validator.OneOf(billingFrequencies.ToInt64()...),
+						Validators: []validator.Int32{
+							int32validator.OneOf(billingFrequencies.ToInt32()...),
 						},
 					},
-					"term": schema.Int64Attribute{
+					"term": schema.Int32Attribute{
 						Required:    true,
 						Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + contractTerms.Markdown(),
-						Validators: []validator.Int64{
-							int64validator.OneOf(contractTerms.ToInt64()...),
+						Validators: []validator.Int32{
+							int32validator.OneOf(contractTerms.ToInt32()...),
 						},
 					},
 					"type": schema.StringAttribute{

@@ -26,8 +26,8 @@ func Test_adaptContractToContractResource(t *testing.T) {
 	}
 
 	want := contractResourceModel{
-		BillingFrequency: basetypes.NewInt64Value(1),
-		Term:             basetypes.NewInt64Value(3),
+		BillingFrequency: basetypes.NewInt32Value(1),
+		Term:             basetypes.NewInt32Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
@@ -114,8 +114,8 @@ func generateContractObject(
 		context.TODO(),
 		contractResourceModel{}.AttributeTypes(),
 		contractResourceModel{
-			BillingFrequency: basetypes.NewInt64Value(int64(*billingFrequency)),
-			Term:             basetypes.NewInt64Value(int64(*contractTerm)),
+			BillingFrequency: basetypes.NewInt32Value(int32(*billingFrequency)),
+			Term:             basetypes.NewInt32Value(int32(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
 			State:            basetypes.NewStringUnknown(),
 			EndsAt:           basetypes.NewStringPointerValue(endsAt),
@@ -150,7 +150,7 @@ func generateInstanceResourceModel() instanceResourceModel {
 		Region:              basetypes.NewStringValue("eu-west-3"),
 		Type:                basetypes.NewStringValue("lsw.m5a.4xlarge"),
 		RootDiskStorageType: basetypes.NewStringValue("CENTRAL"),
-		RootDiskSize:        basetypes.NewInt64Value(int64(55)),
+		RootDiskSize:        basetypes.NewInt32Value(int32(55)),
 		Image:               image,
 		Contract:            contract,
 		MarketAppID:         basetypes.NewStringValue("marketAppId"),
@@ -193,7 +193,7 @@ func Test_adaptInstanceToInstanceResource(t *testing.T) {
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
-	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
+	assert.Equal(t, int32(50), got.RootDiskSize.ValueInt32())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
 	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
@@ -246,7 +246,7 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
-	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
+	assert.Equal(t, int32(50), got.RootDiskSize.ValueInt32())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
 	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 	assert.Equal(t, "reference", got.Reference.ValueString())
@@ -271,7 +271,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		instance := generateInstanceResourceModel()
 		instance.MarketAppID = basetypes.NewStringPointerValue(nil)
 		instance.Reference = basetypes.NewStringPointerValue(nil)
-		instance.RootDiskSize = basetypes.NewInt64PointerValue(nil)
+		instance.RootDiskSize = basetypes.NewInt32PointerValue(nil)
 
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 

@@ -27,15 +27,15 @@ func ExampleIntMarkdownList_Markdown() {
 	*/
 }
 
-func TestIntMarkdownList_ToInt64(t *testing.T) {
-	got := IntMarkdownList{1, 2, 3}.ToInt64()
-	want := []int64{1, 2, 3}
+func TestIntMarkdownList_ToInt32(t *testing.T) {
+	got := IntMarkdownList{1, 2, 3}.ToInt32()
+	want := []int32{1, 2, 3}
 
 	assert.Equal(t, want, got)
 }
 
-func ExampleIntMarkdownList_ToInt64() {
-	list := IntMarkdownList{1, 2, 3}.ToInt64()
+func ExampleIntMarkdownList_ToInt32() {
+	list := IntMarkdownList{1, 2, 3}.ToInt32()
 
 	fmt.Println(list)
 	// Output []{1, 2, 3}
@@ -44,7 +44,7 @@ func ExampleIntMarkdownList_ToInt64() {
 func TestNewIntMarkdownList(t *testing.T) {
 	got := NewIntMarkdownList([]int32{1})
 
-	assert.Equal(t, []int64{1}, got.ToInt64())
+	assert.Equal(t, []int32{1}, got.ToInt32())
 }
 
 func TestStringTypeArrayToMarkdown(t *testing.T) {
