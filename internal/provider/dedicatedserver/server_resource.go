@@ -72,7 +72,7 @@ func (s *serverResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_server"
+	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
 }
 
 func (s *serverResource) Configure(

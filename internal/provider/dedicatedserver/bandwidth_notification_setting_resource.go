@@ -39,7 +39,7 @@ func NewBandwidthNotificationSettingResource() resource.Resource {
 }
 
 func (b *bandwidthNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_bandwidth_notification_setting"
+	resp.TypeName = req.ProviderTypeName + "_dedicated_server_notification_setting_bandwidth"
 }
 
 func (b *bandwidthNotificationSettingResource) Configure(

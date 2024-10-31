@@ -1362,7 +1362,7 @@ func TestAccDedicatedServerNotificationSettingBandwidthResource(t *testing.T) {
 				// Create testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
     dedicated_server_id = "12345678"
     frequency = "WEEKLY"
     threshold = "1"
@@ -1370,27 +1370,27 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_bandwidth_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
 							"id",
 							"12345",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_bandwidth_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
 							"frequency",
 							"WEEKLY",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_bandwidth_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
 							"threshold",
 							"1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_bandwidth_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
 							"unit",
 							"Gbps",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_bandwidth_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
 							"dedicated_server_id",
 							"12345678",
 						),
@@ -1408,7 +1408,7 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
     frequency = "WEEKLY"
     threshold = "1"
     unit = "Gbps"
@@ -1430,7 +1430,7 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
+	resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 	   dedicated_server_id = "12345678"
 	   frequency = "WRONG"
 	   threshold = "1"
@@ -1453,7 +1453,7 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
     dedicated_server_id = "12345678"
     frequency = "DAILY"
     threshold = "0"
@@ -1476,7 +1476,7 @@ resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	resource "leaseweb_dedicated_server_bandwidth_notification_setting" "test" {
+	resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 	   dedicated_server_id = "12345678"
 	   frequency = "DAILY"
 	   threshold = "0"
@@ -1700,7 +1700,7 @@ func TestAccDataTrafficNotificationSettingResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "1"
@@ -1708,27 +1708,27 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"id",
 							"12345",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"dedicated_server_id",
 							"145406",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"frequency",
 							"WEEKLY",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"threshold",
 							"1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"unit",
 							"GB",
 						),
@@ -1737,7 +1737,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "1"
@@ -1745,27 +1745,27 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"id",
 							"12345",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"dedicated_server_id",
 							"145406",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"frequency",
 							"WEEKLY",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"threshold",
 							"1",
 						),
 						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_data_traffic_notification_setting.test",
+							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
 							"unit",
 							"GB",
 						),
@@ -1784,7 +1784,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "-1"
@@ -1807,7 +1807,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   dedicated_server_id = "145406"
   frequency = "WEEKLY"
   threshold = "1"
@@ -1830,7 +1830,7 @@ resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_data_traffic_notification_setting" "test" {
+resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   dedicated_server_id = "145406"
   frequency = "blah"
   threshold = "1"
@@ -2076,127 +2076,127 @@ func TestAccDedicatedServerDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_server_server" "test" {
+		data "leaseweb_dedicated_server" "test" {
 			id = "12345"
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"id",
 								"12345",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"asset_id",
 								"627294",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"serial_number",
 								"JDK18291JK",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"contract_id",
 								"674382",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"rack_type",
 								"DEDICATED",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"is_automation_feature_available",
 								"true",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"is_ipmi_reboot_feature_available",
 								"false",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"is_power_cycle_feature_available",
 								"true",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"is_private_network_feature_available",
 								"true",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"is_remote_management_feature_available",
 								"false",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"location_rack",
 								"13",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"location_site",
 								"AMS-01",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"location_suite",
 								"A6",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"location_unit",
 								"16-17",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"public_mac",
 								"AA:BB:CC:DD:EE:FF",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"public_ip",
 								"123.123.123.123/27",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"public_gateway",
 								"123.123.123.126",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"internal_mac",
 								"AA:BB:CC:DD:EE:FF",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"internal_ip",
 								"123.123.123.123/27",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"internal_gateway",
 								"123.123.123.126",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"ram_size",
 								"32",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"ram_unit",
 								"GB",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"cpu_quantity",
 								"4",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_server.test",
+								"data.leaseweb_dedicated_server.test",
 								"cpu_type",
 								"Intel Xeon E3-1220",
 							),
@@ -2215,7 +2215,7 @@ func TestAccDedicatedServerDataSource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_server_server" "test" {
+		data "leaseweb_dedicated_server" "test" {
 		}`,
 						ExpectError: regexp.MustCompile(
 							`The argument "id" is required, but no definition was found`,
@@ -2237,17 +2237,17 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_server_servers" "test" {
+		data "leaseweb_dedicated_servers" "test" {
 			reference = "test-reference"
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.test",
+								"data.leaseweb_dedicated_servers.test",
 								"ids.#",
 								"2",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.test",
+								"data.leaseweb_dedicated_servers.test",
 								"reference",
 								"test-reference",
 							),
@@ -2267,11 +2267,11 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_server_servers" "test" {
+		data "leaseweb_dedicated_servers" "test" {
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.test",
+								"data.leaseweb_dedicated_servers.test",
 								"ids.#",
 								"2",
 							),
@@ -2291,7 +2291,7 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_server_servers" "filter" {
+		data "leaseweb_dedicated_servers" "filter" {
 			reference = "test-reference"
 			ip = "127.0.0.4"
 			mac_address = "aa:bb:cc:dd:ee:ff"
@@ -2302,42 +2302,42 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 		}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"ids.#",
 								"2",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"reference",
 								"test-reference",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"ip",
 								"127.0.0.4",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"mac_address",
 								"aa:bb:cc:dd:ee:ff",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"site",
 								"ams-01",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"private_rack_id",
 								"r id",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"private_network_capable",
 								"true",
 							),
 							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_servers.filter",
+								"data.leaseweb_dedicated_servers.filter",
 								"private_network_enabled",
 								"true",
 							),
