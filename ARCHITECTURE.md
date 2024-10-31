@@ -111,7 +111,6 @@ the following resources & data sources do not adhere to the rules:
 - `leseweb_dedicated_server_notification_setting_bandwidth`
 - `leseweb_dedicated_server_notification_setting_datatraffic`
 
-
 ## Tests
 
 Acceptance tests should be placed in [internal/provider/provider_test.go](internal/provider/provider_test.go).
