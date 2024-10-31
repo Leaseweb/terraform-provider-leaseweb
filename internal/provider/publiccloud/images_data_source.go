@@ -84,21 +84,9 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 	*utils.SdkError,
 ) {
 	var images []publicCloud.ImageDetails
+	var offset *int32
 
 	request := api.GetImageList(ctx)
-
-	result, response, err := request.Execute()
-
-	if err != nil {
-		return nil, utils.NewSdkError("getAllImages", err, response)
-	}
-
-	metadata := result.GetMetadata()
-	pagination := utils.NewPagination(
-		metadata.GetLimit(),
-		metadata.GetTotalCount(),
-		request,
-	)
 
 	for {
 		result, response, err := request.Execute()
@@ -108,14 +96,19 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 
 		images = append(images, result.GetImages()...)
 
-		if !pagination.CanIncrement() {
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
 			break
 		}
 
-		request, err = pagination.NextPage()
-		if err != nil {
-			return nil, utils.NewSdkError("getAllImages", err, response)
-		}
+		request.Offset(*offset)
 	}
 
 	return images, nil
