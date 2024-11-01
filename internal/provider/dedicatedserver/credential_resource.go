@@ -136,7 +136,12 @@ func (c *credentialResource) Create(
 	).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Creating resource %s for username %q and dedicated_server_id %q", c.name, data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Creating resource %s for username %q and dedicated_server_id %q",
+			c.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -175,7 +180,12 @@ func (c *credentialResource) Read(
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading resource %s for username %q and dedicated_server_id %q", c.name, data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Reading resource %s for username %q and dedicated_server_id %q",
+			c.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -217,7 +227,12 @@ func (c *credentialResource) Update(
 	).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Updating resource %s for username %q and dedicated_server_id %q", c.name, data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Updating resource %s for username %q and dedicated_server_id %q",
+			c.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -256,7 +271,12 @@ func (c *credentialResource) Delete(
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Deleting resource %s for username %q and dedicated_server_id %q", c.name, data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Deleting resource %s for username %q and dedicated_server_id %q",
+			c.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

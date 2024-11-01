@@ -242,7 +242,11 @@ func (s *serverResource) ImportState(
 
 	sdkDedicatedServer, err := s.getServer(ctx, req.ID)
 	if err != nil {
-		summary := fmt.Sprintf("Importing resource %s for id %q", s.name, req.ID)
+		summary := fmt.Sprintf(
+			"Importing resource %s for id %q",
+			s.name,
+			req.ID,
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(nil, err).Error()))
 		return
@@ -302,7 +306,10 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+				resp.Diagnostics.AddError(
+					summary,
+					utils.NewError(response, err).Error(),
+				)
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
 			}
@@ -315,7 +322,10 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+				resp.Diagnostics.AddError(
+					summary,
+					utils.NewError(response, err).Error(),
+				)
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
 			}
@@ -361,7 +371,10 @@ func (s *serverResource) Update(
 					state.ID.ValueString(),
 					state.PublicIP.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+				resp.Diagnostics.AddError(
+					summary,
+					utils.NewError(response, err).Error(),
+				)
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
 			}
@@ -378,7 +391,10 @@ func (s *serverResource) Update(
 					state.ID.ValueString(),
 					state.PublicIP.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+				resp.Diagnostics.AddError(
+					summary,
+					utils.NewError(response, err).Error(),
+				)
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
 			}
@@ -415,7 +431,10 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
+				resp.Diagnostics.AddError(
+					summary,
+					utils.NewError(response, err).Error(),
+				)
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
 			}
@@ -491,7 +510,11 @@ func (s *serverResource) getServer(
 	// Getting server info
 	serverResult, serverResponse, err := s.client.GetServer(ctx, serverID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error reading dedicated server with id: %q - %s", serverID, utils.NewError(serverResponse, err).Error())
+		return nil, fmt.Errorf(
+			"error reading dedicated server with id: %q - %s",
+			serverID,
+			utils.NewError(serverResponse, err).Error(),
+		)
 	}
 
 	var publicIP string
@@ -548,7 +571,11 @@ func (s *serverResource) getServer(
 		serverID,
 	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error reading dedicated server power status with id: %q - %s", serverID, utils.NewError(powerResponse, err).Error())
+		return nil, fmt.Errorf(
+			"error reading dedicated server power status with id: %q - %s",
+			serverID,
+			utils.NewError(powerResponse, err).Error(),
+		)
 	}
 	pdu := powerResult.GetPdu()
 	ipmi := powerResult.GetIpmi()
@@ -563,7 +590,11 @@ func (s *serverResource) getServer(
 	)
 	networkResult, networkResponse, err := networkRequest.Execute()
 	if err != nil && networkResponse != nil && networkResponse.StatusCode != http.StatusNotFound {
-		return nil, fmt.Errorf("error reading dedicated server network interface with id: %q - %s", serverID, utils.NewError(networkResponse, err).Error())
+		return nil, fmt.Errorf(
+			"error reading dedicated server network interface with id: %q - %s",
+			serverID,
+			utils.NewError(networkResponse, err).Error(),
+		)
 	} else {
 		if networkResult != nil {
 			if _, ok := networkResult.GetStatusOk(); ok {
@@ -578,7 +609,11 @@ func (s *serverResource) getServer(
 		serverID,
 	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error reading dedicated server DHCP with id: %q - %s", serverID, utils.NewError(dhcpResponse, err).Error())
+		return nil, fmt.Errorf(
+			"error reading dedicated server DHCP with id: %q - %s",
+			serverID,
+			utils.NewError(dhcpResponse, err).Error(),
+		)
 	}
 	var dhcpLease string
 	if len(dhcpResult.GetLeases()) != 0 {
@@ -595,7 +630,11 @@ func (s *serverResource) getServer(
 			publicIP,
 		).Execute()
 		if err != nil {
-			return nil, fmt.Errorf("error reading dedicated server IP details with id: %q - %s", serverID, utils.NewError(ipResponse, err).Error())
+			return nil, fmt.Errorf(
+				"error reading dedicated server IP details with id: %q - %s",
+				serverID,
+				utils.NewError(ipResponse, err).Error(),
+			)
 		}
 		reverseLookup = ipResult.GetReverseLookup()
 	}

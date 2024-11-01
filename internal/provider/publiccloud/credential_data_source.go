@@ -37,7 +37,11 @@ type credentialDataSourceModel struct {
 	Type       types.String `tfsdk:"type"`
 }
 
-func (d *credentialDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *credentialDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -114,7 +118,12 @@ func (d *credentialDataSource) Read(
 	type_ := state.Type.ValueString()
 	username := state.Username.ValueString()
 
-	credential, response, err := d.client.GetCredential(ctx, instanceID, type_, username).Execute()
+	credential, response, err := d.client.GetCredential(
+		ctx,
+		instanceID,
+		type_,
+		username,
+	).Execute()
 
 	if err != nil {
 		summary := fmt.Sprintf(

@@ -697,7 +697,11 @@ func (i *instanceResource) Update(
 	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
-	summary := fmt.Sprintf("Updating resource %s for id %q", i.name, plan.ID.ValueString())
+	summary := fmt.Sprintf(
+		"Updating resource %s for id %q",
+		i.name,
+		plan.ID.ValueString(),
+	)
 
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

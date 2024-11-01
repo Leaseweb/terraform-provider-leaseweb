@@ -175,7 +175,11 @@ func (i *imageResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
+	response.TypeName = fmt.Sprintf(
+		"%s_%s",
+		request.ProviderTypeName,
+		i.name,
+	)
 }
 
 func (i *imageResource) Schema(
@@ -365,7 +369,11 @@ func (i *imageResource) Update(
 }
 
 // Delete does nothing as there is no endpoint to delete an Image.
-func (i *imageResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
+func (i *imageResource) Delete(
+	_ context.Context,
+	_ resource.DeleteRequest,
+	_ *resource.DeleteResponse,
+) {
 }
 
 func (i *imageResource) Configure(
