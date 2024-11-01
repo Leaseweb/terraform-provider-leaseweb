@@ -20,6 +20,7 @@ var (
 )
 
 type operatingSystemsDataSource struct {
+	name   string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -64,7 +65,7 @@ func (o *operatingSystemsDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_operating_systems"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, o.name)
 }
 
 func (o *operatingSystemsDataSource) Read(
@@ -83,7 +84,7 @@ func (o *operatingSystemsDataSource) Read(
 	// NOTE: we show only the latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := "Error reading control panels"
+		summary := fmt.Sprintf("Reading data %s", o.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -140,5 +141,7 @@ func (o *operatingSystemsDataSource) Schema(
 }
 
 func NewOperatingSystemsDataSource() datasource.DataSource {
-	return &operatingSystemsDataSource{}
+	return &operatingSystemsDataSource{
+		name: "dedicated_server_operating_systems",
+	}
 }

@@ -21,6 +21,7 @@ var (
 )
 
 type controlPanelsDataSource struct {
+	name   string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -65,7 +66,7 @@ func (c *controlPanelsDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_control_panels"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
 func (c *controlPanelsDataSource) Read(
@@ -95,7 +96,7 @@ func (c *controlPanelsDataSource) Read(
 	}
 
 	if err != nil {
-		summary := "Error reading control panels"
+		summary := fmt.Sprintf("Reading data %s", c.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -151,5 +152,7 @@ func (c *controlPanelsDataSource) Schema(
 }
 
 func NewControlPanelsDataSource() datasource.DataSource {
-	return &controlPanelsDataSource{}
+	return &controlPanelsDataSource{
+		name: "dedicated_server_control_panels",
+	}
 }

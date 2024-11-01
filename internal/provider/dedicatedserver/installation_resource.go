@@ -30,10 +30,13 @@ var (
 )
 
 func NewInstallationResource() resource.Resource {
-	return &installationResource{}
+	return &installationResource{
+		name: "dedicated_server_installation",
+	}
 }
 
 type installationResource struct {
+	name   string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -79,7 +82,7 @@ func (i *installationResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_installation"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
 }
 
 func (i *installationResource) Configure(
@@ -365,7 +368,11 @@ func (i *installationResource) Create(
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID)
+		summary := fmt.Sprintf(
+			"Installaing resource %s for dedicated_server_id %q",
+			i.name,
+			serverID,
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

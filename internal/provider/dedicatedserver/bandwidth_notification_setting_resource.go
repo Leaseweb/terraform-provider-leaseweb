@@ -23,6 +23,7 @@ var (
 )
 
 type bandwidthNotificationSettingResource struct {
+	name   string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -35,7 +36,9 @@ type bandwidthNotificationSettingResourceModel struct {
 }
 
 func NewBandwidthNotificationSettingResource() resource.Resource {
-	return &bandwidthNotificationSettingResource{}
+	return &bandwidthNotificationSettingResource{
+		name: "dedicated_server_bandwidth_notification_setting",
+	}
 }
 
 func (b *bandwidthNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -111,7 +114,11 @@ func (b *bandwidthNotificationSettingResource) Schema(
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (b *bandwidthNotificationSettingResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var data bandwidthNotificationSettingResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -130,7 +137,11 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error creating bandwidth notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Creating resource %s for dedicated_server_id %q",
+			b.name,
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -150,7 +161,11 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (b *bandwidthNotificationSettingResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var data bandwidthNotificationSettingResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -165,7 +180,12 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Reading resource %s for id %q and dedicated_server_id %q",
+			b.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -205,7 +225,12 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error updating bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Updating resource %s for id %q and dedicated_server_id %q",
+			b.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -225,7 +250,11 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (b *bandwidthNotificationSettingResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	var data bandwidthNotificationSettingResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -240,7 +269,12 @@ func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req r
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error deleting bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Deleting resource %s for id %q and dedicated_server_id %q",
+			b.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

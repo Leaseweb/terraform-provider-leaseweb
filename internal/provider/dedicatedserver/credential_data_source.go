@@ -21,6 +21,7 @@ var (
 )
 
 type credentialDataSource struct {
+	name   string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -62,10 +63,14 @@ func (c *credentialDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
-func (c *credentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (c *credentialDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"dedicated_server_id": schema.StringAttribute{
@@ -116,7 +121,11 @@ func (c *credentialDataSource) Read(
 	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Error reading data dedicated_server_credential for server %q", serverID)
+		summary := fmt.Sprintf(
+			"Reading data %s for dedicated_server_id %q",
+			c.name,
+			serverID,
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -127,5 +136,7 @@ func (c *credentialDataSource) Read(
 }
 
 func NewCredentialDataSource() datasource.DataSource {
-	return &credentialDataSource{}
+	return &credentialDataSource{
+		name: "dedicated_server_credential",
+	}
 }

@@ -19,6 +19,7 @@ var (
 )
 
 type serverDataSource struct {
+	name   string
 	client dedicatedServer.DedicatedServerAPI
 }
 
@@ -85,7 +86,7 @@ func (s *serverDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, s.name)
 }
 
 func (s *serverDataSource) Read(
@@ -99,7 +100,11 @@ func (s *serverDataSource) Read(
 	request := s.client.GetServer(ctx, data.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading dedicated server with id: %q", data.Id.ValueString())
+		summary := fmt.Sprintf(
+			"Reading data %s for id %q",
+			s.name,
+			data.Id.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -349,5 +354,7 @@ func (s *serverDataSource) Schema(
 }
 
 func NewServerDataSource() datasource.DataSource {
-	return &serverDataSource{}
+	return &serverDataSource{
+		name: "dedicated_server",
+	}
 }
