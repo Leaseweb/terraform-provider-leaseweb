@@ -30,11 +30,14 @@ var (
 )
 
 func NewDedicatedServerInstallationResource() resource.Resource {
-	return &dedicatedServerInstallationResource{}
+	return &dedicatedServerInstallationResource{
+		name: "dedicated_server_installation",
+	}
 }
 
 type dedicatedServerInstallationResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -77,7 +80,7 @@ func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]
 }
 
 func (r *dedicatedServerInstallationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_installation"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, r.name)
 }
 
 func (d *dedicatedServerInstallationResource) authContext(ctx context.Context) context.Context {
@@ -370,7 +373,7 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID)
+		summary := fmt.Sprintf("Installaing resource %s for dedicated_server_id %q", r.name, serverID)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

@@ -22,6 +22,7 @@ var (
 
 type dedicatedServerOperatingSystemsDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -77,7 +78,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Configure(ctx context.Contex
 }
 
 func (d *dedicatedServerOperatingSystemsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_operating_systems"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -92,7 +93,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 	// NOTE: we show only latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := "Error reading control panels"
+		summary := fmt.Sprintf("Reading data %s", d.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -145,5 +146,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Schema(ctx context.Context, 
 }
 
 func NewDedicatedServerOperatingSystemsDataSource() datasource.DataSource {
-	return &dedicatedServerOperatingSystemsDataSource{}
+	return &dedicatedServerOperatingSystemsDataSource{
+		name: "dedicated_server_operating_systems",
+	}
 }

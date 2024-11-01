@@ -130,6 +130,7 @@ func getImage(
 }
 
 type imageResource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
@@ -143,7 +144,10 @@ func (i *imageResource) ModifyPlan(
 
 	instances, err := getAllInstances(ctx, i.client)
 	if err != nil {
-		response.Diagnostics.AddError("Cannot get instances", err.Error())
+		// TODO: for the error details,
+		// the implementation of method getAllInstances need to be change
+		summary := fmt.Sprintf("Modifying resource %s", i.name)
+		response.Diagnostics.AddError(summary, err.Error())
 		return
 	}
 
@@ -171,7 +175,7 @@ func (i *imageResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_image"
+	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
 }
 
 func (i *imageResource) Schema(
@@ -229,6 +233,7 @@ func (i *imageResource) Create(
 	var plan imageResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf("Creating resource %s", i.name)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -243,13 +248,13 @@ func (i *imageResource) Create(
 		Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError("Error creating publiccloud image", sdkErr.Error())
+		response.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&response.Diagnostics,
-			"Error creating publiccloud image",
+			summary,
 			sdkErr.Error(),
 		)
 
@@ -258,7 +263,7 @@ func (i *imageResource) Create(
 
 	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
-		response.Diagnostics.AddError("Error creating publiccloud image resource", resourceErr.Error())
+		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
@@ -275,6 +280,7 @@ func (i *imageResource) Read(
 	var state imageResourceModel
 
 	diags := request.State.Get(ctx, &state)
+	summary := fmt.Sprintf("Reading resource %s", i.name)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -282,12 +288,14 @@ func (i *imageResource) Read(
 
 	sdkImage, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to read images", err.Error())
+		// TODO: for the error details,
+		// the implementation of method getImage need to be change
+		response.Diagnostics.AddError(summary, err.Error())
 		utils.LogError(
 			ctx,
 			err.ErrorResponse,
 			&response.Diagnostics,
-			"Unable to read images",
+			summary,
 			err.Error(),
 		)
 
@@ -297,7 +305,7 @@ func (i *imageResource) Read(
 	tflog.Info(ctx, fmt.Sprintf("Create publiccloud image resource for %q", state.ID.ValueString()))
 	instance, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
-		response.Diagnostics.AddError("Error creating publiccloud image resource", resourceErr.Error())
+		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
@@ -328,13 +336,14 @@ func (i *imageResource) Update(
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError("Error updating publiccloud image", sdkErr.Error())
+		summary := fmt.Sprintf("Updating resource %s for id %q", i.name, plan.ID.ValueString())
+		response.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&response.Diagnostics,
-			fmt.Sprintf("Unable to update publiccloud image %q", plan.ID.ValueString()),
+			summary,
 			sdkErr.Error(),
 		)
 
@@ -376,5 +385,7 @@ func (i *imageResource) Configure(
 }
 
 func NewImageResource() resource.Resource {
-	return &imageResource{}
+	return &imageResource{
+		name: "public_cloud_image",
+	}
 }

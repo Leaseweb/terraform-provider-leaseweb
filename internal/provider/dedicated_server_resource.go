@@ -32,6 +32,7 @@ var (
 
 type dedicatedServerResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -67,11 +68,13 @@ func (l dedicatedServerLocationResourceData) AttributeTypes() map[string]attr.Ty
 }
 
 func NewDedicatedServerResource() resource.Resource {
-	return &dedicatedServerResource{}
+	return &dedicatedServerResource{
+		name: "dedicated_server",
+	}
 }
 
 func (d *dedicatedServerResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerResource) authContext(ctx context.Context) context.Context {
@@ -216,7 +219,7 @@ func (d *dedicatedServerResource) Read(ctx context.Context, req resource.ReadReq
 
 	dedicatedServer, err := d.getServer(ctx, data.ID.ValueString())
 	if err != nil {
-		summary := "Reading dedicated server"
+		summary := fmt.Sprintf("Reading resource %s for id %q", d.name, data.ID.ValueString())
 		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(nil, err).Error()))
 		return
@@ -237,7 +240,7 @@ func (d *dedicatedServerResource) ImportState(ctx context.Context, req resource.
 
 	dedicatedServer, err := d.getServer(ctx, req.ID)
 	if err != nil {
-		summary := "Importing dedicated server"
+		summary := fmt.Sprintf("Importing resource %s for id %q", d.name, req.ID)
 		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(nil, err).Error()))
 		return
@@ -267,7 +270,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		ropts := dedicatedServer.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
 		response, err := d.client.UpdateServerReference(d.authContext(ctx), state.ID.ValueString()).UpdateServerReferenceOpts(*ropts).Execute()
 		if err != nil {
-			summary := fmt.Sprintf("Error updating dedicated server reference with id: %q", plan.ID.ValueString())
+			summary := fmt.Sprintf("Updating resource %s reference for id %q", d.name, plan.ID.ValueString())
 			resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 			tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 			return
@@ -281,7 +284,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			request := d.client.PowerServerOn(d.authContext(ctx), state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error powering on for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Updating resource %s powering on for id %q", d.name, state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -290,7 +293,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			request := d.client.PowerServerOff(d.authContext(ctx), state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error powering off for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Updating resource %s powering off for id %q", d.name, state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -306,7 +309,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		iopts.ReverseLookup = plan.ReverseLookup.ValueStringPointer()
 		_, response, err := d.client.UpdateIpProfile(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).UpdateIpProfileOpts(*iopts).Execute()
 		if err != nil {
-			summary := fmt.Sprintf("Error updating dedicated server reverse lookup with id: %q", state.ID.ValueString())
+			summary := fmt.Sprintf("Updating resource %s reverse lookup for id %q", d.name, state.ID.ValueString())
 			resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 			tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 			return
@@ -319,7 +322,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		if plan.PublicIPNullRouted.ValueBool() {
 			_, response, err := d.client.NullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error null routing an IP for dedicated server: %q and IP: %q", state.ID.ValueString(), state.PublicIP.ValueString())
+				summary := fmt.Sprintf("Updating resource %s null routing an ip for id %q and ip %q", d.name, state.ID.ValueString(), state.PublicIP.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -327,7 +330,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		} else {
 			_, response, err := d.client.RemoveNullIpRoute(d.authContext(ctx), state.ID.ValueString(), state.PublicIP.ValueString()).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error remove null routing an IP for dedicated server: %q and IP: %q", state.ID.ValueString(), state.PublicIP.ValueString())
+				summary := fmt.Sprintf("Updating resource %s remove null routing an ip for id %q and ip %q", d.name, state.ID.ValueString(), state.PublicIP.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -342,7 +345,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 			opts := dedicatedServer.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
 			response, err := d.client.CreateServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).CreateServerDhcpReservationOpts(*opts).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error creating a DHCP reservation for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Updating resource %s creating a DHCP reservation for id %q", d.name, state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -350,7 +353,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		} else {
 			response, err := d.client.DeleteServerDhcpReservation(d.authContext(ctx), state.ID.ValueString()).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error deleting DHCP reservation for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Updating resource %s deleting DHCP reservation for id %q", d.name, state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -364,7 +367,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		if plan.PublicNetworkInterfaceOpened.ValueBool() {
 			response, err := d.client.OpenNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPEURL_PUBLIC).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error opening public network interface for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Updating resource %s opening public network interface for id %q", d.name, state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return
@@ -372,7 +375,7 @@ func (d *dedicatedServerResource) Update(ctx context.Context, req resource.Updat
 		} else {
 			response, err := d.client.CloseNetworkInterface(d.authContext(ctx), state.ID.ValueString(), dedicatedServer.NETWORKTYPEURL_PUBLIC).Execute()
 			if err != nil {
-				summary := fmt.Sprintf("Error closing public network interface for dedicated server: %q", state.ID.ValueString())
+				summary := fmt.Sprintf("Updating resource %s closing public network interface for id %q", d.name, state.ID.ValueString())
 				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 				return

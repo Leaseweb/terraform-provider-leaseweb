@@ -26,6 +26,7 @@ var (
 
 type bandwidthNotificationSettingResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -39,11 +40,13 @@ type bandwidthNotificationSettingResourceData struct {
 }
 
 func NewBandwidthNotificationSettingResource() resource.Resource {
-	return &bandwidthNotificationSettingResource{}
+	return &bandwidthNotificationSettingResource{
+		name: "dedicated_server_bandwidth_notification_setting",
+	}
 }
 
 func (b *bandwidthNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_bandwidth_notification_setting"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, b.name)
 }
 
 func (b *bandwidthNotificationSettingResource) authContext(ctx context.Context) context.Context {
@@ -145,7 +148,7 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 	request := b.client.CreateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString()).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error creating bandwidth notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf("Creating resource %s for dedicated_server_id %q", b.name, data.DedicatedServerId.ValueString())
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -176,7 +179,7 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 	request := b.client.GetServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf("Reading resource %s for id %q and dedicated_server_id %q", b.name, data.Id.ValueString(), data.DedicatedServerId.ValueString())
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -212,7 +215,7 @@ func (b *bandwidthNotificationSettingResource) Update(ctx context.Context, req r
 	request := b.client.UpdateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error updating bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf("Updating resource %s for id %q and dedicated_server_id %q", b.name, data.Id.ValueString(), data.DedicatedServerId.ValueString())
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -243,7 +246,7 @@ func (b *bandwidthNotificationSettingResource) Delete(ctx context.Context, req r
 	request := b.client.DeleteServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error deleting bandwidth notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf("Deleting resource %s for id %q and dedicated_server_id %q", b.name, data.Id.ValueString(), data.DedicatedServerId.ValueString())
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
