@@ -1,37 +1,33 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
-	_ resource.Resource              = &dataTrafficNotificationSettingResource{}
-	_ resource.ResourceWithConfigure = &dataTrafficNotificationSettingResource{}
+	_ resource.Resource              = &notificationSettingDatatrafficResource{}
+	_ resource.ResourceWithConfigure = &notificationSettingDatatrafficResource{}
 )
 
-type dataTrafficNotificationSettingResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type notificationSettingDatatrafficResource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dataTrafficNotificationSettingResourceData struct {
+type notificationSettingDatatrafficResourceModel struct {
 	Id                types.String `tfsdk:"id"`
 	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
 	Frequency         types.String `tfsdk:"frequency"`
@@ -39,34 +35,31 @@ type dataTrafficNotificationSettingResourceData struct {
 	Unit              types.String `tfsdk:"unit"`
 }
 
-func NewDataTrafficNotificationSettingResource() resource.Resource {
-	return &dataTrafficNotificationSettingResource{
-		name: "dedicated_server_data_traffic_notification_setting",
+func NewNotificationSettingDatatrafficResource() resource.Resource {
+	return &notificationSettingDatatrafficResource{
+		name: "dedicated_server_notification_setting_datatraffic",
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+func (n *notificationSettingDatatrafficResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, n.name)
 }
 
-func (d *dataTrafficNotificationSettingResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (n *notificationSettingDatatrafficResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -75,21 +68,14 @@ func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, 
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	n.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dataTrafficNotificationSettingResource) Schema(
+func (n *notificationSettingDatatrafficResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -118,7 +104,7 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 				Required:    true,
 				Description: "The threshold of the notification.",
 				Validators: []validator.String{
-					customValidators.GreaterThanZero(),
+					greaterThanZero(),
 				},
 			},
 			"unit": schema.StringAttribute{
@@ -132,8 +118,12 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data dataTrafficNotificationSettingResourceData
+func (n *notificationSettingDatatrafficResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
+	var data notificationSettingDatatrafficResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -145,16 +135,23 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
+	request := n.client.CreateServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Creating resource %s for dedicated_server_id %q", d.name, data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Creating resource %s for dedicated_server_id %q",
+			n.name,
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
-	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+	dataTrafficNotificationSetting := notificationSettingDatatrafficResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Id:                types.StringValue(result.GetId()),
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -168,24 +165,37 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data dataTrafficNotificationSettingResourceData
+func (n *notificationSettingDatatrafficResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
+	var data notificationSettingDatatrafficResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := n.client.GetServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading resource %s for id %q and dedicated_server_id %q", d.name, data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Reading resource %s for id %q and dedicated_server_id %q",
+			n.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
-	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+	dataTrafficNotificationSetting := notificationSettingDatatrafficResourceModel{
 		DedicatedServerId: data.DedicatedServerId,
 		Id:                types.StringValue(result.GetId()),
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -199,8 +209,12 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data dataTrafficNotificationSettingResourceData
+func (n *notificationSettingDatatrafficResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
+	var data notificationSettingDatatrafficResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -212,16 +226,25 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
+	request := n.client.UpdateServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Updating resource %s for id %q and dedicated_server_id %q", d.name, data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Updating resource %s for id %q and dedicated_server_id %q",
+			n.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
-	dataTrafficNotificationSetting := dataTrafficNotificationSettingResourceData{
+	dataTrafficNotificationSetting := notificationSettingDatatrafficResourceModel{
 		Id:                data.Id,
 		DedicatedServerId: data.DedicatedServerId,
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -235,18 +258,31 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data dataTrafficNotificationSettingResourceData
+func (n *notificationSettingDatatrafficResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
+	var data notificationSettingDatatrafficResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := n.client.DeleteServerDataTrafficNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Deleting resource %s for id %q and dedicated_server_id %q", d.name, data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Deleting resource %s for id %q and dedicated_server_id %q",
+			n.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

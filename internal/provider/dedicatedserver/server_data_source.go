@@ -1,32 +1,29 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerDataSource{}
+	_ datasource.DataSource              = &serverDataSource{}
+	_ datasource.DataSourceWithConfigure = &serverDataSource{}
 )
 
-type dedicatedServerDataSource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type serverDataSource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerDataSourceData struct {
+type serverDataSourceModel struct {
 	Id                                 types.String `tfsdk:"id"`
 	AssetId                            types.String `tfsdk:"asset_id"`
 	SerialNumber                       types.String `tfsdk:"serial_number"`
@@ -58,24 +55,17 @@ type dedicatedServerDataSourceData struct {
 	CpuType                            types.String `tfsdk:"cpu_type"`
 }
 
-func (d *dedicatedServerDataSource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (s *serverDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -84,33 +74,37 @@ func (d *dedicatedServerDataSource) Configure(ctx context.Context, req datasourc
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	s.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+func (s *serverDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, s.name)
 }
 
-func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
-	var data dedicatedServerDataSourceData
+func (s *serverDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
+	var data serverDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	request := d.client.GetServer(d.authContext(ctx), data.Id.ValueString())
+	request := s.client.GetServer(ctx, data.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s for id %q", d.name, data.Id.ValueString())
+		summary := fmt.Sprintf(
+			"Reading data %s for id %q",
+			s.name,
+			data.Id.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -194,7 +188,7 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 		}
 	}
 
-	data = dedicatedServerDataSourceData{
+	data = serverDataSourceModel{
 		Id:                                 types.StringValue(result.GetId()),
 		AssetId:                            types.StringValue(result.GetAssetId()),
 		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
@@ -233,7 +227,11 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 }
 
-func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (s *serverDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -355,8 +353,8 @@ func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.S
 	}
 }
 
-func NewDedicatedServerDataSource() datasource.DataSource {
-	return &dedicatedServerDataSource{
+func NewServerDataSource() datasource.DataSource {
+	return &serverDataSource{
 		name: "dedicated_server",
 	}
 }

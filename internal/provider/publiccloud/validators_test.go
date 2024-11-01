@@ -40,7 +40,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 		func(t *testing.T) {
 			contract := contractResourceModel{
 				Type: basetypes.NewStringValue("MONTHLY"),
-				Term: basetypes.NewInt64Value(0),
+				Term: basetypes.NewInt32Value(0),
 			}
 			configValue, _ := types.ObjectValueFrom(
 				context.TODO(),
@@ -71,7 +71,7 @@ func Test_contractTermValidator_ValidateObject(t *testing.T) {
 		func(t *testing.T) {
 			contract := contractResourceModel{
 				Type: basetypes.NewStringValue("HOURLY"),
-				Term: basetypes.NewInt64Value(3),
+				Term: basetypes.NewInt32Value(3),
 			}
 			configValue, _ := types.ObjectValueFrom(
 				context.TODO(),
@@ -172,7 +172,7 @@ func generateInstanceModelForValidator() instanceResourceModel {
 		),
 		State:               basetypes.NewStringUnknown(),
 		Type:                basetypes.NewStringUnknown(),
-		RootDiskSize:        basetypes.NewInt64Unknown(),
+		RootDiskSize:        basetypes.NewInt32Unknown(),
 		RootDiskStorageType: basetypes.NewStringUnknown(),
 		IPs: basetypes.NewListUnknown(
 			types.ObjectType{

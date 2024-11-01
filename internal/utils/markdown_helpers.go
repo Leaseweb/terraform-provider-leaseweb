@@ -17,12 +17,12 @@ func (i IntMarkdownList) Markdown() string {
 	return markdown
 }
 
-// ToInt64 converts all slice values to int64.
-func (i IntMarkdownList) ToInt64() []int64 {
-	var returnValues []int64
+// ToInt32 converts all slice values to int32.
+func (i IntMarkdownList) ToInt32() []int32 {
+	var returnValues []int32
 
 	for _, i := range i {
-		returnValues = append(returnValues, int64(i))
+		returnValues = append(returnValues, int32(i))
 	}
 
 	return returnValues

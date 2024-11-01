@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -16,42 +16,33 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerCredentialDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerCredentialDataSource{}
+	_ datasource.DataSource              = &credentialDataSource{}
+	_ datasource.DataSourceWithConfigure = &credentialDataSource{}
 )
 
-type dedicatedServerCredentialDataSource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type credentialDataSource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerCredentialDataSourceModel struct {
+type credentialDataSourceModel struct {
 	DedicatedServerID types.String `tfsdk:"dedicated_server_id"`
 	Username          types.String `tfsdk:"username"`
 	Password          types.String `tfsdk:"password"`
 	Type              types.String `tfsdk:"type"`
 }
 
-func (d *dedicatedServerCredentialDataSource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerCredentialDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (c *credentialDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -60,26 +51,26 @@ func (d *dedicatedServerCredentialDataSource) Configure(ctx context.Context, req
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
 
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
-
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerCredentialDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+func (c *credentialDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
-func (d *dedicatedServerCredentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (c *credentialDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"dedicated_server_id": schema.StringAttribute{
@@ -106,8 +97,12 @@ func (d *dedicatedServerCredentialDataSource) Schema(_ context.Context, _ dataso
 	}
 }
 
-func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data dedicatedServerCredentialDataSourceModel
+func (c *credentialDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
+	var data credentialDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -118,10 +113,19 @@ func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req data
 	credType := dedicatedServer.CredentialType(data.Type.ValueString())
 	username := data.Username.ValueString()
 
-	credential, response, err := d.client.GetServerCredential(d.authContext(ctx), serverID, credType, username).Execute()
+	credential, response, err := c.client.GetServerCredential(
+		ctx,
+		serverID,
+		credType,
+		username,
+	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s for dedicated_server_id %q", d.name, serverID)
+		summary := fmt.Sprintf(
+			"Reading data %s for dedicated_server_id %q",
+			c.name,
+			serverID,
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -131,8 +135,8 @@ func (d *dedicatedServerCredentialDataSource) Read(ctx context.Context, req data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func NewDedicatedServerCredentialDataSource() datasource.DataSource {
-	return &dedicatedServerCredentialDataSource{
+func NewCredentialDataSource() datasource.DataSource {
+	return &credentialDataSource{
 		name: "dedicated_server_credential",
 	}
 }

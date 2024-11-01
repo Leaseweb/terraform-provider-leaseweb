@@ -175,7 +175,11 @@ func (i *imageResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
+	response.TypeName = fmt.Sprintf(
+		"%s_%s",
+		request.ProviderTypeName,
+		i.name,
+	)
 }
 
 func (i *imageResource) Schema(
@@ -248,7 +252,10 @@ func (i *imageResource) Create(
 		Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
+		response.Diagnostics.AddError(
+			summary,
+			utils.NewError(apiResponse, err).Error(),
+		)
 
 		utils.LogError(
 			ctx,
@@ -336,8 +343,15 @@ func (i *imageResource) Update(
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		summary := fmt.Sprintf("Updating resource %s for id %q", i.name, plan.ID.ValueString())
-		response.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
+		summary := fmt.Sprintf(
+			"Updating resource %s for id %q",
+			i.name,
+			plan.ID.ValueString(),
+		)
+		response.Diagnostics.AddError(
+			summary,
+			utils.NewError(apiResponse, err).Error(),
+		)
 
 		utils.LogError(
 			ctx,
@@ -355,7 +369,11 @@ func (i *imageResource) Update(
 }
 
 // Delete does nothing as there is no endpoint to delete an Image.
-func (i *imageResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
+func (i *imageResource) Delete(
+	_ context.Context,
+	_ resource.DeleteRequest,
+	_ *resource.DeleteResponse,
+) {
 }
 
 func (i *imageResource) Configure(

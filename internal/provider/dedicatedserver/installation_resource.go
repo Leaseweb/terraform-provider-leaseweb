@@ -1,4 +1,4 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
@@ -25,24 +25,22 @@ import (
 )
 
 var (
-	_ resource.Resource              = &dedicatedServerInstallationResource{}
-	_ resource.ResourceWithConfigure = &dedicatedServerInstallationResource{}
+	_ resource.Resource              = &installationResource{}
+	_ resource.ResourceWithConfigure = &installationResource{}
 )
 
-func NewDedicatedServerInstallationResource() resource.Resource {
-	return &dedicatedServerInstallationResource{
+func NewInstallationResource() resource.Resource {
+	return &installationResource{
 		name: "dedicated_server_installation",
 	}
 }
 
-type dedicatedServerInstallationResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type installationResource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type dedicatedServerInstallationResourceModel struct {
+type installationResourceModel struct {
 	ID                types.String   `tfsdk:"id"`
 	DedicatedServerID types.String   `tfsdk:"dedicated_server_id"`
 	CallbackURL       types.String   `tfsdk:"callback_url"`
@@ -59,19 +57,19 @@ type dedicatedServerInstallationResourceModel struct {
 	Timezone          types.String   `tfsdk:"timezone"`
 }
 
-type dedicatedServerInstallationRaidModel struct {
+type raidResourceModel struct {
 	Level         types.Int32  `tfsdk:"level"`
 	NumberOfDisks types.Int32  `tfsdk:"number_of_disks"`
 	Type          types.String `tfsdk:"type"`
 }
 
-type dedicatedServerInstallationPartitionsModel struct {
+type partitionsResourceModel struct {
 	Filesystem types.String `tfsdk:"filesystem"`
 	Mountpoint types.String `tfsdk:"mountpoint"`
 	Size       types.String `tfsdk:"size"`
 }
 
-func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]attr.Type {
+func (p partitionsResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"filesystem": types.StringType,
 		"mountpoint": types.StringType,
@@ -79,28 +77,25 @@ func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]
 	}
 }
 
-func (r *dedicatedServerInstallationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, r.name)
+func (i *installationResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
 }
 
-func (d *dedicatedServerInstallationResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerInstallationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (i *installationResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -109,22 +104,18 @@ func (d *dedicatedServerInstallationResource) Configure(ctx context.Context, req
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	i.client = coreClient.DedicatedServerAPI
 }
 
-func (r *dedicatedServerInstallationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-
+func (i *installationResource) Schema(
+	_ context.Context,
+	_ resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	raid := func() schema.SingleNestedAttribute {
 		return schema.SingleNestedAttribute{
 			Optional: true,
@@ -292,16 +283,20 @@ func (r *dedicatedServerInstallationResource) Schema(_ context.Context, _ resour
 
 }
 
-func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan dedicatedServerInstallationResourceModel
+func (i *installationResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
+	var plan installationResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	// Extract the Raid configuration from the plan
-	var raidPlan dedicatedServerInstallationRaidModel
+	var raidPlan raidResourceModel
 	plan.Raid.As(ctx, &raidPlan, basetypes.ObjectAsOptions{})
 
 	// Extract Partitions configuration from the plan into a Go slice
-	partitionsPlan := make([]dedicatedServerInstallationPartitionsModel, 0, len(plan.Partitions.Elements()))
+	partitionsPlan := make([]partitionsResourceModel, 0, len(plan.Partitions.Elements()))
 	plan.Partitions.ElementsAs(ctx, &partitionsPlan, false)
 
 	if resp.Diagnostics.HasError() {
@@ -314,16 +309,16 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 
 		for _, p := range partitionsPlan {
 			// Check if all fields are either null or unknown, if so, skip
-			if valueStringOrNil(p.Mountpoint) == nil &&
-				valueStringOrNil(p.Size) == nil &&
-				valueStringOrNil(p.Filesystem) == nil {
+			if utils.AdaptStringPointerValueToNullableString(p.Mountpoint) == nil &&
+				utils.AdaptStringPointerValueToNullableString(p.Size) == nil &&
+				utils.AdaptStringPointerValueToNullableString(p.Filesystem) == nil {
 				continue
 			}
 
 			partitions = append(partitions, dedicatedServer.Partition{
-				Filesystem: valueStringOrNil(p.Filesystem),
-				Size:       valueStringOrNil(p.Size),
-				Mountpoint: valueStringOrNil(p.Mountpoint),
+				Filesystem: utils.AdaptStringPointerValueToNullableString(p.Filesystem),
+				Size:       utils.AdaptStringPointerValueToNullableString(p.Size),
+				Mountpoint: utils.AdaptStringPointerValueToNullableString(p.Mountpoint),
 			})
 		}
 
@@ -333,47 +328,51 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 	var raid *dedicatedServer.Raid
 	// Check that at least one RAID field is set before initializing the RAID struct.
 	if !plan.Raid.IsNull() && !plan.Raid.IsUnknown() &&
-		(valueInt32OrNil(raidPlan.Level) != nil ||
-			valueInt32OrNil(raidPlan.NumberOfDisks) != nil ||
-			valueStringOrNil(raidPlan.Type) != nil) {
+		(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level) != nil ||
+			utils.AdaptInt32PointerValueToNullableInt32(raidPlan.NumberOfDisks) != nil ||
+			utils.AdaptStringPointerValueToNullableString(raidPlan.Type) != nil) {
 
 		raid = &dedicatedServer.Raid{
-			Level:         (*dedicatedServer.RaidLevel)(valueInt32OrNil(raidPlan.Level)),
-			NumberOfDisks: valueInt32OrNil(raidPlan.NumberOfDisks),
-			Type:          (*dedicatedServer.RaidType)(valueStringOrNil(raidPlan.Type)),
+			Level:         (*dedicatedServer.RaidLevel)(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level)),
+			NumberOfDisks: utils.AdaptInt32PointerValueToNullableInt32(raidPlan.NumberOfDisks),
+			Type:          (*dedicatedServer.RaidType)(utils.AdaptStringPointerValueToNullableString(raidPlan.Type)),
 		}
 	}
 
 	// Preparing SSH keys for the installation options, combining them into a single string
 	var SSHKeysList []string
 	for _, k := range plan.SSHKeys {
-		if valueStringOrNil(k) != nil {
+		if utils.AdaptStringPointerValueToNullableString(k) != nil {
 			SSHKeysList = append(SSHKeysList, k.ValueString())
 		}
 	}
 	SSHKeys := strings.Join(SSHKeysList, "\n")
 
 	opts := dedicatedServer.NewInstallOperatingSystemOpts(plan.OperatingSystemID.ValueString())
-	opts.CallbackUrl = valueStringOrNil(plan.CallbackURL)
-	opts.ControlPanelId = valueStringOrNil(plan.ControlPanelID)
-	opts.Device = valueStringOrNil(plan.Device)
-	opts.Hostname = valueStringOrNil(plan.Hostname)
+	opts.CallbackUrl = utils.AdaptStringPointerValueToNullableString(plan.CallbackURL)
+	opts.ControlPanelId = utils.AdaptStringPointerValueToNullableString(plan.ControlPanelID)
+	opts.Device = utils.AdaptStringPointerValueToNullableString(plan.Device)
+	opts.Hostname = utils.AdaptStringPointerValueToNullableString(plan.Hostname)
 	opts.Partitions = partitions
-	opts.Password = valueStringOrNil(plan.Password)
-	opts.PostInstallScript = valueStringOrNil(plan.PostInstallScript)
-	opts.PowerCycle = valueBoolOrNil(plan.PowerCycle)
+	opts.Password = utils.AdaptStringPointerValueToNullableString(plan.Password)
+	opts.PostInstallScript = utils.AdaptStringPointerValueToNullableString(plan.PostInstallScript)
+	opts.PowerCycle = utils.AdaptBoolPointerValueToNullableBool(plan.PowerCycle)
 	opts.Raid = raid
-	opts.Timezone = valueStringOrNil(plan.Timezone)
+	opts.Timezone = utils.AdaptStringPointerValueToNullableString(plan.Timezone)
 	if len(SSHKeysList) > 0 {
 		opts.SshKeys = &SSHKeys
 	}
 
 	serverID := plan.DedicatedServerID.ValueString()
-	result, response, err := r.client.InstallOperatingSystem(r.authContext(ctx), serverID).
+	result, response, err := i.client.InstallOperatingSystem(ctx, serverID).
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Installaing resource %s for dedicated_server_id %q", r.name, serverID)
+		summary := fmt.Sprintf(
+			"Installaing resource %s for dedicated_server_id %q",
+			i.name,
+			serverID,
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -388,7 +387,7 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 	// Preparing and converting partitions into types.Object to store in the state
 	var partitionsObjects []attr.Value
 	for _, p := range payload.GetPartitions() {
-		partition := dedicatedServerInstallationPartitionsModel{
+		partition := partitionsResourceModel{
 			Filesystem: types.StringValue(p.GetFilesystem()),
 			Mountpoint: types.StringValue(p.GetMountpoint()),
 			Size:       types.StringValue(p.GetSize()),
@@ -404,7 +403,7 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 	}
 
 	// Convert the slice of partition objects to a types.List and store it in the plan
-	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: dedicatedServerInstallationPartitionsModel{}.AttributeTypes()}, partitionsObjects)
+	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: partitionsResourceModel{}.AttributeTypes()}, partitionsObjects)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -415,33 +414,23 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 
 }
 
-func (r *dedicatedServerInstallationResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
+func (i *installationResource) Read(
+	_ context.Context,
+	_ resource.ReadRequest,
+	_ *resource.ReadResponse,
+) {
 }
 
-func (r *dedicatedServerInstallationResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (i *installationResource) Update(
+	_ context.Context,
+	_ resource.UpdateRequest,
+	_ *resource.UpdateResponse,
+) {
 }
 
-func (r *dedicatedServerInstallationResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
-}
-
-// TODO: Should goes like helper/utils.
-func valueStringOrNil(s basetypes.StringValue) *string {
-	if s.IsUnknown() {
-		return nil
-	}
-	return s.ValueStringPointer()
-}
-
-func valueBoolOrNil(s basetypes.BoolValue) *bool {
-	if s.IsUnknown() {
-		return nil
-	}
-	return s.ValueBoolPointer()
-}
-
-func valueInt32OrNil(s basetypes.Int32Value) *int32 {
-	if s.IsUnknown() {
-		return nil
-	}
-	return s.ValueInt32Pointer()
+func (i *installationResource) Delete(
+	_ context.Context,
+	_ resource.DeleteRequest,
+	_ *resource.DeleteResponse,
+) {
 }
