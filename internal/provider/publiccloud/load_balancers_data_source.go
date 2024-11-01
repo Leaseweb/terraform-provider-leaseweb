@@ -179,14 +179,12 @@ func (l *loadBalancersDataSource) Read(
 	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
 
 	if err != nil {
-		response.Diagnostics.AddError(
-			"Unable to read Public Cloud load balancers",
-			err.Error(),
-		)
-		utils.LogError(
-			ctx,
+		utils.HandleSdkError(
+			"Unable to read Public Cloud instances",
 			httpResponse,
-			"Unable to read Public Cloud load balancers",
+			err,
+			&response.Diagnostics,
+			ctx,
 		)
 
 		return

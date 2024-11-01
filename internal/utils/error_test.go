@@ -105,7 +105,7 @@ func TestGetHttpErrorMessage(t *testing.T) {
 	})
 }
 
-func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
+func TestHandleSdkError(t *testing.T) {
 	t.Run("sets expected path if there are no children", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 
@@ -127,12 +127,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 			),
 		}
 
-		SetAttributeErrorsFromServerResponse(
-			"summary",
-			&httpResponse,
-			&diags,
-			context.TODO(),
-		)
+		HandleSdkError("summary", &httpResponse, nil, &diags, context.TODO())
 
 		attributePath := path.Root("attribute")
 
@@ -166,12 +161,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 				),
 			}
 
-			SetAttributeErrorsFromServerResponse(
-				"summary",
-				&httpResponse,
-				&diags,
-				context.TODO(),
-			)
+			HandleSdkError("summary", &httpResponse, nil, &diags, context.TODO())
 
 			attributePath := path.Root("attribute").AtMapKey("id")
 
@@ -193,12 +183,7 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 				Body:       io.NopCloser(bytes.NewReader([]byte(``))),
 			}
 
-			SetAttributeErrorsFromServerResponse(
-				"summary",
-				&httpResponse,
-				&diags,
-				context.TODO(),
-			)
+			HandleSdkError("summary", &httpResponse, nil, &diags, context.TODO())
 
 			assert.Len(t, diags.Errors(), 1)
 			assert.Equal(t, "summary", diags.Errors()[0].Summary())
@@ -210,23 +195,24 @@ func TestSetAttributeErrorsFromServerResponse(t *testing.T) {
 		},
 	)
 
-	t.Run("sets expected error if httpResponse is nil", func(t *testing.T) {
+	t.Run("error is outputted if httpResponse is empty", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 
-		SetAttributeErrorsFromServerResponse(
+		HandleSdkError(
 			"summary",
 			nil,
+			errors.New("tralala"),
 			&diags,
 			context.TODO(),
 		)
 
 		assert.Len(t, diags.Errors(), 1)
 		assert.Equal(t, "summary", diags.Errors()[0].Summary())
-		assert.Equal(t, "cannot parse http response", diags.Errors()[0].Detail())
+		assert.Equal(t, "tralala", diags.Errors()[0].Detail())
 	})
 }
 
-func ExampleSetAttributeErrorsFromServerResponse() {
+func ExampleHandleSdkError() {
 	diags := diag.Diagnostics{}
 
 	httpResponse := http.Response{
@@ -247,18 +233,13 @@ func ExampleSetAttributeErrorsFromServerResponse() {
 		),
 	}
 
-	SetAttributeErrorsFromServerResponse(
-		"summary",
-		&httpResponse,
-		&diags,
-		context.TODO(),
-	)
+	HandleSdkError("summary", &httpResponse, nil, &diags, context.TODO())
 
 	fmt.Println(diags.Errors())
 	// Output: [{{error1 summary} {[attribute]}} {{error2 summary} {[attribute]}}]
 }
 
-func ExampleSetAttributeErrorsFromServerResponse_nested() {
+func ExampleHandleSdkError_nested() {
 	diags := diag.Diagnostics{}
 
 	httpResponse := http.Response{
@@ -279,12 +260,7 @@ func ExampleSetAttributeErrorsFromServerResponse_nested() {
 		),
 	}
 
-	SetAttributeErrorsFromServerResponse(
-		"summary",
-		&httpResponse,
-		&diags,
-		context.TODO(),
-	)
+	HandleSdkError("summary", &httpResponse, nil, &diags, context.TODO())
 
 	fmt.Println(diags.Errors())
 	// Output: [{{error1 summary} {[attribute id]}} {{error2 summary} {[attribute id]}}]
@@ -348,4 +324,29 @@ func Test_newErrorResponse(t *testing.T) {
 		_, err := newErrorResponse(httpResponse.Body)
 		assert.Error(t, err)
 	})
+}
+
+func Test_handleError(t *testing.T) {
+	t.Run("expected log is written when an error is passed", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+		err := errors.New("tralala")
+		handleError("summary", err, &diags)
+
+		want := diag.Diagnostics{}
+		want.AddError("summary", "tralala")
+
+		assert.Equal(t, want, diags.Errors())
+	})
+
+	t.Run(
+		"expected log is written when an error is not passed",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+			handleError("summary", nil, &diags)
+
+			assert.Len(t, diags.Errors(), 1)
+			assert.Contains(t, diags.Errors()[0].Summary(), "summary")
+			assert.Contains(t, diags.Errors()[0].Detail(), "bug report")
+		},
+	)
 }

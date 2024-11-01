@@ -187,14 +187,12 @@ func (i *imagesDataSource) Read(
 	images, httpResponse, err := getAllImages(ctx, i.client)
 
 	if err != nil {
-		response.Diagnostics.AddError(
+		utils.HandleSdkError(
 			"Unable to read Public Cloud images",
-			err.Error(),
-		)
-		utils.LogError(
-			ctx,
 			httpResponse,
-			"Unable to read Public Cloud images",
+			err,
+			&response.Diagnostics,
+			ctx,
 		)
 
 		return

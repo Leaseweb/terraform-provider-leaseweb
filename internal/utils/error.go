@@ -92,7 +92,7 @@ func NewError(resp *http.Response, err error) Error {
 }
 
 // normalizeErrorResponseKey converts an api key path to a string
-// that SetAttributeErrorsFromServerResponse can handle.
+// that HandleSdkError can handle.
 // `instanceId` & `instance.id` both become `instance_id`.
 func normalizeErrorResponseKey(key string) string {
 	// Assume that the key has the format `contract.id`
@@ -110,34 +110,39 @@ func normalizeErrorResponseKey(key string) string {
 	return strings.ToLower(res)
 }
 
-// SetAttributeErrorsFromServerResponse takes a server response and maps errors to the appropriate attributes.
+// HandleSdkError takes a server response & error
+// and maps errors to the appropriate attributes.
 // If an attribute cannot be found,
 // the error is shown to the user on a resource level.
-// An error log is also created with all the relevant information.
-func SetAttributeErrorsFromServerResponse(
+// A DEBUG log is also created with all the relevant information.
+func HandleSdkError(
 	summary string,
-	response *http.Response,
+	httpsResponse *http.Response,
+	err error,
 	diags *diag.Diagnostics,
 	ctx context.Context,
 ) {
-	const cannotParseResponseDetail = "cannot parse http response"
-
-	// Nothing to do when response does not exist.
-	if response == nil {
-		diags.AddError(summary, cannotParseResponseDetail)
-		LogError(ctx, response, summary)
+	// Nothing to do when httpsResponse does not exist.
+	if httpsResponse == nil {
+		handleError(summary, err, diags)
 		return
 	}
 
-	// Convert server response to ErrorResponse object.
-	errorResponse, err := newErrorResponse(response.Body)
+	// Convert server httpsResponse to ErrorResponse object.
+	errorResponse, err := newErrorResponse(httpsResponse.Body)
 	// If error cannot be translated,
 	// Terraform will show a general error to the user.
 	if err != nil {
-		diags.AddError(summary, err.Error())
-		LogError(ctx, response, summary)
+		handleError(summary, err, diags)
 		return
 	}
+
+	// Output the error response to DEBUG log for helpful bug reports.
+	tflog.Debug(
+		ctx,
+		summary,
+		map[string]interface{}{"ErrorResponse": errorResponse},
+	)
 
 	// Convert key returned from api to an attribute path.
 	// I.e.: []string{"image", "id"}.
@@ -156,8 +161,6 @@ func SetAttributeErrorsFromServerResponse(
 			diags.AddAttributeError(attributePath, summary, errorDetail)
 		}
 	}
-
-	LogError(ctx, response, summary)
 }
 
 type ErrorResponse struct {
@@ -165,6 +168,21 @@ type ErrorResponse struct {
 	ErrorCode     string              `json:"errorCode"`
 	ErrorMessage  string              `json:"errorMessage"`
 	ErrorDetails  map[string][]string `json:"errorDetails"`
+}
+
+func handleError(
+	summary string,
+	err error,
+	diags *diag.Diagnostics,
+) {
+	const pleaseFileABugReport = "An error has occurred, please submit a bug report."
+
+	if err != nil {
+		diags.AddError(summary, err.Error())
+		return
+	}
+
+	diags.AddError(summary, pleaseFileABugReport)
 }
 
 // newErrorResponse generates a new ErrorResponse object from an api response body.
@@ -183,29 +201,4 @@ func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
 	}
 
 	return &errorResponse, nil
-}
-
-// LogError tries to parse the errors from the httpResponse.
-// If possible,
-// it prints an error log with the error response as an additional field.
-// Otherwise, it prints an error log without the response.
-func LogError(ctx context.Context, httpResponse *http.Response, summary string) {
-	// Log error without additional fields if httpResponse is empty.
-	if httpResponse == nil {
-		tflog.Error(ctx, summary)
-
-		return
-	}
-
-	errorResponse, err := newErrorResponse(httpResponse.Body)
-	if err != nil {
-		tflog.Error(ctx, summary)
-		return
-	}
-
-	tflog.Error(
-		ctx,
-		summary,
-		map[string]interface{}{"ErrorResponse": errorResponse},
-	)
 }

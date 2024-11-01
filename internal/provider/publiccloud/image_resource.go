@@ -216,9 +216,10 @@ func (i *imageResource) Create(
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error creating Public Cloud image",
 			httpResponse,
+			err,
 			&response.Diagnostics,
 			ctx,
 		)
@@ -252,9 +253,10 @@ func (i *imageResource) Read(
 
 	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error reading Public Cloud images",
 			httpResponse,
+			err,
 			&response.Diagnostics,
 			ctx,
 		)
@@ -295,9 +297,10 @@ func (i *imageResource) Update(
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error updating Public Cloud image",
 			httpResponse,
+			err,
 			&response.Diagnostics,
 			ctx,
 		)

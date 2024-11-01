@@ -177,8 +177,13 @@ func (d *instancesDataSource) Read(
 	instances, httpResponse, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to read instances", err.Error())
-		utils.LogError(ctx, httpResponse, "Unable to read instances")
+		utils.HandleSdkError(
+			"Unable to read Public Cloud instances",
+			httpResponse,
+			err,
+			&resp.Diagnostics,
+			ctx,
+		)
 
 		return
 	}

@@ -417,9 +417,10 @@ func (i *instanceResource) Create(
 		Execute()
 
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error launching Public Cloud instance",
 			httpResponse,
+			err,
 			&resp.Diagnostics,
 			ctx,
 		)
@@ -466,9 +467,10 @@ func (i *instanceResource) Delete(
 	).Execute()
 
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error terminating Public Cloud instance",
 			httpResponse,
+			err,
 			&resp.Diagnostics,
 			ctx,
 		)
@@ -518,9 +520,10 @@ func (i *instanceResource) Read(
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error reading Public Cloud instance",
 			httpResponse,
+			err,
 			&resp.Diagnostics,
 			ctx,
 		)
@@ -583,9 +586,10 @@ func (i *instanceResource) Update(
 		UpdateInstanceOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.SetAttributeErrorsFromServerResponse(
+		utils.HandleSdkError(
 			"Error updating Public Cloud instance",
 			httpResponse,
+			err,
 			&resp.Diagnostics,
 			ctx,
 		)
