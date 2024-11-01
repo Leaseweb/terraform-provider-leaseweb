@@ -65,21 +65,6 @@ named `adaptInstanceToInstanceResource`.
 As validators are often shared between resource they belong in the `validators.go`
 file.
 
-## SDK
-
-Where possible, use the SDK getters.
-Instead of `sdkInstance.Id` use `sdkInstance.GetId()`.
-
-## Metadata
-
-For both resources & data sources,
-the following naming conventions apply for type names:
-
-- `response.TypeName` names must be lowercase
-- an underscore must replace non-alphabetic characters
-
-`Public Cloud Load Balancers` thus becomes `public_cloud_load_balancers`
-
 ## Configure
 
 If possible, map the SDK API as the client used by Terraform.
@@ -99,3 +84,34 @@ func (i *imageResource) Configure(
 	i.client = coreClient.PublicCloudAPI
 }
 ```
+
+## SDK
+
+Where possible, use the SDK getters.
+Instead of `sdkInstance.Id` use `sdkInstance.GetId()`.
+
+## Metadata
+
+For both resources & data sources,
+the following naming conventions apply for type names:
+
+- The type names must have a `leaseweb` prefix
+- `response.TypeName` names must be lowercase
+- an underscore must replace non-alphabetic characters
+
+`Public Cloud Load Balancers` thus becomes `leaseweb_public_cloud_load_balancers`
+
+### Backwards compatibility
+
+To maintain backwards compatibility,
+the following resources & data sources do not adhere to the rules:
+
+- `leseweb_dedicated_server`
+- `leseweb_dedicated_servers`
+- `leseweb_dedicated_server_notification_setting_bandwidth`
+- `leseweb_dedicated_server_notification_setting_datatraffic`
+
+## Tests
+
+Acceptance tests should be placed in [internal/provider/provider_test.go](internal/provider/provider_test.go).
+

@@ -14,40 +14,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAdaptInt64PointerValueToNullableInt32(t *testing.T) {
+func TestAdaptInt32PointerValueToNullableInt32(t *testing.T) {
 	t.Run("passing nil returns nil", func(t *testing.T) {
-		got := AdaptInt64PointerValueToNullableInt32(
-			basetypes.NewInt64PointerValue(nil),
+		got := AdaptInt32PointerValueToNullableInt32(
+			basetypes.NewInt32PointerValue(nil),
 		)
 		assert.Nil(t, got)
 	})
 
 	t.Run("passing value returns int32 variant", func(t *testing.T) {
-		value := int64(1)
-		int64Value := basetypes.NewInt64PointerValue(&value)
-		got := AdaptInt64PointerValueToNullableInt32(int64Value)
+		value := int32(1)
+		int32Value := basetypes.NewInt32PointerValue(&value)
+		got := AdaptInt32PointerValueToNullableInt32(int32Value)
 
 		assert.Equal(t, int32(1), *got)
 	})
 
 	t.Run("passing unknown returns nil", func(t *testing.T) {
-		got := AdaptInt64PointerValueToNullableInt32(basetypes.NewInt64Unknown())
+		got := AdaptInt32PointerValueToNullableInt32(basetypes.NewInt32Unknown())
 		assert.Nil(t, got)
 	})
 }
 
-func ExampleAdaptInt64PointerValueToNullableInt32() {
-	value := int64(3)
-	int64Value := basetypes.NewInt64PointerValue(&value)
-	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
+func ExampleAdaptInt32PointerValueToNullableInt32() {
+	value := int32(3)
+	int32Value := basetypes.NewInt32PointerValue(&value)
+	adaptedValue := AdaptInt32PointerValueToNullableInt32(int32Value)
 
 	fmt.Println(*adaptedValue)
 	// Output: 3
 }
 
-func ExampleAdaptInt64PointerValueToNullableInt32_second() {
-	int64Value := basetypes.NewInt64PointerValue(nil)
-	adaptedValue := AdaptInt64PointerValueToNullableInt32(int64Value)
+func ExampleAdaptInt32PointerValueToNullableInt32_second() {
+	int32Value := basetypes.NewInt32PointerValue(nil)
+	adaptedValue := AdaptInt32PointerValueToNullableInt32(int32Value)
 
 	fmt.Println(adaptedValue)
 	// Output: <nil>
@@ -311,4 +311,34 @@ func ExampleAdaptStringTypeArrayToStringArray() {
 
 	fmt.Println(stringTypes)
 	// Output: [value]
+}
+
+func TestAdaptBoolPointerValueToNullableBool(t *testing.T) {
+	t.Run("returns nil when value is unknown", func(t *testing.T) {
+		value := basetypes.NewBoolUnknown()
+		assert.Nil(t, AdaptBoolPointerValueToNullableBool(value))
+	})
+
+	t.Run("returns pointer when value is set", func(t *testing.T) {
+		target := true
+		value := basetypes.NewBoolPointerValue(&target)
+
+		assert.Equal(t, target, *AdaptBoolPointerValueToNullableBool(value))
+	})
+
+	t.Run("returns nil when value is not set", func(t *testing.T) {
+		value := basetypes.NewBoolPointerValue(nil)
+
+		assert.Nil(t, AdaptBoolPointerValueToNullableBool(value))
+	})
+}
+
+func ExampleAdaptBoolPointerValueToNullableBool() {
+	value := true
+	terraformBoolPointerValue := basetypes.NewBoolPointerValue(&value)
+
+	convertedValue := AdaptBoolPointerValueToNullableBool(terraformBoolPointerValue)
+
+	fmt.Println(*convertedValue)
+	// Output: true
 }

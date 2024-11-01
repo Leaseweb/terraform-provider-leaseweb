@@ -20,11 +20,14 @@ var (
 )
 
 type credentialDataSource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
 func NewCredentialDataSource() datasource.DataSource {
-	return &credentialDataSource{}
+	return &credentialDataSource{
+		name: "public_cloud_credential",
+	}
 }
 
 type credentialDataSourceModel struct {
@@ -34,7 +37,11 @@ type credentialDataSourceModel struct {
 	Type       types.String `tfsdk:"type"`
 }
 
-func (d *credentialDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *credentialDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -56,11 +63,19 @@ func (d *credentialDataSource) Configure(_ context.Context, req datasource.Confi
 	d.client = coreClient.PublicCloudAPI
 }
 
-func (d *credentialDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_public_cloud_credential"
+func (d *credentialDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
-func (d *credentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *credentialDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"instance_id": schema.StringAttribute{
@@ -87,7 +102,11 @@ func (d *credentialDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 	}
 }
 
-func (d *credentialDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *credentialDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
 	var state credentialDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
@@ -99,10 +118,19 @@ func (d *credentialDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	type_ := state.Type.ValueString()
 	username := state.Username.ValueString()
 
-	credential, response, err := d.client.GetCredential(ctx, instanceID, type_, username).Execute()
+	credential, response, err := d.client.GetCredential(
+		ctx,
+		instanceID,
+		type_,
+		username,
+	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Error reading data public_cloud_credential for instance %q", instanceID)
+		summary := fmt.Sprintf(
+			"Reading data %s for instance_id %q",
+			d.name,
+			instanceID,
+		)
 		// TODO: Need change after a proper error logging implementation.
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))

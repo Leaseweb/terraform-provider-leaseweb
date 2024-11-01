@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -64,14 +64,14 @@ func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Contex
 	}
 
 	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
-		int32(contract.Term.ValueInt64()),
+		contract.Term.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
-		int32(contract.BillingFrequency.ValueInt64()),
+		contract.BillingFrequency.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
@@ -228,18 +228,18 @@ func (l *loadBalancerResource) Schema(
 			"contract": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
-					"billing_frequency": schema.Int64Attribute{
+					"billing_frequency": schema.Int32Attribute{
 						Required:    true,
 						Description: "The billing frequency (in months). Valid options are " + billingFrequencies.Markdown(),
-						Validators: []validator.Int64{
-							int64validator.OneOf(billingFrequencies.ToInt64()...),
+						Validators: []validator.Int32{
+							int32validator.OneOf(billingFrequencies.ToInt32()...),
 						},
 					},
-					"term": schema.Int64Attribute{
+					"term": schema.Int32Attribute{
 						Required:    true,
 						Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + contractTerms.Markdown(),
-						Validators: []validator.Int64{
-							int64validator.OneOf(contractTerms.ToInt64()...),
+						Validators: []validator.Int32{
+							int32validator.OneOf(contractTerms.ToInt32()...),
 						},
 					},
 					"type": schema.StringAttribute{

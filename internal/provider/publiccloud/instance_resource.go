@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -37,8 +37,8 @@ const (
 )
 
 type contractResourceModel struct {
-	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
-	Term             types.Int64  `tfsdk:"term"`
+	BillingFrequency types.Int32  `tfsdk:"billing_frequency"`
+	Term             types.Int32  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
 	EndsAt           types.String `tfsdk:"ends_at"`
 	State            types.String `tfsdk:"state"`
@@ -46,8 +46,8 @@ type contractResourceModel struct {
 
 func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"billing_frequency": types.Int64Type,
-		"term":              types.Int64Type,
+		"billing_frequency": types.Int32Type,
+		"term":              types.Int32Type,
 		"type":              types.StringType,
 		"ends_at":           types.StringType,
 		"state":             types.StringType,
@@ -55,11 +55,11 @@ func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 }
 
 func (c contractResourceModel) IsContractTermValid() (bool, reason) {
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt64() == 0 {
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt32() == 0 {
 		return false, reasonContractTermCannotBeZero
 	}
 
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt64() != 0 {
+	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt32() != 0 {
 		return false, reasonContractTermMustBeZero
 	}
 
@@ -68,8 +68,8 @@ func (c contractResourceModel) IsContractTermValid() (bool, reason) {
 
 func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
 	return contractResourceModel{
-		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
-		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
 		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
 		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
@@ -85,7 +85,7 @@ type instanceResourceModel struct {
 	Image               types.Object `tfsdk:"image"`
 	State               types.String `tfsdk:"state"`
 	Type                types.String `tfsdk:"type"`
-	RootDiskSize        types.Int64  `tfsdk:"root_disk_size"`
+	RootDiskSize        types.Int32  `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String `tfsdk:"root_disk_storage_type"`
 	IPs                 types.List   `tfsdk:"ips"`
 	Contract            types.Object `tfsdk:"contract"`
@@ -102,7 +102,7 @@ func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 		},
 		"state":                  types.StringType,
 		"type":                   types.StringType,
-		"root_disk_size":         types.Int64Type,
+		"root_disk_size":         types.Int32Type,
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
@@ -147,14 +147,14 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 	}
 
 	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
-		int32(contract.Term.ValueInt64()),
+		contract.Term.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
-		int32(contract.BillingFrequency.ValueInt64()),
+		contract.BillingFrequency.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 
 	opts.MarketAppId = utils.AdaptStringPointerValueToNullableString(i.MarketAppID)
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+	opts.RootDiskSize = utils.AdaptInt32PointerValueToNullableInt32(i.RootDiskSize)
 
 	return opts, nil
 }
@@ -198,7 +198,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	opts := publicCloud.NewUpdateInstanceOpts()
 
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
-	opts.RootDiskSize = utils.AdaptInt64PointerValueToNullableInt32(i.RootDiskSize)
+	opts.RootDiskSize = utils.AdaptInt32PointerValueToNullableInt32(i.RootDiskSize)
 
 	contract := contractResourceModel{}
 	diags := i.Contract.As(
@@ -220,9 +220,9 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 		opts.ContractType = contractType
 	}
 
-	if contract.Term.ValueInt64() != 0 {
+	if contract.Term.ValueInt32() != 0 {
 		contractTerm, err := publicCloud.NewContractTermFromValue(
-			int32(contract.Term.ValueInt64()),
+			contract.Term.ValueInt32(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
@@ -230,9 +230,9 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 		opts.ContractTerm = contractTerm
 	}
 
-	if contract.BillingFrequency.ValueInt64() != 0 {
+	if contract.BillingFrequency.ValueInt32() != 0 {
 		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
-			int32(contract.BillingFrequency.ValueInt64()),
+			contract.BillingFrequency.ValueInt32(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("GetUpdateInstanceOpts: %w", err)
@@ -293,7 +293,7 @@ func adaptInstanceToInstanceResource(
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskSize:        basetypes.NewInt32Value(int32(int64(sdkInstance.GetRootDiskSize()))),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}
@@ -344,7 +344,7 @@ func adaptInstanceDetailsToInstanceResource(
 		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstanceDetails.GetRootDiskSize())),
+		RootDiskSize:        basetypes.NewInt32Value(sdkInstanceDetails.GetRootDiskSize()),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
 	}
@@ -408,10 +408,13 @@ func adaptIpDetailsToIPResource(sdkIpDetails publicCloud.IpDetails) iPResourceMo
 }
 
 func NewInstanceResource() resource.Resource {
-	return &instanceResource{}
+	return &instanceResource{
+		name: "public_cloud_instance",
+	}
 }
 
 type instanceResource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
@@ -449,6 +452,7 @@ func (i *instanceResource) Create(
 	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf("Launching resource %s", i.name)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -458,11 +462,7 @@ func (i *instanceResource) Create(
 
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating launch instance opts",
-			err.Error(),
-		)
-
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -472,16 +472,13 @@ func (i *instanceResource) Create(
 
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-		resp.Diagnostics.AddError(
-			"Error launching Public Cloud instance",
-			sdkErr.Error(),
-		)
+		resp.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
-			"Error launching Public Cloud instance",
+			summary,
 			sdkErr.Error(),
 		)
 
@@ -490,11 +487,7 @@ func (i *instanceResource) Create(
 
 	instance, resourceErr := adaptInstanceToInstanceResource(*sdkInstance, ctx)
 	if resourceErr != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Public Cloud instance resource",
-			resourceErr.Error(),
-		)
-
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -527,23 +520,18 @@ func (i *instanceResource) Delete(
 	).Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-
-		resp.Diagnostics.AddError(
-			"Error terminating Public Cloud instance",
-			fmt.Sprintf(
-				"Could not terminate Public Cloud instance, unexpected error: %q",
-				err.Error(),
-			),
+		summary := fmt.Sprintf(
+			"Terminating resource %s for id %q",
+			i.name,
+			state.ID.ValueString(),
 		)
+		resp.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf(
-				"Error terminating Public Cloud instance %q",
-				state.ID.ValueString(),
-			),
+			summary,
 			sdkErr.Error(),
 		)
 
@@ -635,7 +623,7 @@ func (i *instanceResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_public_cloud_instance"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
 }
 
 func (i *instanceResource) Read(
@@ -644,7 +632,14 @@ func (i *instanceResource) Read(
 	resp *resource.ReadResponse,
 ) {
 	var state instanceResourceModel
+
 	diags := req.State.Get(ctx, &state)
+	summary := fmt.Sprintf(
+		"Reading resource %s for id %q",
+		i.name,
+		state.ID.ValueString(),
+	)
+
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -659,19 +654,14 @@ func (i *instanceResource) Read(
 		Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, response)
-		resp.Diagnostics.AddError(
-			"Error reading Public Cloud instance",
-			sdkErr.Error(),
-		)
+
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf(
-				"Unable to read Public Cloud instance %q",
-				state.ID.ValueString(),
-			),
+			summary,
 			err.Error(),
 		)
 
@@ -690,10 +680,7 @@ func (i *instanceResource) Read(
 		ctx,
 	)
 	if sdkErr != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Public Cloud instance resource",
-			sdkErr.Error(),
-		)
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
@@ -710,6 +697,12 @@ func (i *instanceResource) Update(
 	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf(
+		"Updating resource %s for id %q",
+		i.name,
+		plan.ID.ValueString(),
+	)
+
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -721,10 +714,7 @@ func (i *instanceResource) Update(
 	)
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating UpdateInstanceOpts",
-			err.Error(),
-		)
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -734,20 +724,13 @@ func (i *instanceResource) Update(
 		Execute()
 	if err != nil {
 		sdkErr := utils.NewSdkError("", err, apiResponse)
-
-		resp.Diagnostics.AddError(
-			"Error updating Public Cloud instance",
-			sdkErr.Error(),
-		)
+		resp.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
 
 		utils.LogError(
 			ctx,
 			sdkErr.ErrorResponse,
 			&resp.Diagnostics,
-			fmt.Sprintf(
-				"Unable to update Public Cloud instance %q",
-				plan.ID.ValueString(),
-			),
+			summary,
 			sdkErr.Error(),
 		)
 
@@ -856,12 +839,12 @@ func (i *instanceResource) Schema(
 					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedTypeNameEnumValues)...),
 				},
 			},
-			"root_disk_size": schema.Int64Attribute{
+			"root_disk_size": schema.Int32Attribute{
 				Computed:    true,
 				Optional:    true,
 				Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances. The maximum size is 1000 GB",
-				Validators: []validator.Int64{
-					int64validator.Between(5, 1000),
+				Validators: []validator.Int32{
+					int32validator.Between(5, 1000),
 				},
 			},
 			"root_disk_storage_type": schema.StringAttribute{
@@ -885,18 +868,18 @@ func (i *instanceResource) Schema(
 			"contract": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
-					"billing_frequency": schema.Int64Attribute{
+					"billing_frequency": schema.Int32Attribute{
 						Required:    true,
 						Description: "The billing frequency (in months). Valid options are " + billingFrequencies.Markdown(),
-						Validators: []validator.Int64{
-							int64validator.OneOf(billingFrequencies.ToInt64()...),
+						Validators: []validator.Int32{
+							int32validator.OneOf(billingFrequencies.ToInt32()...),
 						},
 					},
-					"term": schema.Int64Attribute{
+					"term": schema.Int32Attribute{
 						Required:    true,
 						Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + contractTerms.Markdown(),
-						Validators: []validator.Int64{
-							int64validator.OneOf(contractTerms.ToInt64()...),
+						Validators: []validator.Int32{
+							int32validator.OneOf(contractTerms.ToInt32()...),
 						},
 					},
 					"type": schema.StringAttribute{
@@ -984,6 +967,7 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	region string,
 	ctx context.Context,
 ) []string {
+	summary := fmt.Sprintf("Modifying resource %s", i.name)
 	// instanceResourceModel is being created.
 	if id.IsNull() {
 		availableInstanceTypes, err := getInstanceTypesForRegion(
@@ -993,8 +977,8 @@ func (i *instanceResource) getAvailableInstanceTypes(
 		)
 		if err != nil {
 			response.Diagnostics.AddError(
-				"Cannot get available instanceTypes for region",
-				err.Error(),
+				summary,
+				utils.DefaultErrMsg,
 			)
 			return nil
 		}
@@ -1009,8 +993,8 @@ func (i *instanceResource) getAvailableInstanceTypes(
 	)
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Cannot get available instanceTypes for update",
-			err.Error(),
+			summary,
+			utils.DefaultErrMsg,
 		)
 		return nil
 	}
