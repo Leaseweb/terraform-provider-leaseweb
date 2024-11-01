@@ -128,10 +128,13 @@ func getAllInstances(
 }
 
 func NewInstancesDataSource() datasource.DataSource {
-	return &instancesDataSource{}
+	return &instancesDataSource{
+		name: "public_cloud_instances",
+	}
 }
 
 type instancesDataSource struct {
+	name   string
 	client client.Client
 }
 
@@ -165,7 +168,7 @@ func (d *instancesDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_public_cloud_instances"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *instancesDataSource) Read(
@@ -177,8 +180,9 @@ func (d *instancesDataSource) Read(
 	instances, httpResponse, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
 	if err != nil {
+		summary := fmt.Sprintf("Reading data %s", d.name)
 		utils.HandleSdkError(
-			"Unable to read Public Cloud instances",
+			summary,
 			httpResponse,
 			err,
 			&resp.Diagnostics,

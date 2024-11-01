@@ -21,6 +21,7 @@ var (
 
 type dedicatedServersDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -76,11 +77,19 @@ func (d *dedicatedServersDataSource) Configure(ctx context.Context, req datasour
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServersDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_servers"
+func (d *dedicatedServersDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
-func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *dedicatedServersDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
 	var data dedicatedServersDataSourceData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -119,8 +128,8 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := "Error reading dedicated servers"
-		resp.Diagnostics.AddError("Error reading dedicated servers", utils.NewError(response, err).Error())
+		summary := fmt.Sprintf("Reading data %s", d.name)
+		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
@@ -146,7 +155,11 @@ func (d *dedicatedServersDataSource) Read(ctx context.Context, req datasource.Re
 	}
 }
 
-func (d *dedicatedServersDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServersDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"ids": schema.ListAttribute{
@@ -187,5 +200,7 @@ func (d *dedicatedServersDataSource) Schema(ctx context.Context, req datasource.
 }
 
 func NewDedicatedServersDataSource() datasource.DataSource {
-	return &dedicatedServersDataSource{}
+	return &dedicatedServersDataSource{
+		name: "dedicated_servers",
+	}
 }

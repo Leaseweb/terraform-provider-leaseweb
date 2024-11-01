@@ -23,6 +23,7 @@ var (
 
 type dedicatedServerControlPanelsDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -47,7 +48,11 @@ func (d *dedicatedServerControlPanelsDataSource) authContext(ctx context.Context
 	)
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dedicatedServerControlPanelsDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -77,8 +82,12 @@ func (d *dedicatedServerControlPanelsDataSource) Configure(ctx context.Context, 
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_control_panels"
+func (d *dedicatedServerControlPanelsDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -101,7 +110,7 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 
 	if err != nil {
-		summary := "Error reading control panels"
+		summary := fmt.Sprintf("Reading data %s", d.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -126,7 +135,11 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServerControlPanelsDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"control_panels": schema.ListNestedAttribute{
@@ -153,5 +166,7 @@ func (d *dedicatedServerControlPanelsDataSource) Schema(ctx context.Context, req
 }
 
 func NewDedicatedServerControlPanelsDataSource() datasource.DataSource {
-	return &dedicatedServerControlPanelsDataSource{}
+	return &dedicatedServerControlPanelsDataSource{
+		name: "dedicated_server_control_panels",
+	}
 }

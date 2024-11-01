@@ -22,6 +22,7 @@ var (
 
 type dedicatedServerOperatingSystemsDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -46,7 +47,11 @@ func (d *dedicatedServerOperatingSystemsDataSource) authContext(ctx context.Cont
 	)
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dedicatedServerOperatingSystemsDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -76,8 +81,12 @@ func (d *dedicatedServerOperatingSystemsDataSource) Configure(ctx context.Contex
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_operating_systems"
+func (d *dedicatedServerOperatingSystemsDataSource) Metadata(
+	_ context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -92,7 +101,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 	// NOTE: we show only latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := "Error reading control panels"
+		summary := fmt.Sprintf("Reading data %s", d.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -118,7 +127,11 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 	}
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServerOperatingSystemsDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"operating_systems": schema.ListNestedAttribute{
@@ -145,5 +158,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Schema(ctx context.Context, 
 }
 
 func NewDedicatedServerOperatingSystemsDataSource() datasource.DataSource {
-	return &dedicatedServerOperatingSystemsDataSource{}
+	return &dedicatedServerOperatingSystemsDataSource{
+		name: "dedicated_server_operating_systems",
+	}
 }

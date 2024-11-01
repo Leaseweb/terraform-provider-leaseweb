@@ -21,6 +21,7 @@ var (
 
 type dedicatedServerDataSource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -67,7 +68,11 @@ func (d *dedicatedServerDataSource) authContext(ctx context.Context) context.Con
 	)
 }
 
-func (d *dedicatedServerDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dedicatedServerDataSource) Configure(
+	ctx context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -97,8 +102,12 @@ func (d *dedicatedServerDataSource) Configure(ctx context.Context, req datasourc
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server"
+func (d *dedicatedServerDataSource) Metadata(
+	ctx context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -109,7 +118,11 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	request := d.client.GetServer(d.authContext(ctx), data.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading dedicated server with id: %q", data.Id.ValueString())
+		summary := fmt.Sprintf(
+			"Reading data %s for id %q",
+			d.name,
+			data.Id.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -232,7 +245,11 @@ func (d *dedicatedServerDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 }
 
-func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dedicatedServerDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -355,5 +372,7 @@ func (d *dedicatedServerDataSource) Schema(ctx context.Context, req datasource.S
 }
 
 func NewDedicatedServerDataSource() datasource.DataSource {
-	return &dedicatedServerDataSource{}
+	return &dedicatedServerDataSource{
+		name: "dedicated_server",
+	}
 }

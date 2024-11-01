@@ -30,11 +30,14 @@ var (
 )
 
 func NewDedicatedServerInstallationResource() resource.Resource {
-	return &dedicatedServerInstallationResource{}
+	return &dedicatedServerInstallationResource{
+		name: "dedicated_server_installation",
+	}
 }
 
 type dedicatedServerInstallationResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -76,8 +79,12 @@ func (m dedicatedServerInstallationPartitionsModel) AttributeTypes() map[string]
 	}
 }
 
-func (r *dedicatedServerInstallationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_installation"
+func (r *dedicatedServerInstallationResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, r.name)
 }
 
 func (d *dedicatedServerInstallationResource) authContext(ctx context.Context) context.Context {
@@ -90,7 +97,11 @@ func (d *dedicatedServerInstallationResource) authContext(ctx context.Context) c
 	)
 }
 
-func (d *dedicatedServerInstallationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dedicatedServerInstallationResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -120,7 +131,11 @@ func (d *dedicatedServerInstallationResource) Configure(ctx context.Context, req
 	d.client = apiClient.DedicatedServerAPI
 }
 
-func (r *dedicatedServerInstallationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *dedicatedServerInstallationResource) Schema(
+	_ context.Context,
+	_ resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 
 	raid := func() schema.SingleNestedAttribute {
 		return schema.SingleNestedAttribute{
@@ -289,7 +304,11 @@ func (r *dedicatedServerInstallationResource) Schema(_ context.Context, _ resour
 
 }
 
-func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *dedicatedServerInstallationResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var plan dedicatedServerInstallationResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
@@ -370,7 +389,11 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 		InstallOperatingSystemOpts(*opts).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Error resource dedicated_server_installation for server id: %q", serverID)
+		summary := fmt.Sprintf(
+			"Installaing resource %s for dedicated_server_id %q",
+			r.name,
+			serverID,
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -412,13 +435,25 @@ func (r *dedicatedServerInstallationResource) Create(ctx context.Context, req re
 
 }
 
-func (r *dedicatedServerInstallationResource) Read(_ context.Context, _ resource.ReadRequest, _ *resource.ReadResponse) {
+func (r *dedicatedServerInstallationResource) Read(
+	_ context.Context,
+	_ resource.ReadRequest,
+	_ *resource.ReadResponse,
+) {
 }
 
-func (r *dedicatedServerInstallationResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (r *dedicatedServerInstallationResource) Update(
+	_ context.Context,
+	_ resource.UpdateRequest,
+	_ *resource.UpdateResponse,
+) {
 }
 
-func (r *dedicatedServerInstallationResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
+func (r *dedicatedServerInstallationResource) Delete(
+	_ context.Context,
+	_ resource.DeleteRequest,
+	_ *resource.DeleteResponse,
+) {
 }
 
 // TODO: Should goes like helper/utils.

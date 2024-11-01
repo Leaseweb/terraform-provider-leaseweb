@@ -26,6 +26,7 @@ var (
 
 type dataTrafficNotificationSettingResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -39,11 +40,17 @@ type dataTrafficNotificationSettingResourceData struct {
 }
 
 func NewDataTrafficNotificationSettingResource() resource.Resource {
-	return &dataTrafficNotificationSettingResource{}
+	return &dataTrafficNotificationSettingResource{
+		name: "dedicated_server_data_traffic_notification_setting",
+	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_data_traffic_notification_setting"
+func (d *dataTrafficNotificationSettingResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dataTrafficNotificationSettingResource) authContext(ctx context.Context) context.Context {
@@ -56,7 +63,11 @@ func (d *dataTrafficNotificationSettingResource) authContext(ctx context.Context
 	)
 }
 
-func (d *dataTrafficNotificationSettingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dataTrafficNotificationSettingResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -129,7 +140,11 @@ func (d *dataTrafficNotificationSettingResource) Schema(
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (d *dataTrafficNotificationSettingResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var data dataTrafficNotificationSettingResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -145,7 +160,11 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	request := d.client.CreateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error creating data traffic notification setting with dedicated_server_id: %q", data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Creating resource %s for dedicated_server_id %q",
+			d.name,
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -165,7 +184,11 @@ func (d *dataTrafficNotificationSettingResource) Create(ctx context.Context, req
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (d *dataTrafficNotificationSettingResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var data dataTrafficNotificationSettingResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -176,7 +199,12 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	request := d.client.GetServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Reading resource %s for id %q and dedicated_server_id %q",
+			d.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -196,7 +224,11 @@ func (d *dataTrafficNotificationSettingResource) Read(ctx context.Context, req r
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (d *dataTrafficNotificationSettingResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var data dataTrafficNotificationSettingResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -212,7 +244,12 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	request := d.client.UpdateServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error updating data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Updating resource %s for id %q and dedicated_server_id %q",
+			d.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -232,7 +269,11 @@ func (d *dataTrafficNotificationSettingResource) Update(ctx context.Context, req
 	}
 }
 
-func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (d *dataTrafficNotificationSettingResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	var data dataTrafficNotificationSettingResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -243,7 +284,12 @@ func (d *dataTrafficNotificationSettingResource) Delete(ctx context.Context, req
 	request := d.client.DeleteServerDataTrafficNotificationSetting(d.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error deleting data traffic notification setting with id: %q and dedicated_server_id: %q", data.Id.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Deleting resource %s for id %q and dedicated_server_id %q",
+			d.name,
+			data.Id.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

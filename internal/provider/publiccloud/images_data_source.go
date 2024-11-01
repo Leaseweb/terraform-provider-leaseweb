@@ -150,6 +150,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
@@ -158,7 +159,7 @@ func (i *imagesDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_images"
+	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
 }
 
 func (i *imagesDataSource) Schema(
@@ -188,7 +189,7 @@ func (i *imagesDataSource) Read(
 
 	if err != nil {
 		utils.HandleSdkError(
-			"Unable to read Public Cloud images",
+			fmt.Sprintf("Reading data %s", i.name),
 			httpResponse,
 			err,
 			&response.Diagnostics,
@@ -233,5 +234,7 @@ func (i *imagesDataSource) Configure(
 }
 
 func NewImagesDataSource() datasource.DataSource {
-	return &imagesDataSource{}
+	return &imagesDataSource{
+		name: "public_cloud_images",
+	}
 }

@@ -97,6 +97,7 @@ func getAllLoadBalancers(
 }
 
 type loadBalancersDataSource struct {
+	name   string
 	client client.Client
 }
 
@@ -105,7 +106,7 @@ func (l *loadBalancersDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_load_balancers"
+	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
 }
 
 func (l *loadBalancersDataSource) Schema(
@@ -176,11 +177,15 @@ func (l *loadBalancersDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read Public Cloud load balancers")
-	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
+	loadBalancers, httpResponse, err := getAllLoadBalancers(
+		ctx,
+		l.client.PublicCloudAPI,
+	)
 
 	if err != nil {
+		summary := fmt.Sprintf("Reading data %s", l.name)
 		utils.HandleSdkError(
-			"Unable to read Public Cloud instances",
+			summary,
 			httpResponse,
 			err,
 			&response.Diagnostics,
@@ -222,5 +227,7 @@ func (l *loadBalancersDataSource) Configure(
 }
 
 func NewLoadBalancersDataSource() datasource.DataSource {
-	return &loadBalancersDataSource{}
+	return &loadBalancersDataSource{
+		name: "public_cloud_load_balancers",
+	}
 }

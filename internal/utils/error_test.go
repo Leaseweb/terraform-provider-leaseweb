@@ -64,8 +64,10 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
 		}
-		message := NewError(resp, errors.New("error content")).Error()
-		assert.Equal(t, "this is error message", message)
+
+		want := "{\n  \"errorMessage\": \"this is error message\"\n}"
+		got := NewError(resp, errors.New("error content")).Error()
+		assert.Equal(t, want, got)
 	})
 
 	t.Run("errorMessage must return if response contains object of errorMessage", func(t *testing.T) {
@@ -74,8 +76,10 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
 		}
-		message := NewError(resp, errors.New("error content")).Error()
-		assert.Equal(t, "map[a:b c:d]", message)
+
+		want := "{\n  \"errorMessage\": {\n    \"a\": \"b\",\n    \"c\": \"d\"\n  }\n}"
+		got := NewError(resp, errors.New("error content")).Error()
+		assert.Equal(t, want, got)
 	})
 
 	t.Run("errorMessage must return if response with error details if they exists", func(t *testing.T) {
@@ -96,12 +100,10 @@ func TestGetHttpErrorMessage(t *testing.T) {
 			StatusCode: 404,
 			Body:       io.NopCloser(bytes.NewBufferString(string(errorContent))),
 		}
-		message := NewError(resp, errors.New("error content")).Error()
-		assert.Contains(t, message, "map[a:b c:d]")
-		assert.Contains(t, message, "password")
-		assert.Contains(t, message, "this value should not be blank")
-		assert.Contains(t, message, "email")
-		assert.Contains(t, message, "blah2 blah2")
+
+		want := "{\n  \"errorDetails\": {\n    \"email\": [\n      \"this value should be valid\",\n      \"blah2 blah2\"\n    ],\n    \"password\": [\n      \"this value should not be blank\",\n      \"blah blah\"\n    ]\n  },\n  \"errorMessage\": {\n    \"a\": \"b\",\n    \"c\": \"d\"\n  }\n}"
+		got := NewError(resp, errors.New("error content")).Error()
+		assert.Equal(t, want, got)
 	})
 }
 

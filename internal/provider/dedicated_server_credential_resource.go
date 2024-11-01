@@ -25,6 +25,7 @@ var (
 
 type dedicatedServerCredentialResource struct {
 	// TODO: Refactor this part, apiKey shouldn't be here.
+	name   string
 	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
@@ -37,11 +38,17 @@ type dedicatedServerCredentialResourceData struct {
 }
 
 func NewDedicatedServerCredentialResource() resource.Resource {
-	return &dedicatedServerCredentialResource{}
+	return &dedicatedServerCredentialResource{
+		name: "dedicated_server_credential",
+	}
 }
 
-func (d *dedicatedServerCredentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dedicated_server_credential"
+func (d *dedicatedServerCredentialResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *dedicatedServerCredentialResource) authContext(ctx context.Context) context.Context {
@@ -54,7 +61,11 @@ func (d *dedicatedServerCredentialResource) authContext(ctx context.Context) con
 	)
 }
 
-func (d *dedicatedServerCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *dedicatedServerCredentialResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -123,7 +134,11 @@ func (d *dedicatedServerCredentialResource) Schema(
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (d *dedicatedServerCredentialResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -139,7 +154,12 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 	request := d.client.CreateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString()).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error creating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Creating resource %s for username %q and dedicated_server_id %q",
+			d.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -158,7 +178,11 @@ func (d *dedicatedServerCredentialResource) Create(ctx context.Context, req reso
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (d *dedicatedServerCredentialResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -169,7 +193,12 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 	request := d.client.GetServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Reading resource %s for username %q and dedicated_server_id %q",
+			d.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -188,7 +217,11 @@ func (d *dedicatedServerCredentialResource) Read(ctx context.Context, req resour
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (d *dedicatedServerCredentialResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -202,7 +235,12 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	request := d.client.UpdateServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString()).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error updating credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Updating resource %s for username %q and dedicated_server_id %q",
+			d.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -221,7 +259,11 @@ func (d *dedicatedServerCredentialResource) Update(ctx context.Context, req reso
 	}
 }
 
-func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (d *dedicatedServerCredentialResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	var data dedicatedServerCredentialResourceData
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -232,7 +274,12 @@ func (d *dedicatedServerCredentialResource) Delete(ctx context.Context, req reso
 	request := d.client.DeleteServerCredential(d.authContext(ctx), data.DedicatedServerId.ValueString(), dedicatedServer.CredentialType(data.Type.ValueString()), data.Username.ValueString())
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error deleting credential with username: %q and dedicated_server_id: %q", data.Username.ValueString(), data.DedicatedServerId.ValueString())
+		summary := fmt.Sprintf(
+			"Deleting resource %s for username %q and dedicated_server_id %q",
+			d.name,
+			data.Username.ValueString(),
+			data.DedicatedServerId.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

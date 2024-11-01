@@ -24,6 +24,7 @@ var (
 )
 
 type credentialResource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
@@ -35,11 +36,13 @@ type credentialResourceModel struct {
 }
 
 func NewCredentialResource() resource.Resource {
-	return &credentialResource{}
+	return &credentialResource{
+		name: "public_cloud_credential",
+	}
 }
 
 func (c *credentialResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_public_cloud_credential"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
 func (c *credentialResource) Configure(
@@ -133,7 +136,12 @@ func (c *credentialResource) Create(ctx context.Context, req resource.CreateRequ
 	).StoreCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error creating credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
+		summary := fmt.Sprintf(
+			"Creating %s for username: %q and instance_id: %q",
+			c.name,
+			data.Username.ValueString(),
+			data.InstanceID.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -165,7 +173,12 @@ func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error reading credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
+		summary := fmt.Sprintf(
+			"Reading %s for username: %q and instance_id: %q",
+			c.name,
+			data.Username.ValueString(),
+			data.InstanceID.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -181,7 +194,11 @@ func (c *credentialResource) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(diags...)
 }
 
-func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (c *credentialResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var data credentialResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -200,7 +217,12 @@ func (c *credentialResource) Update(ctx context.Context, req resource.UpdateRequ
 	).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error updating credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
+		summary := fmt.Sprintf(
+			"Updating %s for username: %q and instance_id: %q",
+			c.name,
+			data.Username.ValueString(),
+			data.InstanceID.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
@@ -232,7 +254,12 @@ func (c *credentialResource) Delete(ctx context.Context, req resource.DeleteRequ
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Error deleting credential with username: %q and instance_id: %q", data.Username.ValueString(), data.InstanceID.ValueString())
+		summary := fmt.Sprintf(
+			"Deleting %s for username: %q and instance_id: %q",
+			c.name,
+			data.Username.ValueString(),
+			data.InstanceID.ValueString(),
+		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return

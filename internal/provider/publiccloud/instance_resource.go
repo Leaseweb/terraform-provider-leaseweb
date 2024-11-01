@@ -354,10 +354,13 @@ func adaptIpDetailsToIPResource(sdkIpDetails publicCloud.IpDetails) iPResourceMo
 }
 
 func NewInstanceResource() resource.Resource {
-	return &instanceResource{}
+	return &instanceResource{
+		name: "public_cloud_instance",
+	}
 }
 
 type instanceResource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
@@ -395,6 +398,7 @@ func (i *instanceResource) Create(
 	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf("Launching resource %s", i.name)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -404,11 +408,7 @@ func (i *instanceResource) Create(
 
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating launch instance opts",
-			err.Error(),
-		)
-
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -418,7 +418,7 @@ func (i *instanceResource) Create(
 
 	if err != nil {
 		utils.HandleSdkError(
-			"Error launching Public Cloud instance",
+			summary,
 			httpResponse,
 			err,
 			&resp.Diagnostics,
@@ -430,11 +430,7 @@ func (i *instanceResource) Create(
 
 	instance, resourceErr := adaptInstanceToInstanceResource(*sdkInstance, ctx)
 	if resourceErr != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Public Cloud instance resource",
-			resourceErr.Error(),
-		)
-
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -467,8 +463,9 @@ func (i *instanceResource) Delete(
 	).Execute()
 
 	if err != nil {
+		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
 		utils.HandleSdkError(
-			"Error terminating Public Cloud instance",
+			summary,
 			httpResponse,
 			err,
 			&resp.Diagnostics,
@@ -497,7 +494,7 @@ func (i *instanceResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_public_cloud_instance"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
 }
 
 func (i *instanceResource) Read(
@@ -506,7 +503,13 @@ func (i *instanceResource) Read(
 	resp *resource.ReadResponse,
 ) {
 	var state instanceResourceModel
+
 	diags := req.State.Get(ctx, &state)
+	summary := fmt.Sprintf(
+		"Reading resource %s for id %q",
+		i.name,
+		state.ID.ValueString(),
+	)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -521,7 +524,7 @@ func (i *instanceResource) Read(
 		Execute()
 	if err != nil {
 		utils.HandleSdkError(
-			"Error reading Public Cloud instance",
+			summary,
 			httpResponse,
 			err,
 			&resp.Diagnostics,
@@ -543,10 +546,7 @@ func (i *instanceResource) Read(
 		ctx,
 	)
 	if sdkErr != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Public Cloud instance resource",
-			sdkErr.Error(),
-		)
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
@@ -563,6 +563,11 @@ func (i *instanceResource) Update(
 	var plan instanceResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf(
+		"Updating resource %s for id %q",
+		i.name,
+		plan.ID.ValueString(),
+	)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -574,10 +579,7 @@ func (i *instanceResource) Update(
 	)
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating UpdateInstanceOpts",
-			err.Error(),
-		)
+		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -587,7 +589,7 @@ func (i *instanceResource) Update(
 		Execute()
 	if err != nil {
 		utils.HandleSdkError(
-			"Error updating Public Cloud instance",
+			summary,
 			httpResponse,
 			err,
 			&resp.Diagnostics,
