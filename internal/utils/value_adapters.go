@@ -11,21 +11,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// AdaptInt64PointerValueToNullableInt32 converts a Terraform
-// Int64PointerValue to a nullable int32.
-func AdaptInt64PointerValueToNullableInt32(int64Type types.Int64) *int32 {
-	if int64Type.IsUnknown() {
+// AdaptInt32PointerValueToNullableInt32 converts a Terraform
+// Int32PointerValue to a nullable int32.
+func AdaptInt32PointerValueToNullableInt32(int32Type types.Int32) *int32 {
+	if int32Type.IsUnknown() {
 		return nil
 	}
 
-	value := int64Type.ValueInt64Pointer()
+	value := int32Type.ValueInt32Pointer()
 	if value == nil {
 		return nil
 	}
 
-	convertedValue := int32(*value)
-
-	return &convertedValue
+	return value
 }
 
 // AdaptNullableTimeToStringValue converts a nullable Time to a Terraform
@@ -132,4 +130,13 @@ func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {
 	}
 
 	return convertedTypes
+}
+
+// AdaptBoolPointerValueToNullableBool converts a Terraform BoolPointerValue to a nullable string.
+func AdaptBoolPointerValueToNullableBool(value types.Bool) *bool {
+	if value.IsUnknown() {
+		return nil
+	}
+
+	return value.ValueBoolPointer()
 }

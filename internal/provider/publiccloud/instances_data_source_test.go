@@ -23,8 +23,8 @@ func Test_adaptContractToContractDataSource(t *testing.T) {
 	}
 
 	want := contractDataSourceModel{
-		BillingFrequency: basetypes.NewInt64Value(1),
-		Term:             basetypes.NewInt64Value(3),
+		BillingFrequency: basetypes.NewInt32Value(1),
+		Term:             basetypes.NewInt32Value(3),
 		Type:             basetypes.NewStringValue("HOURLY"),
 		EndsAt:           basetypes.NewStringValue("2023-12-14 17:09:47 +0000 UTC"),
 		State:            basetypes.NewStringValue("ACTIVE"),
@@ -66,11 +66,11 @@ func Test_adaptInstanceToInstanceDataSource(t *testing.T) {
 	assert.Equal(t, "imageId", got.Image.ID.ValueString())
 	assert.Equal(t, "CREATING", got.State.ValueString())
 	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
-	assert.Equal(t, int64(50), got.RootDiskSize.ValueInt64())
+	assert.Equal(t, int32(50), got.RootDiskSize.ValueInt32())
 	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
 	assert.Len(t, got.IPs, 1)
 	assert.Equal(t, "127.0.0.1", got.IPs[0].IP.ValueString())
-	assert.Equal(t, int64(1), got.Contract.Term.ValueInt64())
+	assert.Equal(t, int32(1), got.Contract.Term.ValueInt32())
 	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
 }
 

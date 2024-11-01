@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -23,8 +23,8 @@ var (
 )
 
 type contractDataSourceModel struct {
-	BillingFrequency types.Int64  `tfsdk:"billing_frequency"`
-	Term             types.Int64  `tfsdk:"term"`
+	BillingFrequency types.Int32  `tfsdk:"billing_frequency"`
+	Term             types.Int32  `tfsdk:"term"`
 	Type             types.String `tfsdk:"type"`
 	EndsAt           types.String `tfsdk:"ends_at"`
 	State            types.String `tfsdk:"state"`
@@ -32,8 +32,8 @@ type contractDataSourceModel struct {
 
 func adaptContractToContractDataSource(sdkContract publicCloud.Contract) contractDataSourceModel {
 	return contractDataSourceModel{
-		BillingFrequency: basetypes.NewInt64Value(int64(sdkContract.GetBillingFrequency())),
-		Term:             basetypes.NewInt64Value(int64(sdkContract.GetTerm())),
+		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
+		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
 		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
 		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
 		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
@@ -47,7 +47,7 @@ type instanceDataSourceModel struct {
 	Image               imageModelDataSource    `tfsdk:"image"`
 	State               types.String            `tfsdk:"state"`
 	Type                types.String            `tfsdk:"type"`
-	RootDiskSize        types.Int64             `tfsdk:"root_disk_size"`
+	RootDiskSize        types.Int32             `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String            `tfsdk:"root_disk_storage_type"`
 	IPs                 []iPDataSourceModel     `tfsdk:"ips"`
 	Contract            contractDataSourceModel `tfsdk:"contract"`
@@ -67,7 +67,7 @@ func adaptInstanceToInstanceDataSource(sdkInstance publicCloud.Instance) instanc
 		Image:               adaptImageToImageDataSource(sdkInstance.GetImage()),
 		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt64Value(int64(sdkInstance.GetRootDiskSize())),
+		RootDiskSize:        basetypes.NewInt32Value(sdkInstance.GetRootDiskSize()),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		IPs:                 ips,
 		Contract:            adaptContractToContractDataSource(sdkInstance.GetContract()),
@@ -259,18 +259,18 @@ func (d *instancesDataSource) Schema(
 						"contract": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
-								"billing_frequency": schema.Int64Attribute{
+								"billing_frequency": schema.Int32Attribute{
 									Computed:    true,
 									Description: "The billing frequency (in months). Valid options are " + billingFrequencies.Markdown(),
-									Validators: []validator.Int64{
-										int64validator.OneOf(billingFrequencies.ToInt64()...),
+									Validators: []validator.Int32{
+										int32validator.OneOf(billingFrequencies.ToInt32()...),
 									},
 								},
-								"term": schema.Int64Attribute{
+								"term": schema.Int32Attribute{
 									Computed:    true,
 									Description: "Contract term (in months). Used only when type is *MONTHLY*. Valid options are " + contractTerms.Markdown(),
-									Validators: []validator.Int64{
-										int64validator.OneOf(contractTerms.ToInt64()...),
+									Validators: []validator.Int32{
+										int32validator.OneOf(contractTerms.ToInt32()...),
 									},
 								},
 								"type": schema.StringAttribute{

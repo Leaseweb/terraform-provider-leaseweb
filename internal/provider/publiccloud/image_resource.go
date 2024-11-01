@@ -146,7 +146,11 @@ func (i *imageResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
+	response.TypeName = fmt.Sprintf(
+		"%s_%s",
+		request.ProviderTypeName,
+		i.name,
+	)
 }
 
 func (i *imageResource) Schema(

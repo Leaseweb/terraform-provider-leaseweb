@@ -1,53 +1,40 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerOperatingSystemsDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerOperatingSystemsDataSource{}
+	_ datasource.DataSource              = &operatingSystemsDataSource{}
+	_ datasource.DataSourceWithConfigure = &operatingSystemsDataSource{}
 )
 
-type dedicatedServerOperatingSystemsDataSource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type operatingSystemsDataSource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type operatingSystem struct {
+type operatingSystemDataSourceModel struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
-type dedicatedServerOperatingSystemsDataSourceData struct {
-	OperatingSystems []operatingSystem `tfsdk:"operating_systems"`
-	ControlPanelId   types.String      `tfsdk:"control_panel_id"`
+type operatingSystemsDataSourceModel struct {
+	OperatingSystems []operatingSystemDataSourceModel `tfsdk:"operating_systems"`
+	ControlPanelId   types.String                     `tfsdk:"control_panel_id"`
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerOperatingSystemsDataSource) Configure(
+func (o *operatingSystemsDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -55,10 +42,9 @@ func (d *dedicatedServerOperatingSystemsDataSource) Configure(
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -67,55 +53,52 @@ func (d *dedicatedServerOperatingSystemsDataSource) Configure(
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	o.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Metadata(
+func (o *operatingSystemsDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, o.name)
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (o *operatingSystemsDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
-	var data dedicatedServerOperatingSystemsDataSourceData
+	var data operatingSystemsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	request := d.client.GetOperatingSystemList(d.authContext(ctx))
+	request := o.client.GetOperatingSystemList(ctx)
 	if !data.ControlPanelId.IsNull() && !data.ControlPanelId.IsUnknown() {
 		request = request.ControlPanelId(data.ControlPanelId.ValueString())
 	}
-	// NOTE: we show only latest 50 items.
+	// NOTE: we show only the latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", d.name)
+		summary := fmt.Sprintf("Reading data %s", o.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
-	var operatingSystems []operatingSystem
+	var operatingSystems []operatingSystemDataSourceModel
 	for _, os := range result.GetOperatingSystems() {
-		operatingSystems = append(operatingSystems, operatingSystem{
+		operatingSystems = append(operatingSystems, operatingSystemDataSourceModel{
 			Id:   basetypes.NewStringValue(os.GetId()),
 			Name: basetypes.NewStringValue(os.GetName()),
 		})
 	}
 
-	newData := dedicatedServerOperatingSystemsDataSourceData{
+	newData := operatingSystemsDataSourceModel{
 		OperatingSystems: operatingSystems,
 		ControlPanelId:   data.ControlPanelId,
 	}
@@ -127,7 +110,7 @@ func (d *dedicatedServerOperatingSystemsDataSource) Read(ctx context.Context, re
 	}
 }
 
-func (d *dedicatedServerOperatingSystemsDataSource) Schema(
+func (o *operatingSystemsDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
@@ -157,8 +140,8 @@ func (d *dedicatedServerOperatingSystemsDataSource) Schema(
 	}
 }
 
-func NewDedicatedServerOperatingSystemsDataSource() datasource.DataSource {
-	return &dedicatedServerOperatingSystemsDataSource{
+func NewOperatingSystemsDataSource() datasource.DataSource {
+	return &operatingSystemsDataSource{
 		name: "dedicated_server_operating_systems",
 	}
 }

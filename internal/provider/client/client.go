@@ -2,22 +2,16 @@
 package client
 
 import (
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
 const userAgent = "leaseweb-terraform"
 
-// ProviderData TODO: Refactor this part, data can be managed directly, not within client.
-type ProviderData struct {
-	ApiKey string
-	Host   *string
-	Scheme *string
-}
-
 // The Client handles instantiation of the SDK.
 type Client struct {
-	ProviderData   ProviderData
-	PublicCloudAPI publicCloud.PublicCloudAPI
+	PublicCloudAPI     publicCloud.PublicCloudAPI
+	DedicatedServerAPI dedicatedServer.DedicatedServerAPI
 }
 
 type Optional struct {
@@ -26,23 +20,29 @@ type Optional struct {
 }
 
 func NewClient(token string, optional Optional) Client {
-	cfg := publicCloud.NewConfiguration()
+	publicCloudCfg := publicCloud.NewConfiguration()
+	dedicatedServerCfg := dedicatedServer.NewConfiguration()
+
 	if optional.Host != nil {
-		cfg.Host = *optional.Host
+		publicCloudCfg.Host = *optional.Host
+		dedicatedServerCfg.Host = *optional.Host
 	}
 	if optional.Scheme != nil {
-		cfg.Scheme = *optional.Scheme
+		publicCloudCfg.Scheme = *optional.Scheme
+		dedicatedServerCfg.Scheme = *optional.Scheme
 	}
-	cfg.AddDefaultHeader("X-LSW-Auth", token)
-	cfg.UserAgent = userAgent
-	publicCloudApi := publicCloud.NewAPIClient(cfg)
+
+	publicCloudCfg.AddDefaultHeader("X-LSW-Auth", token)
+	publicCloudCfg.UserAgent = userAgent
+
+	dedicatedServerCfg.AddDefaultHeader("X-LSW-Auth", token)
+	dedicatedServerCfg.UserAgent = userAgent
+
+	publicCloudApi := publicCloud.NewAPIClient(publicCloudCfg)
+	dedicatedServerApi := dedicatedServer.NewAPIClient(dedicatedServerCfg)
 
 	return Client{
-		ProviderData: ProviderData{
-			ApiKey: token,
-			Host:   optional.Host,
-			Scheme: optional.Scheme,
-		},
-		PublicCloudAPI: publicCloudApi.PublicCloudAPI,
+		PublicCloudAPI:     publicCloudApi.PublicCloudAPI,
+		DedicatedServerAPI: dedicatedServerApi.DedicatedServerAPI,
 	}
 }

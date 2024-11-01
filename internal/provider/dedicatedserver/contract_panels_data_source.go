@@ -1,54 +1,41 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
-	_ datasource.DataSource              = &dedicatedServerControlPanelsDataSource{}
-	_ datasource.DataSourceWithConfigure = &dedicatedServerControlPanelsDataSource{}
+	_ datasource.DataSource              = &controlPanelsDataSource{}
+	_ datasource.DataSourceWithConfigure = &controlPanelsDataSource{}
 )
 
-type dedicatedServerControlPanelsDataSource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type controlPanelsDataSource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type controlPanel struct {
+type controlPanelDataSourceModel struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
-type dedicatedServerControlPanelsDataSourceData struct {
-	ControlPanels     []controlPanel `tfsdk:"control_panels"`
-	OperatingSystemId types.String   `tfsdk:"operating_system_id"`
+type controlPanelsDataSourceModel struct {
+	ControlPanels     []controlPanelDataSourceModel `tfsdk:"control_panels"`
+	OperatingSystemId types.String                  `tfsdk:"operating_system_id"`
 }
 
-func (d *dedicatedServerControlPanelsDataSource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: d.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (d *dedicatedServerControlPanelsDataSource) Configure(
+func (c *controlPanelsDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
@@ -56,10 +43,9 @@ func (d *dedicatedServerControlPanelsDataSource) Configure(
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -68,62 +54,62 @@ func (d *dedicatedServerControlPanelsDataSource) Configure(
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	d.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	d.client = apiClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedServerAPI
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Metadata(
+func (c *controlPanelsDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (c *controlPanelsDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 
-	var data dedicatedServerControlPanelsDataSourceData
+	var data controlPanelsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	var controlPanels []controlPanel
+	var controlPanels []controlPanelDataSourceModel
 	var result *dedicatedServer.ControlPanelList
 	var response *http.Response
 	var err error
 
-	// NOTE: we show only latest 50 items.
+	// NOTE: we show only the latest 50 items.
 	if !data.OperatingSystemId.IsNull() && !data.OperatingSystemId.IsUnknown() {
-		request := d.client.GetControlPanelListByOperatingSystemId(d.authContext(ctx), data.OperatingSystemId.ValueString()).Limit(50)
+		request := c.client.GetControlPanelListByOperatingSystemId(
+			ctx,
+			data.OperatingSystemId.ValueString(),
+		).Limit(50)
 		result, response, err = request.Execute()
 	} else {
-		request := d.client.GetControlPanelList(d.authContext(ctx)).Limit(50)
+		request := c.client.GetControlPanelList(ctx).Limit(50)
 		result, response, err = request.Execute()
 	}
 
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", d.name)
+		summary := fmt.Sprintf("Reading data %s", c.name)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
 		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
 		return
 	}
 
 	for _, cp := range result.GetControlPanels() {
-		controlPanels = append(controlPanels, controlPanel{
+		controlPanels = append(controlPanels, controlPanelDataSourceModel{
 			Id:   basetypes.NewStringValue(cp.GetId()),
 			Name: basetypes.NewStringValue(cp.GetName()),
 		})
 	}
 
-	newData := dedicatedServerControlPanelsDataSourceData{
+	newData := controlPanelsDataSourceModel{
 		ControlPanels:     controlPanels,
 		OperatingSystemId: data.OperatingSystemId,
 	}
@@ -135,7 +121,7 @@ func (d *dedicatedServerControlPanelsDataSource) Read(ctx context.Context, req d
 	}
 }
 
-func (d *dedicatedServerControlPanelsDataSource) Schema(
+func (c *controlPanelsDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
@@ -165,8 +151,8 @@ func (d *dedicatedServerControlPanelsDataSource) Schema(
 	}
 }
 
-func NewDedicatedServerControlPanelsDataSource() datasource.DataSource {
-	return &dedicatedServerControlPanelsDataSource{
+func NewControlPanelsDataSource() datasource.DataSource {
+	return &controlPanelsDataSource{
 		name: "dedicated_server_control_panels",
 	}
 }

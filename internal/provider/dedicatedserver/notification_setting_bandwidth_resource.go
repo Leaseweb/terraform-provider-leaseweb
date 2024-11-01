@@ -1,37 +1,33 @@
-package provider
+package dedicatedserver
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
-	customValidators "github.com/leaseweb/terraform-provider-leaseweb/internal/provider/validators"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
 var (
-	_ resource.Resource              = &bandwidthNotificationSettingResource{}
-	_ resource.ResourceWithConfigure = &bandwidthNotificationSettingResource{}
+	_ resource.Resource              = &notificationSettingBandwidthResource{}
+	_ resource.ResourceWithConfigure = &notificationSettingBandwidthResource{}
 )
 
-type bandwidthNotificationSettingResource struct {
-	// TODO: Refactor this part, apiKey shouldn't be here.
+type notificationSettingBandwidthResource struct {
 	name   string
-	apiKey string
 	client dedicatedServer.DedicatedServerAPI
 }
 
-type bandwidthNotificationSettingResourceData struct {
+type notificationSettingBandwidthResourceModel struct {
 	Id                types.String `tfsdk:"id"`
 	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
 	Frequency         types.String `tfsdk:"frequency"`
@@ -39,34 +35,31 @@ type bandwidthNotificationSettingResourceData struct {
 	Unit              types.String `tfsdk:"unit"`
 }
 
-func NewBandwidthNotificationSettingResource() resource.Resource {
-	return &bandwidthNotificationSettingResource{
-		name: "dedicated_server_bandwidth_notification_setting",
+func NewNotificationSettingBandwidthResource() resource.Resource {
+	return &notificationSettingBandwidthResource{
+		name: "dedicated_server_notification_setting_bandwidth",
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, b.name)
+func (n *notificationSettingBandwidthResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, n.name)
 }
 
-func (b *bandwidthNotificationSettingResource) authContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		ctx,
-		dedicatedServer.ContextAPIKeys,
-		map[string]dedicatedServer.APIKey{
-			"X-LSW-Auth": {Key: b.apiKey, Prefix: ""},
-		},
-	)
-}
-
-func (b *bandwidthNotificationSettingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (n *notificationSettingBandwidthResource) Configure(
+	_ context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	if req.ProviderData == nil {
 		return
 	}
-	configuration := dedicatedServer.NewConfiguration()
 
-	// TODO: Refactor this part, ProviderData can be managed directly, not within client.
 	coreClient, ok := req.ProviderData.(client.Client)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -75,21 +68,14 @@ func (b *bandwidthNotificationSettingResource) Configure(ctx context.Context, re
 				req.ProviderData,
 			),
 		)
+
 		return
 	}
-	b.apiKey = coreClient.ProviderData.ApiKey
-	if coreClient.ProviderData.Host != nil {
-		configuration.Host = *coreClient.ProviderData.Host
-	}
-	if coreClient.ProviderData.Scheme != nil {
-		configuration.Scheme = *coreClient.ProviderData.Scheme
-	}
 
-	apiClient := dedicatedServer.NewAPIClient(configuration)
-	b.client = apiClient.DedicatedServerAPI
+	n.client = coreClient.DedicatedServerAPI
 }
 
-func (b *bandwidthNotificationSettingResource) Schema(
+func (n *notificationSettingBandwidthResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -118,7 +104,7 @@ func (b *bandwidthNotificationSettingResource) Schema(
 				Required:    true,
 				Description: "Threshold Value. Value can be a number greater than 0.",
 				Validators: []validator.String{
-					customValidators.GreaterThanZero(),
+					greaterThanZero(),
 				},
 			},
 			"unit": schema.StringAttribute{
@@ -132,8 +118,12 @@ func (b *bandwidthNotificationSettingResource) Schema(
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data bandwidthNotificationSettingResourceData
+func (n *notificationSettingBandwidthResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
+	var data notificationSettingBandwidthResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -145,12 +135,15 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := b.client.CreateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString()).BandwidthNotificationSettingOpts(*opts)
+	request := n.client.CreateServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Creating resource %s for dedicated_server_id %q",
-			b.name,
+			n.name,
 			data.DedicatedServerId.ValueString(),
 		)
 		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
@@ -158,7 +151,7 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 		return
 	}
 
-	newData := bandwidthNotificationSettingResourceData{
+	newData := notificationSettingBandwidthResourceModel{
 		Id:        types.StringValue(result.GetId()),
 		Frequency: types.StringValue(result.GetFrequency()),
 		Threshold: types.StringValue(result.GetThreshold()),
@@ -172,20 +165,28 @@ func (b *bandwidthNotificationSettingResource) Create(ctx context.Context, req r
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data bandwidthNotificationSettingResourceData
+func (n *notificationSettingBandwidthResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
+	var data notificationSettingBandwidthResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	request := b.client.GetServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := n.client.GetServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading resource %s for id %q and dedicated_server_id %q",
-			b.name,
+			n.name,
 			data.Id.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
@@ -194,7 +195,7 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 		return
 	}
 
-	newData := bandwidthNotificationSettingResourceData{
+	newData := notificationSettingBandwidthResourceModel{
 		Id:        types.StringValue(result.GetId()),
 		Frequency: types.StringValue(result.GetFrequency()),
 		Threshold: types.StringValue(result.GetThreshold()),
@@ -208,12 +209,12 @@ func (b *bandwidthNotificationSettingResource) Read(ctx context.Context, req res
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Update(
+func (n *notificationSettingBandwidthResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var data bandwidthNotificationSettingResourceData
+	var data notificationSettingBandwidthResourceModel
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -225,12 +226,16 @@ func (b *bandwidthNotificationSettingResource) Update(
 		data.Threshold.ValueString(),
 		data.Unit.ValueString(),
 	)
-	request := b.client.UpdateServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString()).BandwidthNotificationSettingOpts(*opts)
+	request := n.client.UpdateServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Updating resource %s for id %q and dedicated_server_id %q",
-			b.name,
+			n.name,
 			data.Id.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
@@ -239,7 +244,7 @@ func (b *bandwidthNotificationSettingResource) Update(
 		return
 	}
 
-	newData := bandwidthNotificationSettingResourceData{
+	newData := notificationSettingBandwidthResourceModel{
 		Id:                data.Id,
 		DedicatedServerId: data.DedicatedServerId,
 		Frequency:         types.StringValue(result.GetFrequency()),
@@ -253,24 +258,28 @@ func (b *bandwidthNotificationSettingResource) Update(
 	}
 }
 
-func (b *bandwidthNotificationSettingResource) Delete(
+func (n *notificationSettingBandwidthResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var data bandwidthNotificationSettingResourceData
+	var data notificationSettingBandwidthResourceModel
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	request := b.client.DeleteServerBandwidthNotificationSetting(b.authContext(ctx), data.DedicatedServerId.ValueString(), data.Id.ValueString())
+	request := n.client.DeleteServerBandwidthNotificationSetting(
+		ctx,
+		data.DedicatedServerId.ValueString(),
+		data.Id.ValueString(),
+	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Deleting resource %s for id %q and dedicated_server_id %q",
-			b.name,
+			n.name,
 			data.Id.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
