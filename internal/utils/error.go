@@ -166,14 +166,12 @@ func handleError(
 	err error,
 	diags *diag.Diagnostics,
 ) {
-	const pleaseFileABugReport = "An error has occurred, please submit a bug report."
-
 	if err != nil {
 		diags.AddError(summary, err.Error())
 		return
 	}
 
-	diags.AddError(summary, pleaseFileABugReport)
+	diags.AddError(summary, DefaultErrMsg)
 }
 
 // newErrorResponse generates a new ErrorResponse object from an api response body.

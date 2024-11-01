@@ -348,7 +348,7 @@ func Test_handleError(t *testing.T) {
 
 			assert.Len(t, diags.Errors(), 1)
 			assert.Contains(t, diags.Errors()[0].Summary(), "summary")
-			assert.Contains(t, diags.Errors()[0].Detail(), "bug report")
+			assert.Contains(t, diags.Errors()[0].Detail(), DefaultErrMsg)
 		},
 	)
 }
