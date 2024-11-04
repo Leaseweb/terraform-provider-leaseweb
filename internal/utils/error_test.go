@@ -287,11 +287,7 @@ func Test_normalizeErrorResponseKey(t *testing.T) {
 
 func Test_newErrorResponse(t *testing.T) {
 	t.Run("response is processed correctly", func(t *testing.T) {
-		httpResponse := http.Response{
-			StatusCode: 500,
-			Body: io.NopCloser(
-				bytes.NewReader(
-					[]byte(`
+		body := `
 {
   "correlationId": "correlationId",
   "errorCode": "errorCode",
@@ -299,11 +295,7 @@ func Test_newErrorResponse(t *testing.T) {
   "errorDetails":  {
     "attribute": ["error1", "error2"]
   }
-}
-          `),
-				),
-			),
-		}
+}`
 
 		want := ErrorResponse{
 			CorrelationId: "correlationId",
@@ -311,19 +303,14 @@ func Test_newErrorResponse(t *testing.T) {
 			ErrorMessage:  "errorMessage",
 			ErrorDetails:  map[string][]string{"attribute": {"error1", "error2"}},
 		}
-		got, err := newErrorResponse(httpResponse.Body)
+		got, err := newErrorResponse(body)
 
 		assert.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
 	t.Run("Invalid json returns error", func(t *testing.T) {
-		httpResponse := http.Response{
-			StatusCode: 500,
-			Body:       io.NopCloser(bytes.NewReader([]byte(``))),
-		}
-
-		_, err := newErrorResponse(httpResponse.Body)
+		_, err := newErrorResponse("")
 		assert.Error(t, err)
 	})
 }
@@ -351,4 +338,20 @@ func Test_handleError(t *testing.T) {
 			assert.Contains(t, diags.Errors()[0].Detail(), DefaultErrMsg)
 		},
 	)
+}
+
+func Test_newResponseMap(t *testing.T) {
+	t.Run("valid body returns map", func(t *testing.T) {
+		want := map[string]interface{}{"a": "b"}
+		got, err := newResponseMap("{\"a\":\"b\"}")
+
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("invalid body returns error", func(t *testing.T) {
+		_, err := newResponseMap("{")
+
+		assert.Error(t, err)
+	})
 }

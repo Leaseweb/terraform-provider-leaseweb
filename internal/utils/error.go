@@ -108,32 +108,39 @@ func normalizeErrorResponseKey(key string) string {
 // A DEBUG log is also created with all the relevant information.
 func HandleSdkError(
 	summary string,
-	httpsResponse *http.Response,
+	httpResponse *http.Response,
 	err error,
 	diags *diag.Diagnostics,
 	ctx context.Context,
 ) {
-	// Nothing to do when httpsResponse does not exist.
-	if httpsResponse == nil {
+	// Nothing to do when httpResponse does not exist.
+	if httpResponse == nil {
 		handleError(summary, err, diags)
 		return
 	}
 
-	// Convert server httpsResponse to ErrorResponse object.
-	errorResponse, err := newErrorResponse(httpsResponse.Body)
-	// If error cannot be translated,
-	// Terraform will show a general error to the user.
+	// Try to read httpResponse body into buffer
+	buf := new(strings.Builder)
+	_, err = io.Copy(buf, httpResponse.Body)
 	if err != nil {
 		handleError(summary, err, diags)
 		return
 	}
 
-	// Output the error response to DEBUG log for helpful bug reports.
-	tflog.Debug(
-		ctx,
-		summary,
-		map[string]interface{}{"ErrorResponse": errorResponse},
-	)
+	// Create DEBUG log with httpResponse body.
+	responseMap, err := newResponseMap(buf.String())
+	if err != nil {
+		handleError(summary, err, diags)
+		return
+	}
+	tflog.Debug(ctx, summary, map[string]any{"response": responseMap})
+
+	// Convert httpResponse buffer to ErrorResponse object.
+	errorResponse, err := newErrorResponse(buf.String())
+	if err != nil {
+		handleError(summary, err, diags)
+		return
+	}
 
 	// Convert key returned from api to an attribute path.
 	// I.e.: []string{"image", "id"}.
@@ -174,20 +181,24 @@ func handleError(
 	diags.AddError(summary, DefaultErrMsg)
 }
 
-// newErrorResponse generates a new ErrorResponse object from an api response body.
-func newErrorResponse(body io.Reader) (*ErrorResponse, error) {
-	buf := new(strings.Builder)
-	_, err := io.Copy(buf, body)
-	if err != nil {
-		return nil, err
-	}
-
+func newErrorResponse(body string) (*ErrorResponse, error) {
 	errorResponse := ErrorResponse{}
 
-	jsonErr := json.Unmarshal([]byte(buf.String()), &errorResponse)
+	jsonErr := json.Unmarshal([]byte(body), &errorResponse)
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
 
 	return &errorResponse, nil
+}
+
+func newResponseMap(body string) (map[string]interface{}, error) {
+	var response map[string]interface{}
+
+	jsonErr := json.Unmarshal([]byte(body), &response)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	return response, nil
 }
