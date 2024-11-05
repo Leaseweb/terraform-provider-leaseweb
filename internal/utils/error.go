@@ -164,15 +164,24 @@ func HandleSdkError(
 
 	// If no attribute errors are set, set a global error
 	if !errorSet {
-		diags.AddError(summary, errorResponse.ErrorMessage)
+		errorResponseString, err := json.MarshalIndent(
+			errorResponse,
+			"",
+			" ",
+		)
+		if err != nil {
+			handleError(summary, err, diags)
+			return
+		}
+		diags.AddError(summary, string(errorResponseString))
 	}
 }
 
 type ErrorResponse struct {
-	CorrelationId string              `json:"correlationId"`
-	ErrorCode     string              `json:"errorCode"`
-	ErrorMessage  string              `json:"errorMessage"`
-	ErrorDetails  map[string][]string `json:"errorDetails"`
+	CorrelationId string              `json:"correlationId,omitempty"`
+	ErrorCode     string              `json:"errorCode,omitempty"`
+	ErrorMessage  string              `json:"errorMessage,omitempty"`
+	ErrorDetails  map[string][]string `json:"errorDetails,omitempty"`
 }
 
 func handleError(
