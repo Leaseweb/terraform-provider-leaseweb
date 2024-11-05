@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -130,7 +131,12 @@ func HandleSdkError(
 	// Create DEBUG log with httpResponse body.
 	responseMap, err := newResponseMap(buf.String())
 	if err != nil {
-		handleError(summary, err, diags)
+		tflog.Debug(
+			ctx,
+			summary,
+			map[string]any{"httpResponse": fmt.Sprintf("%v", httpResponse.Body)},
+		)
+		handleError(summary, nil, diags)
 		return
 	}
 	tflog.Debug(ctx, summary, map[string]any{"response": responseMap})
@@ -173,6 +179,7 @@ func HandleSdkError(
 			handleError(summary, err, diags)
 			return
 		}
+
 		diags.AddError(summary, string(errorResponseString))
 	}
 }

@@ -191,7 +191,7 @@ func TestHandleSdkError(t *testing.T) {
 			assert.Equal(t, "summary", diags.Errors()[0].Summary())
 			assert.Equal(
 				t,
-				"unexpected end of JSON input",
+				DefaultErrMsg,
 				diags.Errors()[0].Detail(),
 			)
 		},
