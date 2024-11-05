@@ -144,6 +144,7 @@ func HandleSdkError(
 
 	// Convert key returned from api to an attribute path.
 	// I.e.: []string{"image", "id"}.
+	errorSet := false
 	for errorKey, errorDetailList := range errorResponse.ErrorDetails {
 		normalizedErrorKey := normalizeErrorResponseKey(errorKey)
 		mapKeys := strings.Split(normalizedErrorKey, "_")
@@ -158,6 +159,12 @@ func HandleSdkError(
 		for _, errorDetail := range errorDetailList {
 			diags.AddAttributeError(attributePath, summary, errorDetail)
 		}
+		errorSet = true
+	}
+
+	// If no attribute errors are set, set a global error
+	if !errorSet {
+		diags.AddError(summary, errorResponse.ErrorMessage)
 	}
 }
 

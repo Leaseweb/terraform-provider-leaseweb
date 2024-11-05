@@ -212,6 +212,37 @@ func TestHandleSdkError(t *testing.T) {
 		assert.Equal(t, "summary", diags.Errors()[0].Summary())
 		assert.Equal(t, "tralala", diags.Errors()[0].Detail())
 	})
+
+	t.Run("global error is set if no attribute errors can be set", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+
+		httpResponse := http.Response{
+			StatusCode: 500,
+			Body: io.NopCloser(
+				bytes.NewReader(
+					[]byte(`
+{
+  "correlationId": "correlationId",
+  "errorCode": "errorCode",
+  "errorMessage": "errorMessage"
+}
+          `),
+				),
+			),
+		}
+
+		HandleSdkError(
+			"summary",
+			&httpResponse,
+			nil,
+			&diags,
+			context.TODO(),
+		)
+
+		assert.Len(t, diags.Errors(), 1)
+		assert.Equal(t, "summary", diags.Errors()[0].Summary())
+		assert.Equal(t, "errorMessage", diags.Errors()[0].Detail())
+	})
 }
 
 func ExampleHandleSdkError() {
