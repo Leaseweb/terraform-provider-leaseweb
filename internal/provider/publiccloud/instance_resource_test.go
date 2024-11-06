@@ -13,10 +13,7 @@ import (
 )
 
 func Test_adaptContractToContractResource(t *testing.T) {
-	endsAt, _ := time.Parse(
-		"2006-01-02 15:04:05",
-		"2023-12-14 17:09:47",
-	)
+	endsAt, _ := time.Parse("2006-01-02 15:04:05", "2023-12-14 17:09:47")
 	sdkContract := publicCloud.Contract{
 		BillingFrequency: publicCloud.BILLINGFREQUENCY__1,
 		Term:             publicCloud.CONTRACTTERM__3,
@@ -37,64 +34,10 @@ func Test_adaptContractToContractResource(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func Test_contractResourceModel_IsContractTermValid(t *testing.T) {
-	t.Run(
-		"false is returned when contract term is monthly and contract term is 0",
-		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
-				Term: publicCloud.CONTRACTTERM__0,
-				Type: publicCloud.CONTRACTTYPE_MONTHLY,
-			}
-
-			contract := adaptContractToContractResource(sdkContract)
-
-			got, reason := contract.IsContractTermValid()
-
-			assert.False(t, got)
-			assert.Equal(t, reasonContractTermCannotBeZero, reason)
-		},
-	)
-
-	t.Run(
-		"false is returned when contract term is hourly and contract term is not 0",
-		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
-				Term: publicCloud.CONTRACTTERM__3,
-				Type: publicCloud.CONTRACTTYPE_HOURLY,
-			}
-
-			contract := adaptContractToContractResource(sdkContract)
-
-			got, reason := contract.IsContractTermValid()
-
-			assert.False(t, got)
-			assert.Equal(t, reasonContractTermMustBeZero, reason)
-		},
-	)
-
-	t.Run(
-		"true is returned when contract term is valid",
-		func(t *testing.T) {
-			sdkContract := publicCloud.Contract{
-				Term: publicCloud.CONTRACTTERM__0,
-				Type: publicCloud.CONTRACTTYPE_HOURLY,
-			}
-
-			contract := adaptContractToContractResource(sdkContract)
-
-			got, reason := contract.IsContractTermValid()
-
-			assert.True(t, got)
-			assert.Equal(t, reasonNone, reason)
-		},
-	)
-}
-
 func generateContractObject(
 	billingFrequency *int,
 	contractTerm *int,
 	contractType *string,
-	endsAt *string,
 ) types.Object {
 	defaultContractType := "MONTHLY"
 	defaultContractTerm := 3
@@ -118,7 +61,6 @@ func generateContractObject(
 			Term:             basetypes.NewInt32Value(int32(*contractTerm)),
 			Type:             basetypes.NewStringValue(*contractType),
 			State:            basetypes.NewStringUnknown(),
-			EndsAt:           basetypes.NewStringPointerValue(endsAt),
 		},
 	)
 
@@ -138,13 +80,7 @@ func generateInstanceResourceModel() instanceResourceModel {
 		},
 	)
 
-	contract := generateContractObject(
-		nil,
-		nil,
-		nil,
-		nil,
-	)
-
+	contract := generateContractObject(nil, nil, nil)
 	instance := instanceResourceModel{
 		ID:                  basetypes.NewStringValue("id"),
 		Region:              basetypes.NewStringValue("eu-west-3"),
@@ -336,12 +272,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			contractType := "tralala"
 			instance := generateInstanceResourceModel()
-			contract := generateContractObject(
-				nil,
-				nil,
-				&contractType,
-				nil,
-			)
+			contract := generateContractObject(nil, nil, &contractType)
 			instance.Contract = contract
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -356,12 +287,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			contractTerm := 555
 			instance := generateInstanceResourceModel()
-			contract := generateContractObject(
-				nil,
-				&contractTerm,
-				nil,
-				nil,
-			)
+			contract := generateContractObject(nil, &contractTerm, nil)
 			instance.Contract = contract
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -376,12 +302,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			billingFrequency := 555
 			instance := generateInstanceResourceModel()
-			contract := generateContractObject(
-				&billingFrequency,
-				nil,
-				nil,
-				nil,
-			)
+			contract := generateContractObject(&billingFrequency, nil, nil)
 			instance.Contract = contract
 
 			_, err := instance.GetLaunchInstanceOpts(context.TODO())
@@ -461,12 +382,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			contractType := "tralala"
 			instance := generateInstanceResourceModel()
-			contract := generateContractObject(
-				nil,
-				nil,
-				&contractType,
-				nil,
-			)
+			contract := generateContractObject(nil, nil, &contractType)
 			instance.Contract = contract
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -481,12 +397,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			contractTerm := 555
 			instance := generateInstanceResourceModel()
-			contract := generateContractObject(
-				nil,
-				&contractTerm,
-				nil,
-				nil,
-			)
+			contract := generateContractObject(nil, &contractTerm, nil)
 			instance.Contract = contract
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -501,12 +412,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 		func(t *testing.T) {
 			billingFrequency := 555
 			instance := generateInstanceResourceModel()
-			contract := generateContractObject(
-				&billingFrequency,
-				nil,
-				nil,
-				nil,
-			)
+			contract := generateContractObject(&billingFrequency, nil, nil)
 			instance.Contract = contract
 
 			_, err := instance.GetUpdateInstanceOpts(context.TODO())
@@ -526,73 +432,6 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, ".contractResourceModel")
-		},
-	)
-}
-
-func Test_instanceResourceModel_CanBeTerminated(t *testing.T) {
-	t.Run("instance can be terminated", func(t *testing.T) {
-		instance := generateInstanceResourceModel()
-		instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
-
-		got := instance.CanBeTerminated(context.TODO())
-
-		assert.Nil(t, got)
-	})
-
-	t.Run(
-		"instance cannot be terminated if state is CREATING/DESTROYING/DESTROYED",
-		func(t *testing.T) {
-			tests := []struct {
-				name           string
-				state          publicCloud.State
-				reasonContains string
-			}{
-				{
-					name:           "state is CREATING",
-					state:          publicCloud.STATE_CREATING,
-					reasonContains: "CREATING",
-				},
-				{
-					name:           "state is DESTROYING",
-					state:          publicCloud.STATE_DESTROYING,
-					reasonContains: "DESTROYING",
-				},
-				{
-					name:           "state is DESTROYED",
-					state:          publicCloud.STATE_DESTROYED,
-					reasonContains: "DESTROYED",
-				},
-			}
-			for _, tt := range tests {
-				t.Run(tt.name, func(t *testing.T) {
-					instance := generateInstanceResourceModel()
-					instance.State = basetypes.NewStringValue(string(tt.state))
-
-					got := instance.CanBeTerminated(context.TODO())
-
-					assert.NotNil(t, got)
-					assert.Contains(t, *got, tt.reasonContains)
-				})
-			}
-		},
-	)
-
-	t.Run(
-		"instance cannot be terminated if contract.endsAt is set",
-		func(t *testing.T) {
-			endsAt := "2023-12-14 17:09:47 +0000 UTC"
-
-			contract := generateContractObject(nil, nil, nil, &endsAt)
-
-			instance := generateInstanceResourceModel()
-			instance.State = basetypes.NewStringValue(string(publicCloud.STATE_UNKNOWN))
-			instance.Contract = contract
-
-			got := instance.CanBeTerminated(context.TODO())
-
-			assert.NotNil(t, got)
-			assert.Contains(t, *got, "2023-12-14 17:09:47 +0000 UTC")
 		},
 	)
 }

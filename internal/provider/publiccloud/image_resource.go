@@ -3,12 +3,12 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -20,7 +20,6 @@ import (
 var (
 	_ resource.ResourceWithConfigure   = &imageResource{}
 	_ resource.ResourceWithImportState = &imageResource{}
-	_ resource.ResourceWithModifyPlan  = &imageResource{}
 )
 
 type imageResourceModel struct {
@@ -113,53 +112,25 @@ func getImage(
 	ID string,
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ImageDetails, *utils.SdkError) {
-	sdkImages, err := getAllImages(ctx, api)
+) (*publicCloud.ImageDetails, *http.Response, error) {
+	sdkImages, httpResponse, err := getAllImages(ctx, api)
 
 	if err != nil {
-		return nil, err
+		return nil, httpResponse, err
 	}
 
 	for _, sdkImage := range sdkImages {
 		if sdkImage.GetId() == ID {
-			return &sdkImage, nil
+			return &sdkImage, nil, nil
 		}
 	}
 
-	return nil, nil
+	return nil, nil, nil
 }
 
 type imageResource struct {
 	name   string
 	client publicCloud.PublicCloudAPI
-}
-
-func (i *imageResource) ModifyPlan(
-	ctx context.Context,
-	request resource.ModifyPlanRequest,
-	response *resource.ModifyPlanResponse,
-) {
-	planImage := imageResourceModel{}
-	request.Plan.Get(ctx, &planImage)
-
-	instances, err := getAllInstances(ctx, i.client)
-	if err != nil {
-		// TODO: for the error details,
-		// the implementation of method getAllInstances need to be change
-		summary := fmt.Sprintf("Modifying resource %s", i.name)
-		response.Diagnostics.AddError(summary, err.Error())
-		return
-	}
-
-	idRequest := validator.StringRequest{ConfigValue: planImage.ID}
-	idResponse := validator.StringResponse{}
-
-	instanceIdValidator := newInstanceIdForCustomImageValidator(instances)
-	instanceIdValidator.ValidateString(ctx, idRequest, &idResponse)
-
-	if idResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(idResponse.Diagnostics.Errors()...)
-	}
 }
 
 func (i *imageResource) ImportState(
@@ -247,22 +218,16 @@ func (i *imageResource) Create(
 
 	opts := plan.GetCreateImageOpts()
 
-	sdkImage, apiResponse, err := i.client.CreateImage(ctx).
+	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError(
+		utils.HandleSdkError(
 			summary,
-			utils.NewError(apiResponse, err).Error(),
-		)
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
+			err,
 			&response.Diagnostics,
-			summary,
-			sdkErr.Error(),
+			ctx,
 		)
 
 		return
@@ -293,17 +258,14 @@ func (i *imageResource) Read(
 		return
 	}
 
-	sdkImage, err := getImage(state.ID.ValueString(), ctx, i.client)
+	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
-		// TODO: for the error details,
-		// the implementation of method getImage need to be change
-		response.Diagnostics.AddError(summary, err.Error())
-		utils.LogError(
-			ctx,
-			err.ErrorResponse,
-			&response.Diagnostics,
+		utils.HandleSdkError(
 			summary,
-			err.Error(),
+			httpResponse,
+			err,
+			&response.Diagnostics,
+			ctx,
 		)
 
 		return
@@ -337,28 +299,22 @@ func (i *imageResource) Update(
 	tflog.Info(ctx, fmt.Sprintf("Update publiccloud image %q", plan.ID.ValueString()))
 	opts := plan.GetUpdateImageOpts()
 
-	sdkImageDetails, apiResponse, err := i.client.UpdateImage(
+	sdkImageDetails, httpResponse, err := i.client.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
 		summary := fmt.Sprintf(
 			"Updating resource %s for id %q",
 			i.name,
 			plan.ID.ValueString(),
 		)
-		response.Diagnostics.AddError(
+		utils.HandleSdkError(
 			summary,
-			utils.NewError(apiResponse, err).Error(),
-		)
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
+			err,
 			&response.Diagnostics,
-			summary,
-			sdkErr.Error(),
+			ctx,
 		)
 
 		return
