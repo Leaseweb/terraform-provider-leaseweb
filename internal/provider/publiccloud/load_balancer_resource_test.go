@@ -114,7 +114,6 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 				nil,
 				nil,
 				&contractType,
-				nil,
 			)
 			loadBalancer.Contract = contract
 
@@ -134,7 +133,6 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 				nil,
 				&contractTerm,
 				nil,
-				nil,
 			)
 			loadBalancer.Contract = contract
 
@@ -152,7 +150,6 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 			loadBalancer := generateLoadBalancerResourceModel()
 			contract := generateContractObject(
 				&billingFrequency,
-				nil,
 				nil,
 				nil,
 			)
@@ -224,7 +221,6 @@ func Test_loadBalancerResourceModel_GetUpdateLoadBalancerOpts(t *testing.T) {
 
 func generateLoadBalancerResourceModel() loadBalancerResourceModel {
 	contract := generateContractObject(
-		nil,
 		nil,
 		nil,
 		nil,

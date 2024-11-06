@@ -56,37 +56,27 @@ func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Contex
 		return nil, utils.ReturnError("GetLaunchLoadBalancerOpts", contractDiags)
 	}
 
-	sdkContractType, err := publicCloud.NewContractTypeFromValue(
-		contract.Type.ValueString(),
-	)
+	sdkContractType, err := publicCloud.NewContractTypeFromValue(contract.Type.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
-		contract.Term.ValueInt32(),
-	)
+	sdkContractTerm, err := publicCloud.NewContractTermFromValue(contract.Term.ValueInt32())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
-		contract.BillingFrequency.ValueInt32(),
-	)
+	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(contract.BillingFrequency.ValueInt32())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkRegionName, err := publicCloud.NewRegionNameFromValue(
-		l.Region.ValueString(),
-	)
+	sdkRegionName, err := publicCloud.NewRegionNameFromValue(l.Region.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkTypeName, err := publicCloud.NewTypeNameFromValue(
-		l.Type.ValueString(),
-	)
+	sdkTypeName, err := publicCloud.NewTypeNameFromValue(l.Type.ValueString())
 	if err != nil {
 		return nil, err
 	}
@@ -112,9 +102,7 @@ func (l *loadBalancerResourceModel) GetUpdateLoadBalancerOpts() (
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(l.Reference)
 
 	if l.Type.ValueString() != "" {
-		instanceType, err := publicCloud.NewTypeNameFromValue(
-			l.Type.ValueString(),
-		)
+		instanceType, err := publicCloud.NewTypeNameFromValue(l.Type.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("GetUpdateLoadBalancerOpts: %w", err)
 		}
@@ -254,7 +242,6 @@ func (l *loadBalancerResource) Schema(
 						Computed: true,
 					},
 				},
-				Validators: []validator.Object{contractTermValidator{}},
 			},
 			"region": schema.StringAttribute{
 				Required: true,
@@ -313,20 +300,17 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	sdkLoadBalancer, apiResponse, err := l.client.PublicCloudAPI.LaunchLoadBalancer(ctx).
+	sdkLoadBalancer, httpResponse, err := l.client.PublicCloudAPI.LaunchLoadBalancer(ctx).
 		LaunchLoadBalancerOpts(*opts).
 		Execute()
 
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError("Error launching Public Cloud load balancer", sdkErr.Error())
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			&response.Diagnostics,
+		utils.HandleSdkError(
 			"Error launching Public Cloud load balancer",
-			sdkErr.Error(),
+			httpResponse,
+			err,
+			&response.Diagnostics,
+			context.TODO(),
 		)
 
 		return
@@ -362,19 +346,16 @@ func (l *loadBalancerResource) Read(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Read Public Cloud load balancer %q", state.ID.ValueString()))
-	sdkLoadBalancerDetails, apiResponse, err := l.client.PublicCloudAPI.
+	sdkLoadBalancerDetails, httpResponse, err := l.client.PublicCloudAPI.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		sdkError := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError("Error reading Public Cloud load balancer", sdkError.Error())
-
-		utils.LogError(
-			ctx,
-			sdkError.ErrorResponse,
+		utils.HandleSdkError(
+			"Error reading Public Cloud load balancer",
+			httpResponse,
+			err,
 			&response.Diagnostics,
-			fmt.Sprintf("Unable to read Public Cloud load balancer %q", state.ID.ValueString()),
-			err.Error(),
+			context.TODO(),
 		)
 
 		return
@@ -415,21 +396,17 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	sdkLoadBalancer, apiResponse, err := l.client.PublicCloudAPI.
+	sdkLoadBalancer, httpResponse, err := l.client.PublicCloudAPI.
 		UpdateLoadBalancer(ctx, plan.ID.ValueString()).
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-
-		response.Diagnostics.AddError("Error updating Public Cloud load balancer", sdkErr.Error())
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
+		utils.HandleSdkError(
+			"Error updating Public Cloud load balancer",
+			httpResponse,
+			err,
 			&response.Diagnostics,
-			fmt.Sprintf("Unable to update Public Cloud load balancer %q", plan.ID.ValueString()),
-			sdkErr.Error(),
+			context.TODO(),
 		)
 
 		return
@@ -452,20 +429,14 @@ func (l *loadBalancerResource) Delete(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Terminate Public Cloud load balancer %q", state.ID.ValueString()))
-	apiResponse, err := l.client.PublicCloudAPI.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
+	httpResponse, err := l.client.PublicCloudAPI.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		response.Diagnostics.AddError(
+		utils.HandleSdkError(
 			"Error terminating Public Cloud load balancer",
-			fmt.Sprintf("Could not terminate Public Cloud load balancer, unexpected error: %q", sdkErr.Error()),
-		)
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
+			httpResponse,
+			err,
 			&response.Diagnostics,
-			fmt.Sprintf("Error terminating Public Cloud load balancer %q", state.ID.ValueString()),
-			err.Error(),
+			context.TODO(),
 		)
 
 		return

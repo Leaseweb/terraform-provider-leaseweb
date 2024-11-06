@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1473,7 +1475,6 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 			})
 		},
 	)
-
 }
 
 func TestAccLoadBalancerResource(t *testing.T) {
@@ -1594,56 +1595,6 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 		})
 	})
 
-	t.Run(
-		"term must be 0 when contract type is HOURLY",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 3
-    type              = "HOURLY"
-  }
-}`,
-						ExpectError: regexp.MustCompile(
-							"Attribute contract.term must be 0 when contract.type is \"HOURLY\", got: 3",
-						),
-					},
-				},
-			})
-		},
-	)
-
-	t.Run("term must not be 0 when contract type is MONTHLY", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "MONTHLY"
-  }
-}`,
-					ExpectError: regexp.MustCompile(
-						"Attribute contract.term cannot be 0 when contract.type is \"MONTHLY\", got: 0",
-					),
-				},
-			},
-		})
-	})
 	t.Run("invalid type", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -1732,30 +1683,6 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 }`,
 					ExpectError: regexp.MustCompile(
 						"Attribute contract.term value must be one of",
-					),
-				},
-			},
-		})
-	})
-
-	t.Run("invalid contract.type", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.2xlarge"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 3
-    type              = "tralala"
-  }
-}`,
-					ExpectError: regexp.MustCompile(
-						"Attribute contract.type value must be one of",
 					),
 				},
 			},
