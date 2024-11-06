@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -79,19 +80,19 @@ func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesD
 	return images
 }
 
-func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
-	[]publicCloud.ImageDetails,
-	*utils.SdkError,
-) {
+func getAllImages(
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]publicCloud.ImageDetails, *http.Response, error) {
 	var images []publicCloud.ImageDetails
 	var offset *int32
 
 	request := api.GetImageList(ctx)
 
 	for {
-		result, response, err := request.Execute()
+		result, httpResponse, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllImages", err, response)
+			return nil, httpResponse, fmt.Errorf("getAllImages: %w", err)
 		}
 
 		images = append(images, result.GetImages()...)
@@ -111,7 +112,7 @@ func getAllImages(ctx context.Context, api publicCloud.PublicCloudAPI) (
 		request.Offset(*offset)
 	}
 
-	return images, nil
+	return images, nil, nil
 }
 
 func imageSchemaAttributes() map[string]schema.Attribute {
@@ -187,21 +188,16 @@ func (i *imagesDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	tflog.Info(ctx, "Read publiccloud images")
-	images, err := getAllImages(ctx, i.client)
+	tflog.Info(ctx, "Read Public Cloud images")
+	images, httpResponse, err := getAllImages(ctx, i.client)
 
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", i.name)
-		// TODO: for the error details,
-		// the implementation of method getAllImages need to be change
-		response.Diagnostics.AddError(summary, err.Error())
-
-		utils.LogError(
-			ctx,
-			err.ErrorResponse,
+		utils.HandleSdkError(
+			fmt.Sprintf("Reading data %s", i.name),
+			httpResponse,
+			err,
 			&response.Diagnostics,
-			summary,
-			err.Error(),
+			ctx,
 		)
 
 		return

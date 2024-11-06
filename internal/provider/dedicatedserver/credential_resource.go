@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -142,8 +141,7 @@ func (c *credentialResource) Create(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
 		return
 	}
 
@@ -155,9 +153,6 @@ func (c *credentialResource) Create(
 	}
 	diags = resp.State.Set(ctx, data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *credentialResource) Read(
@@ -186,8 +181,7 @@ func (c *credentialResource) Read(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
 		return
 	}
 
@@ -199,9 +193,6 @@ func (c *credentialResource) Read(
 	}
 	diags = resp.State.Set(ctx, data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *credentialResource) Update(
@@ -233,8 +224,7 @@ func (c *credentialResource) Update(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
 		return
 	}
 
@@ -246,9 +236,6 @@ func (c *credentialResource) Update(
 	}
 	diags = resp.State.Set(ctx, data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *credentialResource) Delete(
@@ -277,8 +264,6 @@ func (c *credentialResource) Delete(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
-		return
+		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
 	}
 }

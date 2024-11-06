@@ -3,7 +3,6 @@ package publiccloud
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -25,15 +24,6 @@ import (
 var (
 	_ resource.ResourceWithConfigure   = &instanceResource{}
 	_ resource.ResourceWithImportState = &instanceResource{}
-	_ resource.ResourceWithModifyPlan  = &instanceResource{}
-)
-
-type reason string
-
-const (
-	reasonContractTermCannotBeZero reason = "contract.term cannot be 0 when contract type is MONTHLY"
-	reasonContractTermMustBeZero   reason = "contract.term must be 0 when contract type is HOURLY"
-	reasonNone                     reason = ""
 )
 
 type contractResourceModel struct {
@@ -54,18 +44,6 @@ func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (c contractResourceModel) IsContractTermValid() (bool, reason) {
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_MONTHLY) && c.Term.ValueInt32() == 0 {
-		return false, reasonContractTermCannotBeZero
-	}
-
-	if c.Type.ValueString() == string(publicCloud.CONTRACTTYPE_HOURLY) && c.Term.ValueInt32() != 0 {
-		return false, reasonContractTermMustBeZero
-	}
-
-	return true, reasonNone
-}
-
 func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
 	return contractResourceModel{
 		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
@@ -75,8 +53,6 @@ func adaptContractToContractResource(sdkContract publicCloud.Contract) contractR
 		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
 	}
 }
-
-type reasonInstanceCannotBeTerminated string
 
 type instanceResourceModel struct {
 	ID                  types.String `tfsdk:"id"`
@@ -251,36 +227,6 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	return opts, nil
-}
-
-func (i instanceResourceModel) CanBeTerminated(ctx context.Context) *reasonInstanceCannotBeTerminated {
-	contract := contractResourceModel{}
-	contractDiags := i.Contract.As(
-		ctx,
-		&contract,
-		basetypes.ObjectAsOptions{},
-	)
-	if contractDiags != nil {
-		log.Fatal("cannot convert contract objectType to model")
-	}
-
-	if i.State.ValueString() == string(publicCloud.STATE_CREATING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYING) || i.State.ValueString() == string(publicCloud.STATE_DESTROYED) {
-		reason := reasonInstanceCannotBeTerminated(
-			fmt.Sprintf("state is %q", i.State),
-		)
-
-		return &reason
-	}
-
-	if !contract.EndsAt.IsNull() {
-		reason := reasonInstanceCannotBeTerminated(
-			fmt.Sprintf("contract.endsAt is %q", contract.EndsAt.ValueString()),
-		)
-
-		return &reason
-	}
-
-	return nil
 }
 
 func adaptInstanceToInstanceResource(
@@ -466,20 +412,17 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, apiResponse, err := i.client.LaunchInstance(ctx).
+	sdkInstance, httpResponse, err := i.client.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		resp.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
+		utils.HandleSdkError(
 			summary,
-			sdkErr.Error(),
+			httpResponse,
+			err,
+			&resp.Diagnostics,
+			ctx,
 		)
 
 		return
@@ -514,95 +457,23 @@ func (i *instanceResource) Delete(
 		"Terminate Public Cloud instance %q",
 		state.ID.ValueString(),
 	))
-	apiResponse, err := i.client.TerminateInstance(
+	httpResponse, err := i.client.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
-	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		summary := fmt.Sprintf(
-			"Terminating resource %s for id %q",
-			i.name,
-			state.ID.ValueString(),
-		)
-		resp.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
 
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
+	if err != nil {
+		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
+		utils.HandleSdkError(
 			summary,
-			sdkErr.Error(),
+			httpResponse,
+			err,
+			&resp.Diagnostics,
+			ctx,
 		)
 
 		return
 	}
-}
-
-func getAvailableInstanceTypesForUpdate(
-	id string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]string, *utils.SdkError) {
-	var instanceTypes []string
-
-	sdkInstanceTypes, response, err := api.GetUpdateInstanceTypeList(ctx, id).
-		Execute()
-	if err != nil {
-		return nil, utils.NewSdkError(
-			fmt.Sprintf("getAvailableInstanceTypesForUpdate %q", id),
-			err,
-			response,
-		)
-	}
-
-	for _, sdkInstanceType := range sdkInstanceTypes.InstanceTypes {
-		instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
-	}
-
-	return instanceTypes, nil
-}
-
-func getInstanceTypesForRegion(
-	region string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]string, *utils.SdkError) {
-	var instanceTypes []string
-	var offset *int32
-
-	request := api.GetInstanceTypeList(ctx).Region(publicCloud.RegionName(region))
-
-	for {
-		result, response, err := request.Execute()
-		if err != nil {
-			return nil, utils.NewSdkError(
-				"GetInstanceTypesForRegion",
-				err,
-				response,
-			)
-		}
-
-		for _, sdkInstanceType := range result.InstanceTypes {
-			instanceTypes = append(instanceTypes, string(sdkInstanceType.Name))
-		}
-
-		metadata := result.GetMetadata()
-
-		offset = utils.NewOffset(
-			metadata.GetLimit(),
-			metadata.GetOffset(),
-			metadata.GetTotalCount(),
-		)
-
-		if offset == nil {
-			break
-		}
-
-		request.Offset(*offset)
-	}
-
-	return instanceTypes, nil
 }
 
 func (i *instanceResource) ImportState(
@@ -639,7 +510,6 @@ func (i *instanceResource) Read(
 		i.name,
 		state.ID.ValueString(),
 	)
-
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -649,20 +519,16 @@ func (i *instanceResource) Read(
 		ctx,
 		fmt.Sprintf("Read Public Cloud instance %q", state.ID.ValueString()),
 	)
-	sdkInstance, response, err := i.client.
+	sdkInstance, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, response)
-
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
+		utils.HandleSdkError(
 			summary,
-			err.Error(),
+			httpResponse,
+			err,
+			&resp.Diagnostics,
+			ctx,
 		)
 
 		return
@@ -718,20 +584,17 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, apiResponse, err := i.client.
+	sdkInstance, httpResponse, err := i.client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
 	if err != nil {
-		sdkErr := utils.NewSdkError("", err, apiResponse)
-		resp.Diagnostics.AddError(summary, utils.NewError(apiResponse, err).Error())
-
-		utils.LogError(
-			ctx,
-			sdkErr.ErrorResponse,
-			&resp.Diagnostics,
+		utils.HandleSdkError(
 			summary,
-			sdkErr.Error(),
+			httpResponse,
+			err,
+			&resp.Diagnostics,
+			ctx,
 		)
 
 		return
@@ -894,7 +757,6 @@ func (i *instanceResource) Schema(
 						Computed: true,
 					},
 				},
-				Validators: []validator.Object{contractTermValidator{}},
 			},
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
@@ -905,150 +767,5 @@ func (i *instanceResource) Schema(
 				},
 			},
 		},
-	}
-}
-
-// ModifyPlan calls validators that require access to the handler.
-// This needs to be done here as client.Client isn't properly initialized when
-// the schema is called.
-func (i *instanceResource) ModifyPlan(
-	ctx context.Context,
-	request resource.ModifyPlanRequest,
-	response *resource.ModifyPlanResponse,
-) {
-	planInstance := instanceResourceModel{}
-	request.Plan.Get(ctx, &planInstance)
-
-	planImage := imageResourceModel{}
-	planInstance.Image.As(ctx, &planImage, basetypes.ObjectAsOptions{})
-
-	stateInstance := instanceResourceModel{}
-	request.State.Get(ctx, &stateInstance)
-
-	stateImage := imageResourceModel{}
-	stateInstance.Image.As(ctx, &stateImage, basetypes.ObjectAsOptions{})
-
-	// Before deletion, determine if the instance is allowed to be deleted
-	if request.Plan.Raw.IsNull() {
-		i.validateInstance(stateInstance, response, ctx)
-		if response.Diagnostics.HasError() {
-			return
-		}
-	}
-
-	availableInstanceTypes := i.getAvailableInstanceTypes(
-		response,
-		stateInstance.ID,
-		planInstance.Region.ValueString(),
-		ctx,
-	)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
-	i.validateInstanceType(
-		planInstance.Type,
-		stateInstance.Type,
-		response,
-		availableInstanceTypes,
-		ctx,
-	)
-	if response.Diagnostics.HasError() {
-		return
-	}
-}
-
-// When creating a new instance,
-// any instanceType available in the region is good.
-// On update, the criteria is more limited.
-func (i *instanceResource) getAvailableInstanceTypes(
-	response *resource.ModifyPlanResponse,
-	id basetypes.StringValue,
-	region string,
-	ctx context.Context,
-) []string {
-	summary := fmt.Sprintf("Modifying resource %s", i.name)
-	// instanceResourceModel is being created.
-	if id.IsNull() {
-		availableInstanceTypes, err := getInstanceTypesForRegion(
-			region,
-			ctx,
-			i.client,
-		)
-		if err != nil {
-			response.Diagnostics.AddError(
-				summary,
-				utils.DefaultErrMsg,
-			)
-			return nil
-		}
-
-		return availableInstanceTypes
-	}
-
-	availableInstanceTypes, err := getAvailableInstanceTypesForUpdate(
-		id.ValueString(),
-		ctx,
-		i.client,
-	)
-	if err != nil {
-		response.Diagnostics.AddError(
-			summary,
-			utils.DefaultErrMsg,
-		)
-		return nil
-	}
-
-	return availableInstanceTypes
-}
-
-func (i *instanceResource) validateInstanceType(
-	instanceType types.String,
-	currentInstanceType types.String,
-	response *resource.ModifyPlanResponse,
-	availableInstanceTypes []string,
-	ctx context.Context,
-) {
-	request := validator.StringRequest{ConfigValue: instanceType}
-	instanceResponse := validator.StringResponse{}
-
-	instanceTypeValidator := newInstanceTypeValidator(
-		currentInstanceType,
-		availableInstanceTypes,
-	)
-
-	instanceTypeValidator.ValidateString(ctx, request, &instanceResponse)
-	if instanceResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(instanceResponse.Diagnostics.Errors()...)
-	}
-}
-
-// Checks if instance can be deleted.
-func (i *instanceResource) validateInstance(
-	instance instanceResourceModel,
-	response *resource.ModifyPlanResponse,
-	ctx context.Context,
-) {
-	instanceObject, diags := basetypes.NewObjectValueFrom(
-		ctx,
-		instanceResourceModel{}.AttributeTypes(),
-		instance,
-	)
-	if diags.HasError() {
-		response.Diagnostics.Append(diags.Errors()...)
-		return
-	}
-
-	instanceRequest := validator.ObjectRequest{ConfigValue: instanceObject}
-	instanceResponse := validator.ObjectResponse{}
-	validateInstanceTermination := instanceTerminationValidator{}
-	validateInstanceTermination.ValidateObject(
-		ctx,
-		instanceRequest,
-		&instanceResponse,
-	)
-
-	if instanceResponse.Diagnostics.HasError() {
-		response.Diagnostics.Append(instanceResponse.Diagnostics.Errors()...)
 	}
 }

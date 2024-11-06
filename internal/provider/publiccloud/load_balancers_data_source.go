@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -63,16 +64,16 @@ func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.
 func getAllLoadBalancers(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.LoadBalancerDetails, *utils.SdkError) {
+) ([]publicCloud.LoadBalancerDetails, *http.Response, error) {
 	var loadBalancers []publicCloud.LoadBalancerDetails
 	var offset *int32
 
 	request := api.GetLoadBalancerList(ctx)
 
 	for {
-		result, response, err := request.Execute()
+		result, httpResponse, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllLoadBalancers", err, response)
+			return nil, httpResponse, fmt.Errorf("getAllLoadBalancers: %w", err)
 		}
 
 		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
@@ -92,7 +93,7 @@ func getAllLoadBalancers(
 		request.Offset(*offset)
 	}
 
-	return loadBalancers, nil
+	return loadBalancers, nil, nil
 }
 
 type loadBalancersDataSource struct {
@@ -176,19 +177,19 @@ func (l *loadBalancersDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read Public Cloud load balancers")
-	loadBalancers, err := getAllLoadBalancers(ctx, l.client.PublicCloudAPI)
+	loadBalancers, httpResponse, err := getAllLoadBalancers(
+		ctx,
+		l.client.PublicCloudAPI,
+	)
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", l.name)
-		// TODO: for the error details,
-		// the implementation of method getAllLoadBalancers need to be change
-		response.Diagnostics.AddError(summary, err.Error())
-		utils.LogError(
-			ctx,
-			err.ErrorResponse,
-			&response.Diagnostics,
+		utils.HandleSdkError(
 			summary,
-			err.Error(),
+			httpResponse,
+			err,
+			&response.Diagnostics,
+			ctx,
 		)
 
 		return

@@ -3,6 +3,7 @@ package publiccloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -93,21 +94,20 @@ func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) in
 	return instances
 }
 
-func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
-	[]publicCloud.Instance,
-	*utils.SdkError,
-) {
+func getAllInstances(
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) ([]publicCloud.Instance, *http.Response, error) {
 	var instances []publicCloud.Instance
 	var offset *int32
 
 	request := api.GetInstanceList(ctx)
 
 	for {
-		result, response, err := request.Execute()
+		result, httpResponse, err := request.Execute()
 		if err != nil {
-			return nil, utils.NewSdkError("getAllInstances", err, response)
+			return nil, httpResponse, fmt.Errorf("getAllInstances: %w", err)
 		}
-
 		instances = append(instances, result.Instances...)
 
 		metadata := result.GetMetadata()
@@ -117,7 +117,6 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 			metadata.GetOffset(),
 			metadata.GetTotalCount(),
 		)
-
 		if offset == nil {
 			break
 		}
@@ -125,7 +124,7 @@ func getAllInstances(ctx context.Context, api publicCloud.PublicCloudAPI) (
 		request.Offset(*offset)
 	}
 
-	return instances, nil
+	return instances, nil, nil
 }
 
 func NewInstancesDataSource() datasource.DataSource {
@@ -178,19 +177,16 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, err := getAllInstances(ctx, d.client.PublicCloudAPI)
+	instances, httpResponse, err := getAllInstances(ctx, d.client.PublicCloudAPI)
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", d.name)
-		// TODO: for the error details,
-		// the implementation of method getAllInstances need to be change
-		resp.Diagnostics.AddError(summary, err.Error())
-		utils.LogError(
-			ctx,
-			err.ErrorResponse,
-			&resp.Diagnostics,
+		utils.HandleSdkError(
 			summary,
-			err.Error(),
+			httpResponse,
+			err,
+			&resp.Diagnostics,
+			ctx,
 		)
 
 		return
@@ -289,7 +285,6 @@ func (d *instancesDataSource) Schema(
 									Computed: true,
 								},
 							},
-							Validators: []validator.Object{contractTermValidator{}},
 						},
 						"market_app_id": schema.StringAttribute{
 							Computed:    true,
