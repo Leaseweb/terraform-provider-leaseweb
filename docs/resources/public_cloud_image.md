@@ -15,8 +15,8 @@ Once created, an image resource cannot be deleted via Terraform
 ```terraform
 # Manage example Public Cloud image
 resource "leaseweb_public_cloud_image" "example" {
-  id   = "396a3299-1795-464b-aa10-e1f179db1926"
-  name = "Custom image"
+  instance_id = "396a3299-1795-464b-aa10-e1f179db1926"
+  name        = "Custom image"
 }
 ```
 
@@ -25,7 +25,7 @@ resource "leaseweb_public_cloud_image" "example" {
 
 ### Required
 
-- `id` (String) The id of the instance which the custom image is based on. The following rules apply:
+- `instance_id` (String) The id of the instance which the custom image is based on. The following rules apply:
   - instance exists for instanceId
   - instance has state *STOPPED*
   - instance has a maximum rootDiskSize of 100 GB
@@ -36,6 +36,7 @@ resource "leaseweb_public_cloud_image" "example" {
 
 - `custom` (Boolean) Standard or Custom image
 - `flavour` (String)
+- `id` (String) Can be either an Operating System or a UUID in case of a Custom Image
 - `market_apps` (List of String)
 - `region` (String)
 - `state` (String)

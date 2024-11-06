@@ -657,6 +657,10 @@ func (i *instanceResource) Schema(
 							stringplanmodifier.RequiresReplace(),
 						},
 					},
+					"instance_id": schema.StringAttribute{
+						Computed:    true,
+						Description: "Can be either an Operating System or a UUID in case of a Custom Image ID.",
+					},
 					"name": schema.StringAttribute{
 						Computed: true,
 					},
