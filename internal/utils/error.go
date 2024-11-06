@@ -120,38 +120,90 @@ func HandleSdkError(
 		return
 	}
 
-	// Try to read httpResponse body into buffer
-	buf := new(strings.Builder)
-	_, err = io.Copy(buf, httpResponse.Body)
+	response, err := newResponse(httpResponse.Body)
 	if err != nil {
-		handleError(summary, err, diags)
+		handleError(summary, nil, diags)
 		return
 	}
 
 	// Create DEBUG log with httpResponse body.
-	responseMap, err := newResponseMap(buf.String())
-	if err != nil {
-		tflog.Debug(
-			ctx,
-			summary,
-			map[string]any{"httpResponse": fmt.Sprintf("%v", httpResponse.Body)},
-		)
-		handleError(summary, nil, diags)
-		return
-	}
-	tflog.Debug(ctx, summary, map[string]any{"response": responseMap})
+	response.newDebugLog(ctx, summary)
 
 	// Convert httpResponse buffer to ErrorResponse object.
-	errorResponse, err := newErrorResponse(buf.String())
+	err = response.setErrors(summary, diags)
 	if err != nil {
 		handleError(summary, err, diags)
 		return
 	}
+}
 
+type ErrorResponse struct {
+	CorrelationId string              `json:"correlationId,omitempty"`
+	ErrorCode     string              `json:"errorCode,omitempty"`
+	ErrorMessage  string              `json:"errorMessage,omitempty"`
+	ErrorDetails  map[string][]string `json:"errorDetails,omitempty"`
+}
+
+// If passed, add the specific error to diags. If no error is passed then show the default error.
+func handleError(
+	summary string,
+	err error,
+	diags *diag.Diagnostics,
+) {
+	if err != nil {
+		diags.AddError(summary, err.Error())
+		return
+	}
+
+	diags.AddError(summary, DefaultErrMsg)
+}
+
+type response struct {
+	buf           *strings.Builder
+	errorResponse ErrorResponse
+	responseMap   map[string]interface{}
+}
+
+// If set show the responseMap. If the responseMap is not set show the httpResponse body.
+func (r response) newDebugLog(
+	ctx context.Context,
+	summary string,
+) {
+	if r.responseMap == nil {
+		tflog.Debug(
+			ctx,
+			summary,
+			map[string]any{"httpResponse": fmt.Sprintf("%v", r.buf.String())},
+		)
+		return
+	}
+
+	tflog.Debug(ctx, summary, map[string]any{"response": r.responseMap})
+}
+
+// Try to set attribute errors, if that's not possible set a global resource error.
+func (r response) setErrors(summary string, diags *diag.Diagnostics) error {
+	errorSet := r.setAttributeErrors(summary, diags)
+
+	if !errorSet {
+		err := r.setGlobalError(summary, diags)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Return true if an attribute error is set, otherwise return false.
+func (r response) setAttributeErrors(
+	summary string,
+	diags *diag.Diagnostics,
+) bool {
 	// Convert key returned from api to an attribute path.
 	// I.e.: []string{"image", "id"}.
 	errorSet := false
-	for errorKey, errorDetailList := range errorResponse.ErrorDetails {
+	for errorKey, errorDetailList := range r.errorResponse.ErrorDetails {
 		normalizedErrorKey := normalizeErrorResponseKey(errorKey)
 		mapKeys := strings.Split(normalizedErrorKey, "_")
 		attributePath := path.Root(mapKeys[0])
@@ -168,60 +220,51 @@ func HandleSdkError(
 		errorSet = true
 	}
 
-	// If no attribute errors are set, set a global error
-	if !errorSet {
-		errorResponseString, err := json.MarshalIndent(
-			errorResponse,
-			"",
-			" ",
-		)
-		if err != nil {
-			handleError(summary, err, diags)
-			return
-		}
-
-		diags.AddError(summary, string(errorResponseString))
-	}
+	return errorSet
 }
 
-type ErrorResponse struct {
-	CorrelationId string              `json:"correlationId,omitempty"`
-	ErrorCode     string              `json:"errorCode,omitempty"`
-	ErrorMessage  string              `json:"errorMessage,omitempty"`
-	ErrorDetails  map[string][]string `json:"errorDetails,omitempty"`
-}
-
-func handleError(
+func (r response) setGlobalError(
 	summary string,
-	err error,
 	diags *diag.Diagnostics,
-) {
+) error {
+	errorResponseString, err := json.MarshalIndent(
+		r.errorResponse,
+		"",
+		" ",
+	)
 	if err != nil {
-		diags.AddError(summary, err.Error())
-		return
+		return err
 	}
 
-	diags.AddError(summary, DefaultErrMsg)
+	diags.AddError(summary, string(errorResponseString))
+	return nil
 }
 
-func newErrorResponse(body string) (*ErrorResponse, error) {
+func newResponse(body io.ReadCloser) (*response, error) {
+	var responseMap map[string]interface{}
+
+	// Try to read httpResponse body into buffer
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, body)
+	if err != nil {
+		return nil, err
+	}
+
 	errorResponse := ErrorResponse{}
 
-	jsonErr := json.Unmarshal([]byte(body), &errorResponse)
-	if jsonErr != nil {
-		return nil, jsonErr
+	err = json.Unmarshal([]byte(buf.String()), &errorResponse)
+	if err != nil {
+		return nil, err
 	}
 
-	return &errorResponse, nil
-}
-
-func newResponseMap(body string) (map[string]interface{}, error) {
-	var response map[string]interface{}
-
-	jsonErr := json.Unmarshal([]byte(body), &response)
-	if jsonErr != nil {
-		return nil, jsonErr
+	err = json.Unmarshal([]byte(buf.String()), &responseMap)
+	if err != nil {
+		responseMap = nil
 	}
 
-	return response, nil
+	return &response{
+		buf:           buf,
+		errorResponse: errorResponse,
+		responseMap:   responseMap,
+	}, nil
 }
