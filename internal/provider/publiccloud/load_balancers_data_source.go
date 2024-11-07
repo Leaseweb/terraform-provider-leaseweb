@@ -90,7 +90,7 @@ func getAllLoadBalancers(
 			break
 		}
 
-		request.Offset(*offset)
+		request = request.Offset(*offset)
 	}
 
 	return loadBalancers, nil, nil
