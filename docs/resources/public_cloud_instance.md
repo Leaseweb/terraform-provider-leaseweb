@@ -170,7 +170,6 @@ Read-Only:
 
 - `custom` (Boolean) Standard or Custom image
 - `flavour` (String)
-- `instance_id` (String) Can be either an Operating System or a UUID in case of a Custom Image ID.
 - `market_apps` (List of String)
 - `name` (String)
 - `region` (String)
