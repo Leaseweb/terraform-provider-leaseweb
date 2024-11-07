@@ -121,7 +121,7 @@ func getAllInstances(
 			break
 		}
 
-		request.Offset(*offset)
+		request = request.Offset(*offset)
 	}
 
 	return instances, nil, nil

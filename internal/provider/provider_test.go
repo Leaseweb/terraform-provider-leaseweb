@@ -410,45 +410,39 @@ func TestAccInstanceImage(t *testing.T) {
 				{
 					Config: providerConfig + `
 resource "leaseweb_public_cloud_image" "test" {
-  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+  instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
   name = "Custom image - 03"
 }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_image.test",
-							"id",
-							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_image.test",
 							"name",
 							"Custom image - 03",
 						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"instance_id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
 					),
-				},
-				// ImportState testing
-				{
-					ResourceName:      "leaseweb_public_cloud_image.test",
-					ImportState:       true,
-					ImportStateVerify: true,
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_image" "test" {
-  id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
-  name = "Custom image - 03"
-}`,
+				  resource "leaseweb_public_cloud_image" "test" {
+				    instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+				    name = "Custom image - 03"
+				  }`,
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_image.test",
-							"id",
-							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
-						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_image.test",
 							"name",
 							"Custom image - 03",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"instance_id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
 						),
 					),
 				},

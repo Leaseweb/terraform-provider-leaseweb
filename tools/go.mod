@@ -2,7 +2,7 @@ module tools
 
 go 1.22.7
 
-require github.com/hashicorp/terraform-plugin-docs v0.19.4
+require github.com/hashicorp/terraform-plugin-docs v0.20.0
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/hc-install v0.9.0 // indirect
 	github.com/hashicorp/terraform-exec v0.21.0 // indirect
-	github.com/hashicorp/terraform-json v0.22.1 // indirect
+	github.com/hashicorp/terraform-json v0.23.0 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
