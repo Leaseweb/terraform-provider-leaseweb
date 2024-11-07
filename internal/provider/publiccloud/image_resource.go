@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -18,12 +19,12 @@ import (
 )
 
 var (
-	_ resource.ResourceWithConfigure   = &imageResource{}
-	_ resource.ResourceWithImportState = &imageResource{}
+	_ resource.ResourceWithConfigure = &imageResource{}
 )
 
 type imageResourceModel struct {
 	ID           types.String `tfsdk:"id"`
+	InstanceID   types.String `tfsdk:"instance_id"`
 	Name         types.String `tfsdk:"name"`
 	Custom       types.Bool   `tfsdk:"custom"`
 	State        types.String `tfsdk:"state"`
@@ -36,6 +37,7 @@ type imageResourceModel struct {
 func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":            types.StringType,
+		"instance_id":   types.StringType,
 		"name":          types.StringType,
 		"custom":        types.BoolType,
 		"state":         types.StringType,
@@ -55,7 +57,7 @@ func (i imageResourceModel) GetUpdateImageOpts() publicCloud.UpdateImageOpts {
 func (i imageResourceModel) GetCreateImageOpts() publicCloud.CreateImageOpts {
 	return publicCloud.CreateImageOpts{
 		Name:       i.Name.ValueString(),
-		InstanceId: i.ID.ValueString(),
+		InstanceId: i.InstanceID.ValueString(),
 	}
 }
 
@@ -133,14 +135,6 @@ type imageResource struct {
 	client publicCloud.PublicCloudAPI
 }
 
-func (i *imageResource) ImportState(
-	ctx context.Context,
-	request resource.ImportStateRequest,
-	response *resource.ImportStateResponse,
-) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
-}
-
 func (i *imageResource) Metadata(
 	_ context.Context,
 	request resource.MetadataRequest,
@@ -162,6 +156,14 @@ func (i *imageResource) Schema(
 		Description: "Once created, an image resource cannot be deleted via Terraform",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
+				Computed:    true,
+				Description: "Can be either an Operating System or a UUID in case of a Custom Image",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"instance_id": schema.StringAttribute{
 				Required: true,
 				Description: `
 The id of the instance which the custom image is based on. The following rules apply:
@@ -169,6 +171,9 @@ The id of the instance which the custom image is based on. The following rules a
   - instance has state *STOPPED*
   - instance has a maximum rootDiskSize of 100 GB
   - instance OS must not be *windows*`,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
@@ -240,6 +245,9 @@ func (i *imageResource) Create(
 		return
 	}
 
+	// instanceId has to be set manually as it isn't returned from the API
+	image.InstanceID = basetypes.NewStringValue(opts.InstanceId)
+
 	diags = response.State.Set(ctx, image)
 	response.Diagnostics.Append(diags...)
 }
@@ -272,14 +280,17 @@ func (i *imageResource) Read(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Create publiccloud image resource for %q", state.ID.ValueString()))
-	instance, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
+	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
 
-	diags = response.State.Set(ctx, instance)
+	// instanceId has to be set manually as it isn't returned from the API
+	image.InstanceID = state.InstanceID
+
+	diags = response.State.Set(ctx, image)
 	response.Diagnostics.Append(diags...)
 }
 
@@ -320,7 +331,15 @@ func (i *imageResource) Update(
 		return
 	}
 
-	diags = response.State.Set(ctx, sdkImageDetails)
+	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImageDetails)
+	if resourceErr != nil {
+		summary := fmt.Sprintf("Reading resource %s", i.name)
+		utils.HandleSdkError(summary, nil, err, &diags, ctx)
+
+		return
+	}
+
+	diags = response.State.Set(ctx, image)
 	response.Diagnostics.Append(diags...)
 }
 
