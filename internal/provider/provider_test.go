@@ -1473,5 +1473,32 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 			})
 		},
 	)
+}
 
+func TestAccLoadBalancerListenersDataSource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Read testing
+			{
+				Config: providerConfig + `
+data "leaseweb_public_cloud_load_balancer_listeners" "test" {
+    load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+}
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancer_listeners.test",
+						"listeners.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancer_listeners.test",
+						"listeners.0.id",
+						"fac06878-6655-4956-8ea7-124a97f133ab",
+					),
+				),
+			},
+		},
+	})
 }
