@@ -114,4 +114,8 @@ the following resources & data sources do not adhere to the rules:
 ## Tests
 
 Acceptance tests should be placed in [internal/provider/provider_test.go](internal/provider/provider_test.go).
+The test functions themselves must adhere to the
+`TestAcc<PRODUCT_NAME><END_POINT><TYPE>` format. An acceptance test for an
+instance resource should be called `TestAccInstanceResource` and a test for an
+instance data source should be called `TestAccInstanceDataSource`.
 
