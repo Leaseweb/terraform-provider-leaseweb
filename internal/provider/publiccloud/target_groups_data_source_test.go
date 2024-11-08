@@ -56,25 +56,48 @@ func generateTargetGroup() publicCloud.TargetGroup {
 }
 
 func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
-	targetGroups := targetGroupsDataSourceModel{
-		ID:       basetypes.NewStringValue("id"),
-		Name:     basetypes.NewStringValue("name"),
-		Protocol: basetypes.NewStringValue("HTTP"),
-		Port:     basetypes.NewInt32Value(80),
-		Region:   basetypes.NewStringValue("eu-west-3"),
-	}
-	api := publicCloud.PublicCloudAPIService{}
+	t.Run("request is generated as expected", func(t *testing.T) {
+		targetGroups := targetGroupsDataSourceModel{
+			ID:       basetypes.NewStringValue("id"),
+			Name:     basetypes.NewStringValue("name"),
+			Protocol: basetypes.NewStringValue("HTTP"),
+			Port:     basetypes.NewInt32Value(80),
+			Region:   basetypes.NewStringValue("eu-west-3"),
+		}
+		api := publicCloud.PublicCloudAPIService{}
 
-	want := api.GetTargetGroupList(context.TODO()).
-		Id("id").
-		Name("name").
-		Protocol("HTTP").
-		Port(80).
-		Region("eu-west-3")
+		want := api.GetTargetGroupList(context.TODO()).
+			Id("id").
+			Name("name").
+			Protocol("HTTP").
+			Port(80).
+			Region("eu-west-3")
 
-	got, err := targetGroups.generateRequest(context.TODO(), &api)
+		got, err := targetGroups.generateRequest(context.TODO(), &api)
 
-	assert.NoError(t, err)
-	assert.Equal(t, want, *got)
+		assert.NoError(t, err)
+		assert.Equal(t, want, *got)
+	})
 
+	t.Run("invalid protocol returns an error", func(t *testing.T) {
+		targetGroups := targetGroupsDataSourceModel{
+			Protocol: basetypes.NewStringValue("tralala"),
+		}
+
+		_, err := targetGroups.generateRequest(context.TODO(), &publicCloud.PublicCloudAPIService{})
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
+
+	t.Run("invalid region returns an error", func(t *testing.T) {
+		targetGroups := targetGroupsDataSourceModel{
+			Region: basetypes.NewStringValue("tralala"),
+		}
+
+		_, err := targetGroups.generateRequest(context.TODO(), &publicCloud.PublicCloudAPIService{})
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "tralala")
+	})
 }
