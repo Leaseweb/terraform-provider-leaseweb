@@ -35,6 +35,8 @@ func (t targetGroupsDataSourceModel) generateRequest(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
 ) (*publicCloud.ApiGetTargetGroupListRequest, error) {
+	funcName := "generateRequest"
+
 	request := api.GetTargetGroupList(ctx)
 	if !t.ID.IsNull() {
 		request = request.Id(t.ID.ValueString())
@@ -45,7 +47,7 @@ func (t targetGroupsDataSourceModel) generateRequest(
 	if !t.Protocol.IsNull() {
 		sdkProtocol, err := publicCloud.NewProtocolFromValue(t.Protocol.ValueString())
 		if err != nil {
-			return nil, fmt.Errorf("generateRequest: %w", err)
+			return nil, fmt.Errorf("%s: %w", funcName, err)
 		}
 		request = request.Protocol(*sdkProtocol)
 	}
@@ -55,7 +57,7 @@ func (t targetGroupsDataSourceModel) generateRequest(
 	if !t.Region.IsNull() {
 		sdkRegion, err := publicCloud.NewRegionNameFromValue(t.Region.ValueString())
 		if err != nil {
-			return nil, fmt.Errorf("generateRequest: %w", err)
+			return nil, fmt.Errorf("%s: %w", funcName, err)
 		}
 		request = request.Region(*sdkRegion)
 	}
@@ -212,13 +214,16 @@ func (t *targetGroupsDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	var config targetGroupsDataSourceModel
-
-	summary := fmt.Sprintf("Reading data %s", t.name)
-
 	response.Diagnostics.Append(request.Config.Get(ctx, &config)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	summary := fmt.Sprintf(
+		"Reading data %s for id %q",
+		t.name,
+		config.ID,
+	)
 
 	apiRequest, err := config.generateRequest(ctx, t.client)
 	if err != nil {
@@ -233,7 +238,7 @@ func (t *targetGroupsDataSource) Read(
 		return
 	}
 
-	tflog.Info(ctx, "Read Public Cloud target groups")
+	tflog.Info(ctx, summary)
 	targetGroups, httpResponse, err := getTargetGroups(*apiRequest)
 	if err != nil {
 		utils.HandleSdkError(
