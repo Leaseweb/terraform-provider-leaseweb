@@ -1,4 +1,4 @@
-# Manage example Public Cloud Instance
+# Manage example Public Cloud instance
 resource "leaseweb_public_cloud_instance" "example" {
   contract = {
     billing_frequency = 1
