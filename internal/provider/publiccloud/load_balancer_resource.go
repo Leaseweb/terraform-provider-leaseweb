@@ -334,6 +334,11 @@ func (l *loadBalancerResource) Read(
 ) {
 	var state loadBalancerResourceModel
 	diags := request.State.Get(ctx, &state)
+	summary := fmt.Sprintf(
+		"Reading resource %s for id %q",
+		l.name,
+		state.ID.ValueString(),
+	)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -345,7 +350,7 @@ func (l *loadBalancerResource) Read(
 		Execute()
 	if err != nil {
 		utils.HandleSdkError(
-			"Error reading Public Cloud load balancer",
+			summary,
 			httpResponse,
 			err,
 			&response.Diagnostics,
