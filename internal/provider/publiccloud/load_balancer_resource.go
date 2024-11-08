@@ -363,7 +363,13 @@ func (l *loadBalancerResource) Read(
 	tflog.Info(ctx, fmt.Sprintf("Read publiccloud loadBalancer resource for %q", state.ID.ValueString()))
 	instance, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*sdkLoadBalancerDetails, ctx)
 	if resourceErr != nil {
-		response.Diagnostics.AddError("Error creating publiccloud loadBalancer resource", resourceErr.Error())
+		utils.HandleSdkError(
+			summary,
+			httpResponse,
+			resourceErr,
+			&response.Diagnostics,
+			context.TODO(),
+		)
 
 		return
 	}
@@ -380,6 +386,12 @@ func (l *loadBalancerResource) Update(
 	var plan loadBalancerResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf(
+		"Updating resource %s for id %q",
+		l.name,
+		plan.ID.ValueString(),
+	)
+
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -388,9 +400,12 @@ func (l *loadBalancerResource) Update(
 	tflog.Info(ctx, fmt.Sprintf("Update Public Cloud load balancer %q", plan.ID.ValueString()))
 	opts, err := plan.GetUpdateLoadBalancerOpts()
 	if err != nil {
-		response.Diagnostics.AddError(
-			"Error creating Public Cloud load balancer UpdateInstanceOpts",
-			err.Error(),
+		utils.HandleSdkError(
+			summary,
+			nil,
+			err,
+			&response.Diagnostics,
+			context.TODO(),
 		)
 		return
 	}
@@ -401,7 +416,7 @@ func (l *loadBalancerResource) Update(
 		Execute()
 	if err != nil {
 		utils.HandleSdkError(
-			"Error updating Public Cloud load balancer",
+			summary,
 			httpResponse,
 			err,
 			&response.Diagnostics,
@@ -430,8 +445,9 @@ func (l *loadBalancerResource) Delete(
 	tflog.Info(ctx, fmt.Sprintf("Terminate Public Cloud load balancer %q", state.ID.ValueString()))
 	httpResponse, err := l.client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
+		summary := fmt.Sprintf("Terminating resource %s for id %q", l.name, state.ID.ValueString())
 		utils.HandleSdkError(
-			"Error terminating Public Cloud load balancer",
+			summary,
 			httpResponse,
 			err,
 			&response.Diagnostics,
