@@ -24,6 +24,13 @@ type loadBalancerListenersDataSourceModel struct {
 	Listeners      []loadBalancerListenerDataSourceModel `tfsdk:"listeners"`
 }
 
+func (l loadBalancerListenersDataSourceModel) generateRequest(
+	ctx context.Context,
+	api publicCloud.PublicCloudAPI,
+) publicCloud.ApiGetLoadBalancerListenerListRequest {
+	return api.GetLoadBalancerListenerList(ctx, l.LoadBalancerID.ValueString())
+}
+
 func adaptLoadBalancerListenersToLoadBalancerListenersDataSource(sdkLoadBalancerListeners []publicCloud.LoadBalancerListener) loadBalancerListenersDataSourceModel {
 	var listeners loadBalancerListenersDataSourceModel
 
@@ -41,15 +48,13 @@ type loadBalancerListenerDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 }
 
-func getAllLoadBalancerListeners(
-	loadBalancerId string,
-	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.LoadBalancerListener, *http.Response, error) {
+func getAllLoadBalancerListeners(request publicCloud.ApiGetLoadBalancerListenerListRequest) (
+	[]publicCloud.LoadBalancerListener,
+	*http.Response,
+	error,
+) {
 	var listeners []publicCloud.LoadBalancerListener
 	var offset *int32
-
-	request := api.GetLoadBalancerListenerList(ctx, loadBalancerId)
 
 	for {
 		result, httpResponse, err := request.Execute()
@@ -131,11 +136,7 @@ func (l *loadBalancerListenersDataSource) Read(
 	}
 
 	tflog.Info(ctx, "Read Public Cloud load balancer listeners")
-	listeners, httpResponse, err := getAllLoadBalancerListeners(
-		config.LoadBalancerID.ValueString(),
-		ctx,
-		l.client,
-	)
+	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.client))
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", l.name)

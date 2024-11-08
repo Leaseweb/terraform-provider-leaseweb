@@ -1,6 +1,7 @@
 package publiccloud
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -19,6 +20,19 @@ func Test_adaptLoadBalancerListenersToLoadBalancerListenersDataSource(t *testing
 			},
 		},
 	}
+
+	assert.Equal(t, want, got)
+}
+
+func Test_loadBalancerListenersDataSourceModel_generateRequest(t *testing.T) {
+	listeners := loadBalancerListenersDataSourceModel{
+		LoadBalancerID: basetypes.NewStringValue("id"),
+	}
+	api := publicCloud.PublicCloudAPIService{}
+
+	want := api.GetLoadBalancerListenerList(context.TODO(), "id")
+
+	got := listeners.generateRequest(context.TODO(), &api)
 
 	assert.Equal(t, want, got)
 }
