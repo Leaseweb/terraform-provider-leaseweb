@@ -355,7 +355,7 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Create publiccloud loadBalancer resource for %q", state.ID.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Read publiccloud loadBalancer resource for %q", state.ID.ValueString()))
 	instance, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*sdkLoadBalancerDetails, ctx)
 	if resourceErr != nil {
 		response.Diagnostics.AddError("Error creating publiccloud loadBalancer resource", resourceErr.Error())
