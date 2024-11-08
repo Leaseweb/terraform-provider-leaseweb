@@ -46,7 +46,7 @@ func (n *notificationSettingDatatrafficResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, n.name)
+	utils.SetResourceTypeName(resp, req, n.name)
 }
 
 func (n *notificationSettingDatatrafficResource) Configure(

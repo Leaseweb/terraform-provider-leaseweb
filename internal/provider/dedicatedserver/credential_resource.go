@@ -44,7 +44,7 @@ func (c *credentialResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
+	utils.SetResourceTypeName(resp, req, c.name)
 }
 
 func (c *credentialResource) Configure(

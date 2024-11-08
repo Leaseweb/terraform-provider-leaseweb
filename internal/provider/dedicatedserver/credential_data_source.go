@@ -63,7 +63,7 @@ func (c *credentialDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
+	utils.SetDataSourceTypeName(resp, req, c.name)
 }
 
 func (c *credentialDataSource) Schema(

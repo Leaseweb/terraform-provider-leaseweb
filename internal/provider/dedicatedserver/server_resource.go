@@ -75,7 +75,7 @@ func (s *serverResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, s.name)
+	utils.SetResourceTypeName(resp, req, s.name)
 }
 
 func (s *serverResource) Configure(

@@ -82,7 +82,7 @@ func (i *installationResource) Metadata(
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
+	utils.SetResourceTypeName(resp, req, i.name)
 }
 
 func (i *installationResource) Configure(

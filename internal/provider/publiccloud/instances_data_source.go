@@ -168,7 +168,7 @@ func (d *instancesDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+	utils.SetDataSourceTypeName(resp, req, d.name)
 }
 
 func (d *instancesDataSource) Read(

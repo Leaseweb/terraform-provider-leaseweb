@@ -99,7 +99,13 @@ the following naming conventions apply for type names:
 - `response.TypeName` names must be lowercase
 - an underscore must replace non-alphabetic characters
 
-`Public Cloud Load Balancers` thus becomes `leaseweb_public_cloud_load_balancers`
+`Public Cloud Load Balancers` thus becomes `leaseweb_public_cloud_load_balancers`.
+To make things smoother two [utility functions](internal/utils/metadata_helpers.go) are used go generate the type name:
+
+```go
+utils.SetResourceTypeName(resp, req, n.name)
+utils.SetDataSourceTypeName(resp, req, n.name)
+```
 
 ### Backwards compatibility
 

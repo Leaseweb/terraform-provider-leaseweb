@@ -181,7 +181,7 @@ func (l *loadBalancerResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
+	utils.SetResourceTypeName(response, request, l.name)
 }
 
 func (l *loadBalancerResource) Schema(

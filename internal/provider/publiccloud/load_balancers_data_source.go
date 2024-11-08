@@ -106,7 +106,7 @@ func (l *loadBalancersDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
+	utils.SetDataSourceTypeName(response, request, l.name)
 }
 
 func (l *loadBalancersDataSource) Schema(
