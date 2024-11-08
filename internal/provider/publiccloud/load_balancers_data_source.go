@@ -98,7 +98,7 @@ func getAllLoadBalancers(
 
 type loadBalancersDataSource struct {
 	name   string
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (l *loadBalancersDataSource) Metadata(
@@ -138,11 +138,11 @@ func (l *loadBalancersDataSource) Schema(
 						"contract": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
-								"billing_frequency": schema.Int64Attribute{
+								"billing_frequency": schema.Int32Attribute{
 									Computed:    true,
 									Description: "The billing frequency (in months)",
 								},
-								"term": schema.Int64Attribute{
+								"term": schema.Int32Attribute{
 									Computed:    true,
 									Description: "Contract term (in months)",
 								},
@@ -177,10 +177,7 @@ func (l *loadBalancersDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read Public Cloud load balancers")
-	loadBalancers, httpResponse, err := getAllLoadBalancers(
-		ctx,
-		l.client.PublicCloudAPI,
-	)
+	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client)
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", l.name)
@@ -223,7 +220,7 @@ func (l *loadBalancersDataSource) Configure(
 		return
 	}
 
-	l.client = coreClient
+	l.client = coreClient.PublicCloudAPI
 }
 
 func NewLoadBalancersDataSource() datasource.DataSource {

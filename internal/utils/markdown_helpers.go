@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-// IntMarkdownList implements helpers to use int64 sets in validation & documentation.
+// IntMarkdownList implements helpers to use int32 sets in validation & documentation.
 type IntMarkdownList []int
 
 // Markdown returns a string with all the values in Markdown list format.
