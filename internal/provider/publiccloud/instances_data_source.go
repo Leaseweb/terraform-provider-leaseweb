@@ -135,7 +135,7 @@ func NewInstancesDataSource() datasource.DataSource {
 
 type instancesDataSource struct {
 	name   string
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (d *instancesDataSource) Configure(
@@ -160,7 +160,7 @@ func (d *instancesDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient
+	d.client = coreClient.PublicCloudAPI
 }
 
 func (d *instancesDataSource) Metadata(
@@ -177,7 +177,7 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, httpResponse, err := getAllInstances(ctx, d.client.PublicCloudAPI)
+	instances, httpResponse, err := getAllInstances(ctx, d.client)
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", d.name)
