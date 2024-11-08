@@ -138,7 +138,7 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 }
 
 type loadBalancerResource struct {
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (l *loadBalancerResource) ImportState(
@@ -172,7 +172,7 @@ func (l *loadBalancerResource) Configure(
 		return
 	}
 
-	l.client = coreClient
+	l.client = coreClient.PublicCloudAPI
 }
 
 func (l *loadBalancerResource) Metadata(
@@ -300,7 +300,7 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	sdkLoadBalancer, httpResponse, err := l.client.PublicCloudAPI.LaunchLoadBalancer(ctx).
+	sdkLoadBalancer, httpResponse, err := l.client.LaunchLoadBalancer(ctx).
 		LaunchLoadBalancerOpts(*opts).
 		Execute()
 
@@ -346,7 +346,7 @@ func (l *loadBalancerResource) Read(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Read Public Cloud load balancer %q", state.ID.ValueString()))
-	sdkLoadBalancerDetails, httpResponse, err := l.client.PublicCloudAPI.
+	sdkLoadBalancerDetails, httpResponse, err := l.client.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -396,7 +396,7 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	sdkLoadBalancer, httpResponse, err := l.client.PublicCloudAPI.
+	sdkLoadBalancer, httpResponse, err := l.client.
 		UpdateLoadBalancer(ctx, plan.ID.ValueString()).
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
@@ -429,7 +429,7 @@ func (l *loadBalancerResource) Delete(
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Terminate Public Cloud load balancer %q", state.ID.ValueString()))
-	httpResponse, err := l.client.PublicCloudAPI.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
+	httpResponse, err := l.client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
 		utils.HandleSdkError(
 			"Error terminating Public Cloud load balancer",
