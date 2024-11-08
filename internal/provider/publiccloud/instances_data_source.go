@@ -240,7 +240,7 @@ func (d *instancesDataSource) Schema(
 						"type": schema.StringAttribute{
 							Computed: true,
 						},
-						"root_disk_size": schema.Int64Attribute{
+						"root_disk_size": schema.Int32Attribute{
 							Computed:    true,
 							Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
 						},

@@ -138,11 +138,11 @@ func (l *loadBalancersDataSource) Schema(
 						"contract": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
-								"billing_frequency": schema.Int64Attribute{
+								"billing_frequency": schema.Int32Attribute{
 									Computed:    true,
 									Description: "The billing frequency (in months)",
 								},
-								"term": schema.Int64Attribute{
+								"term": schema.Int32Attribute{
 									Computed:    true,
 									Description: "Contract term (in months)",
 								},
