@@ -239,7 +239,7 @@ func adaptInstanceToInstanceResource(
 		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
 		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
 		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt32Value(int32(int64(sdkInstance.GetRootDiskSize()))),
+		RootDiskSize:        basetypes.NewInt32Value(sdkInstance.GetRootDiskSize()),
 		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
 		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
 	}

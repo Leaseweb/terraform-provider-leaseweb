@@ -91,8 +91,8 @@ func Test_imageResourceModel_GetUpdateImageOpts(t *testing.T) {
 
 func Test_imageResourceModel_GetCreateImageOpts(t *testing.T) {
 	image := imageResourceModel{
-		ID:   basetypes.NewStringValue("instanceId"),
-		Name: basetypes.NewStringValue("name"),
+		InstanceID: basetypes.NewStringValue("instanceId"),
+		Name:       basetypes.NewStringValue("name"),
 	}
 	got := image.GetCreateImageOpts()
 

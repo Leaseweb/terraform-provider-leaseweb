@@ -121,7 +121,7 @@ func getAllInstances(
 			break
 		}
 
-		request.Offset(*offset)
+		request = request.Offset(*offset)
 	}
 
 	return instances, nil, nil
@@ -135,7 +135,7 @@ func NewInstancesDataSource() datasource.DataSource {
 
 type instancesDataSource struct {
 	name   string
-	client client.Client
+	client publicCloud.PublicCloudAPI
 }
 
 func (d *instancesDataSource) Configure(
@@ -160,7 +160,7 @@ func (d *instancesDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient
+	d.client = coreClient.PublicCloudAPI
 }
 
 func (d *instancesDataSource) Metadata(
@@ -177,7 +177,7 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 	tflog.Info(ctx, "Read public cloud instances")
-	instances, httpResponse, err := getAllInstances(ctx, d.client.PublicCloudAPI)
+	instances, httpResponse, err := getAllInstances(ctx, d.client)
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", d.name)
@@ -240,7 +240,7 @@ func (d *instancesDataSource) Schema(
 						"type": schema.StringAttribute{
 							Computed: true,
 						},
-						"root_disk_size": schema.Int64Attribute{
+						"root_disk_size": schema.Int32Attribute{
 							Computed:    true,
 							Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
 						},

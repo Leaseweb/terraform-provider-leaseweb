@@ -109,7 +109,7 @@ func getAllImages(
 			break
 		}
 
-		request.Offset(*offset)
+		request = request.Offset(*offset)
 	}
 
 	return images, nil, nil
