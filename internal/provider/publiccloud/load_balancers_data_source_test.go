@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_adaptLoadBalancerDetailsToLoadBalancerDataSource(t *testing.T) {
+func Test_adaptLoadBalancerListItemToLoadBalancerDataSource(t *testing.T) {
 	reference := "reference"
 
-	sdkLoadBalancerDetails := publicCloud.LoadBalancerDetails{
+	sdkLoadBalancerDetails := publicCloud.LoadBalancerListItem{
 		Id:        "id",
 		Region:    "region",
 		Reference: *publicCloud.NewNullableString(&reference),
 		State:     publicCloud.STATE_CREATING,
 		Type:      publicCloud.TYPENAME_C3_2XLARGE,
-		Ips: []publicCloud.IpDetails{
+		Ips: []publicCloud.Ip{
 			{Ip: "127.0.0.1"},
 		},
 		Contract: publicCloud.Contract{
@@ -24,7 +24,7 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerDataSource(t *testing.T) {
 		},
 	}
 
-	got := adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails)
+	got := adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerDetails)
 
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
@@ -37,7 +37,7 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerDataSource(t *testing.T) {
 }
 
 func Test_adaptLoadBalancersToLoadBalancersDatasource(t *testing.T) {
-	sdkLoadBalancers := []publicCloud.LoadBalancerDetails{
+	sdkLoadBalancers := []publicCloud.LoadBalancerListItem{
 		{Id: "id"},
 	}
 
