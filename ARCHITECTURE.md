@@ -67,21 +67,36 @@ file.
 
 ## Configure
 
-If possible, map the SDK API as the client used by Terraform.
+For resources & data sources there are [helper functions](internal/utils/configure_helpers.go)
+to make configuring the client easier.
 
 ```go
-func (i *imageResource) Configure(
+func (c *credentialResource) Configure(
 	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
 ) {
-  ...
+	coreClient, ok := utils.GetResourceClient(req, resp)
+	if !ok {
+		return
+	}
 
-	coreClient, ok := request.ProviderData.(client.Client)
+	c.client = coreClient.DedicatedServerAPI
+}
+```
 
-  ...
+```go
+func (c *credentialDataSource) Configure(
+_ context.Context,
+req datasource.ConfigureRequest,
+resp *datasource.ConfigureResponse,
+) {
+coreClient, ok := utils.GetDataSourceClient(req, resp)
+if !ok {
+return
+}
 
-	i.client = coreClient.PublicCloudAPI
+c.client = coreClient.DedicatedServerAPI
 }
 ```
 
