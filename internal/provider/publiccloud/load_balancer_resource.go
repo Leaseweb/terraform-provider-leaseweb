@@ -284,6 +284,7 @@ func (l *loadBalancerResource) Create(
 	var plan loadBalancerResourceModel
 
 	diags := request.Plan.Get(ctx, &plan)
+	summary := fmt.Sprintf("Launching resource %s", l.name)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -293,11 +294,7 @@ func (l *loadBalancerResource) Create(
 
 	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
 	if err != nil {
-		response.Diagnostics.AddError(
-			"Error creating Public Cloud load balancer LaunchLoadBalancerOpts",
-			err.Error(),
-		)
-
+		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
@@ -307,7 +304,7 @@ func (l *loadBalancerResource) Create(
 
 	if err != nil {
 		utils.HandleSdkError(
-			"Error launching Public Cloud load balancer",
+			summary,
 			httpResponse,
 			err,
 			&response.Diagnostics,
@@ -322,11 +319,7 @@ func (l *loadBalancerResource) Create(
 		ctx,
 	)
 	if resourceErr != nil {
-		response.Diagnostics.AddError(
-			"Error creating Public Cloud load balancer resource",
-			resourceErr.Error(),
-		)
-
+		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
