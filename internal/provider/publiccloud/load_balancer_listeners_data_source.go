@@ -135,11 +135,16 @@ func (l *loadBalancerListenersDataSource) Read(
 		return
 	}
 
-	tflog.Info(ctx, "Read Public Cloud load balancer listeners")
+	summary := fmt.Sprintf(
+		"Reading data %s for load_balancer_id %q",
+		l.name,
+		config.LoadBalancerID,
+	)
+
+	tflog.Info(ctx, summary)
 	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.client))
 
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", l.name)
 		utils.HandleSdkError(
 			summary,
 			httpResponse,
