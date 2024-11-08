@@ -138,6 +138,7 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 }
 
 type loadBalancerResource struct {
+	name   string
 	client publicCloud.PublicCloudAPI
 }
 
@@ -180,7 +181,7 @@ func (l *loadBalancerResource) Metadata(
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
 ) {
-	response.TypeName = request.ProviderTypeName + "_public_cloud_load_balancer"
+	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
 }
 
 func (l *loadBalancerResource) Schema(
@@ -444,5 +445,7 @@ func (l *loadBalancerResource) Delete(
 }
 
 func NewLoadBalancerResource() resource.Resource {
-	return &loadBalancerResource{}
+	return &loadBalancerResource{
+		name: "public_cloud_load_balancer",
+	}
 }
