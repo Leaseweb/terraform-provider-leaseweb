@@ -125,7 +125,7 @@ func (c *credentialDataSource) Read(
 			c.name,
 			serverID,
 		)
-		utils.Errors(ctx, &resp.Diagnostics, summary, err, response)
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
