@@ -33,28 +33,28 @@ type loadBalancersDataSourceModel struct {
 	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"load_balancers"`
 }
 
-func adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails publicCloud.LoadBalancerDetails) loadBalancerDataSourceModel {
+func adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem publicCloud.LoadBalancerListItem) loadBalancerDataSourceModel {
 	var ips []iPDataSourceModel
-	for _, ip := range sdkLoadBalancerDetails.Ips {
+	for _, ip := range sdkLoadBalancerListItem.Ips {
 		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
 	return loadBalancerDataSourceModel{
-		ID:        basetypes.NewStringValue(sdkLoadBalancerDetails.GetId()),
+		ID:        basetypes.NewStringValue(sdkLoadBalancerListItem.GetId()),
 		IPs:       ips,
-		Reference: basetypes.NewStringPointerValue(sdkLoadBalancerDetails.Reference.Get()),
-		Contract:  adaptContractToContractDataSource(sdkLoadBalancerDetails.GetContract()),
-		State:     basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetState())),
-		Region:    basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetRegion())),
-		Type:      basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetType())),
+		Reference: basetypes.NewStringPointerValue(sdkLoadBalancerListItem.Reference.Get()),
+		Contract:  adaptContractToContractDataSource(sdkLoadBalancerListItem.GetContract()),
+		State:     basetypes.NewStringValue(string(sdkLoadBalancerListItem.GetState())),
+		Region:    basetypes.NewStringValue(string(sdkLoadBalancerListItem.GetRegion())),
+		Type:      basetypes.NewStringValue(string(sdkLoadBalancerListItem.GetType())),
 	}
 }
 
-func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.LoadBalancerDetails) loadBalancersDataSourceModel {
+func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.LoadBalancerListItem) loadBalancersDataSourceModel {
 	var loadBalancers loadBalancersDataSourceModel
 
-	for _, sdkLoadBalancerDetails := range sdkLoadBalancers {
-		loadBalancer := adaptLoadBalancerDetailsToLoadBalancerDataSource(sdkLoadBalancerDetails)
+	for _, sdkLoadBalancerListItem := range sdkLoadBalancers {
+		loadBalancer := adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem)
 		loadBalancers.LoadBalancers = append(loadBalancers.LoadBalancers, loadBalancer)
 	}
 
@@ -64,8 +64,8 @@ func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.
 func getAllLoadBalancers(
 	ctx context.Context,
 	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.LoadBalancerDetails, *http.Response, error) {
-	var loadBalancers []publicCloud.LoadBalancerDetails
+) ([]publicCloud.LoadBalancerListItem, *http.Response, error) {
+	var loadBalancers []publicCloud.LoadBalancerListItem
 	var offset *int32
 
 	request := api.GetLoadBalancerList(ctx)
