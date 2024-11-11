@@ -187,7 +187,7 @@ func (l *loadBalancerListenersDataSource) Configure(
 	l.client = coreClient.PublicCloudAPI
 }
 
-func NewLoadBalancerListenerDataSource() datasource.DataSource {
+func NewLoadBalancerListenersDataSource() datasource.DataSource {
 	return &loadBalancerListenersDataSource{
 		name: "public_cloud_load_balancer_listeners",
 	}

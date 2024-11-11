@@ -166,7 +166,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		dedicatedserver.NewCredentialDataSource,
 		publiccloud.NewImagesDataSource,
 		publiccloud.NewLoadBalancersDataSource,
-		publiccloud.NewLoadBalancerListenerDataSource,
+		publiccloud.NewLoadBalancerListenersDataSource,
 	}
 }
 
