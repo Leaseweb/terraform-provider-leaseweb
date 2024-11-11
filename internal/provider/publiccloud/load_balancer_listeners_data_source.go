@@ -145,12 +145,12 @@ func (l *loadBalancerListenersDataSource) Read(
 	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.client))
 
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
+		utils.Error(
 			ctx,
+			&response.Diagnostics,
+			summary,
+			err,
+			httpResponse,
 		)
 
 		return
