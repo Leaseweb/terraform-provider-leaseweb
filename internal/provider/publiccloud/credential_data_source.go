@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -117,9 +116,7 @@ func (d *credentialDataSource) Read(
 			d.name,
 			instanceID,
 		)
-		// TODO: Need change after a proper error logging implementation.
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 

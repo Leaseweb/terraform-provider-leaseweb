@@ -403,14 +403,7 @@ func (i *instanceResource) Create(
 		Execute()
 
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&resp.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -450,14 +443,7 @@ func (i *instanceResource) Delete(
 
 	if err != nil {
 		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&resp.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 }
@@ -509,14 +495,7 @@ func (i *instanceResource) Read(
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&resp.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -575,14 +554,7 @@ func (i *instanceResource) Update(
 		UpdateInstanceOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&resp.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 

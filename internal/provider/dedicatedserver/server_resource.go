@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -198,15 +197,14 @@ func (s *serverResource) Read(
 		return
 	}
 
-	sdkDedicatedServer, err := s.getServer(ctx, data.ID.ValueString())
+	sdkDedicatedServer, response, err := s.getServer(ctx, data.ID.ValueString())
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading resource %s for id %q",
 			s.name,
 			data.ID.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(nil, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -226,15 +224,14 @@ func (s *serverResource) ImportState(
 		resp,
 	)
 
-	sdkDedicatedServer, err := s.getServer(ctx, req.ID)
+	sdkDedicatedServer, response, err := s.getServer(ctx, req.ID)
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Importing resource %s for id %q",
 			s.name,
 			req.ID,
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(nil, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(nil, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -274,8 +271,7 @@ func (s *serverResource) Update(
 				s.name,
 				plan.ID.ValueString(),
 			)
-			resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-			tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+			utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 			return
 		}
 		state.Reference = plan.Reference
@@ -292,11 +288,7 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(
-					summary,
-					utils.NewError(response, err).Error(),
-				)
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		} else {
@@ -308,11 +300,7 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(
-					summary,
-					utils.NewError(response, err).Error(),
-				)
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		}
@@ -335,8 +323,7 @@ func (s *serverResource) Update(
 				s.name,
 				state.ID.ValueString(),
 			)
-			resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-			tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+			utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 			return
 		}
 		state.ReverseLookup = plan.ReverseLookup
@@ -357,11 +344,7 @@ func (s *serverResource) Update(
 					state.ID.ValueString(),
 					state.PublicIP.ValueString(),
 				)
-				resp.Diagnostics.AddError(
-					summary,
-					utils.NewError(response, err).Error(),
-				)
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		} else {
@@ -377,11 +360,7 @@ func (s *serverResource) Update(
 					state.ID.ValueString(),
 					state.PublicIP.ValueString(),
 				)
-				resp.Diagnostics.AddError(
-					summary,
-					utils.NewError(response, err).Error(),
-				)
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		}
@@ -402,8 +381,7 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		} else {
@@ -417,11 +395,7 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(
-					summary,
-					utils.NewError(response, err).Error(),
-				)
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		}
@@ -442,8 +416,7 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		} else {
@@ -458,8 +431,7 @@ func (s *serverResource) Update(
 					s.name,
 					state.ID.ValueString(),
 				)
-				resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-				tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 				return
 			}
 		}
@@ -492,15 +464,11 @@ func (s *serverResource) Delete(
 func (s *serverResource) getServer(
 	ctx context.Context,
 	serverID string,
-) (*serverResourceModel, error) {
+) (*serverResourceModel, *http.Response, error) {
 	// Getting server info
 	serverResult, serverResponse, err := s.client.GetServer(ctx, serverID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"error reading dedicated server with id: %q - %s",
-			serverID,
-			utils.NewError(serverResponse, err).Error(),
-		)
+		return nil, serverResponse, err
 	}
 
 	var publicIP string
@@ -547,8 +515,9 @@ func (s *serverResource) getServer(
 		Unit:  types.StringValue(serverLocation.GetUnit()),
 	}
 	location, digs := types.ObjectValueFrom(ctx, l.AttributeTypes(), l)
+
 	if digs.HasError() {
-		return nil, fmt.Errorf("error reading dedicated server location with id: %q", serverID)
+		return nil, nil, fmt.Errorf("error reading dedicated server location with id: %q", serverID)
 	}
 
 	// Getting server power info
@@ -557,12 +526,9 @@ func (s *serverResource) getServer(
 		serverID,
 	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"error reading dedicated server power status with id: %q - %s",
-			serverID,
-			utils.NewError(powerResponse, err).Error(),
-		)
+		return nil, powerResponse, err
 	}
+
 	pdu := powerResult.GetPdu()
 	ipmi := powerResult.GetIpmi()
 	poweredOn := pdu.GetStatus() != "off" && ipmi.GetStatus() != "off"
@@ -576,11 +542,7 @@ func (s *serverResource) getServer(
 	)
 	networkResult, networkResponse, err := networkRequest.Execute()
 	if err != nil && networkResponse != nil && networkResponse.StatusCode != http.StatusNotFound {
-		return nil, fmt.Errorf(
-			"error reading dedicated server network interface with id: %q - %s",
-			serverID,
-			utils.NewError(networkResponse, err).Error(),
-		)
+		return nil, networkResponse, err
 	} else {
 		if networkResult != nil {
 			if _, ok := networkResult.GetStatusOk(); ok {
@@ -595,11 +557,7 @@ func (s *serverResource) getServer(
 		serverID,
 	).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"error reading dedicated server DHCP with id: %q - %s",
-			serverID,
-			utils.NewError(dhcpResponse, err).Error(),
-		)
+		return nil, dhcpResponse, err
 	}
 	var dhcpLease string
 	if len(dhcpResult.GetLeases()) != 0 {
@@ -616,11 +574,7 @@ func (s *serverResource) getServer(
 			publicIP,
 		).Execute()
 		if err != nil {
-			return nil, fmt.Errorf(
-				"error reading dedicated server IP details with id: %q - %s",
-				serverID,
-				utils.NewError(ipResponse, err).Error(),
-			)
+			return nil, ipResponse, err
 		}
 		reverseLookup = ipResult.GetReverseLookup()
 	}
@@ -639,5 +593,5 @@ func (s *serverResource) getServer(
 		Location:                     location,
 	}
 
-	return &dedicatedServerResource, nil
+	return &dedicatedServerResource, nil, nil
 }
