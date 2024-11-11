@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -167,20 +166,8 @@ func (l *loadBalancerListenersDataSource) Configure(
 	request datasource.ConfigureRequest,
 	response *datasource.ConfigureResponse,
 ) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
+	coreClient, ok := utils.GetDataSourceClient(request, response)
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
 		return
 	}
 
