@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"regexp"
@@ -17,76 +16,123 @@ import (
 
 const DefaultErrMsg = "An error has occurred in the program. Please consider opening an issue."
 
-type Error struct {
-	err  error
-	resp *http.Response
+type errorResponse struct {
+	ErrorCode     string              `json:"errorCode,omitempty"`
+	ErrorMessage  string              `json:"errorMessage,omitempty"`
+	UserMessage   string              `json:"userMessage,omitempty"`
+	CorrelationId string              `json:"correlationId,omitempty"`
+	ErrorDetails  map[string][]string `json:"errorDetails,omitempty"`
 }
 
-// TODO: we need to merge error.go and log_error.go and have unified error/logging functionality.
-func (e Error) Error() string {
-	// Check if the response or its body is nil,
-	//or if the status code is not an error.
-	if e.resp == nil || e.resp.Body == nil || e.resp.StatusCode < 400 {
-		return e.err.Error()
+type errorHandler struct {
+	summary string
+	resp    *http.Response
+	err     error
+	diags   *diag.Diagnostics
+	ctx     context.Context
+}
+
+func Error(
+	ctx context.Context,
+	diags *diag.Diagnostics,
+	summary string,
+	err error,
+	resp *http.Response,
+) {
+
+	errorHandler := errorHandler{
+		ctx:     ctx,
+		diags:   diags,
+		summary: summary,
+		err:     err,
+		resp:    resp,
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Printf("error closing response body: %v", err)
+
+	errorHandler.report()
+}
+
+func (e *errorHandler) report() {
+
+	if e.diags == nil {
+		e.writeLog("unable to record error details.")
+		log.Fatal(e.summary, DefaultErrMsg)
+	}
+
+	if e.err == nil {
+		e.writeLog("No error detail found.")
+		e.writeOutput(DefaultErrMsg)
+		return
+	}
+
+	if e.resp != nil && e.resp.Body != nil && e.resp.StatusCode >= 400 {
+		e.handleHTTPError()
+		return
+	}
+
+	e.writeOutput(e.err.Error())
+}
+
+func (e *errorHandler) handleHTTPError() {
+	// Close response body with direct defer reference for clarity
+	defer func() {
+		if err := e.resp.Body.Close(); err != nil {
+			e.writeLog(fmt.Sprintf("error closing response body: %v", err))
 		}
-	}(e.resp.Body)
+	}()
 
-	// Try to decode the response body as JSON.
-	var errorResponse map[string]interface{}
+	e.writeLog(fmt.Sprintf("response body: %v", e.resp.Body))
+	var errorResponse errorResponse
 	if err := json.NewDecoder(e.resp.Body).Decode(&errorResponse); err != nil {
-		return e.err.Error()
+		e.writeLog(fmt.Sprintf("error decoding HTTP response body: %v", err))
+		e.writeOutput(DefaultErrMsg)
+		return
 	}
 
-	if msg := buildErrorMessage(errorResponse); msg != "" && msg != "{}" {
-		return msg
-	}
-
-	// Default to the original error message if no relevant information is found.
-	return e.err.Error()
+	e.processErrorResponse(errorResponse)
 }
 
-// Helper function to build an error message from the decoded JSON.
-func buildErrorMessage(errorResponse map[string]interface{}) string {
-	// Create a map to store only the fields we care about.
-	output := make(map[string]interface{})
-
-	if errorCode, ok := errorResponse["errorCode"]; ok {
-		output["errorCode"] = errorCode
-	}
-	if errorMessage, ok := errorResponse["errorMessage"]; ok {
-		output["errorMessage"] = errorMessage
-	}
-	if userMessage, ok := errorResponse["userMessage"]; ok {
-		output["userMessage"] = userMessage
-	}
-	if correlationId, ok := errorResponse["correlationId"]; ok {
-		output["correlationId"] = correlationId
-	}
-	if errorDetails, ok := errorResponse["errorDetails"]; ok {
-		output["errorDetails"] = errorDetails
+// processErrorResponse checks for validation errors in ErrorDetails and handles them if present.
+func (e *errorHandler) processErrorResponse(errorResponse errorResponse) {
+	if len(errorResponse.ErrorDetails) > 0 {
+		e.handleValidationErrors(errorResponse)
+		if e.diags.HasError() {
+			return
+		}
 	}
 
-	// Encode the output map as a JSON string.
-	jsonOutput, _ := json.MarshalIndent(output, "", "  ")
-	return string(jsonOutput)
+	// Attempt to convert errorResponse to JSON format for output
+	jsonOutput, err := json.MarshalIndent(errorResponse, "", "  ")
+	if err != nil {
+		e.writeLog(fmt.Sprintf("failed to format error response as JSON: %v", err))
+		e.writeOutput(DefaultErrMsg)
+		return
+	}
+
+	e.writeOutput(string(jsonOutput))
 }
 
-func NewError(resp *http.Response, err error) Error {
-	return Error{
-		resp: resp,
-		err:  err,
+func (e *errorHandler) handleValidationErrors(errorResponse errorResponse) {
+	// Convert key returned from api to an attribute path.
+	// I.e.: []string{"image", "id"}.
+	for errorKey, errorDetailList := range errorResponse.ErrorDetails {
+		normalizedErrorKey := mapErrorDetailsKey(errorKey)
+		mapKeys := strings.Split(normalizedErrorKey, "_")
+		attributePath := path.Root(mapKeys[0])
+
+		// Every element in the map goes one level deeper.
+		for _, mapKey := range mapKeys[1:] {
+			attributePath = attributePath.AtMapKey(mapKey)
+		}
+
+		// Each attribute can have multiple errors.
+		for _, errorDetail := range errorDetailList {
+			e.diags.AddAttributeError(attributePath, e.summary, errorDetail)
+		}
 	}
 }
 
-// normalizeErrorResponseKey converts an api key path to a string
-// that HandleSdkError can handle.
 // `instanceId` & `instance.id` both become `instance_id`.
-func normalizeErrorResponseKey(key string) string {
+func mapErrorDetailsKey(key string) string {
 	// Assume that the key has the format `contract.id`
 	//if any dots are found.
 	if strings.Contains(key, ".") {
@@ -102,169 +148,10 @@ func normalizeErrorResponseKey(key string) string {
 	return strings.ToLower(res)
 }
 
-// HandleSdkError takes a server response & error
-// and maps errors to the appropriate attributes.
-// If an attribute cannot be found,
-// the error is shown to the user on a resource level.
-// A DEBUG log is also created with all the relevant information.
-func HandleSdkError(
-	summary string,
-	httpResponse *http.Response,
-	err error,
-	diags *diag.Diagnostics,
-	ctx context.Context,
-) {
-	// Nothing to do when httpResponse does not exist.
-	if httpResponse == nil {
-		handleError(summary, err, diags)
-		return
-	}
-
-	response, err := newResponse(httpResponse.Body)
-	if err != nil {
-		handleError(summary, nil, diags)
-		return
-	}
-
-	// Create DEBUG log with httpResponse body.
-	response.newDebugLog(ctx, summary)
-
-	// Convert httpResponse buffer to ErrorResponse object.
-	err = response.setErrors(summary, diags)
-	if err != nil {
-		handleError(summary, err, diags)
-		return
-	}
+func (e *errorHandler) writeLog(details string) {
+	tflog.Debug(e.ctx, e.summary, map[string]any{"details": details})
 }
 
-type ErrorResponse struct {
-	CorrelationId string              `json:"correlationId,omitempty"`
-	ErrorCode     string              `json:"errorCode,omitempty"`
-	ErrorMessage  string              `json:"errorMessage,omitempty"`
-	ErrorDetails  map[string][]string `json:"errorDetails,omitempty"`
-}
-
-// If passed, add the specific error to diags. If no error is passed then show the default error.
-func handleError(
-	summary string,
-	err error,
-	diags *diag.Diagnostics,
-) {
-	if err != nil {
-		diags.AddError(summary, err.Error())
-		return
-	}
-
-	diags.AddError(summary, DefaultErrMsg)
-}
-
-type response struct {
-	buf           *strings.Builder
-	errorResponse ErrorResponse
-	responseMap   map[string]interface{}
-}
-
-// If set show the responseMap. If the responseMap is not set show the httpResponse body.
-func (r response) newDebugLog(
-	ctx context.Context,
-	summary string,
-) {
-	if r.responseMap == nil {
-		tflog.Debug(
-			ctx,
-			summary,
-			map[string]any{"httpResponse": fmt.Sprintf("%v", r.buf.String())},
-		)
-		return
-	}
-
-	tflog.Debug(ctx, summary, map[string]any{"response": r.responseMap})
-}
-
-// Try to set attribute errors, if that's not possible set a global resource error.
-func (r response) setErrors(summary string, diags *diag.Diagnostics) error {
-	errorSet := r.setAttributeErrors(summary, diags)
-
-	if !errorSet {
-		err := r.setGlobalError(summary, diags)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Return true if an attribute error is set, otherwise return false.
-func (r response) setAttributeErrors(
-	summary string,
-	diags *diag.Diagnostics,
-) bool {
-	// Convert key returned from api to an attribute path.
-	// I.e.: []string{"image", "id"}.
-	errorSet := false
-	for errorKey, errorDetailList := range r.errorResponse.ErrorDetails {
-		normalizedErrorKey := normalizeErrorResponseKey(errorKey)
-		mapKeys := strings.Split(normalizedErrorKey, "_")
-		attributePath := path.Root(mapKeys[0])
-
-		// Every element in the map goes one level deeper.
-		for _, mapKey := range mapKeys[1:] {
-			attributePath = attributePath.AtMapKey(mapKey)
-		}
-
-		// Each attribute can have multiple errors.
-		for _, errorDetail := range errorDetailList {
-			diags.AddAttributeError(attributePath, summary, errorDetail)
-		}
-		errorSet = true
-	}
-
-	return errorSet
-}
-
-func (r response) setGlobalError(
-	summary string,
-	diags *diag.Diagnostics,
-) error {
-	errorResponseString, err := json.MarshalIndent(
-		r.errorResponse,
-		"",
-		" ",
-	)
-	if err != nil {
-		return err
-	}
-
-	diags.AddError(summary, string(errorResponseString))
-	return nil
-}
-
-func newResponse(body io.ReadCloser) (*response, error) {
-	var responseMap map[string]interface{}
-
-	// Try to read httpResponse body into buffer
-	buf := new(strings.Builder)
-	_, err := io.Copy(buf, body)
-	if err != nil {
-		return nil, err
-	}
-
-	errorResponse := ErrorResponse{}
-
-	err = json.Unmarshal([]byte(buf.String()), &errorResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(buf.String()), &responseMap)
-	if err != nil {
-		responseMap = nil
-	}
-
-	return &response{
-		buf:           buf,
-		errorResponse: errorResponse,
-		responseMap:   responseMap,
-	}, nil
+func (e *errorHandler) writeOutput(details string) {
+	e.diags.AddError(e.summary, details)
 }

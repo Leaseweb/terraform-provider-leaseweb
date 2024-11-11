@@ -303,14 +303,7 @@ func (l *loadBalancerResource) Create(
 		Execute()
 
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			context.TODO(),
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -344,33 +337,17 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Read Public Cloud load balancer %q", state.ID.ValueString()))
 	sdkLoadBalancerDetails, httpResponse, err := l.client.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			context.TODO(),
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Read publiccloud loadBalancer resource for %q", state.ID.ValueString()))
 	instance, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*sdkLoadBalancerDetails, ctx)
 	if resourceErr != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			resourceErr,
-			&response.Diagnostics,
-			context.TODO(),
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
 		return
 	}
 
@@ -397,16 +374,9 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Update Public Cloud load balancer %q", plan.ID.ValueString()))
 	opts, err := plan.GetUpdateLoadBalancerOpts()
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			nil,
-			err,
-			&response.Diagnostics,
-			context.TODO(),
-		)
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
 
@@ -415,14 +385,7 @@ func (l *loadBalancerResource) Update(
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			context.TODO(),
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -442,18 +405,10 @@ func (l *loadBalancerResource) Delete(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Terminate Public Cloud load balancer %q", state.ID.ValueString()))
 	httpResponse, err := l.client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
 		summary := fmt.Sprintf("Terminating resource %s for id %q", l.name, state.ID.ValueString())
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			context.TODO(),
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 }
