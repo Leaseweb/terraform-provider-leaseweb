@@ -227,13 +227,7 @@ func (t *targetGroupsDataSource) Read(
 
 	apiRequest, err := config.generateRequest(ctx, t.client)
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			nil,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 
 		return
 	}
@@ -241,13 +235,7 @@ func (t *targetGroupsDataSource) Read(
 	tflog.Info(ctx, summary)
 	targetGroups, httpResponse, err := getTargetGroups(*apiRequest)
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 
 		return
 	}
