@@ -188,14 +188,7 @@ func (i *imagesDataSource) Read(
 	images, httpResponse, err := getAllImages(ctx, i.client)
 
 	if err != nil {
-		utils.HandleSdkError(
-			fmt.Sprintf("Reading data %s", i.name),
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &response.Diagnostics, fmt.Sprintf("Reading data %s", i.name), err, httpResponse)
 		return
 	}
 

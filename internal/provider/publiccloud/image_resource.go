@@ -223,14 +223,7 @@ func (i *imageResource) Create(
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -264,14 +257,7 @@ func (i *imageResource) Read(
 
 	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -316,22 +302,14 @@ func (i *imageResource) Update(
 			i.name,
 			plan.ID.ValueString(),
 		)
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
 	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImageDetails)
 	if resourceErr != nil {
 		summary := fmt.Sprintf("Reading resource %s", i.name)
-		utils.HandleSdkError(summary, nil, err, &diags, ctx)
-
+		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
 		return
 	}
 
