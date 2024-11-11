@@ -139,7 +139,7 @@ func (t *targetGroupsDataSource) Metadata(
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
 ) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, t.name)
+	utils.SetDataSourceTypeName(response, request, t.name)
 }
 
 func (t *targetGroupsDataSource) Schema(
