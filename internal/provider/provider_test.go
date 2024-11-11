@@ -1770,305 +1770,338 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 	})
 }
 
+func TestAccPublicCloudLoadBalancerListenersDataSource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Read testing
+			{
+				Config: providerConfig + `
+data "leaseweb_public_cloud_load_balancer_listeners" "test" {
+    load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+}
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancer_listeners.test",
+						"load_balancer_id",
+						"695ddd91-051f-4dd6-9120-938a927a47d0",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancer_listeners.test",
+						"listeners.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancer_listeners.test",
+						"listeners.0.id",
+						"fac06878-6655-4956-8ea7-124a97f133ab",
+					),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPublicCloudTargetGroupsDataSource(t *testing.T) {
-	t.Run("can read all target groups", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `data "leaseweb_public_cloud_target_groups" "test" {}`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
-				},
-				{
-					Config: providerConfig + `
+  t.Run("can read all target groups", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `data "leaseweb_public_cloud_target_groups" "test" {}`,
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+          ),
+        },
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   id = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("can filter target groups by id", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("can filter target groups by id", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   id = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"id",
-							"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-						),
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "id",
+              "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            ),
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("can filter target groups by name", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("can filter target groups by name", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   name = "Foo bar"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"name",
-							"Foo bar",
-						),
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "name",
+              "Foo bar",
+            ),
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("can filter target groups by protocol", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("can filter target groups by protocol", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   protocol = "HTTP"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"protocol",
-							"HTTP",
-						),
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "protocol",
+              "HTTP",
+            ),
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("inputting an invalid protocol throws an error", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("inputting an invalid protocol throws an error", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   protocol = "tralala"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
-					ExpectError: regexp.MustCompile(
-						`Attribute protocol value must be one of:`,
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+          ),
+          ExpectError: regexp.MustCompile(
+            `Attribute protocol value must be one of:`,
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("can filter target groups by port", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("can filter target groups by port", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   port = 80
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"port",
-							"80",
-						),
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "port",
+              "80",
+            ),
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("inputting an invalid port throws an error", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("inputting an invalid port throws an error", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   port = 800000
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
-					ExpectError: regexp.MustCompile(
-						`Attribute port value must be between 1 and 65535`,
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+          ),
+          ExpectError: regexp.MustCompile(
+            `Attribute port value must be between 1 and 65535`,
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("can filter target groups by region", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("can filter target groups by region", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   region = "eu-west-3"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"region",
-							"eu-west-3",
-						),
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "region",
+              "eu-west-3",
+            ),
+          ),
+        },
+      },
+    })
+  })
 
-	t.Run("inputting an invalid region throws an error", func(t *testing.T) {
-		resource.Test(t, resource.TestCase{
-			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				// Read testing
-				{
-					Config: providerConfig + `
+  t.Run("inputting an invalid region throws an error", func(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+      ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+      Steps: []resource.TestStep{
+        // Read testing
+        {
+          Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   region = "tralala"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
-					ExpectError: regexp.MustCompile(
-						`Attribute region value must be one of:`,
-					),
-				},
-			},
-		})
-	})
+          Check: resource.ComposeAggregateTestCheckFunc(
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.#",
+              "1",
+            ),
+            resource.TestCheckResourceAttr(
+              "data.leaseweb_public_cloud_target_groups.test",
+              "target_groups.0.id",
+              "7e59b33d-05f3-4078-b251-c7831ae8fe14",
+            ),
+          ),
+          ExpectError: regexp.MustCompile(
+            `Attribute region value must be one of:`,
+          ),
+        },
+      },
+    })
+  })
 }
