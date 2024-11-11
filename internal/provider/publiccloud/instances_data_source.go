@@ -181,14 +181,7 @@ func (d *instancesDataSource) Read(
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", d.name)
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&resp.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 

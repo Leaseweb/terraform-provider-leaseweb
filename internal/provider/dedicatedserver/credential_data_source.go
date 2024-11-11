@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -126,8 +125,7 @@ func (c *credentialDataSource) Read(
 			c.name,
 			serverID,
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
