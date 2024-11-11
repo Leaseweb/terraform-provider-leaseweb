@@ -181,14 +181,7 @@ func (l *loadBalancersDataSource) Read(
 
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", l.name)
-		utils.HandleSdkError(
-			summary,
-			httpResponse,
-			err,
-			&response.Diagnostics,
-			ctx,
-		)
-
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 

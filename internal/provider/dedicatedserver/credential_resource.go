@@ -141,7 +141,7 @@ func (c *credentialResource) Create(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -181,7 +181,7 @@ func (c *credentialResource) Read(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -224,7 +224,7 @@ func (c *credentialResource) Update(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -264,6 +264,6 @@ func (c *credentialResource) Delete(
 			data.Username.ValueString(),
 			data.DedicatedServerId.ValueString(),
 		)
-		utils.HandleSdkError(summary, response, err, &resp.Diagnostics, ctx)
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 	}
 }

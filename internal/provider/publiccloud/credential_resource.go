@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -150,8 +149,7 @@ func (c *credentialResource) Create(
 			data.Username.ValueString(),
 			data.InstanceID.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -191,8 +189,7 @@ func (c *credentialResource) Read(
 			data.Username.ValueString(),
 			data.InstanceID.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -235,8 +232,7 @@ func (c *credentialResource) Update(
 			data.Username.ValueString(),
 			data.InstanceID.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -276,8 +272,8 @@ func (c *credentialResource) Delete(
 			data.Username.ValueString(),
 			data.InstanceID.ValueString(),
 		)
-		resp.Diagnostics.AddError(summary, utils.NewError(response, err).Error())
-		tflog.Error(ctx, fmt.Sprintf("%s %s", summary, utils.NewError(response, err).Error()))
+		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
+
 }
