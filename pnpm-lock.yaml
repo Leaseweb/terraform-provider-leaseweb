@@ -15,8 +15,8 @@ importers:
         specifier: 19.5.0
         version: 19.5.0
       '@stoplight/prism-cli':
-        specifier: 5.10.0
-        version: 5.10.0
+        specifier: 5.12.0
+        version: 5.12.0
       husky:
         specifier: 9.1.6
         version: 9.1.6
@@ -131,6 +131,18 @@ packages:
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
 
+  '@jsep-plugin/assignment@1.3.0':
+    resolution: {integrity: sha512-VVgV+CXrhbMI3aSusQyclHkenWSAm95WaiKrMxRFam3JSUiIaQjoMIw2sEs/OX4XifnqeQUN4DYbJjlA8EfktQ==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
+  '@jsep-plugin/regex@1.0.4':
+    resolution: {integrity: sha512-q7qL4Mgjs1vByCaTnDFcBnV9HS7GVPJX5vyVoCgZHNSC9rjwIlmbXG5sUuorR5ndfHAIlJ8pVStxvjXHbNvtUg==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
   '@stoplight/http-spec@7.1.0':
     resolution: {integrity: sha512-Z2XqKX2SV8a1rrgSzFqccX2TolfcblT+l4pNvUU+THaLl50tKDoeidwWWZTzYUzqU0+UV97ponvqEbWWN3PaXg==}
     engines: {node: '>=14.13'}
@@ -160,8 +172,8 @@ packages:
     resolution: {integrity: sha512-lyIc6JUlUA8Ve5ELywPC8I2Sdnh1zc1zmbYgVarhXIp9YeAB0ReeqmGEOWNtlHkbP2DAA1AL65Wfn2ncjK/jtQ==}
     engines: {node: '>=8'}
 
-  '@stoplight/prism-cli@5.10.0':
-    resolution: {integrity: sha512-U7XMCAlXZFh2GPvzpZeMJ4u5V47ncYxgIxbLy4Y8rjsBCKWKQqqUCFoENXDub2O6ibZKSQctIvO0HiMZlIWERw==}
+  '@stoplight/prism-cli@5.12.0':
+    resolution: {integrity: sha512-icKw+XhKyocnjNuFJEtBxSY/+HLxvybwGvJ+QayCqROravBjQUXFC1Xg4v++Uz7MK1AkgkuvlSqcxtoQ02QsJg==}
     engines: {node: '>=18.20.1'}
     hasBin: true
 
@@ -169,12 +181,12 @@ packages:
     resolution: {integrity: sha512-fmH7n6e0thzOGcD5uZBu/Xx1iFNfpc9ACTxPie+lFD54SJ214M2FIFXD7kV+NCFlC+w5OFw+lJRaYM859uMnAg==}
     engines: {node: '>=18.20.1'}
 
-  '@stoplight/prism-http-server@5.10.0':
-    resolution: {integrity: sha512-7sdMNzBY4+/96fLQn7/LR6ItDfNwcvCY9XCWrpruWeq5fHJHrb5OynpHvZs9vHcTpZNITBs/sgmukXn35wB5Sw==}
+  '@stoplight/prism-http-server@5.12.0':
+    resolution: {integrity: sha512-rnACUB950kvgDGXk1MsVk1v8nAZNCRaxdrTlACoJpQA0qzF8eBszYikoDsVmx2BbGsOrCC/49+nQc+HyFFpMdQ==}
     engines: {node: '>=18.20.1'}
 
-  '@stoplight/prism-http@5.10.0':
-    resolution: {integrity: sha512-OlWSv9XobxkNu4D1xfDfwjMSETrw4wNFkWcbKzQmepNERqJ6uuWDDjkIR2f1F7SYU61ElwhaXf1bA9dlze6U6g==}
+  '@stoplight/prism-http@5.12.0':
+    resolution: {integrity: sha512-H+B/SO4SgQ6DT3CHIDCMQFGOe48Yecj0Eu+6rXwrs5m1JFyA2nlDwz+r73QJLGQanN4Biod2s0V9pZRcs2JnPA==}
     engines: {node: '>=18.20.1'}
 
   '@stoplight/types@13.20.0':
@@ -420,15 +432,6 @@ packages:
   dargs@8.1.0:
     resolution: {integrity: sha512-wAV9QHOsNbwnWdNW2FYvE1P56wtgSbM+3SZcdGiWQILwVjACCXDCI3Ai8QlCjMDB8YK5zySiXZYBiwGmNY3lnw==}
     engines: {node: '>=12'}
-
-  debug@4.3.5:
-    resolution: {integrity: sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
 
   debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
@@ -722,6 +725,10 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
+  jsep@1.4.0:
+    resolution: {integrity: sha512-B7qPcEVE3NVkmSJbaYxvv4cHkVW7DQsZz13pUMrfS8z8Q/BuShN+gcTXrUlPiGqM2/t/EEaI030bpxMqY8gMlw==}
+    engines: {node: '>= 10.16.0'}
+
   json-parse-better-errors@1.0.2:
     resolution: {integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==}
 
@@ -737,8 +744,8 @@ packages:
   json-schema-compare@0.2.2:
     resolution: {integrity: sha512-c4WYmDKyJXhs7WWvAWm3uIYnfyWFoIp+JEoX34rctVvEkMYCPGhXtvmFFXiffBbxfZsvQ0RNnV5H7GvDF5HCqQ==}
 
-  json-schema-faker@0.5.6:
-    resolution: {integrity: sha512-u/cFC26/GDxh2vPiAC8B8xVvpXAW+QYtG2mijEbKrimCk8IHtiwQBjCE8TwvowdhALWq9IcdIWZ+/8ocXvdL3Q==}
+  json-schema-faker@0.5.8:
+    resolution: {integrity: sha512-sqzPEbEDlpiH8U1tfmJHScXHy52onvMxITPsHyhe/jhS83g8TX6ruvRqt/ot1bXUPRsh7Ps1sWqJiBxIXmW5Xw==}
     hasBin: true
 
   json-schema-ref-parser@6.1.0:
@@ -758,9 +765,10 @@ packages:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
 
-  jsonpath-plus@7.2.0:
-    resolution: {integrity: sha512-zBfiUPM5nD0YZSBT/o/fbCUlCcepMIdP0CJZxM1+KgA4f2T206f6VAg9e7mX35+KlMaIc5qXW34f3BnwJ3w+RA==}
-    engines: {node: '>=12.0.0'}
+  jsonpath-plus@10.1.0:
+    resolution: {integrity: sha512-gHfV1IYqH8uJHYVTs8BJX1XKy2/rR93+f8QQi0xhx95aCiXn1ettYAd5T+7FU6wfqyDoX/wy0pm/fL3jOKJ9Lg==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   jsonpointer@5.0.1:
     resolution: {integrity: sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==}
@@ -918,9 +926,6 @@ packages:
   mkdirp@0.5.6:
     resolution: {integrity: sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==}
     hasBin: true
-
-  ms@2.1.2:
-    resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -1130,6 +1135,9 @@ packages:
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
+
+  seedrandom@3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
 
   semver@7.5.4:
     resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
@@ -1513,6 +1521,14 @@ snapshots:
 
   '@jsdevtools/ono@7.1.3': {}
 
+  '@jsep-plugin/assignment@1.3.0(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
+  '@jsep-plugin/regex@1.0.4(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
   '@stoplight/http-spec@7.1.0':
     dependencies:
       '@stoplight/json': 3.21.7
@@ -1576,18 +1592,18 @@ snapshots:
 
   '@stoplight/path@1.3.2': {}
 
-  '@stoplight/prism-cli@5.10.0':
+  '@stoplight/prism-cli@5.12.0':
     dependencies:
       '@stoplight/json': 3.21.7
       '@stoplight/json-schema-ref-parser': 9.2.7
       '@stoplight/prism-core': 5.8.0
-      '@stoplight/prism-http': 5.10.0
-      '@stoplight/prism-http-server': 5.10.0
+      '@stoplight/prism-http': 5.12.0
+      '@stoplight/prism-http-server': 5.12.0
       '@stoplight/types': 14.1.1
       chalk: 4.1.2
       chokidar: 3.6.0
       fp-ts: 2.16.6
-      json-schema-faker: 0.5.6
+      json-schema-faker: 0.5.8
       lodash: 4.17.21
       node-fetch: 2.7.0
       pino: 6.14.0
@@ -1608,10 +1624,10 @@ snapshots:
       pino: 6.14.0
       tslib: 2.6.3
 
-  '@stoplight/prism-http-server@5.10.0':
+  '@stoplight/prism-http-server@5.12.0':
     dependencies:
       '@stoplight/prism-core': 5.8.0
-      '@stoplight/prism-http': 5.10.0
+      '@stoplight/prism-http': 5.12.0
       '@stoplight/types': 14.1.1
       fast-xml-parser: 4.4.0
       fp-ts: 2.16.6
@@ -1626,7 +1642,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@stoplight/prism-http@5.10.0':
+  '@stoplight/prism-http@5.12.0':
     dependencies:
       '@faker-js/faker': 6.3.1
       '@stoplight/http-spec': 7.1.0
@@ -1647,11 +1663,12 @@ snapshots:
       fp-ts: 2.16.6
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
-      json-schema-faker: 0.5.6
+      json-schema-faker: 0.5.8
       lodash: 4.17.21
       node-fetch: 2.7.0
       parse-multipart-data: 1.5.0
       pino: 6.14.0
+      seedrandom: 3.0.5
       tslib: 2.6.3
       type-is: 1.6.18
       uri-template-lite: 22.9.0
@@ -1718,7 +1735,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.3.5
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -1915,10 +1932,6 @@ snapshots:
 
   dargs@8.1.0: {}
 
-  debug@4.3.5:
-    dependencies:
-      ms: 2.1.2
-
   debug@4.3.7:
     dependencies:
       ms: 2.1.3
@@ -2060,7 +2073,7 @@ snapshots:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.5
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -2069,7 +2082,7 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.5
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -2156,6 +2169,8 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
+  jsep@1.4.0: {}
+
   json-parse-better-errors@1.0.2: {}
 
   json-parse-even-better-errors@2.3.1: {}
@@ -2172,10 +2187,10 @@ snapshots:
     dependencies:
       lodash: 4.17.21
 
-  json-schema-faker@0.5.6:
+  json-schema-faker@0.5.8:
     dependencies:
       json-schema-ref-parser: 6.1.0
-      jsonpath-plus: 7.2.0
+      jsonpath-plus: 10.1.0
 
   json-schema-ref-parser@6.1.0:
     dependencies:
@@ -2191,7 +2206,11 @@ snapshots:
 
   jsonparse@1.3.1: {}
 
-  jsonpath-plus@7.2.0: {}
+  jsonpath-plus@10.1.0:
+    dependencies:
+      '@jsep-plugin/assignment': 1.3.0(jsep@1.4.0)
+      '@jsep-plugin/regex': 1.0.4(jsep@1.4.0)
+      jsep: 1.4.0
 
   jsonpointer@5.0.1: {}
 
@@ -2353,8 +2372,6 @@ snapshots:
   mkdirp@0.5.6:
     dependencies:
       minimist: 1.2.8
-
-  ms@2.1.2: {}
 
   ms@2.1.3: {}
 
@@ -2539,6 +2556,8 @@ snapshots:
   safe-stable-stringify@1.1.1: {}
 
   safer-buffer@2.1.2: {}
+
+  seedrandom@3.0.5: {}
 
   semver@7.5.4:
     dependencies:
