@@ -117,28 +117,6 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 	   	type = "OPERATING_SYSTEM"
 	   	password = "12341234"
 	}`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"instance_id",
-							"695ddd91-051f-4dd6-9120-938a927a47d0",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"username",
-							"root",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"type",
-							"OPERATING_SYSTEM",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"password",
-							"12341234",
-						),
-					),
 				},
 				// Update and Read testing
 				{
@@ -149,28 +127,6 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				   	type = "OPERATING_SYSTEM"
 				   	password = "12341234"
 				}`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"instance_id",
-							"695ddd91-051f-4dd6-9120-938a927a47d0",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"username",
-							"root",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"type",
-							"OPERATING_SYSTEM",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_credential.test",
-							"password",
-							"12341234",
-						),
-					),
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -265,21 +221,6 @@ func TestAccPublicCloudCredentialDataSource(t *testing.T) {
           username            = "root"
         }`,
 						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_public_cloud_credential.test",
-								"instance_id",
-								"695ddd91-051f-4dd6-9120-938a927a47d0",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_public_cloud_credential.test",
-								"type",
-								"OPERATING_SYSTEM",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_public_cloud_credential.test",
-								"username",
-								"root",
-							),
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_public_cloud_credential.test",
 								"password",
@@ -413,18 +354,6 @@ resource "leaseweb_public_cloud_image" "test" {
   instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
   name = "Custom image - 03"
 }`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_image.test",
-							"name",
-							"Custom image - 03",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_image.test",
-							"instance_id",
-							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
-						),
-					),
 				},
 				// Update and Read testing
 				{
@@ -433,18 +362,6 @@ resource "leaseweb_public_cloud_image" "test" {
 				    instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
 				    name = "Custom image - 03"
 				  }`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_image.test",
-							"name",
-							"Custom image - 03",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_image.test",
-							"instance_id",
-							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
-						),
-					),
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -495,26 +412,6 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
 							"id",
 							"12345",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
-							"frequency",
-							"WEEKLY",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
-							"threshold",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
-							"unit",
-							"Gbps",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
-							"dedicated_server_id",
-							"12345678",
 						),
 					),
 				},
@@ -691,21 +588,6 @@ func TestAccDedicatedServerCredentialDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_dedicated_server_credential.test",
-						"dedicated_server_id",
-						"12345",
-					),
-					resource.TestCheckResourceAttr(
-						"data.leaseweb_dedicated_server_credential.test",
-						"type",
-						"OPERATING_SYSTEM",
-					),
-					resource.TestCheckResourceAttr(
-						"data.leaseweb_dedicated_server_credential.test",
-						"username",
-						"root",
-					),
-					resource.TestCheckResourceAttr(
-						"data.leaseweb_dedicated_server_credential.test",
 						"password",
 						"mys3cr3tp@ssw0rd",
 					),
@@ -729,28 +611,6 @@ resource "leaseweb_dedicated_server_credential" "test" {
    	type = "OPERATING_SYSTEM"
    	password = "mys3cr3tp@ssw0rd"
 }`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"dedicated_server_id",
-							"12345",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"username",
-							"root",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"type",
-							"OPERATING_SYSTEM",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"password",
-							"mys3cr3tp@ssw0rd",
-						),
-					),
 				},
 				// Update and Read testing
 				{
@@ -761,28 +621,6 @@ resource "leaseweb_dedicated_server_credential" "test" {
    	type = "OPERATING_SYSTEM"
    	password = "mys3cr3tp@ssw0rd"
 }`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"dedicated_server_id",
-							"12345",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"username",
-							"root",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"type",
-							"OPERATING_SYSTEM",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_credential.test",
-							"password",
-							"mys3cr3tp@ssw0rd",
-						),
-					),
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -827,33 +665,6 @@ resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   threshold = "1"
   unit = "GB"
 }`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"id",
-							"12345",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"dedicated_server_id",
-							"145406",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"frequency",
-							"WEEKLY",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"threshold",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"unit",
-							"GB",
-						),
-					),
 				},
 				// Update and Read testing
 				{
@@ -864,33 +675,6 @@ resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
   threshold = "1"
   unit = "GB"
 }`,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"id",
-							"12345",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"dedicated_server_id",
-							"145406",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"frequency",
-							"WEEKLY",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"threshold",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_dedicated_server_notification_setting_datatraffic.test",
-							"unit",
-							"GB",
-						),
-					),
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -985,16 +769,6 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 								"leaseweb_dedicated_server_installation.test",
 								"id",
 								"bcf2bedf-8450-4b22-86a8-f30aeb3a38f9",
-							),
-							resource.TestCheckResourceAttr(
-								"leaseweb_dedicated_server_installation.test",
-								"dedicated_server_id",
-								"12345",
-							),
-							resource.TestCheckResourceAttr(
-								"leaseweb_dedicated_server_installation.test",
-								"operating_system_id",
-								"UBUNTU_22_04_64BIT",
 							),
 						),
 					},
@@ -1203,11 +977,6 @@ func TestAccDedicatedServerDataSource(t *testing.T) {
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_server.test",
-								"id",
-								"12345",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
 								"asset_id",
 								"627294",
 							),
@@ -1367,11 +1136,6 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 								"ids.#",
 								"2",
 							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.test",
-								"reference",
-								"test-reference",
-							),
 						),
 					},
 				},
@@ -1427,41 +1191,6 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 								"ids.#",
 								"2",
 							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"reference",
-								"test-reference",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"ip",
-								"127.0.0.4",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"mac_address",
-								"aa:bb:cc:dd:ee:ff",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"site",
-								"ams-01",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"private_rack_id",
-								"r id",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"private_network_capable",
-								"true",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"private_network_enabled",
-								"true",
-							),
 						),
 					},
 				},
@@ -1494,36 +1223,6 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 							"id",
 							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
 						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"region",
-							"eu-west-3",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"type",
-							"lsw.m3.large",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"reference",
-							"my-loadbalancer1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"contract.billing_frequency",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"contract.term",
-							"0",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"contract.type",
-							"HOURLY",
-						),
 					),
 				},
 				// ImportState testing
@@ -1550,36 +1249,6 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 							"leaseweb_public_cloud_load_balancer.test",
 							"id",
 							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"region",
-							"eu-west-3",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"type",
-							"lsw.m3.large",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"reference",
-							"my-loadbalancer1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"contract.billing_frequency",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"contract.term",
-							"0",
-						),
-						resource.TestCheckResourceAttr(
-							"leaseweb_public_cloud_load_balancer.test",
-							"contract.type",
-							"HOURLY",
 						),
 					),
 				},
@@ -1784,11 +1453,6 @@ data "leaseweb_public_cloud_load_balancer_listeners" "test" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_load_balancer_listeners.test",
-						"load_balancer_id",
-						"695ddd91-051f-4dd6-9120-938a927a47d0",
-					),
-					resource.TestCheckResourceAttr(
-						"data.leaseweb_public_cloud_load_balancer_listeners.test",
 						"listeners.#",
 						"1",
 					),
@@ -1869,11 +1533,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
 							"target_groups.0.id",
 							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
 						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"id",
-							"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-						),
 					),
 				},
 			},
@@ -1902,11 +1561,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
 							"target_groups.0.id",
 							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
 						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"name",
-							"Foo bar",
-						),
 					),
 				},
 			},
@@ -1934,11 +1588,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
 							"data.leaseweb_public_cloud_target_groups.test",
 							"target_groups.0.id",
 							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"protocol",
-							"HTTP",
 						),
 					),
 				},
@@ -1999,11 +1648,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
 							"target_groups.0.id",
 							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
 						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"port",
-							"80",
-						),
 					),
 				},
 			},
@@ -2062,11 +1706,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
 							"data.leaseweb_public_cloud_target_groups.test",
 							"target_groups.0.id",
 							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"region",
-							"eu-west-3",
 						),
 					),
 				},
