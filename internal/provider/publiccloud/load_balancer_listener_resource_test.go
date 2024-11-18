@@ -57,7 +57,7 @@ func Test_adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource
 
 	got := adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(sdkLoadBalancerListenerRule)
 	want := loadBalancerListenerDefaultRuleResourceModel{
-		TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+		TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 	}
 
 	assert.Equal(t, want, got)
@@ -139,7 +139,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 			context.TODO(),
 			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
 			loadBalancerListenerDefaultRuleResourceModel{
-				TargetGroupId: basetypes.NewStringValue("targetGroupId1"),
+				TargetGroupID: basetypes.NewStringValue("targetGroupId1"),
 			},
 		)
 
@@ -151,7 +151,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpts(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
 		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
-			TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 		}
 		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -179,7 +179,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 
 	t.Run("invalid protocol returns an error", func(t *testing.T) {
 		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
-			TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 		}
 		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -221,7 +221,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 
 	t.Run("optional fields are set", func(t *testing.T) {
 		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
-			TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 		}
 		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -260,7 +260,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 
 	t.Run("invalid certificate returns an error", func(t *testing.T) {
 		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
-			TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 		}
 		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -333,7 +333,7 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			context.TODO(),
 			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
 			loadBalancerListenerDefaultRuleResourceModel{
-				TargetGroupId: basetypes.NewStringValue("targetGroupId1"),
+				TargetGroupID: basetypes.NewStringValue("targetGroupId1"),
 			},
 		)
 
@@ -385,7 +385,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 
 	t.Run("optional defaultRule fields are set", func(t *testing.T) {
 		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
-			TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 		}
 		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
 			context.TODO(),
@@ -519,7 +519,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 
 func Test_loadBalancerListenerDefaultRuleResourceModel_generateLoadBalancerListenerDefaultRule(t *testing.T) {
 	rule := loadBalancerListenerDefaultRuleResourceModel{
-		TargetGroupId: basetypes.NewStringValue("targetGroupId"),
+		TargetGroupID: basetypes.NewStringValue("targetGroupId"),
 	}
 
 	got := rule.generateLoadBalancerListenerDefaultRule()

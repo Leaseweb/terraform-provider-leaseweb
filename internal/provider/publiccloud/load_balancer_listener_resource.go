@@ -27,11 +27,11 @@ var (
 )
 
 type loadBalancerListenerDefaultRuleResourceModel struct {
-	TargetGroupId types.String `tfsdk:"target_group_id"`
+	TargetGroupID types.String `tfsdk:"target_group_id"`
 }
 
 func (l loadBalancerListenerDefaultRuleResourceModel) generateLoadBalancerListenerDefaultRule() publicCloud.LoadBalancerListenerDefaultRule {
-	return *publicCloud.NewLoadBalancerListenerDefaultRule(l.TargetGroupId.ValueString())
+	return *publicCloud.NewLoadBalancerListenerDefaultRule(l.TargetGroupID.ValueString())
 }
 
 func (l loadBalancerListenerDefaultRuleResourceModel) attributeTypes() map[string]attr.Type {
@@ -42,7 +42,7 @@ func (l loadBalancerListenerDefaultRuleResourceModel) attributeTypes() map[strin
 
 func adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(sdkLoadBalancerListenerRule publicCloud.LoadBalancerListenerRule) loadBalancerListenerDefaultRuleResourceModel {
 	return loadBalancerListenerDefaultRuleResourceModel{
-		TargetGroupId: basetypes.NewStringValue(sdkLoadBalancerListenerRule.GetTargetGroupId()),
+		TargetGroupID: basetypes.NewStringValue(sdkLoadBalancerListenerRule.GetTargetGroupId()),
 	}
 }
 
