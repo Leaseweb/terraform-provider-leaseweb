@@ -197,6 +197,11 @@ func (s *serverResource) Schema(
 			},
 		},
 	}
+
+	utils.AddUnsupportedActionsNotation(
+		resp,
+		[]utils.Action{utils.CreateAction, utils.DeleteAction},
+	)
 }
 
 func (s *serverResource) Read(
@@ -464,7 +469,7 @@ func (s *serverResource) Create(
 	_ resource.CreateRequest,
 	_ *resource.CreateResponse,
 ) {
-	panic("unimplemented")
+
 }
 
 func (s *serverResource) Delete(
@@ -472,7 +477,6 @@ func (s *serverResource) Delete(
 	_ resource.DeleteRequest,
 	_ *resource.DeleteResponse,
 ) {
-	panic("unimplemented")
 }
 
 func (s *serverResource) getServer(

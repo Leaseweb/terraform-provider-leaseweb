@@ -149,11 +149,10 @@ func (i *imageResource) Metadata(
 
 func (i *imageResource) Schema(
 	_ context.Context,
-	_ resource.SchemaRequest,
+	request resource.SchemaRequest,
 	response *resource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{
-		Description: "Once created, an image resource cannot be deleted via Terraform",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -203,6 +202,11 @@ The id of the instance which the custom image is based on. The following rules a
 			},
 		},
 	}
+
+	utils.AddUnsupportedActionsNotation(
+		response,
+		[]utils.Action{utils.DeleteAction},
+	)
 }
 
 func (i *imageResource) Create(

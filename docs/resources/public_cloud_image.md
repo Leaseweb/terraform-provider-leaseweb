@@ -3,12 +3,14 @@
 page_title: "leaseweb_public_cloud_image Resource - leaseweb"
 subcategory: ""
 description: |-
-  Once created, an image resource cannot be deleted via Terraform
+  Note:
+  Once created, this resource cannot be deleted.
 ---
 
 # leaseweb_public_cloud_image (Resource)
 
-Once created, an image resource cannot be deleted via Terraform
+**Note:**
+- Once created, this resource cannot be deleted.
 
 ## Example Usage
 
