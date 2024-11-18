@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.10.0
 	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241114082959-9d682d73a40d
-	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241114082959-9d682d73a40d
+	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241118100223-cb6c58ec7524
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -67,5 +67,3 @@ require (
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/leaseweb/leaseweb-go-sdk/publicCloud => /home/alrayyes/devel/freelance/leaseweb/api-definitions/build/github.com/Leaseweb/go-sdk/publicCloud/
