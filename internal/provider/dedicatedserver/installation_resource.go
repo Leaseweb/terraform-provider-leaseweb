@@ -280,6 +280,10 @@ func (i *installationResource) Schema(
 		},
 	}
 
+	utils.AddUnsupportedActionsNotation(
+		resp,
+		[]utils.Action{utils.ReadAction, utils.UpdateAction, utils.DeleteAction},
+	)
 }
 
 func (i *installationResource) Create(
@@ -409,7 +413,6 @@ func (i *installationResource) Create(
 	plan.Partitions = partitionsList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
 }
 
 func (i *installationResource) Read(

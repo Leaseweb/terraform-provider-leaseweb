@@ -3,12 +3,15 @@
 page_title: "leaseweb_dedicated_server Resource - leaseweb"
 subcategory: ""
 description: |-
-  
+  Note:
+  Once imported, this resource cannot be created.Once imported, this resource cannot be deleted.
 ---
 
 # leaseweb_dedicated_server (Resource)
 
-
+**Note:**
+- Once imported, this resource cannot be created.
+- Once imported, this resource cannot be deleted.
 
 ## Example Usage
 

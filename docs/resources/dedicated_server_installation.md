@@ -3,12 +3,16 @@
 page_title: "leaseweb_dedicated_server_installation Resource - leaseweb"
 subcategory: ""
 description: |-
-  
+  Note:
+  Once created, this resource cannot be read.Once created, this resource cannot be updated.Once created, this resource cannot be deleted.
 ---
 
 # leaseweb_dedicated_server_installation (Resource)
 
-
+**Note:**
+- Once created, this resource cannot be read.
+- Once created, this resource cannot be updated.
+- Once created, this resource cannot be deleted.
 
 ## Example Usage
 
