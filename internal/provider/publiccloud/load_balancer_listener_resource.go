@@ -403,7 +403,7 @@ func (l *loadBalancerListenerResource) Read(
 	}
 
 	summary := fmt.Sprintf(
-		"Reading data %s for load_balancer_id %q listener_id %q",
+		"Reading resource %s for load_balancer_id %q listener_id %q",
 		l.name,
 		requestState.LoadBalancerID.ValueString(),
 		requestState.ListenerID.ValueString(),
