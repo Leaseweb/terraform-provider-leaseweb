@@ -182,5 +182,6 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 		dedicatedserver.NewInstallationResource,
 		publiccloud.NewImageResource,
 		publiccloud.NewLoadBalancerResource,
+		publiccloud.NewLoadBalancerListenerResource,
 	}
 }
