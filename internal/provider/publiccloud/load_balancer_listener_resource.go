@@ -129,14 +129,8 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpt
 	error,
 ) {
 	opts := publicCloud.NewLoadBalancerListenerOpts()
-
-	if !l.Protocol.IsNull() {
-		opts.SetProtocol(publicCloud.Protocol(l.Protocol.ValueString()))
-	}
-
-	if !l.Port.IsNull() {
-		opts.SetPort(l.Port.ValueInt32())
-	}
+	opts.SetProtocol(publicCloud.Protocol(l.Protocol.ValueString()))
+	opts.SetPort(l.Port.ValueInt32())
 
 	if !l.Certificate.IsNull() {
 		certificate := loadBalancerListenerCertificateResourceModel{}

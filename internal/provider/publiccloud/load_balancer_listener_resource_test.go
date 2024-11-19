@@ -377,14 +377,12 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 
 		got, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
 
-		want := publicCloud.LoadBalancerListenerOpts{
-			DefaultRule: &publicCloud.LoadBalancerListenerDefaultRule{
-				TargetGroupId: "targetGroupId",
-			},
+		want := publicCloud.LoadBalancerListenerDefaultRule{
+			TargetGroupId: "targetGroupId",
 		}
 
 		assert.NoError(t, err)
-		assert.Equal(t, want, *got)
+		assert.Equal(t, want, *got.DefaultRule)
 	})
 
 	t.Run("invalid certificate returns an error", func(t *testing.T) {
