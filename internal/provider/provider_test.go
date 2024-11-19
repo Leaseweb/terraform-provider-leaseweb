@@ -1744,3 +1744,117 @@ data "leaseweb_public_cloud_target_groups" "test" {
 		})
 	})
 }
+
+func TestAccPublicCloudLoadBalancerListenerResource(t *testing.T) {
+	t.Run(
+		"can create/import/update/delete load balancer listeners",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					// Create and Read testing
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+  certificate = {
+    certificate = "-----BEGIN CERTIFICATE-----MIIBhDCB7gIBADBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtWdKNbZxvkXKAADjJMJ7VTJz6uFoMD403C+gMIF8hwqIsHggzCao6iXrW9sZoyZtUBVBiiq5RumHbbpwvOdMmXrShEB4sTJkWRMDy7yD4D91WCU1fc10E/zBJMwssAvmHZo5kGW1Pj1N9ktb+O/TMsEc6yd5suvdQj6aaJbQlTQIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAWOQ2CJLRo8MQgJgvhdoSIkHITnrbjB5hS3f/dx0lIcnyI6Q9nOyuQHXkCgkdBaV8lz7l+IbqcGc3CaIRP2ZIVFvo2252n630tOOSsqoqJS1tYIoIKsohi3T3d8T1i/s0BWbTJi8Xgd186wyUn/jHwXROKx2rq6yYsAO6fISDKw8=-----END CERTIFICATE-----"
+    chain       = "-----BEGIN CERTIFICATE-----MIICNDCCAZ2gAwIBAgIUEby6nzM+o7vkKfzcMS/DGA8tgwQwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA0MjUwODE3MjZaFw0yNTA0MjUwODE3MjZaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMMiux2r1AFLVpIhdZ0bvgIvhiT9XCnfHJlGE7OarGKDKJDQ6XAquCfosLws2XAugGcMJWrsqVWtJEYSu6OMsDLYCJhh39AKqZIW0pktkr8LGlo4VLvzGPqwpHnzWthyCEFsE6p+JJQumDA/izJm2zjZL+xHDocOlNqDTB87AIdrAgMBAAGjITAfMB0GA1UdDgQWBBT3sXUrIR2vcwak0QCXoIsxHa4dDDANBgkqhkiG9w0BAQsFAAOBgQCh/l+5s713J02b8sWicUK2KjTPfyKmZFkoS+Mlo+//B/aM612ZJpGL2tAKGF3v0NDOrRYLZj0t/tlZI55pUNJI9cNj/RExvnfTSSNJIbV+8kQt5AHo50wGxj/apkuEtQre2Fpf4pyovcfIoF6HJvvp1jy96yL14UoEehZypR8FlA==-----END CERTIFICATE-----"
+    private_key = "-----BEGIN EC PRIVATE KEY-----MIHcAgEBBEIBVlC0IObonfQZIQ81l/WILKfWT5Fv96eNnYmQZ7uleu73igfiVESVuPfNlbW9oNEK1XcXli4YNZMxWMkKuzC3w8CgBwYFK4EEACOhgYkDgYYABAHvOqz9d2xeSpm1FNdw0NR5j/q6PMd6whZFsTPNYNj0/PsTpsHk78ZB4MYnJUXwHJjpj+gnKkLNc02f4w/vSF8VXADX4l40XU/w82TAOCftQwoxO5o0jZcwEUIYzl02Zd7uNxhjtKJQnYFi9x8WI8L8zQ6GZB/fJKYwoHaUr0I1h/5LzQ==-----END EC PRIVATE KEY-----"
+  }
+  default_rule = {
+    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+  }
+	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	port = 443
+  protocol = "HTTPS"
+}`,
+					},
+					// ImportState testing
+					{
+						ResourceName:                         "leaseweb_public_cloud_load_balancer_listener.test",
+						ImportStateId:                        "695ddd91-051f-4dd6-9120-938a927a47d0,fac06878-6655-4956-8ea7-124a97f133ab",
+						ImportState:                          true,
+						ImportStateVerify:                    true,
+						ImportStateVerifyIdentifierAttribute: "listener_id",
+					},
+					// Update and Read testing
+					{
+						Config: providerConfig + `
+resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+  certificate = {
+    certificate = "-----BEGIN CERTIFICATE-----MIIBhDCB7gIBADBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtWdKNbZxvkXKAADjJMJ7VTJz6uFoMD403C+gMIF8hwqIsHggzCao6iXrW9sZoyZtUBVBiiq5RumHbbpwvOdMmXrShEB4sTJkWRMDy7yD4D91WCU1fc10E/zBJMwssAvmHZo5kGW1Pj1N9ktb+O/TMsEc6yd5suvdQj6aaJbQlTQIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAWOQ2CJLRo8MQgJgvhdoSIkHITnrbjB5hS3f/dx0lIcnyI6Q9nOyuQHXkCgkdBaV8lz7l+IbqcGc3CaIRP2ZIVFvo2252n630tOOSsqoqJS1tYIoIKsohi3T3d8T1i/s0BWbTJi8Xgd186wyUn/jHwXROKx2rq6yYsAO6fISDKw8=-----END CERTIFICATE-----"
+    chain       = "-----BEGIN CERTIFICATE-----MIICNDCCAZ2gAwIBAgIUEby6nzM+o7vkKfzcMS/DGA8tgwQwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA0MjUwODE3MjZaFw0yNTA0MjUwODE3MjZaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMMiux2r1AFLVpIhdZ0bvgIvhiT9XCnfHJlGE7OarGKDKJDQ6XAquCfosLws2XAugGcMJWrsqVWtJEYSu6OMsDLYCJhh39AKqZIW0pktkr8LGlo4VLvzGPqwpHnzWthyCEFsE6p+JJQumDA/izJm2zjZL+xHDocOlNqDTB87AIdrAgMBAAGjITAfMB0GA1UdDgQWBBT3sXUrIR2vcwak0QCXoIsxHa4dDDANBgkqhkiG9w0BAQsFAAOBgQCh/l+5s713J02b8sWicUK2KjTPfyKmZFkoS+Mlo+//B/aM612ZJpGL2tAKGF3v0NDOrRYLZj0t/tlZI55pUNJI9cNj/RExvnfTSSNJIbV+8kQt5AHo50wGxj/apkuEtQre2Fpf4pyovcfIoF6HJvvp1jy96yL14UoEehZypR8FlA==-----END CERTIFICATE-----"
+    private_key = "-----BEGIN EC PRIVATE KEY-----MIHcAgEBBEIBVlC0IObonfQZIQ81l/WILKfWT5Fv96eNnYmQZ7uleu73igfiVESVuPfNlbW9oNEK1XcXli4YNZMxWMkKuzC3w8CgBwYFK4EEACOhgYkDgYYABAHvOqz9d2xeSpm1FNdw0NR5j/q6PMd6whZFsTPNYNj0/PsTpsHk78ZB4MYnJUXwHJjpj+gnKkLNc02f4w/vSF8VXADX4l40XU/w82TAOCftQwoxO5o0jZcwEUIYzl02Zd7uNxhjtKJQnYFi9x8WI8L8zQ6GZB/fJKYwoHaUr0I1h/5LzQ==-----END EC PRIVATE KEY-----"
+  }
+  default_rule = {
+    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+  }
+	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	port = 443
+  protocol = "HTTPS"
+}`,
+					},
+					// Delete testing automatically occurs in TestCase
+				},
+			})
+		},
+	)
+
+	t.Run("invalid protocol causes error to be thrown", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+  default_rule = {
+    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+  }
+	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	port = 80
+  protocol = "tralala"
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute protocol value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("invalid port causes error to be thrown", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+  default_rule = {
+    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+  }
+	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	port = -8
+  protocol = "HTTP"
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute port value must be between`,
+					),
+				},
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+  default_rule = {
+    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+  }
+	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+	port = 400000
+  protocol = "HTTP"
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute port value must be between`,
+					),
+				},
+			},
+		})
+	})
+}
