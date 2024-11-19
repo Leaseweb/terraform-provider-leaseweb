@@ -99,11 +99,6 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpt
 	*publicCloud.LoadBalancerListenerCreateOpts,
 	error,
 ) {
-	protocol, err := publicCloud.NewProtocolFromValue(l.Protocol.ValueString())
-	if err != nil {
-		return nil, fmt.Errorf("generateLoadBalancerListenerCreateOpts: %v", err)
-	}
-
 	defaultRule := loadBalancerListenerDefaultRuleResourceModel{}
 	defaultRuleDiags := l.DefaultRule.As(ctx, &defaultRule, basetypes.ObjectAsOptions{})
 	if defaultRuleDiags != nil {
@@ -111,7 +106,7 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpt
 	}
 
 	opts := publicCloud.NewLoadBalancerListenerCreateOpts(
-		*protocol,
+		publicCloud.Protocol(l.Protocol.ValueString()),
 		l.Port.ValueInt32(),
 		defaultRule.generateLoadBalancerListenerDefaultRule(),
 	)
@@ -136,11 +131,7 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpt
 	opts := publicCloud.NewLoadBalancerListenerOpts()
 
 	if !l.Protocol.IsNull() {
-		protocol, err := publicCloud.NewProtocolFromValue(l.Protocol.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("generateLoadBalancerListenerUpdateOpts: %v", err)
-		}
-		opts.SetProtocol(*protocol)
+		opts.SetProtocol(publicCloud.Protocol(l.Protocol.ValueString()))
 	}
 
 	if !l.Port.IsNull() {

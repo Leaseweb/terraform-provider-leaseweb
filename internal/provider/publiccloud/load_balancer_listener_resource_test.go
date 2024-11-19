@@ -177,28 +177,6 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 		assert.Equal(t, want, got)
 	})
 
-	t.Run("invalid protocol returns an error", func(t *testing.T) {
-		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
-			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
-		}
-		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
-			context.TODO(),
-			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
-			defaultRule,
-		)
-
-		listener := LoadBalancerListenerResourceModel{
-			Protocol:    basetypes.NewStringValue("tralala"),
-			Port:        basetypes.NewInt32Value(22),
-			DefaultRule: defaultRuleObject,
-		}
-
-		_, err := listener.generateLoadBalancerListenerCreateOpts(context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
-	})
-
 	t.Run("invalid defaultRule returns an error", func(t *testing.T) {
 		defaultRule := loadBalancerListenerCertificateResourceModel{}
 		defaultRuleObject, _ := basetypes.NewObjectValueFrom(
@@ -407,17 +385,6 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 
 		assert.NoError(t, err)
 		assert.Equal(t, want, *got)
-	})
-
-	t.Run("invalid protocol returns an error", func(t *testing.T) {
-		listener := LoadBalancerListenerResourceModel{
-			Protocol: basetypes.NewStringValue("tralala"),
-		}
-
-		_, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid certificate returns an error", func(t *testing.T) {
