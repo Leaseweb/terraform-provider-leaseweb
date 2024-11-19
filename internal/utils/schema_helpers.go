@@ -17,7 +17,7 @@ const (
 	DeleteAction
 )
 
-func (a Action) String(unsupportedActions []Action) string {
+func (a Action) string(unsupportedActions []Action) string {
 	var secondAction string
 	var format = "Once %s, this resource cannot be %s"
 
@@ -58,7 +58,7 @@ func AddUnsupportedActionsNotation(
 	for _, action := range unsupportedActions {
 		response.Schema.MarkdownDescription += fmt.Sprintf(
 			"\n- %s.",
-			action.String(unsupportedActions),
+			action.string(unsupportedActions),
 		)
 	}
 }

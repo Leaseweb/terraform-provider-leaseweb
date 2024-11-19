@@ -149,7 +149,7 @@ func (i *imageResource) Metadata(
 
 func (i *imageResource) Schema(
 	_ context.Context,
-	request resource.SchemaRequest,
+	_ resource.SchemaRequest,
 	response *resource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{

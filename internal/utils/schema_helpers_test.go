@@ -31,7 +31,7 @@ func TestAction_firstAction(t *testing.T) {
 
 }
 
-func TestAction_String(t *testing.T) {
+func TestAction_string(t *testing.T) {
 	tests := []struct {
 		name string
 		a    Action
@@ -60,7 +60,7 @@ func TestAction_String(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.a.String(nil)
+			got := tt.a.string(nil)
 			assert.Equal(t, tt.want, got)
 		})
 	}
