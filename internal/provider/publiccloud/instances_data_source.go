@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -176,7 +175,6 @@ func (d *instancesDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	tflog.Info(ctx, "Read public cloud instances")
 	instances, httpResponse, err := getAllInstances(ctx, d.client)
 
 	if err != nil {

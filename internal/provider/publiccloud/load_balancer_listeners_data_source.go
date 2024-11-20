@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -141,7 +140,6 @@ func (l *loadBalancerListenersDataSource) Read(
 		config.LoadBalancerID,
 	)
 
-	tflog.Info(ctx, summary)
 	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.client))
 
 	if err != nil {
