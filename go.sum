@@ -103,12 +103,8 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241114082959-9d682d73a40d h1:p+eFICnmxAUq8eK32xcMHQtP98SO3bnpemZYDi1NSJ4=
-github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241114082959-9d682d73a40d/go.mod h1:MSrebSkGmRy0OzTJd+lDXsILYms/13QO7GfNNK/5Mds=
 github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241120152414-2fcb9e9d047f h1:y94yFJythFFHUo3ZyxjbG50OOARYuXi3gJGwz3r8lMU=
 github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241120152414-2fcb9e9d047f/go.mod h1:MSrebSkGmRy0OzTJd+lDXsILYms/13QO7GfNNK/5Mds=
-github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241118100223-cb6c58ec7524 h1:vkv7RmPoXvg2AcW9mTpJ82IWYw5H5KXwP+icMnvXl/U=
-github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241118100223-cb6c58ec7524/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241120152414-2fcb9e9d047f h1:QF/QPuYotlj3YOpjgocXH93jffrKVu7ii7J/UM/epGU=
 github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241120152414-2fcb9e9d047f/go.mod h1:nh4tvDxdD+xNL9qjFqtL1ZL49w+HJq5kMeTKkPs2XHI=
 github.com/mattn/go-colorable v0.1.9/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
@@ -209,8 +205,6 @@ golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8T
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.6.8 h1:IhEN5q69dyKagZPYMSdIjS2HqprW324FRQZJcGqPAsM=
 google.golang.org/appengine v1.6.8/go.mod h1:1jJ3jBArFh5pcgW8gCtRJnepW8FzD1V44FJffLiz/Ds=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20241113202542-65e8d215514f h1:C1QccEa9kUwvMgEUORqQD9S17QesQijxjZ84sO82mfo=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20241113202542-65e8d215514f/go.mod h1:GX3210XPVPUjJbTUbvwI8f2IpZDMZuPJWDzDuebbviI=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 h1:LWZqQOEjDyONlF1H6afSWpAL/znlREo2tHfLoe+8LMA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697/go.mod h1:5uTbfoYQed2U9p3KIj2/Zzm02PYhndfdmML0qC3q3FU=
 google.golang.org/grpc v1.68.0 h1:aHQeeJbo8zAkAa3pRzrVjZlbz6uSfeOXlJNQM0RAbz0=
