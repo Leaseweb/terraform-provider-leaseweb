@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -223,8 +222,6 @@ func (i *imageResource) Create(
 		return
 	}
 
-	tflog.Info(ctx, "Create publiccloud image")
-
 	opts := plan.GetCreateImageOpts()
 
 	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
@@ -269,7 +266,6 @@ func (i *imageResource) Read(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Create publiccloud image resource for %q", state.ID.ValueString()))
 	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
@@ -297,7 +293,6 @@ func (i *imageResource) Update(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Update publiccloud image %q", plan.ID.ValueString()))
 	opts := plan.GetUpdateImageOpts()
 
 	sdkImageDetails, httpResponse, err := i.client.UpdateImage(

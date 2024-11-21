@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -289,8 +288,6 @@ func (l *loadBalancerResource) Create(
 	if response.Diagnostics.HasError() {
 		return
 	}
-
-	tflog.Info(ctx, "Launch Public Cloud load balancer")
 
 	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
 	if err != nil {
