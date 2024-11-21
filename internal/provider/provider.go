@@ -76,8 +76,6 @@ func (p *leasewebProvider) Configure(
 	req provider.ConfigureRequest,
 	resp *provider.ConfigureResponse,
 ) {
-	tflog.Info(ctx, "Configuring Leaseweb client")
-
 	var config leasewebProviderModel
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
@@ -132,8 +130,6 @@ func (p *leasewebProvider) Configure(
 	ctx = tflog.SetField(ctx, "leaseweb_scheme", scheme)
 	ctx = tflog.SetField(ctx, "leaseweb_token", token)
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "leaseweb_token")
-
-	tflog.Debug(ctx, "Creating Leaseweb client")
 
 	optional := client.Optional{}
 	if host != "" {

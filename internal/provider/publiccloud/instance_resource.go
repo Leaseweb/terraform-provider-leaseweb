@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -404,8 +403,6 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	tflog.Info(ctx, "Launch Public Cloud instance")
-
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
@@ -446,10 +443,6 @@ func (i *instanceResource) Delete(
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf(
-		"Terminate Public Cloud instance %q",
-		state.ID.ValueString(),
-	))
 	httpResponse, err := i.client.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
@@ -501,10 +494,6 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	tflog.Info(
-		ctx,
-		fmt.Sprintf("Read Public Cloud instance %q", state.ID.ValueString()),
-	)
 	sdkInstance, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
@@ -513,13 +502,6 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	tflog.Info(
-		ctx,
-		fmt.Sprintf(
-			"Create publiccloud instance resource for %q",
-			state.ID.ValueString(),
-		),
-	)
 	instance, sdkErr := adaptInstanceDetailsToInstanceResource(
 		*sdkInstance,
 		ctx,
@@ -553,10 +535,6 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	tflog.Info(
-		ctx,
-		fmt.Sprintf("Update Public Cloud instance %q", plan.ID.ValueString()),
-	)
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
