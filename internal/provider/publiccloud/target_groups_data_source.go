@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -232,7 +231,6 @@ func (t *targetGroupsDataSource) Read(
 		return
 	}
 
-	tflog.Info(ctx, summary)
 	targetGroups, httpResponse, err := getTargetGroups(*apiRequest)
 	if err != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
@@ -176,7 +175,6 @@ func (l *loadBalancersDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	tflog.Info(ctx, "Read Public Cloud load balancers")
 	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client)
 
 	if err != nil {
