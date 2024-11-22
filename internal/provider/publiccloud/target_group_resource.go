@@ -310,7 +310,7 @@ func (t *targetGroupResource) Create(
 
 	opts, err := plan.generateCreateOpts(ctx)
 	if err != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
 
@@ -323,12 +323,12 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	targetGroup, resourceErr := adaptTargetGroupToTargetGroupResource(
+	targetGroup, err := adaptTargetGroupToTargetGroupResource(
 		*sdkTargetGroup,
 		ctx,
 	)
-	if resourceErr != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+	if err != nil {
+		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
@@ -360,12 +360,12 @@ func (t *targetGroupResource) Read(
 		return
 	}
 
-	targetGroup, sdkErr := adaptTargetGroupToTargetGroupResource(
+	targetGroup, err := adaptTargetGroupToTargetGroupResource(
 		*targetGroupSdk,
 		ctx,
 	)
-	if sdkErr != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+	if err != nil {
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
 
@@ -391,7 +391,7 @@ func (t *targetGroupResource) Update(
 
 	opts, err := plan.generateUpdateOpts(ctx)
 	if err != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
 
@@ -409,7 +409,7 @@ func (t *targetGroupResource) Update(
 		ctx,
 	)
 	if err != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
 
