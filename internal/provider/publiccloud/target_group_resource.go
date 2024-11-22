@@ -26,7 +26,7 @@ var (
 	_ resource.ResourceWithImportState = &targetGroupResource{}
 )
 
-type TargetGroupResourceModel struct {
+type targetGroupResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Protocol    types.String `tfsdk:"protocol"`
@@ -35,7 +35,7 @@ type TargetGroupResourceModel struct {
 	HealthCheck types.Object `tfsdk:"health_check"`
 }
 
-func (t TargetGroupResourceModel) generateCreateOpts(ctx context.Context) (
+func (t targetGroupResourceModel) generateCreateOpts(ctx context.Context) (
 	*publicCloud.CreateTargetGroupOpts,
 	error,
 ) {
@@ -63,7 +63,7 @@ func (t TargetGroupResourceModel) generateCreateOpts(ctx context.Context) (
 	return opts, nil
 }
 
-func (t TargetGroupResourceModel) generateUpdateOpts(ctx context.Context) (
+func (t targetGroupResourceModel) generateUpdateOpts(ctx context.Context) (
 	*publicCloud.UpdateTargetGroupOpts,
 	error,
 ) {
@@ -91,8 +91,8 @@ func (t TargetGroupResourceModel) generateUpdateOpts(ctx context.Context) (
 func adaptTargetGroupToTargetGroupResource(
 	sdkTargetGroup publicCloud.TargetGroup,
 	ctx context.Context,
-) (*TargetGroupResourceModel, error) {
-	targetGroup := TargetGroupResourceModel{
+) (*targetGroupResourceModel, error) {
+	targetGroup := targetGroupResourceModel{
 		ID:       basetypes.NewStringValue(sdkTargetGroup.GetId()),
 		Name:     basetypes.NewStringValue(sdkTargetGroup.GetName()),
 		Protocol: basetypes.NewStringValue(string(sdkTargetGroup.GetProtocol())),
@@ -300,7 +300,7 @@ func (t *targetGroupResource) Create(
 	request resource.CreateRequest,
 	response *resource.CreateResponse,
 ) {
-	var plan TargetGroupResourceModel
+	var plan targetGroupResourceModel
 	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -340,7 +340,7 @@ func (t *targetGroupResource) Read(
 	request resource.ReadRequest,
 	response *resource.ReadResponse,
 ) {
-	var state TargetGroupResourceModel
+	var state targetGroupResourceModel
 	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -377,7 +377,7 @@ func (t *targetGroupResource) Update(
 	request resource.UpdateRequest,
 	response *resource.UpdateResponse,
 ) {
-	var plan TargetGroupResourceModel
+	var plan targetGroupResourceModel
 	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -421,7 +421,7 @@ func (t *targetGroupResource) Delete(
 	request resource.DeleteRequest,
 	response *resource.DeleteResponse,
 ) {
-	var state TargetGroupResourceModel
+	var state targetGroupResourceModel
 	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return

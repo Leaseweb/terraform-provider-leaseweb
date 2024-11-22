@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTargetGroupResourceModel_generateCreateOpts(t *testing.T) {
+func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
-		targetGroup := TargetGroupResourceModel{
+		targetGroup := targetGroupResourceModel{
 			Name:     basetypes.NewStringValue("Name"),
 			Protocol: basetypes.NewStringValue("HTTP"),
 			Port:     basetypes.NewInt32Value(80),
@@ -41,7 +41,7 @@ func TestTargetGroupResourceModel_generateCreateOpts(t *testing.T) {
 				Protocol: basetypes.NewStringValue("HTTP"),
 			},
 		)
-		targetGroup := TargetGroupResourceModel{
+		targetGroup := targetGroupResourceModel{
 			HealthCheck: healthCheckObject,
 		}
 
@@ -66,7 +66,7 @@ func TestTargetGroupResourceModel_generateCreateOpts(t *testing.T) {
 			dummy{},
 		)
 
-		targetGroup := TargetGroupResourceModel{
+		targetGroup := targetGroupResourceModel{
 			HealthCheck: healthCheckObject,
 		}
 
@@ -118,9 +118,9 @@ func Test_adaptHealthCheckToHealthCheckResource(t *testing.T) {
 	})
 }
 
-func TestTargetGroupResourceModel_generateUpdateOpts(t *testing.T) {
+func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 	t.Run("main fields are set", func(t *testing.T) {
-		targetGroup := TargetGroupResourceModel{
+		targetGroup := targetGroupResourceModel{
 			Name:     basetypes.NewStringValue("Name"),
 			Protocol: basetypes.NewStringValue("HTTP"),
 			Port:     basetypes.NewInt32Value(80),
@@ -149,7 +149,7 @@ func TestTargetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 			dummy{},
 		)
 
-		targetGroup := TargetGroupResourceModel{
+		targetGroup := targetGroupResourceModel{
 			HealthCheck: healthCheckObject,
 		}
 
@@ -167,7 +167,7 @@ func TestTargetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 				Protocol: basetypes.NewStringValue("HTTP"),
 			},
 		)
-		targetGroup := TargetGroupResourceModel{
+		targetGroup := targetGroupResourceModel{
 			HealthCheck: healthCheckObject,
 		}
 
@@ -235,7 +235,7 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 			context.TODO(),
 		)
 
-		want := TargetGroupResourceModel{
+		want := targetGroupResourceModel{
 			ID:          basetypes.NewStringValue("ID"),
 			Name:        basetypes.NewStringValue("Name"),
 			Protocol:    basetypes.NewStringValue("HTTP"),
