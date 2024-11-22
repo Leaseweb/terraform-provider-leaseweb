@@ -310,7 +310,7 @@ func (t *targetGroupResource) Create(
 
 	opts, err := plan.generateCreateOpts(ctx)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
 		return
 	}
 
@@ -328,7 +328,7 @@ func (t *targetGroupResource) Create(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.Error(ctx, &response.Diagnostics, summary, nil, httpResponse)
 		return
 	}
 
@@ -365,7 +365,7 @@ func (t *targetGroupResource) Read(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
 		return
 	}
 
@@ -391,7 +391,7 @@ func (t *targetGroupResource) Update(
 
 	opts, err := plan.generateUpdateOpts(ctx)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
 		return
 	}
 
@@ -409,7 +409,7 @@ func (t *targetGroupResource) Update(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
 		return
 	}
 
