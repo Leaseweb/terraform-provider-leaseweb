@@ -6,7 +6,7 @@ import (
 	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 )
 
-const userAgent = "leaseweb-terraform"
+const userAgentBase = "leaseweb-terraform"
 
 // The Client handles instantiation of the SDK.
 type Client struct {
@@ -19,7 +19,7 @@ type Optional struct {
 	Scheme *string
 }
 
-func NewClient(token string, optional Optional) Client {
+func NewClient(token string, optional Optional, version string) Client {
 	publicCloudCfg := publicCloud.NewConfiguration()
 	dedicatedServerCfg := dedicatedServer.NewConfiguration()
 
@@ -31,6 +31,8 @@ func NewClient(token string, optional Optional) Client {
 		publicCloudCfg.Scheme = *optional.Scheme
 		dedicatedServerCfg.Scheme = *optional.Scheme
 	}
+
+	userAgent := userAgentBase + "-" + version
 
 	publicCloudCfg.AddDefaultHeader("X-LSW-Auth", token)
 	publicCloudCfg.UserAgent = userAgent

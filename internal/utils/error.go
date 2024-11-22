@@ -52,7 +52,6 @@ func Error(
 }
 
 func (e *errorHandler) report() {
-
 	if e.diags == nil {
 		e.writeLog("unable to record error details.")
 		log.Fatal(e.summary, DefaultErrMsg)
@@ -103,7 +102,10 @@ func (e *errorHandler) processErrorResponse(errorResponse errorResponse) {
 	// Attempt to convert errorResponse to JSON format for output
 	jsonOutput, err := json.MarshalIndent(errorResponse, "", "  ")
 	if err != nil {
-		e.writeLog(fmt.Sprintf("failed to format error response as JSON: %v", err))
+		e.writeLog(fmt.Sprintf(
+			"failed to format error response as JSON: %v",
+			err,
+		))
 		e.writeOutput(DefaultErrMsg)
 		return
 	}
