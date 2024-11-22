@@ -207,7 +207,7 @@ func ExampleAdaptSdkModelToResourceObject() {
 		Id types.String `tfsdk:"id"`
 	}
 
-	datasourceModel, _ := AdaptSdkModelToResourceObject(
+	resourceModel, _ := AdaptSdkModelToResourceObject(
 		publicCloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
@@ -220,7 +220,7 @@ func ExampleAdaptSdkModelToResourceObject() {
 		},
 	)
 
-	fmt.Println(datasourceModel)
+	fmt.Println(resourceModel)
 	// Output: {"id":"imageId"}
 }
 
@@ -341,4 +341,95 @@ func ExampleAdaptBoolPointerValueToNullableBool() {
 
 	fmt.Println(*convertedValue)
 	// Output: true
+}
+
+func TestAdaptNullableSdkModelToResourceObject(t *testing.T) {
+	entity := mockDomainEntity{}
+
+	t.Run("attributeTypes are incorrect", func(t *testing.T) {
+		got, err := AdaptNullableSdkModelToResourceObject(
+			&entity,
+			map[string]attr.Type{},
+			context.TODO(),
+			func(entity mockDomainEntity) (model mockModel) {
+				return mockModel{}
+			},
+		)
+
+		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "Value Conversion Error")
+	})
+
+	t.Run("sdkModel is processed properly", func(t *testing.T) {
+		got, diags := AdaptNullableSdkModelToResourceObject(
+			&entity,
+			map[string]attr.Type{"value": types.StringType},
+			context.TODO(),
+			func(entity mockDomainEntity) mockModel {
+				return mockModel{Value: "tralala"}
+			},
+		)
+
+		assert.Nil(t, diags)
+		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
+	})
+
+	t.Run("passing nil returns a Null object", func(t *testing.T) {
+		got, diags := AdaptNullableSdkModelToResourceObject(
+			nil,
+			map[string]attr.Type{"value": types.StringType},
+			context.TODO(),
+			func(entity mockDomainEntity) mockModel {
+				return mockModel{Value: "tralala"}
+			},
+		)
+
+		assert.Nil(t, diags)
+		assert.True(t, got.IsNull())
+	})
+}
+
+func ExampleAdaptNullableSdkModelToResourceObject() {
+	type Image struct {
+		Id types.String `tfsdk:"id"`
+	}
+
+	resourceModel, _ := AdaptNullableSdkModelToResourceObject(
+		&publicCloud.Image{Id: "imageId"},
+		map[string]attr.Type{
+			"id": types.StringType,
+		},
+		context.TODO(),
+		func(image publicCloud.Image) Image {
+			return Image{
+				Id: basetypes.NewStringValue(image.Id),
+			}
+		},
+	)
+
+	fmt.Println(resourceModel)
+	// Output: {"id":"imageId"}
+}
+
+func ExampleAdaptNullableSdkModelToResourceObject_second() {
+	type Image struct {
+		Id types.String `tfsdk:"id"`
+	}
+
+	resourceModel, _ := AdaptNullableSdkModelToResourceObject(
+		nil,
+		map[string]attr.Type{
+			"id": types.StringType,
+		},
+		context.TODO(),
+		func(image publicCloud.Image) Image {
+			return Image{
+				Id: basetypes.NewStringValue(image.Id),
+			}
+		},
+	)
+
+	fmt.Println(resourceModel)
+	// Output: <null>
 }

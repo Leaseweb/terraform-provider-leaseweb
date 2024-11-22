@@ -64,6 +64,38 @@ func AdaptSdkModelToResourceObject[T any, U any](
 	return objectValue, nil
 }
 
+// AdaptNullableSdkModelToResourceObject converts a nullable sdk model to a Terraform resource object.
+func AdaptNullableSdkModelToResourceObject[T interface{}, U interface{}](
+	sdkModel *T,
+	attributeTypes map[string]attr.Type,
+	ctx context.Context,
+	generateResourceObject func(sdkModel T) U,
+) (basetypes.ObjectValue, error) {
+	if sdkModel == nil {
+		return basetypes.NewObjectNull(attributeTypes), nil
+	}
+
+	resourceObject := generateResourceObject(*sdkModel)
+
+	objectValue, diags := types.ObjectValueFrom(
+		ctx,
+		attributeTypes,
+		resourceObject,
+	)
+	if diags.HasError() {
+		for _, v := range diags {
+			return types.ObjectUnknown(attributeTypes), fmt.Errorf(
+				"unable to convert sdk sdkModel to resource: %q %q",
+				v.Summary(),
+				v.Detail(),
+			)
+		}
+
+	}
+
+	return objectValue, nil
+}
+
 // AdaptSdkModelsToListValue converts a sdk model array to a Terraform
 // ListValue.
 func AdaptSdkModelsToListValue[T any, U any](

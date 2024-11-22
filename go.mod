@@ -8,8 +8,8 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241114082959-9d682d73a40d
-	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241118100223-cb6c58ec7524
+	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241120152414-2fcb9e9d047f
+	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241120152414-2fcb9e9d047f
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -62,7 +62,7 @@ require (
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241113202542-65e8d215514f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/grpc v1.68.0 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
