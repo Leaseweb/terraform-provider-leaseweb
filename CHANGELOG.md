@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.11.0...v1.12.0) (2024-11-22)
+
+
+### Features
+
+* implement target group resource ([466a2a8](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/466a2a8448f1988aa1f49d60976f5b7b325ad02f))
+* inject release version into user agent ([f9b4b8b](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/f9b4b8b8cc79cec8bc1b45be2b281d26297d2b3d))
+
+
 ## 1.11.0 (November 19, 2024)
 
 * feat(docs): let end user know which actions aren't supporetd by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
