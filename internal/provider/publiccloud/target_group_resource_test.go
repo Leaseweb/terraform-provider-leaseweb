@@ -89,7 +89,7 @@ func Test_adaptHealthCheckToHealthCheckResource(t *testing.T) {
 
 		want := healthCheckResourceModel{
 			Protocol: basetypes.NewStringValue("HTTP"),
-			Uri:      basetypes.NewStringValue("/"),
+			URI:      basetypes.NewStringValue("/"),
 			Port:     basetypes.NewInt32Value(80),
 		}
 
@@ -108,7 +108,7 @@ func Test_adaptHealthCheckToHealthCheckResource(t *testing.T) {
 
 		want := healthCheckResourceModel{
 			Protocol: basetypes.NewStringValue(""),
-			Uri:      basetypes.NewStringValue(""),
+			URI:      basetypes.NewStringValue(""),
 			Port:     basetypes.NewInt32Value(0),
 			Method:   basetypes.NewStringValue("GET"),
 			Host:     basetypes.NewStringValue("example.com"),
@@ -182,7 +182,7 @@ func Test_healthCheckResourceModel_generateOpts(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
 		healthCheck := healthCheckResourceModel{
 			Protocol: basetypes.NewStringValue("HTTP"),
-			Uri:      basetypes.NewStringValue("/"),
+			URI:      basetypes.NewStringValue("/"),
 			Port:     basetypes.NewInt32Value(80),
 		}
 

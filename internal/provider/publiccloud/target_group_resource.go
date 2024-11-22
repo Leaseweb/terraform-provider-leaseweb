@@ -119,7 +119,7 @@ func adaptTargetGroupToTargetGroupResource(
 type healthCheckResourceModel struct {
 	Protocol types.String `tfsdk:"protocol"`
 	Method   types.String `tfsdk:"method"`
-	Uri      types.String `tfsdk:"uri"`
+	URI      types.String `tfsdk:"uri"`
 	Host     types.String `tfsdk:"host"`
 	Port     types.Int32  `tfsdk:"port"`
 }
@@ -137,7 +137,7 @@ func (h healthCheckResourceModel) attributeTypes() map[string]attr.Type {
 func (h healthCheckResourceModel) generateOpts() publicCloud.HealthCheckOpts {
 	opts := publicCloud.NewHealthCheckOpts(
 		publicCloud.Protocol(h.Protocol.ValueString()),
-		h.Uri.ValueString(),
+		h.URI.ValueString(),
 		h.Port.ValueInt32(),
 	)
 
@@ -152,7 +152,7 @@ func (h healthCheckResourceModel) generateOpts() publicCloud.HealthCheckOpts {
 func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publicCloud.HealthCheck) healthCheckResourceModel {
 	healthCheck := healthCheckResourceModel{
 		Protocol: basetypes.NewStringValue(string(sdkHealthCheck.GetProtocol())),
-		Uri:      basetypes.NewStringValue(sdkHealthCheck.GetUri()),
+		URI:      basetypes.NewStringValue(sdkHealthCheck.GetUri()),
 		Port:     basetypes.NewInt32Value(sdkHealthCheck.GetPort()),
 	}
 
