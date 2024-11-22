@@ -11,10 +11,6 @@ import (
 
 var (
 	version = "dev"
-
-	// goreleaser can pass other information to the main package,
-	// such as the specific commit
-	// https://goreleaser.com/cookbooks/using-main.version/
 )
 
 func main() {
