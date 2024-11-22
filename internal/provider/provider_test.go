@@ -196,7 +196,6 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 		   	type = "invalid"
 		   	password = "12341234"
 		}`,
-
 						ExpectError: regexp.MustCompile(
 							`Attribute type value must be one of:`,
 						),
@@ -1599,25 +1598,12 @@ data "leaseweb_public_cloud_target_groups" "test" {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
-				// Read testing
 				{
 					Config: providerConfig + `
 data "leaseweb_public_cloud_target_groups" "test" {
   protocol = "tralala"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
 					ExpectError: regexp.MustCompile(
 						`Attribute protocol value must be one of:`,
 					),
@@ -1665,18 +1651,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
   port = 800000
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
 					ExpectError: regexp.MustCompile(
 						`Attribute port value must be between 1 and 65535`,
 					),
@@ -1724,18 +1698,6 @@ data "leaseweb_public_cloud_target_groups" "test" {
   region = "tralala"
 }
 `,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.#",
-							"1",
-						),
-						resource.TestCheckResourceAttr(
-							"data.leaseweb_public_cloud_target_groups.test",
-							"target_groups.0.id",
-							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
-						),
-					),
 					ExpectError: regexp.MustCompile(
 						`Attribute region value must be one of:`,
 					),
@@ -1853,6 +1815,355 @@ resource "leaseweb_public_cloud_load_balancer_listener" "test" {
 					ExpectError: regexp.MustCompile(
 						`Attribute port value must be between`,
 					),
+				},
+			},
+		})
+	})
+}
+
+func TestAccPublicCloudTargetGroupResource(t *testing.T) {
+	t.Run("an invalid protocol throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "name"
+  port = 80
+  region = "eu-west-3"
+  protocol = "tralala"
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute protocol value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid port throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+data "leaseweb_public_cloud_target_groups" "test" {
+  name = "name"
+  port = 800000
+  region = "eu-west-3"
+  protocol = "HTTP"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						`Attribute port value must be between 1 and 65535`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid region throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "name"
+  port = 80
+  region = "tralala"
+  protocol = "HTTP"
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute region value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid health_check protocol throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "name"
+  port = 80
+  region = "eu-west-3"
+  protocol = "HTTP"
+  health_check = {
+    protocol = "tralala"
+    port = 80
+    uri = "/"
+  }
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute health_check.protocol value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid health_check method throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "name"
+  port = 80
+  region = "eu-west-3"
+  protocol = "HTTP"
+  health_check = {
+    protocol = "HTTP"
+    method = "tralala"
+    port = 80
+    uri = "/"
+  }
+}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute health_check.method value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid health_check port throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "name"
+  port = 80
+  region = "eu-west-3"
+  protocol = "HTTP"
+  health_check = {
+    protocol = "HTTP"
+    port = 80000
+    uri = "/"
+  }
+}
+`,
+					ExpectError: regexp.MustCompile(
+						`Attribute health_check.port value must be between 1 and 65535`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("creates and updates a target group", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTP"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_target_group.test",
+							"id",
+							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
+						),
+					),
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_public_cloud_target_group.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTP"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+				},
+				// Delete testing automatically occurs in TestCase
+			},
+		})
+	})
+
+	t.Run("changing the region triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTP"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_target_group.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-3"
+  protocol = "HTTP"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+				},
+			},
+		})
+	})
+
+	t.Run("changing the protocol triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTP"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_target_group.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTPS"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+				},
+			},
+		})
+	})
+
+	t.Run("removing health_check triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTP"
+  health_check = {
+    host = "example.com"
+    method = "GET"
+    protocol = "HTTP"
+    port = 80
+    uri = "/"
+  }
+}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_target_group.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_target_group" "test" {
+  name = "Target group name"
+  port = 80
+  region = "eu-west-2"
+  protocol = "HTTP"
+}`,
 				},
 			},
 		})
