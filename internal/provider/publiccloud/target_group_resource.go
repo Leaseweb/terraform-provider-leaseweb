@@ -328,7 +328,7 @@ func (t *targetGroupResource) Create(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, nil, httpResponse)
+		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
 		return
 	}
 
