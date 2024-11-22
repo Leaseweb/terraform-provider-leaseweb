@@ -139,7 +139,7 @@ func (p *leasewebProvider) Configure(
 		optional.Scheme = &scheme
 	}
 
-	coreClient := client.NewClient(token, optional)
+	coreClient := client.NewClient(token, optional, p.version)
 
 	resp.DataSourceData = coreClient
 	resp.ResourceData = coreClient
