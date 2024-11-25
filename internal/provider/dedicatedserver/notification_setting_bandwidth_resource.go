@@ -158,9 +158,6 @@ func (n *notificationSettingBandwidthResource) Create(
 	newData.DedicatedServerId = data.DedicatedServerId
 	diags = resp.State.Set(ctx, newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (n *notificationSettingBandwidthResource) Read(
@@ -201,9 +198,6 @@ func (n *notificationSettingBandwidthResource) Read(
 	newData.DedicatedServerId = data.DedicatedServerId
 	diags = resp.State.Set(ctx, newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (n *notificationSettingBandwidthResource) Update(
@@ -249,9 +243,6 @@ func (n *notificationSettingBandwidthResource) Update(
 	}
 	diags = resp.State.Set(ctx, newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (n *notificationSettingBandwidthResource) Delete(
@@ -280,6 +271,5 @@ func (n *notificationSettingBandwidthResource) Delete(
 			data.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
-		return
 	}
 }

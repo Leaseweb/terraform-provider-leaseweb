@@ -220,9 +220,6 @@ func (s *serverDataSource) Read(
 
 	diags := resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (s *serverDataSource) Schema(

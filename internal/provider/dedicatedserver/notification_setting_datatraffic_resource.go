@@ -158,9 +158,6 @@ func (n *notificationSettingDatatrafficResource) Create(
 	}
 	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (n *notificationSettingDatatrafficResource) Read(
@@ -201,9 +198,6 @@ func (n *notificationSettingDatatrafficResource) Read(
 	}
 	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (n *notificationSettingDatatrafficResource) Update(
@@ -249,9 +243,6 @@ func (n *notificationSettingDatatrafficResource) Update(
 	}
 	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (n *notificationSettingDatatrafficResource) Delete(
@@ -280,6 +271,5 @@ func (n *notificationSettingDatatrafficResource) Delete(
 			data.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
-		return
 	}
 }

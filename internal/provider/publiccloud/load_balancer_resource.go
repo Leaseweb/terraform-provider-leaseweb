@@ -406,7 +406,6 @@ func (l *loadBalancerResource) Delete(
 	if err != nil {
 		summary := fmt.Sprintf("Terminating resource %s for id %q", l.name, state.ID.ValueString())
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
-		return
 	}
 }
 

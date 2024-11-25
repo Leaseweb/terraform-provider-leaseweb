@@ -106,7 +106,6 @@ func (d *credentialDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
 	var state credentialDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -136,7 +135,4 @@ func (d *credentialDataSource) Read(
 
 	state.Password = types.StringValue(credential.GetPassword())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

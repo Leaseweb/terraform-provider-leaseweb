@@ -273,7 +273,5 @@ func (c *credentialResource) Delete(
 			data.InstanceID.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
-		return
 	}
-
 }

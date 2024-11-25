@@ -459,9 +459,6 @@ func (s *serverResource) Update(
 
 	stateDiags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(stateDiags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (s *serverResource) Create(

@@ -426,9 +426,6 @@ func (i *instanceResource) Create(
 
 	diags = resp.State.Set(ctx, instance)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (i *instanceResource) Delete(
@@ -451,7 +448,6 @@ func (i *instanceResource) Delete(
 	if err != nil {
 		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
-		return
 	}
 }
 

@@ -103,9 +103,6 @@ func (o *operatingSystemsDataSource) Read(
 
 	diags := resp.State.Set(ctx, &newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (o *operatingSystemsDataSource) Schema(

@@ -114,9 +114,6 @@ func (c *controlPanelsDataSource) Read(
 
 	diags := resp.State.Set(ctx, &newData)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (c *controlPanelsDataSource) Schema(

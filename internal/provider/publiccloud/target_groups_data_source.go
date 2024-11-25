@@ -227,14 +227,12 @@ func (t *targetGroupsDataSource) Read(
 	apiRequest, err := config.generateRequest(ctx, t.client)
 	if err != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
-
 		return
 	}
 
 	targetGroups, httpResponse, err := getTargetGroups(*apiRequest)
 	if err != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
-
 		return
 	}
 
@@ -267,7 +265,6 @@ func (t *targetGroupsDataSource) Configure(
 				request.ProviderData,
 			),
 		)
-
 		return
 	}
 
