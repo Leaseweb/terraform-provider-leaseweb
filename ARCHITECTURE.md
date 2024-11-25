@@ -121,4 +121,4 @@ Public Cloud instance data source should be called `TestAccPublicCloudInstanceDa
 
 ## Variables
 
-Where possible try to use `plan`,`state` & `config` as names for variables that reference terraform plan, state & config.
+Where possible use `plan`,`state` & `config` as names for variables that reference terraform plan, state & config.
