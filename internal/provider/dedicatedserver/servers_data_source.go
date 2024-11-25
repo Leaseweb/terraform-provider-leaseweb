@@ -73,44 +73,44 @@ func (s *serversDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	var data serversDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	var config serversDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	// NOTE: we show only the latest 50 items.
 	request := s.client.GetServerList(ctx).Limit(50)
 
-	if !data.Reference.IsNull() && !data.Reference.IsUnknown() {
-		request = request.Reference(data.Reference.ValueString())
+	if !config.Reference.IsNull() && !config.Reference.IsUnknown() {
+		request = request.Reference(config.Reference.ValueString())
 	}
 
-	if !data.Ip.IsNull() && !data.Ip.IsUnknown() {
-		request = request.Ip(data.Ip.ValueString())
+	if !config.Ip.IsNull() && !config.Ip.IsUnknown() {
+		request = request.Ip(config.Ip.ValueString())
 	}
 
-	if !data.MacAddress.IsNull() && !data.MacAddress.IsUnknown() {
-		request = request.MacAddress(data.MacAddress.ValueString())
+	if !config.MacAddress.IsNull() && !config.MacAddress.IsUnknown() {
+		request = request.MacAddress(config.MacAddress.ValueString())
 	}
 
-	if !data.Site.IsNull() && !data.Site.IsUnknown() {
-		request = request.Site(data.Site.ValueString())
+	if !config.Site.IsNull() && !config.Site.IsUnknown() {
+		request = request.Site(config.Site.ValueString())
 	}
 
-	if !data.PrivateRackId.IsNull() && !data.PrivateRackId.IsUnknown() {
-		request = request.PrivateRackId(data.PrivateRackId.ValueString())
+	if !config.PrivateRackId.IsNull() && !config.PrivateRackId.IsUnknown() {
+		request = request.PrivateRackId(config.PrivateRackId.ValueString())
 	}
 
-	if !data.PrivateNetworkCapable.IsNull() && !data.PrivateNetworkCapable.IsUnknown() {
-		request = request.PrivateNetworkCapable(data.PrivateNetworkCapable.ValueString())
+	if !config.PrivateNetworkCapable.IsNull() && !config.PrivateNetworkCapable.IsUnknown() {
+		request = request.PrivateNetworkCapable(config.PrivateNetworkCapable.ValueString())
 	}
 
-	if !data.PrivateNetworkEnabled.IsNull() && !data.PrivateNetworkEnabled.IsUnknown() {
-		request = request.PrivateNetworkEnabled(data.PrivateNetworkEnabled.ValueString())
+	if !config.PrivateNetworkEnabled.IsNull() && !config.PrivateNetworkEnabled.IsUnknown() {
+		request = request.PrivateNetworkEnabled(config.PrivateNetworkEnabled.ValueString())
 	}
 
 	var Ids []types.String
 
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", s.name)
+		summary := fmt.Sprintf("Reading config %s", s.name)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
@@ -118,19 +118,21 @@ func (s *serversDataSource) Read(
 		Ids = append(Ids, types.StringValue(server.GetId()))
 	}
 
-	data = serversDataSourceModel{
-		Ids:                   Ids,
-		Reference:             data.Reference,
-		Ip:                    data.Ip,
-		MacAddress:            data.MacAddress,
-		Site:                  data.Site,
-		PrivateRackId:         data.PrivateRackId,
-		PrivateNetworkCapable: data.PrivateNetworkCapable,
-		PrivateNetworkEnabled: data.PrivateNetworkEnabled,
-	}
-
-	diags := resp.State.Set(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			serversDataSourceModel{
+				Ids:                   Ids,
+				Reference:             config.Reference,
+				Ip:                    config.Ip,
+				MacAddress:            config.MacAddress,
+				Site:                  config.Site,
+				PrivateRackId:         config.PrivateRackId,
+				PrivateNetworkCapable: config.PrivateNetworkCapable,
+				PrivateNetworkEnabled: config.PrivateNetworkEnabled,
+			},
+		)...,
+	)
 }
 
 func (s *serversDataSource) Schema(

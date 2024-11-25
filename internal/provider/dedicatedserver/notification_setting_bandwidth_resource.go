@@ -122,42 +122,44 @@ func (n *notificationSettingBandwidthResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var data notificationSettingBandwidthResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan notificationSettingBandwidthResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := dedicatedServer.NewBandwidthNotificationSettingOpts(
-		data.Frequency.ValueString(),
-		data.Threshold.ValueString(),
-		data.Unit.ValueString(),
+		plan.Frequency.ValueString(),
+		plan.Threshold.ValueString(),
+		plan.Unit.ValueString(),
 	)
 	request := n.client.CreateServerBandwidthNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
+		plan.DedicatedServerId.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Creating resource %s for dedicated_server_id %q",
 			n.name,
-			data.DedicatedServerId.ValueString(),
+			plan.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	newData := notificationSettingBandwidthResourceModel{
-		Id:        types.StringValue(result.GetId()),
-		Frequency: types.StringValue(result.GetFrequency()),
-		Threshold: types.StringValue(result.GetThreshold()),
-		Unit:      types.StringValue(result.GetUnit()),
-	}
-	newData.DedicatedServerId = data.DedicatedServerId
-	diags = resp.State.Set(ctx, newData)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			notificationSettingBandwidthResourceModel{
+				Id:                types.StringValue(result.GetId()),
+				Frequency:         types.StringValue(result.GetFrequency()),
+				Threshold:         types.StringValue(result.GetThreshold()),
+				Unit:              types.StringValue(result.GetUnit()),
+				DedicatedServerId: plan.DedicatedServerId,
+			},
+		)...,
+	)
 }
 
 func (n *notificationSettingBandwidthResource) Read(
@@ -165,39 +167,41 @@ func (n *notificationSettingBandwidthResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data notificationSettingBandwidthResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state notificationSettingBandwidthResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := n.client.GetServerBandwidthNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		data.Id.ValueString(),
+		state.DedicatedServerId.ValueString(),
+		state.Id.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading resource %s for id %q and dedicated_server_id %q",
 			n.name,
-			data.Id.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			state.Id.ValueString(),
+			state.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	newData := notificationSettingBandwidthResourceModel{
-		Id:        types.StringValue(result.GetId()),
-		Frequency: types.StringValue(result.GetFrequency()),
-		Threshold: types.StringValue(result.GetThreshold()),
-		Unit:      types.StringValue(result.GetUnit()),
-	}
-	newData.DedicatedServerId = data.DedicatedServerId
-	diags = resp.State.Set(ctx, newData)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			notificationSettingBandwidthResourceModel{
+				Id:                types.StringValue(result.GetId()),
+				Frequency:         types.StringValue(result.GetFrequency()),
+				Threshold:         types.StringValue(result.GetThreshold()),
+				Unit:              types.StringValue(result.GetUnit()),
+				DedicatedServerId: state.DedicatedServerId,
+			},
+		)...,
+	)
 }
 
 func (n *notificationSettingBandwidthResource) Update(
@@ -205,44 +209,46 @@ func (n *notificationSettingBandwidthResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var data notificationSettingBandwidthResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan notificationSettingBandwidthResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := dedicatedServer.NewBandwidthNotificationSettingOpts(
-		data.Frequency.ValueString(),
-		data.Threshold.ValueString(),
-		data.Unit.ValueString(),
+		plan.Frequency.ValueString(),
+		plan.Threshold.ValueString(),
+		plan.Unit.ValueString(),
 	)
 	request := n.client.UpdateServerBandwidthNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		data.Id.ValueString(),
+		plan.DedicatedServerId.ValueString(),
+		plan.Id.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Updating resource %s for id %q and dedicated_server_id %q",
 			n.name,
-			data.Id.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			plan.Id.ValueString(),
+			plan.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	newData := notificationSettingBandwidthResourceModel{
-		Id:                data.Id,
-		DedicatedServerId: data.DedicatedServerId,
-		Frequency:         types.StringValue(result.GetFrequency()),
-		Threshold:         types.StringValue(result.GetThreshold()),
-		Unit:              types.StringValue(result.GetUnit()),
-	}
-	diags = resp.State.Set(ctx, newData)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			notificationSettingBandwidthResourceModel{
+				Id:                plan.Id,
+				DedicatedServerId: plan.DedicatedServerId,
+				Frequency:         types.StringValue(result.GetFrequency()),
+				Threshold:         types.StringValue(result.GetThreshold()),
+				Unit:              types.StringValue(result.GetUnit()),
+			},
+		)...,
+	)
 }
 
 func (n *notificationSettingBandwidthResource) Delete(
@@ -250,25 +256,24 @@ func (n *notificationSettingBandwidthResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var data notificationSettingBandwidthResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state notificationSettingBandwidthResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := n.client.DeleteServerBandwidthNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		data.Id.ValueString(),
+		state.DedicatedServerId.ValueString(),
+		state.Id.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Deleting resource %s for id %q and dedicated_server_id %q",
 			n.name,
-			data.Id.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			state.Id.ValueString(),
+			state.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 	}

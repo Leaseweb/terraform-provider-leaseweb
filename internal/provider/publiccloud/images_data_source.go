@@ -194,10 +194,9 @@ func (i *imagesDataSource) Read(
 		return
 	}
 
-	state := adaptImagesToImagesDataSource(images)
-
-	diags := response.State.Set(ctx, &state)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(
+		response.State.Set(ctx, adaptImagesToImagesDataSource(images))...,
+	)
 }
 
 func (i *imagesDataSource) Configure(

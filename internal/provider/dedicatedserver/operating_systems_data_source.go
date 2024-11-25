@@ -73,17 +73,17 @@ func (o *operatingSystemsDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	var data operatingSystemsDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	var config operatingSystemsDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	request := o.client.GetOperatingSystemList(ctx)
-	if !data.ControlPanelId.IsNull() && !data.ControlPanelId.IsUnknown() {
-		request = request.ControlPanelId(data.ControlPanelId.ValueString())
+	if !config.ControlPanelId.IsNull() && !config.ControlPanelId.IsUnknown() {
+		request = request.ControlPanelId(config.ControlPanelId.ValueString())
 	}
 	// NOTE: we show only the latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", o.name)
+		summary := fmt.Sprintf("Reading config %s", o.name)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
@@ -96,13 +96,15 @@ func (o *operatingSystemsDataSource) Read(
 		})
 	}
 
-	newData := operatingSystemsDataSourceModel{
-		OperatingSystems: operatingSystems,
-		ControlPanelId:   data.ControlPanelId,
-	}
-
-	diags := resp.State.Set(ctx, &newData)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			operatingSystemsDataSourceModel{
+				OperatingSystems: operatingSystems,
+				ControlPanelId:   config.ControlPanelId,
+			},
+		)...,
+	)
 }
 
 func (o *operatingSystemsDataSource) Schema(

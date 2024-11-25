@@ -176,17 +176,18 @@ func (l *loadBalancersDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client)
-
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", l.name)
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	state := adaptLoadBalancersToLoadBalancersDataSource(loadBalancers)
-
-	diags := response.State.Set(ctx, &state)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(
+		response.State.Set(
+			ctx,
+			adaptLoadBalancersToLoadBalancersDataSource(loadBalancers),
+		)...,
+	)
 }
 
 func (l *loadBalancersDataSource) Configure(

@@ -281,13 +281,12 @@ func (l *loadBalancerResource) Create(
 	response *resource.CreateResponse,
 ) {
 	var plan loadBalancerResourceModel
-
-	diags := request.Plan.Get(ctx, &plan)
-	summary := fmt.Sprintf("Launching resource %s", l.name)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	summary := fmt.Sprintf("Launching resource %s", l.name)
 
 	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
 	if err != nil {
@@ -304,17 +303,16 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	loadBalancer, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(
+	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
 		*sdkLoadBalancer,
 		ctx,
 	)
-	if resourceErr != nil {
+	if err != nil {
 		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
 
-	diags = response.State.Set(ctx, loadBalancer)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 func (l *loadBalancerResource) Read(
@@ -323,16 +321,16 @@ func (l *loadBalancerResource) Read(
 	response *resource.ReadResponse,
 ) {
 	var state loadBalancerResourceModel
-	diags := request.State.Get(ctx, &state)
+	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
 	summary := fmt.Sprintf(
 		"Reading resource %s for id %q",
 		l.name,
 		state.ID.ValueString(),
 	)
-	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 
 	sdkLoadBalancerDetails, httpResponse, err := l.client.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
@@ -342,14 +340,13 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	instance, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*sdkLoadBalancerDetails, ctx)
+	newState, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*sdkLoadBalancerDetails, ctx)
 	if resourceErr != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
 		return
 	}
 
-	diags = response.State.Set(ctx, instance)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
 
 func (l *loadBalancerResource) Update(
@@ -358,18 +355,16 @@ func (l *loadBalancerResource) Update(
 	response *resource.UpdateResponse,
 ) {
 	var plan loadBalancerResourceModel
+	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
-	diags := request.Plan.Get(ctx, &plan)
 	summary := fmt.Sprintf(
 		"Updating resource %s for id %q",
 		l.name,
 		plan.ID.ValueString(),
 	)
-
-	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
 
 	opts, err := plan.GetUpdateLoadBalancerOpts()
 	if err != nil {
@@ -377,7 +372,7 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	sdkLoadBalancer, httpResponse, err := l.client.
+	sdkLoadBalancerDetails, httpResponse, err := l.client.
 		UpdateLoadBalancer(ctx, plan.ID.ValueString()).
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
@@ -385,9 +380,15 @@ func (l *loadBalancerResource) Update(
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
+	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
+		*sdkLoadBalancerDetails,
+		ctx,
+	)
+	if err != nil {
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+	}
 
-	diags = response.State.Set(ctx, sdkLoadBalancer)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 func (l *loadBalancerResource) Delete(
@@ -396,8 +397,7 @@ func (l *loadBalancerResource) Delete(
 	response *resource.DeleteResponse,
 ) {
 	var state loadBalancerResourceModel
-	diags := request.State.Get(ctx, &state)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
