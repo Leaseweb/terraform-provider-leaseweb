@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
 	github.com/leaseweb/leaseweb-go-sdk/dedicatedServer v0.0.0-20241120152414-2fcb9e9d047f
 	github.com/leaseweb/leaseweb-go-sdk/publicCloud v0.0.0-20241120152414-2fcb9e9d047f
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
