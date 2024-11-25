@@ -83,7 +83,7 @@ func (o *operatingSystemsDataSource) Read(
 	// NOTE: we show only the latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading config %s", o.name)
+		summary := fmt.Sprintf("Reading data %s", o.name)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}

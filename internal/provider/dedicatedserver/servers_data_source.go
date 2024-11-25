@@ -110,7 +110,7 @@ func (s *serversDataSource) Read(
 
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading config %s", s.name)
+		summary := fmt.Sprintf("Reading data %s", s.name)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
