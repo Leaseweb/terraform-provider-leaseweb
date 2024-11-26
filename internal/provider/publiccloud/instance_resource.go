@@ -395,13 +395,12 @@ func (i *instanceResource) Create(
 	resp *resource.CreateResponse,
 ) {
 	var plan instanceResourceModel
-
-	diags := req.Plan.Get(ctx, &plan)
-	summary := fmt.Sprintf("Launching resource %s", i.name)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	summary := fmt.Sprintf("Launching resource %s", i.name)
 
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
@@ -418,17 +417,12 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, resourceErr := adaptInstanceToInstanceResource(*sdkInstance, ctx)
-	if resourceErr != nil {
+	state, err := adaptInstanceToInstanceResource(*sdkInstance, ctx)
+	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
-
-	diags = resp.State.Set(ctx, instance)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (i *instanceResource) Delete(
@@ -437,8 +431,7 @@ func (i *instanceResource) Delete(
 	resp *resource.DeleteResponse,
 ) {
 	var state instanceResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -451,7 +444,6 @@ func (i *instanceResource) Delete(
 	if err != nil {
 		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
-		return
 	}
 }
 
@@ -482,17 +474,16 @@ func (i *instanceResource) Read(
 	resp *resource.ReadResponse,
 ) {
 	var state instanceResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	diags := req.State.Get(ctx, &state)
 	summary := fmt.Sprintf(
 		"Reading resource %s for id %q",
 		i.name,
 		state.ID.ValueString(),
 	)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	sdkInstance, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
@@ -502,18 +493,17 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	instance, sdkErr := adaptInstanceDetailsToInstanceResource(
+	newState, err := adaptInstanceDetailsToInstanceResource(
 		*sdkInstance,
 		ctx,
 	)
-	if sdkErr != nil {
+	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
 
-	diags = resp.State.Set(ctx, instance)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
 }
 
 func (i *instanceResource) Update(
@@ -522,18 +512,16 @@ func (i *instanceResource) Update(
 	resp *resource.UpdateResponse,
 ) {
 	var plan instanceResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	diags := req.Plan.Get(ctx, &plan)
 	summary := fmt.Sprintf(
 		"Updating resource %s for id %q",
 		i.name,
 		plan.ID.ValueString(),
 	)
-
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	opts, err := plan.GetUpdateInstanceOpts(ctx)
 	if err != nil {
@@ -541,7 +529,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstance, httpResponse, err := i.client.
+	sdkInstanceDetails, httpResponse, err := i.client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
@@ -549,9 +537,13 @@ func (i *instanceResource) Update(
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
+	state, err := adaptInstanceDetailsToInstanceResource(*sdkInstanceDetails, ctx)
+	if err != nil {
+		utils.Error(ctx, &resp.Diagnostics, summary, err, nil)
+		return
+	}
 
-	diags = resp.State.Set(ctx, sdkInstance)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (i *instanceResource) Schema(

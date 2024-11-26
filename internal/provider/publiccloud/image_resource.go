@@ -214,15 +214,13 @@ func (i *imageResource) Create(
 	response *resource.CreateResponse,
 ) {
 	var plan imageResourceModel
-
-	diags := request.Plan.Get(ctx, &plan)
-	summary := fmt.Sprintf("Creating resource %s", i.name)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
 	opts := plan.GetCreateImageOpts()
+	summary := fmt.Sprintf("Creating resource %s", i.name)
 
 	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
 		CreateImageOpts(opts).
@@ -232,18 +230,16 @@ func (i *imageResource) Create(
 		return
 	}
 
-	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
+	state, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
 		return
 	}
-
 	// instanceId has to be set manually as it isn't returned from the API
-	image.InstanceID = basetypes.NewStringValue(opts.InstanceId)
+	state.InstanceID = basetypes.NewStringValue(opts.InstanceId)
 
-	diags = response.State.Set(ctx, image)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 func (i *imageResource) Read(
@@ -252,13 +248,12 @@ func (i *imageResource) Read(
 	response *resource.ReadResponse,
 ) {
 	var state imageResourceModel
-
-	diags := request.State.Get(ctx, &state)
-	summary := fmt.Sprintf("Reading resource %s", i.name)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	summary := fmt.Sprintf("Reading resource %s", i.name)
 
 	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
 	if err != nil {
@@ -276,8 +271,7 @@ func (i *imageResource) Read(
 	// instanceId has to be set manually as it isn't returned from the API
 	image.InstanceID = state.InstanceID
 
-	diags = response.State.Set(ctx, image)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, image)...)
 }
 
 func (i *imageResource) Update(
@@ -286,9 +280,7 @@ func (i *imageResource) Update(
 	response *resource.UpdateResponse,
 ) {
 	var plan imageResourceModel
-
-	diags := request.Plan.Get(ctx, &plan)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -309,15 +301,14 @@ func (i *imageResource) Update(
 		return
 	}
 
-	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImageDetails)
-	if resourceErr != nil {
+	state, err := adaptImageDetailsToImageResource(ctx, *sdkImageDetails)
+	if err != nil {
 		summary := fmt.Sprintf("Reading resource %s", i.name)
-		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
+		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
 
-	diags = response.State.Set(ctx, image)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 // Delete does nothing as there is no endpoint to delete an Image.

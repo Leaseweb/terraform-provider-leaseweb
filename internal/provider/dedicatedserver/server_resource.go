@@ -209,26 +209,24 @@ func (s *serverResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data serverResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state serverResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	sdkDedicatedServer, response, err := s.getServer(ctx, data.ID.ValueString())
+	newState, response, err := s.getServer(ctx, state.ID.ValueString())
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading resource %s for id %q",
 			s.name,
-			data.ID.ValueString(),
+			state.ID.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	diags = resp.State.Set(ctx, &sdkDedicatedServer)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
 }
 
 func (s *serverResource) ImportState(
@@ -243,7 +241,7 @@ func (s *serverResource) ImportState(
 		resp,
 	)
 
-	sdkDedicatedServer, response, err := s.getServer(ctx, req.ID)
+	state, response, err := s.getServer(ctx, req.ID)
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Importing resource %s for id %q",
@@ -254,8 +252,7 @@ func (s *serverResource) ImportState(
 		return
 	}
 
-	diags := resp.State.Set(ctx, sdkDedicatedServer)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (s *serverResource) Update(
@@ -264,15 +261,13 @@ func (s *serverResource) Update(
 	resp *resource.UpdateResponse,
 ) {
 	var plan serverResourceModel
-	planDiags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(planDiags...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	var state serverResourceModel
-	stateDiags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(stateDiags...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -457,11 +452,7 @@ func (s *serverResource) Update(
 		state.PublicNetworkInterfaceOpened = plan.PublicNetworkInterfaceOpened
 	}
 
-	stateDiags = resp.State.Set(ctx, state)
-	resp.Diagnostics.Append(stateDiags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (s *serverResource) Create(
@@ -469,7 +460,6 @@ func (s *serverResource) Create(
 	_ resource.CreateRequest,
 	_ *resource.CreateResponse,
 ) {
-
 }
 
 func (s *serverResource) Delete(

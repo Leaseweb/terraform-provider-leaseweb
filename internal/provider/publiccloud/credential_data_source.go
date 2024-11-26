@@ -106,16 +106,15 @@ func (d *credentialDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
-	var state credentialDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
+	var config credentialDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	instanceID := state.InstanceID.ValueString()
-	type_ := state.Type.ValueString()
-	username := state.Username.ValueString()
+	instanceID := config.InstanceID.ValueString()
+	type_ := config.Type.ValueString()
+	username := config.Username.ValueString()
 
 	credential, response, err := d.client.GetCredential(
 		ctx,
@@ -134,9 +133,6 @@ func (d *credentialDataSource) Read(
 		return
 	}
 
-	state.Password = types.StringValue(credential.GetPassword())
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	config.Password = types.StringValue(credential.GetPassword())
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
 }

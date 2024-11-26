@@ -122,45 +122,44 @@ func (n *notificationSettingDatatrafficResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var data notificationSettingDatatrafficResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan notificationSettingDatatrafficResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := dedicatedServer.NewDataTrafficNotificationSettingOpts(
-		data.Frequency.ValueString(),
-		data.Threshold.ValueString(),
-		data.Unit.ValueString(),
+		plan.Frequency.ValueString(),
+		plan.Threshold.ValueString(),
+		plan.Unit.ValueString(),
 	)
 	request := n.client.CreateServerDataTrafficNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
+		plan.DedicatedServerId.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Creating resource %s for dedicated_server_id %q",
 			n.name,
-			data.DedicatedServerId.ValueString(),
+			plan.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	dataTrafficNotificationSetting := notificationSettingDatatrafficResourceModel{
-		DedicatedServerId: data.DedicatedServerId,
-		Id:                types.StringValue(result.GetId()),
-		Frequency:         types.StringValue(result.GetFrequency()),
-		Threshold:         types.StringValue(result.GetThreshold()),
-		Unit:              types.StringValue(result.GetUnit()),
-	}
-	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			notificationSettingDatatrafficResourceModel{
+				DedicatedServerId: plan.DedicatedServerId,
+				Id:                types.StringValue(result.GetId()),
+				Frequency:         types.StringValue(result.GetFrequency()),
+				Threshold:         types.StringValue(result.GetThreshold()),
+				Unit:              types.StringValue(result.GetUnit()),
+			},
+		)...,
+	)
 }
 
 func (n *notificationSettingDatatrafficResource) Read(
@@ -168,42 +167,41 @@ func (n *notificationSettingDatatrafficResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data notificationSettingDatatrafficResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state notificationSettingDatatrafficResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := n.client.GetServerDataTrafficNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		data.Id.ValueString(),
+		state.DedicatedServerId.ValueString(),
+		state.Id.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading resource %s for id %q and dedicated_server_id %q",
 			n.name,
-			data.Id.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			state.Id.ValueString(),
+			state.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	dataTrafficNotificationSetting := notificationSettingDatatrafficResourceModel{
-		DedicatedServerId: data.DedicatedServerId,
-		Id:                types.StringValue(result.GetId()),
-		Frequency:         types.StringValue(result.GetFrequency()),
-		Threshold:         types.StringValue(result.GetThreshold()),
-		Unit:              types.StringValue(result.GetUnit()),
-	}
-	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			notificationSettingDatatrafficResourceModel{
+				DedicatedServerId: state.DedicatedServerId,
+				Id:                types.StringValue(result.GetId()),
+				Frequency:         types.StringValue(result.GetFrequency()),
+				Threshold:         types.StringValue(result.GetThreshold()),
+				Unit:              types.StringValue(result.GetUnit()),
+			},
+		)...,
+	)
 }
 
 func (n *notificationSettingDatatrafficResource) Update(
@@ -211,47 +209,46 @@ func (n *notificationSettingDatatrafficResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var data notificationSettingDatatrafficResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan notificationSettingDatatrafficResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := dedicatedServer.NewDataTrafficNotificationSettingOpts(
-		data.Frequency.ValueString(),
-		data.Threshold.ValueString(),
-		data.Unit.ValueString(),
+		plan.Frequency.ValueString(),
+		plan.Threshold.ValueString(),
+		plan.Unit.ValueString(),
 	)
 	request := n.client.UpdateServerDataTrafficNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		data.Id.ValueString(),
+		plan.DedicatedServerId.ValueString(),
+		plan.Id.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Updating resource %s for id %q and dedicated_server_id %q",
 			n.name,
-			data.Id.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			plan.Id.ValueString(),
+			plan.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	dataTrafficNotificationSetting := notificationSettingDatatrafficResourceModel{
-		Id:                data.Id,
-		DedicatedServerId: data.DedicatedServerId,
-		Frequency:         types.StringValue(result.GetFrequency()),
-		Threshold:         types.StringValue(result.GetThreshold()),
-		Unit:              types.StringValue(result.GetUnit()),
-	}
-	diags = resp.State.Set(ctx, dataTrafficNotificationSetting)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			notificationSettingDatatrafficResourceModel{
+				Id:                plan.Id,
+				DedicatedServerId: plan.DedicatedServerId,
+				Frequency:         types.StringValue(result.GetFrequency()),
+				Threshold:         types.StringValue(result.GetThreshold()),
+				Unit:              types.StringValue(result.GetUnit()),
+			},
+		)...,
+	)
 }
 
 func (n *notificationSettingDatatrafficResource) Delete(
@@ -259,27 +256,25 @@ func (n *notificationSettingDatatrafficResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var data notificationSettingDatatrafficResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state notificationSettingDatatrafficResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := n.client.DeleteServerDataTrafficNotificationSetting(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		data.Id.ValueString(),
+		state.DedicatedServerId.ValueString(),
+		state.Id.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Deleting resource %s for id %q and dedicated_server_id %q",
 			n.name,
-			data.Id.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			state.Id.ValueString(),
+			state.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
-		return
 	}
 }

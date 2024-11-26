@@ -119,3 +119,6 @@ The test functions themselves must adhere to the
 Public Cloud instance resource should be called `TestAccPublicCloudInstanceResource` and a test for an
 Public Cloud instance data source should be called `TestAccPublicCloudInstanceDataSource`.
 
+## Variables
+
+Where possible use `plan`,`state` & `config` as names for variables that reference terraform plan, state & config.

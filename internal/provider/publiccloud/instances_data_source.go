@@ -176,17 +176,18 @@ func (d *instancesDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 	instances, httpResponse, err := getAllInstances(ctx, d.client)
-
 	if err != nil {
 		summary := fmt.Sprintf("Reading data %s", d.name)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	state := adaptInstancesToInstancesDataSource(instances)
-
-	diags := resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			adaptInstancesToInstancesDataSource(instances),
+		)...,
+	)
 }
 
 func (d *instancesDataSource) Schema(

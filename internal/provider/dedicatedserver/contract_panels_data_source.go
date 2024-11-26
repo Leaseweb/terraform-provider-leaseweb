@@ -73,9 +73,8 @@ func (c *controlPanelsDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
-	var data controlPanelsDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	var config controlPanelsDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	var controlPanels []controlPanelDataSourceModel
 	var result *dedicatedServer.ControlPanelList
@@ -83,10 +82,10 @@ func (c *controlPanelsDataSource) Read(
 	var err error
 
 	// NOTE: we show only the latest 50 items.
-	if !data.OperatingSystemId.IsNull() && !data.OperatingSystemId.IsUnknown() {
+	if !config.OperatingSystemId.IsNull() && !config.OperatingSystemId.IsUnknown() {
 		request := c.client.GetControlPanelListByOperatingSystemId(
 			ctx,
-			data.OperatingSystemId.ValueString(),
+			config.OperatingSystemId.ValueString(),
 		).Limit(50)
 		result, response, err = request.Execute()
 	} else {
@@ -107,16 +106,15 @@ func (c *controlPanelsDataSource) Read(
 		})
 	}
 
-	newData := controlPanelsDataSourceModel{
-		ControlPanels:     controlPanels,
-		OperatingSystemId: data.OperatingSystemId,
-	}
-
-	diags := resp.State.Set(ctx, &newData)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			controlPanelsDataSourceModel{
+				ControlPanels:     controlPanels,
+				OperatingSystemId: config.OperatingSystemId,
+			},
+		)...,
+	)
 }
 
 func (c *controlPanelsDataSource) Schema(

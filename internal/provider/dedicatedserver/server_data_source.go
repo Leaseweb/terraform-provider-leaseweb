@@ -93,16 +93,16 @@ func (s *serverDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var data serverDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	var config serverDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := s.client.GetServer(ctx, data.Id.ValueString())
+	request := s.client.GetServer(ctx, config.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading data %s for id %q",
 			s.name,
-			data.Id.ValueString(),
+			config.Id.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
@@ -186,43 +186,42 @@ func (s *serverDataSource) Read(
 		}
 	}
 
-	data = serverDataSourceModel{
-		Id:                                 types.StringValue(result.GetId()),
-		AssetId:                            types.StringValue(result.GetAssetId()),
-		SerialNumber:                       types.StringValue(result.GetSerialNumber()),
-		ContractId:                         types.StringPointerValue(contractId),
-		RackId:                             types.StringPointerValue(rackId),
-		RackCapacity:                       types.StringPointerValue(rackCapacity),
-		RackType:                           types.StringPointerValue(rackType),
-		IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
-		IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
-		IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
-		IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
-		IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
-		LocationRack:                       types.StringPointerValue(locationRack),
-		LocationSite:                       types.StringPointerValue(locationSite),
-		LocationSuite:                      types.StringPointerValue(locationSuite),
-		LocationUnit:                       types.StringPointerValue(locationUnit),
-		PublicMac:                          types.StringPointerValue(publicMac),
-		PublicIp:                           types.StringPointerValue(publicIp),
-		PublicGateway:                      types.StringPointerValue(publicGateway),
-		InternalMac:                        types.StringPointerValue(internalMac),
-		InternalIp:                         types.StringPointerValue(internalIp),
-		InternalGateway:                    types.StringPointerValue(internalGateway),
-		RemoteMac:                          types.StringPointerValue(remoteMac),
-		RemoteIp:                           types.StringPointerValue(remoteIp),
-		RemoteGateway:                      types.StringPointerValue(remoteGateway),
-		RamSize:                            types.Int32PointerValue(ramSize),
-		RamUnit:                            types.StringPointerValue(ramUnit),
-		CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
-		CpuType:                            types.StringPointerValue(cpuType),
-	}
-
-	diags := resp.State.Set(ctx, &data)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			serverDataSourceModel{
+				Id:                                 types.StringValue(result.GetId()),
+				AssetId:                            types.StringValue(result.GetAssetId()),
+				SerialNumber:                       types.StringValue(result.GetSerialNumber()),
+				ContractId:                         types.StringPointerValue(contractId),
+				RackId:                             types.StringPointerValue(rackId),
+				RackCapacity:                       types.StringPointerValue(rackCapacity),
+				RackType:                           types.StringPointerValue(rackType),
+				IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
+				IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
+				IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
+				IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
+				IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
+				LocationRack:                       types.StringPointerValue(locationRack),
+				LocationSite:                       types.StringPointerValue(locationSite),
+				LocationSuite:                      types.StringPointerValue(locationSuite),
+				LocationUnit:                       types.StringPointerValue(locationUnit),
+				PublicMac:                          types.StringPointerValue(publicMac),
+				PublicIp:                           types.StringPointerValue(publicIp),
+				PublicGateway:                      types.StringPointerValue(publicGateway),
+				InternalMac:                        types.StringPointerValue(internalMac),
+				InternalIp:                         types.StringPointerValue(internalIp),
+				InternalGateway:                    types.StringPointerValue(internalGateway),
+				RemoteMac:                          types.StringPointerValue(remoteMac),
+				RemoteIp:                           types.StringPointerValue(remoteIp),
+				RemoteGateway:                      types.StringPointerValue(remoteGateway),
+				RamSize:                            types.Int32PointerValue(ramSize),
+				RamUnit:                            types.StringPointerValue(ramUnit),
+				CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
+				CpuType:                            types.StringPointerValue(cpuType),
+			},
+		)...,
+	)
 }
 
 func (s *serverDataSource) Schema(

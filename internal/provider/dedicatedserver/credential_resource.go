@@ -117,42 +117,44 @@ func (c *credentialResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan credentialResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := dedicatedServer.NewCreateServerCredentialOpts(
-		data.Password.ValueString(),
-		dedicatedServer.CredentialType(data.Type.ValueString()),
-		data.Username.ValueString(),
+		plan.Password.ValueString(),
+		dedicatedServer.CredentialType(plan.Type.ValueString()),
+		plan.Username.ValueString(),
 	)
 	request := c.client.CreateServerCredential(
 		ctx,
-		data.DedicatedServerId.ValueString(),
+		plan.DedicatedServerId.ValueString(),
 	).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Creating resource %s for username %q and dedicated_server_id %q",
 			c.name,
-			data.Username.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			plan.Username.ValueString(),
+			plan.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	data = credentialResourceModel{
-		DedicatedServerId: data.DedicatedServerId,
-		Type:              types.StringValue(string(result.GetType())),
-		Password:          types.StringValue(result.GetPassword()),
-		Username:          types.StringValue(result.GetUsername()),
-	}
-	diags = resp.State.Set(ctx, data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			credentialResourceModel{
+				DedicatedServerId: plan.DedicatedServerId,
+				Type:              types.StringValue(string(result.GetType())),
+				Password:          types.StringValue(result.GetPassword()),
+				Username:          types.StringValue(result.GetUsername()),
+			},
+		)...,
+	)
 }
 
 func (c *credentialResource) Read(
@@ -160,39 +162,41 @@ func (c *credentialResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state credentialResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := c.client.GetServerCredential(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		dedicatedServer.CredentialType(data.Type.ValueString()),
-		data.Username.ValueString(),
+		state.DedicatedServerId.ValueString(),
+		dedicatedServer.CredentialType(state.Type.ValueString()),
+		state.Username.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading resource %s for username %q and dedicated_server_id %q",
 			c.name,
-			data.Username.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			state.Username.ValueString(),
+			state.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	data = credentialResourceModel{
-		DedicatedServerId: data.DedicatedServerId,
-		Type:              types.StringValue(string(result.GetType())),
-		Password:          types.StringValue(result.GetPassword()),
-		Username:          types.StringValue(result.GetUsername()),
-	}
-	diags = resp.State.Set(ctx, data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			credentialResourceModel{
+				DedicatedServerId: state.DedicatedServerId,
+				Type:              types.StringValue(string(result.GetType())),
+				Password:          types.StringValue(result.GetPassword()),
+				Username:          types.StringValue(result.GetUsername()),
+			},
+		)...,
+	)
 }
 
 func (c *credentialResource) Update(
@@ -200,42 +204,44 @@ func (c *credentialResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan credentialResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := dedicatedServer.NewUpdateServerCredentialOpts(
-		data.Password.ValueString(),
+		plan.Password.ValueString(),
 	)
 	request := c.client.UpdateServerCredential(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		dedicatedServer.CredentialType(data.Type.ValueString()),
-		data.Username.ValueString(),
+		plan.DedicatedServerId.ValueString(),
+		dedicatedServer.CredentialType(plan.Type.ValueString()),
+		plan.Username.ValueString(),
 	).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Updating resource %s for username %q and dedicated_server_id %q",
 			c.name,
-			data.Username.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			plan.Username.ValueString(),
+			plan.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	data = credentialResourceModel{
-		DedicatedServerId: data.DedicatedServerId,
-		Type:              types.StringValue(string(result.GetType())),
-		Password:          types.StringValue(result.GetPassword()),
-		Username:          types.StringValue(result.GetUsername()),
-	}
-	diags = resp.State.Set(ctx, data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			credentialResourceModel{
+				DedicatedServerId: plan.DedicatedServerId,
+				Type:              types.StringValue(string(result.GetType())),
+				Password:          types.StringValue(result.GetPassword()),
+				Username:          types.StringValue(result.GetUsername()),
+			},
+		)...,
+	)
 }
 
 func (c *credentialResource) Delete(
@@ -243,26 +249,25 @@ func (c *credentialResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state credentialResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := c.client.DeleteServerCredential(
 		ctx,
-		data.DedicatedServerId.ValueString(),
-		dedicatedServer.CredentialType(data.Type.ValueString()),
-		data.Username.ValueString(),
+		state.DedicatedServerId.ValueString(),
+		dedicatedServer.CredentialType(state.Type.ValueString()),
+		state.Username.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Deleting resource %s for username %q and dedicated_server_id %q",
 			c.name,
-			data.Username.ValueString(),
-			data.DedicatedServerId.ValueString(),
+			state.Username.ValueString(),
+			state.DedicatedServerId.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 	}

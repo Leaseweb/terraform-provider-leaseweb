@@ -101,16 +101,16 @@ func (c *credentialDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var data credentialDataSourceModel
+	var config credentialDataSourceModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	serverID := data.DedicatedServerID.ValueString()
-	credType := dedicatedServer.CredentialType(data.Type.ValueString())
-	username := data.Username.ValueString()
+	serverID := config.DedicatedServerID.ValueString()
+	credType := dedicatedServer.CredentialType(config.Type.ValueString())
+	username := config.Username.ValueString()
 
 	credential, response, err := c.client.GetServerCredential(
 		ctx,
@@ -129,8 +129,8 @@ func (c *credentialDataSource) Read(
 		return
 	}
 
-	data.Password = types.StringValue(credential.GetPassword())
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	config.Password = types.StringValue(credential.GetPassword())
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
 }
 
 func NewCredentialDataSource() datasource.DataSource {

@@ -125,42 +125,44 @@ func (c *credentialResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan credentialResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := publicCloud.NewStoreCredentialOpts(
-		publicCloud.CredentialType(data.Type.ValueString()),
-		data.Username.ValueString(),
-		data.Password.ValueString(),
+		publicCloud.CredentialType(plan.Type.ValueString()),
+		plan.Username.ValueString(),
+		plan.Password.ValueString(),
 	)
 	request := c.client.StoreCredential(
 		ctx,
-		data.InstanceID.ValueString(),
+		plan.InstanceID.ValueString(),
 	).StoreCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Creating %s for username: %q and instance_id: %q",
 			c.name,
-			data.Username.ValueString(),
-			data.InstanceID.ValueString(),
+			plan.Username.ValueString(),
+			plan.InstanceID.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	data = credentialResourceModel{
-		InstanceID: data.InstanceID,
-		Type:       types.StringValue(string(result.GetType())),
-		Password:   types.StringValue(result.GetPassword()),
-		Username:   types.StringValue(result.GetUsername()),
-	}
-	diags = resp.State.Set(ctx, data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			credentialResourceModel{
+				InstanceID: plan.InstanceID,
+				Type:       types.StringValue(string(result.GetType())),
+				Password:   types.StringValue(result.GetPassword()),
+				Username:   types.StringValue(result.GetUsername()),
+			},
+		)...,
+	)
 }
 
 func (c *credentialResource) Read(
@@ -168,39 +170,41 @@ func (c *credentialResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state credentialResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := c.client.GetCredential(
 		ctx,
-		data.InstanceID.ValueString(),
-		data.Type.ValueString(),
-		data.Username.ValueString(),
+		state.InstanceID.ValueString(),
+		state.Type.ValueString(),
+		state.Username.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading %s for username: %q and instance_id: %q",
 			c.name,
-			data.Username.ValueString(),
-			data.InstanceID.ValueString(),
+			state.Username.ValueString(),
+			state.InstanceID.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	data = credentialResourceModel{
-		InstanceID: data.InstanceID,
-		Type:       types.StringValue(string(result.GetType())),
-		Password:   types.StringValue(result.GetPassword()),
-		Username:   types.StringValue(result.GetUsername()),
-	}
-	diags = resp.State.Set(ctx, data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			credentialResourceModel{
+				InstanceID: state.InstanceID,
+				Type:       types.StringValue(string(result.GetType())),
+				Password:   types.StringValue(result.GetPassword()),
+				Username:   types.StringValue(result.GetUsername()),
+			},
+		)...,
+	)
 }
 
 func (c *credentialResource) Update(
@@ -208,42 +212,44 @@ func (c *credentialResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var plan credentialResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	opts := publicCloud.NewUpdateCredentialOpts(
-		data.Password.ValueString(),
+		plan.Password.ValueString(),
 	)
 	request := c.client.UpdateCredential(
 		ctx,
-		data.InstanceID.ValueString(),
-		data.Type.ValueString(),
-		data.Username.ValueString(),
+		plan.InstanceID.ValueString(),
+		plan.Type.ValueString(),
+		plan.Username.ValueString(),
 	).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Updating %s for username: %q and instance_id: %q",
 			c.name,
-			data.Username.ValueString(),
-			data.InstanceID.ValueString(),
+			plan.Username.ValueString(),
+			plan.InstanceID.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
-	data = credentialResourceModel{
-		InstanceID: data.InstanceID,
-		Type:       types.StringValue(string(result.GetType())),
-		Password:   types.StringValue(result.GetPassword()),
-		Username:   types.StringValue(result.GetUsername()),
-	}
-	diags = resp.State.Set(ctx, data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			credentialResourceModel{
+				InstanceID: plan.InstanceID,
+				Type:       types.StringValue(string(result.GetType())),
+				Password:   types.StringValue(result.GetPassword()),
+				Username:   types.StringValue(result.GetUsername()),
+			},
+		)...,
+	)
 }
 
 func (c *credentialResource) Delete(
@@ -251,29 +257,26 @@ func (c *credentialResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var data credentialResourceModel
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	var state credentialResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	request := c.client.DeleteCredential(
 		ctx,
-		data.InstanceID.ValueString(),
-		data.Type.ValueString(),
-		data.Username.ValueString(),
+		state.InstanceID.ValueString(),
+		state.Type.ValueString(),
+		state.Username.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Deleting %s for username: %q and instance_id: %q",
 			c.name,
-			data.Username.ValueString(),
-			data.InstanceID.ValueString(),
+			state.Username.ValueString(),
+			state.InstanceID.ValueString(),
 		)
 		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
-		return
 	}
-
 }
