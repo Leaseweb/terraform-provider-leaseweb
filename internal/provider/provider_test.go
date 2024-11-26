@@ -103,6 +103,417 @@ func TestAccPublicCloudInstancesDataSource(t *testing.T) {
 	})
 }
 
+func TestAccPublicCloudInstanceResource(t *testing.T) {
+	t.Run("creates and updates an instance", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.custom",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.flavour",
+							"ubuntu",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.market_apps.#",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"image.name",
+							"Ubuntu 20.04 LTS (x86_64)",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"ips.#",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"ips.0.ip",
+							"10.32.60.12",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"reference",
+							"my webserver",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"root_disk_size",
+							"5",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"state",
+							"RUNNING",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"contract.state",
+							"ACTIVE",
+						),
+					),
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_public_cloud_instance.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+				},
+			},
+			// Delete testing automatically occurs in TestCase
+		})
+	})
+
+	t.Run("an invalid region throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "tralala"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						`Attribute region value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("updating image.id triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_24_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid type throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "tralala"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						`Attribute type value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid root_disk_size throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_size = 5000000
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Attribute root_disk_size value must be between 5 and 1000",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid root_disk_storage_type throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "tralala"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Attribute root_disk_storage_type value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid contract.billing_frequency throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 55
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.billing_frequency value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid contract.term throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 55
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.term value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("an invalid contract.type throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "tralala"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Attribute contract.type value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("updating market_app_id triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+}
+`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_instance" "test" {
+  region = "eu-west-3"
+  type = "lsw.m3.large"
+  contract = {
+    billing_frequency = 1
+    term = 0
+    type = "HOURLY"
+  }
+  image = {
+    id = "UBUNTU_20_04_64BIT"
+  }
+  root_disk_storage_type = "CENTRAL"
+  market_app_id = "test"
+}
+`,
+				},
+			},
+		})
+	})
+}
+
 func TestAccPublicCloudCredentialResource(t *testing.T) {
 	t.Run("creates and updates a credential", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
