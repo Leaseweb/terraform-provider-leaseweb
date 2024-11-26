@@ -170,6 +170,7 @@ Read-Only:
 
 - `custom` (Boolean) Standard or Custom image
 - `flavour` (String)
+- `instance_id` (String)
 - `market_apps` (List of String)
 - `name` (String)
 - `region` (String)
