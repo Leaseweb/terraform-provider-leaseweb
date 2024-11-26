@@ -599,6 +599,9 @@ func (i *instanceResource) Schema(
 							stringplanmodifier.RequiresReplace(),
 						},
 					},
+					"instance_id": schema.StringAttribute{
+						Computed: true,
+					},
 					"name": schema.StringAttribute{
 						Computed: true,
 					},
