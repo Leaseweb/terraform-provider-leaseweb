@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.12.0...v1.12.1) (2024-11-26)
+
+
+### Bug Fixes
+
+* add missing image.instance_id to schema ([0cd6456](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/0cd6456260463ff7a4a190d85613c94ae337ce81))
+* add missing image.instance_id to schema ([8408ec5](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/8408ec5cbc3f9671b514dae64165cb4e8bdf45fd))
+
 ## [1.12.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.11.0...v1.12.0) (2024-11-22)
 
 
