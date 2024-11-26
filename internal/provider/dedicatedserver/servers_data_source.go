@@ -72,7 +72,6 @@ func (s *serversDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
 	var config serversDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	// NOTE: we show only the latest 50 items.

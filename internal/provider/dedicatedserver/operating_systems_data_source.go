@@ -72,7 +72,6 @@ func (o *operatingSystemsDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-
 	var config operatingSystemsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
