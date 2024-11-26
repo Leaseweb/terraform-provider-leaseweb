@@ -396,8 +396,8 @@ func (l *loadBalancerListenerResource) Read(
 	request resource.ReadRequest,
 	response *resource.ReadResponse,
 ) {
-	var requestState LoadBalancerListenerResourceModel
-	response.Diagnostics.Append(request.State.Get(ctx, &requestState)...)
+	var state LoadBalancerListenerResourceModel
+	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -405,33 +405,33 @@ func (l *loadBalancerListenerResource) Read(
 	summary := fmt.Sprintf(
 		"Reading resource %s for load_balancer_id %q listener_id %q",
 		l.name,
-		requestState.LoadBalancerID.ValueString(),
-		requestState.ListenerID.ValueString(),
+		state.LoadBalancerID.ValueString(),
+		state.ListenerID.ValueString(),
 	)
 
 	sdkLoadBalancerListenerDetails, httpResponse, err := l.client.GetLoadBalancerListener(
 		ctx,
-		requestState.LoadBalancerID.ValueString(),
-		requestState.ListenerID.ValueString(),
+		state.LoadBalancerID.ValueString(),
+		state.ListenerID.ValueString(),
 	).Execute()
 	if err != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	state, resourceErr := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*sdkLoadBalancerListenerDetails, ctx)
+	newState, resourceErr := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*sdkLoadBalancerListenerDetails, ctx)
 	if resourceErr != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
 		return
 	}
 
-	state.LoadBalancerID = requestState.LoadBalancerID
-	state.ListenerID = requestState.ListenerID
-	if state.Certificate.IsNull() {
-		state.Certificate = requestState.Certificate
+	newState.LoadBalancerID = state.LoadBalancerID
+	newState.ListenerID = state.ListenerID
+	if newState.Certificate.IsNull() {
+		newState.Certificate = state.Certificate
 	}
 
-	response.Diagnostics.Append(response.State.Set(ctx, state)...)
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
 
 func (l *loadBalancerListenerResource) Update(

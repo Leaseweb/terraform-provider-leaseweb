@@ -460,7 +460,6 @@ func (s *serverResource) Create(
 	_ resource.CreateRequest,
 	_ *resource.CreateResponse,
 ) {
-
 }
 
 func (s *serverResource) Delete(
