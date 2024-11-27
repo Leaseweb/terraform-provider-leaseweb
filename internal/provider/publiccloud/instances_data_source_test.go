@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,12 +14,12 @@ func Test_adaptContractToContractDataSource(t *testing.T) {
 		"2006-01-02 15:04:05",
 		"2023-12-14 17:09:47",
 	)
-	sdkContract := publicCloud.Contract{
-		BillingFrequency: publicCloud.BILLINGFREQUENCY__1,
-		Term:             publicCloud.CONTRACTTERM__3,
-		Type:             publicCloud.CONTRACTTYPE_HOURLY,
-		EndsAt:           *publicCloud.NewNullableTime(&endsAt),
-		State:            publicCloud.CONTRACTSTATE_ACTIVE,
+	sdkContract := publiccloud.Contract{
+		BillingFrequency: publiccloud.BILLINGFREQUENCY__1,
+		Term:             publiccloud.CONTRACTTERM__3,
+		Type:             publiccloud.CONTRACTTYPE_HOURLY,
+		EndsAt:           *publiccloud.NewNullableTime(&endsAt),
+		State:            publiccloud.CONTRACTSTATE_ACTIVE,
 	}
 
 	want := contractDataSourceModel{
@@ -38,24 +38,24 @@ func Test_adaptInstanceToInstanceDataSource(t *testing.T) {
 	reference := "reference"
 	marketAppId := "marketAppId"
 
-	sdkInstance := publicCloud.Instance{
+	sdkInstance := publiccloud.Instance{
 		Id:        "id",
 		Region:    "region",
-		Reference: *publicCloud.NewNullableString(&reference),
-		Image: publicCloud.Image{
+		Reference: *publiccloud.NewNullableString(&reference),
+		Image: publiccloud.Image{
 			Id: "imageId",
 		},
-		State:               publicCloud.STATE_CREATING,
-		Type:                publicCloud.TYPENAME_C3_2XLARGE,
+		State:               publiccloud.STATE_CREATING,
+		Type:                publiccloud.TYPENAME_C3_2XLARGE,
 		RootDiskSize:        50,
-		RootDiskStorageType: publicCloud.STORAGETYPE_CENTRAL,
-		Ips: []publicCloud.Ip{
+		RootDiskStorageType: publiccloud.STORAGETYPE_CENTRAL,
+		Ips: []publiccloud.Ip{
 			{Ip: "127.0.0.1"},
 		},
-		Contract: publicCloud.Contract{
-			Term: publicCloud.CONTRACTTERM__1,
+		Contract: publiccloud.Contract{
+			Term: publiccloud.CONTRACTTERM__1,
 		},
-		MarketAppId: *publicCloud.NewNullableString(&marketAppId),
+		MarketAppId: *publiccloud.NewNullableString(&marketAppId),
 	}
 
 	got := adaptInstanceToInstanceDataSource(sdkInstance)
@@ -75,7 +75,7 @@ func Test_adaptInstanceToInstanceDataSource(t *testing.T) {
 }
 
 func Test_adaptInstancesToInstancesDatasource(t *testing.T) {
-	sdkInstances := []publicCloud.Instance{
+	sdkInstances := []publiccloud.Instance{
 		{Id: "id"},
 	}
 

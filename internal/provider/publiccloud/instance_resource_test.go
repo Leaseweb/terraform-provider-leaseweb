@@ -8,18 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptContractToContractResource(t *testing.T) {
 	endsAt, _ := time.Parse("2006-01-02 15:04:05", "2023-12-14 17:09:47")
-	sdkContract := publicCloud.Contract{
-		BillingFrequency: publicCloud.BILLINGFREQUENCY__1,
-		Term:             publicCloud.CONTRACTTERM__3,
-		Type:             publicCloud.CONTRACTTYPE_HOURLY,
-		EndsAt:           *publicCloud.NewNullableTime(&endsAt),
-		State:            publicCloud.CONTRACTSTATE_ACTIVE,
+	sdkContract := publiccloud.Contract{
+		BillingFrequency: publiccloud.BILLINGFREQUENCY__1,
+		Term:             publiccloud.CONTRACTTERM__3,
+		Type:             publiccloud.CONTRACTTYPE_HOURLY,
+		EndsAt:           *publiccloud.NewNullableTime(&endsAt),
+		State:            publiccloud.CONTRACTSTATE_ACTIVE,
 	}
 
 	want := contractResourceModel{
@@ -100,22 +100,22 @@ func Test_adaptInstanceToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
-	instance := publicCloud.Instance{
+	instance := publiccloud.Instance{
 		Id:                  "id",
-		Type:                publicCloud.TYPENAME_C3_2XLARGE,
+		Type:                publiccloud.TYPENAME_C3_2XLARGE,
 		Region:              "region",
-		Reference:           *publicCloud.NewNullableString(&reference),
-		MarketAppId:         *publicCloud.NewNullableString(&marketAppId),
-		State:               publicCloud.STATE_CREATING,
+		Reference:           *publiccloud.NewNullableString(&reference),
+		MarketAppId:         *publiccloud.NewNullableString(&marketAppId),
+		State:               publiccloud.STATE_CREATING,
 		RootDiskSize:        50,
-		RootDiskStorageType: publicCloud.STORAGETYPE_CENTRAL,
-		Contract: publicCloud.Contract{
-			Type: publicCloud.CONTRACTTYPE_MONTHLY,
+		RootDiskStorageType: publiccloud.STORAGETYPE_CENTRAL,
+		Contract: publiccloud.Contract{
+			Type: publiccloud.CONTRACTTYPE_MONTHLY,
 		},
-		Image: publicCloud.Image{
+		Image: publiccloud.Image{
 			Id: "UBUNTU_20_04_64BIT",
 		},
-		Ips: []publicCloud.Ip{
+		Ips: []publiccloud.Ip{
 			{
 				Ip: "127.0.0.1",
 			},
@@ -153,22 +153,22 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
 
-	instance := publicCloud.InstanceDetails{
+	instance := publiccloud.InstanceDetails{
 		Id:                  "id",
-		Type:                publicCloud.TYPENAME_C3_2XLARGE,
+		Type:                publiccloud.TYPENAME_C3_2XLARGE,
 		Region:              "region",
-		Reference:           *publicCloud.NewNullableString(&reference),
-		MarketAppId:         *publicCloud.NewNullableString(&marketAppId),
-		State:               publicCloud.STATE_CREATING,
+		Reference:           *publiccloud.NewNullableString(&reference),
+		MarketAppId:         *publiccloud.NewNullableString(&marketAppId),
+		State:               publiccloud.STATE_CREATING,
 		RootDiskSize:        50,
-		RootDiskStorageType: publicCloud.STORAGETYPE_CENTRAL,
-		Contract: publicCloud.Contract{
-			Type: publicCloud.CONTRACTTYPE_MONTHLY,
+		RootDiskStorageType: publiccloud.STORAGETYPE_CENTRAL,
+		Contract: publiccloud.Contract{
+			Type: publiccloud.CONTRACTTYPE_MONTHLY,
 		},
-		Image: publicCloud.Image{
+		Image: publiccloud.Image{
 			Id: "UBUNTU_20_04_64BIT",
 		},
-		Ips: []publicCloud.IpDetails{
+		Ips: []publiccloud.IpDetails{
 			{
 				Ip: "127.0.0.1",
 			},
@@ -212,13 +212,13 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		got, err := instance.GetLaunchInstanceOpts(context.TODO())
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicCloud.REGIONNAME_EU_WEST_3, got.Region)
-		assert.Equal(t, publicCloud.TYPENAME_M5A_4XLARGE, got.Type)
-		assert.Equal(t, publicCloud.STORAGETYPE_CENTRAL, got.RootDiskStorageType)
+		assert.Equal(t, publiccloud.REGIONNAME_EU_WEST_3, got.Region)
+		assert.Equal(t, publiccloud.TYPENAME_M5A_4XLARGE, got.Type)
+		assert.Equal(t, publiccloud.STORAGETYPE_CENTRAL, got.RootDiskStorageType)
 		assert.Equal(t, "UBUNTU_20_04_64BIT", got.ImageId)
-		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.ContractType)
-		assert.Equal(t, publicCloud.CONTRACTTERM__3, got.ContractTerm)
-		assert.Equal(t, publicCloud.BILLINGFREQUENCY__1, got.BillingFrequency)
+		assert.Equal(t, publiccloud.CONTRACTTYPE_MONTHLY, got.ContractType)
+		assert.Equal(t, publiccloud.CONTRACTTERM__3, got.ContractTerm)
+		assert.Equal(t, publiccloud.BILLINGFREQUENCY__1, got.BillingFrequency)
 
 		marketAppId, _ := got.GetMarketAppIdOk()
 		assert.Nil(t, marketAppId)
@@ -356,10 +356,10 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 		got, err := instance.GetUpdateInstanceOpts(context.TODO())
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicCloud.TYPENAME_M5A_4XLARGE, *got.Type)
-		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, *got.ContractType)
-		assert.Equal(t, publicCloud.CONTRACTTERM__3, *got.ContractTerm)
-		assert.Equal(t, publicCloud.BILLINGFREQUENCY__1, *got.BillingFrequency)
+		assert.Equal(t, publiccloud.TYPENAME_M5A_4XLARGE, *got.Type)
+		assert.Equal(t, publiccloud.CONTRACTTYPE_MONTHLY, *got.ContractType)
+		assert.Equal(t, publiccloud.CONTRACTTERM__3, *got.ContractTerm)
+		assert.Equal(t, publiccloud.BILLINGFREQUENCY__1, *got.BillingFrequency)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, int32(55), *got.RootDiskSize)
 	})
@@ -437,7 +437,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 }
 
 func Test_adaptIpToIPResource(t *testing.T) {
-	sdkIp := publicCloud.Ip{
+	sdkIp := publiccloud.Ip{
 		Ip: "127.0.0.1",
 	}
 
@@ -450,7 +450,7 @@ func Test_adaptIpToIPResource(t *testing.T) {
 }
 
 func Test_adaptIpDetailsToIPResource(t *testing.T) {
-	sdkIpDetails := publicCloud.IpDetails{
+	sdkIpDetails := publiccloud.IpDetails{
 		Ip: "127.0.0.1",
 	}
 

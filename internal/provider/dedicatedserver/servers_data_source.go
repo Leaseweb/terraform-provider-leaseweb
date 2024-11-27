@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -19,7 +19,7 @@ var (
 
 type serversDataSource struct {
 	name   string
-	client dedicatedServer.DedicatedServerAPI
+	client dedicatedserver.DedicatedserverAPI
 }
 
 type serversDataSourceModel struct {
@@ -56,7 +56,7 @@ func (s *serversDataSource) Configure(
 		return
 	}
 
-	s.client = coreClient.DedicatedServerAPI
+	s.client = coreClient.DedicatedserverAPI
 }
 
 func (s *serversDataSource) Metadata(

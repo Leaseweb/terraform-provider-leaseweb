@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptSslCertificateToLoadBalancerListenerCertificateResource(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
-		sdkSslCertificate := publicCloud.SslCertificate{
+		sdkSslCertificate := publiccloud.SslCertificate{
 			PrivateKey:  "privateKey",
 			Certificate: "certificate",
 		}
@@ -28,7 +28,7 @@ func Test_adaptSslCertificateToLoadBalancerListenerCertificateResource(t *testin
 
 	t.Run("chain is set if it's not an empty string", func(t *testing.T) {
 		want := "chain"
-		sdkSslCertificate := publicCloud.SslCertificate{
+		sdkSslCertificate := publiccloud.SslCertificate{
 			Chain: &want,
 		}
 
@@ -39,7 +39,7 @@ func Test_adaptSslCertificateToLoadBalancerListenerCertificateResource(t *testin
 
 	t.Run("chain is not set if it's an empty string", func(t *testing.T) {
 		sdkChain := ""
-		sdkSslCertificate := publicCloud.SslCertificate{
+		sdkSslCertificate := publiccloud.SslCertificate{
 			Chain: &sdkChain,
 		}
 
@@ -51,7 +51,7 @@ func Test_adaptSslCertificateToLoadBalancerListenerCertificateResource(t *testin
 }
 
 func Test_adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(t *testing.T) {
-	sdkLoadBalancerListenerRule := publicCloud.LoadBalancerListenerRule{
+	sdkLoadBalancerListenerRule := publiccloud.LoadBalancerListenerRule{
 		TargetGroupId: "targetGroupId",
 	}
 
@@ -65,9 +65,9 @@ func Test_adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource
 
 func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *testing.T) {
 	t.Run("main values are set as expected", func(t *testing.T) {
-		sdkLoadBalancerListenerDetails := publicCloud.LoadBalancerListenerDetails{
+		sdkLoadBalancerListenerDetails := publiccloud.LoadBalancerListenerDetails{
 			Id:       "id",
-			Protocol: publicCloud.PROTOCOL_HTTP,
+			Protocol: publiccloud.PROTOCOL_HTTP,
 			Port:     22,
 		}
 
@@ -87,8 +87,8 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 	})
 
 	t.Run("first sslCertificate is set as certificate", func(t *testing.T) {
-		sdkLoadBalancerListenerDetails := publicCloud.LoadBalancerListenerDetails{
-			SslCertificates: []publicCloud.SslCertificate{
+		sdkLoadBalancerListenerDetails := publiccloud.LoadBalancerListenerDetails{
+			SslCertificates: []publiccloud.SslCertificate{
 				{
 					PrivateKey:  "privateKey1",
 					Certificate: "certificate1",
@@ -119,8 +119,8 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 	})
 
 	t.Run("first rule is set as defaultRule", func(t *testing.T) {
-		sdkLoadBalancerListenerDetails := publicCloud.LoadBalancerListenerDetails{
-			Rules: []publicCloud.LoadBalancerListenerRule{
+		sdkLoadBalancerListenerDetails := publiccloud.LoadBalancerListenerDetails{
+			Rules: []publiccloud.LoadBalancerListenerRule{
 				{
 					TargetGroupId: "targetGroupId1",
 				},
@@ -167,10 +167,10 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 
 		got, err := listener.generateLoadBalancerListenerCreateOpts(context.TODO())
 
-		want := publicCloud.NewLoadBalancerListenerCreateOpts(
-			publicCloud.PROTOCOL_HTTPS,
+		want := publiccloud.NewLoadBalancerListenerCreateOpts(
+			publiccloud.PROTOCOL_HTTPS,
 			22,
-			*publicCloud.NewLoadBalancerListenerDefaultRule("targetGroupId"),
+			*publiccloud.NewLoadBalancerListenerDefaultRule("targetGroupId"),
 		)
 
 		assert.NoError(t, err)
@@ -225,12 +225,12 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 
 		got, err := listener.generateLoadBalancerListenerCreateOpts(context.TODO())
 
-		want := publicCloud.NewLoadBalancerListenerCreateOpts(
-			publicCloud.PROTOCOL_HTTPS,
+		want := publiccloud.NewLoadBalancerListenerCreateOpts(
+			publiccloud.PROTOCOL_HTTPS,
 			22,
-			*publicCloud.NewLoadBalancerListenerDefaultRule("targetGroupId"),
+			*publiccloud.NewLoadBalancerListenerDefaultRule("targetGroupId"),
 		)
-		want.SetCertificate(publicCloud.SslCertificate{PrivateKey: "privateKey"})
+		want.SetCertificate(publiccloud.SslCertificate{PrivateKey: "privateKey"})
 
 		assert.NoError(t, err)
 		assert.Equal(t, want, got)
@@ -269,9 +269,9 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 
 func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) {
 	t.Run("main values are set as expected", func(t *testing.T) {
-		sdkLoadBalancerListener := publicCloud.LoadBalancerListener{
+		sdkLoadBalancerListener := publiccloud.LoadBalancerListener{
 			Id:       "id",
-			Protocol: publicCloud.PROTOCOL_HTTP,
+			Protocol: publiccloud.PROTOCOL_HTTP,
 			Port:     22,
 		}
 
@@ -291,8 +291,8 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 	})
 
 	t.Run("first rule is set as defaultRule", func(t *testing.T) {
-		sdkLoadBalancerListener := publicCloud.LoadBalancerListener{
-			Rules: []publicCloud.LoadBalancerListenerRule{
+		sdkLoadBalancerListener := publiccloud.LoadBalancerListener{
+			Rules: []publiccloud.LoadBalancerListenerRule{
 				{
 					TargetGroupId: "targetGroupId1",
 				},
@@ -329,9 +329,9 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 
 		got, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
 
-		protocol := publicCloud.PROTOCOL_HTTPS
+		protocol := publiccloud.PROTOCOL_HTTPS
 		port := int32(22)
-		want := publicCloud.LoadBalancerListenerOpts{
+		want := publiccloud.LoadBalancerListenerOpts{
 			Protocol: &protocol,
 			Port:     &port,
 		}
@@ -377,7 +377,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 
 		got, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
 
-		want := publicCloud.LoadBalancerListenerDefaultRule{
+		want := publiccloud.LoadBalancerListenerDefaultRule{
 			TargetGroupId: "targetGroupId",
 		}
 
@@ -433,7 +433,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 		got := certificate.generateSslCertificate()
 
 		chain := "chain"
-		want := publicCloud.SslCertificate{
+		want := publiccloud.SslCertificate{
 			PrivateKey:  "privateKey",
 			Certificate: "certificate",
 			Chain:       &chain,
@@ -451,7 +451,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 
 		got := certificate.generateSslCertificate()
 
-		want := publicCloud.SslCertificate{
+		want := publiccloud.SslCertificate{
 			PrivateKey:  "privateKey",
 			Certificate: "certificate",
 			Chain:       nil,
@@ -471,7 +471,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 
 			got := certificate.generateSslCertificate()
 
-			want := publicCloud.SslCertificate{
+			want := publiccloud.SslCertificate{
 				PrivateKey:  "privateKey",
 				Certificate: "certificate",
 				Chain:       nil,
@@ -489,7 +489,7 @@ func Test_loadBalancerListenerDefaultRuleResourceModel_generateLoadBalancerListe
 
 	got := rule.generateLoadBalancerListenerDefaultRule()
 
-	want := publicCloud.LoadBalancerListenerDefaultRule{
+	want := publiccloud.LoadBalancerListenerDefaultRule{
 		TargetGroupId: "targetGroupId",
 	}
 

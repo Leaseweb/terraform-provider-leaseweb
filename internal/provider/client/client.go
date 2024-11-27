@@ -2,16 +2,16 @@
 package client
 
 import (
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 )
 
 const userAgentBase = "leaseweb-terraform"
 
 // The Client handles instantiation of the SDK.
 type Client struct {
-	PublicCloudAPI     publicCloud.PublicCloudAPI
-	DedicatedServerAPI dedicatedServer.DedicatedServerAPI
+	PubliccloudAPI     publiccloud.PubliccloudAPI
+	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
 }
 
 type Optional struct {
@@ -20,31 +20,31 @@ type Optional struct {
 }
 
 func NewClient(token string, optional Optional, version string) Client {
-	publicCloudCfg := publicCloud.NewConfiguration()
-	dedicatedServerCfg := dedicatedServer.NewConfiguration()
+	publiccloudCFG := publiccloud.NewConfiguration()
+	dedicatedserverCFG := dedicatedserver.NewConfiguration()
 
 	if optional.Host != nil {
-		publicCloudCfg.Host = *optional.Host
-		dedicatedServerCfg.Host = *optional.Host
+		publiccloudCFG.Host = *optional.Host
+		dedicatedserverCFG.Host = *optional.Host
 	}
 	if optional.Scheme != nil {
-		publicCloudCfg.Scheme = *optional.Scheme
-		dedicatedServerCfg.Scheme = *optional.Scheme
+		publiccloudCFG.Scheme = *optional.Scheme
+		dedicatedserverCFG.Scheme = *optional.Scheme
 	}
 
 	userAgent := userAgentBase + "-" + version
 
-	publicCloudCfg.AddDefaultHeader("X-LSW-Auth", token)
-	publicCloudCfg.UserAgent = userAgent
+	publiccloudCFG.AddDefaultHeader("X-LSW-Auth", token)
+	publiccloudCFG.UserAgent = userAgent
 
-	dedicatedServerCfg.AddDefaultHeader("X-LSW-Auth", token)
-	dedicatedServerCfg.UserAgent = userAgent
+	dedicatedserverCFG.AddDefaultHeader("X-LSW-Auth", token)
+	dedicatedserverCFG.UserAgent = userAgent
 
-	publicCloudApi := publicCloud.NewAPIClient(publicCloudCfg)
-	dedicatedServerApi := dedicatedServer.NewAPIClient(dedicatedServerCfg)
+	publiccloudAPI := publiccloud.NewAPIClient(publiccloudCFG)
+	dedicatedserverAPI := dedicatedserver.NewAPIClient(dedicatedserverCFG)
 
 	return Client{
-		PublicCloudAPI:     publicCloudApi.PublicCloudAPI,
-		DedicatedServerAPI: dedicatedServerApi.DedicatedServerAPI,
+		PubliccloudAPI:     publiccloudAPI.PubliccloudAPI,
+		DedicatedserverAPI: dedicatedserverAPI.DedicatedserverAPI,
 	}
 }

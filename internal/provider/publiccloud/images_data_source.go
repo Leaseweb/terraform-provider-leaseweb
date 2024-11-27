@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -29,7 +29,7 @@ type imageModelDataSource struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func adaptImageToImageDataSource(sdkImage publicCloud.Image) imageModelDataSource {
+func adaptImageToImageDataSource(sdkImage publiccloud.Image) imageModelDataSource {
 	return imageModelDataSource{
 		ID:      basetypes.NewStringValue(sdkImage.GetId()),
 		Name:    basetypes.NewStringValue(sdkImage.GetName()),
@@ -39,7 +39,7 @@ func adaptImageToImageDataSource(sdkImage publicCloud.Image) imageModelDataSourc
 }
 
 func adaptImageDetailsToImageDataSource(
-	sdkImageDetails publicCloud.ImageDetails,
+	sdkImageDetails publiccloud.ImageDetails,
 ) imageModelDataSource {
 	var marketApps []string
 	var storageTypes []string
@@ -68,7 +68,7 @@ type imagesDataSourceModel struct {
 	Images []imageModelDataSource `tfsdk:"images"`
 }
 
-func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesDataSourceModel {
+func adaptImagesToImagesDataSource(sdkImages []publiccloud.ImageDetails) imagesDataSourceModel {
 	var images imagesDataSourceModel
 
 	for _, sdkImageDetails := range sdkImages {
@@ -81,9 +81,9 @@ func adaptImagesToImagesDataSource(sdkImages []publicCloud.ImageDetails) imagesD
 
 func getAllImages(
 	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.ImageDetails, *http.Response, error) {
-	var images []publicCloud.ImageDetails
+	api publiccloud.PubliccloudAPI,
+) ([]publiccloud.ImageDetails, *http.Response, error) {
+	var images []publiccloud.ImageDetails
 	var offset *int32
 
 	request := api.GetImageList(ctx)
@@ -150,7 +150,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 
 type imagesDataSource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (i *imagesDataSource) Metadata(
@@ -221,7 +221,7 @@ func (i *imagesDataSource) Configure(
 		return
 	}
 
-	i.client = coreClient.PublicCloudAPI
+	i.client = coreClient.PubliccloudAPI
 }
 
 func NewImagesDataSource() datasource.DataSource {

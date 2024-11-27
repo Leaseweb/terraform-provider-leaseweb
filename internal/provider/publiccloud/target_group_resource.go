@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -36,14 +36,14 @@ type targetGroupResourceModel struct {
 }
 
 func (t targetGroupResourceModel) generateCreateOpts(ctx context.Context) (
-	*publicCloud.CreateTargetGroupOpts,
+	*publiccloud.CreateTargetGroupOpts,
 	error,
 ) {
-	opts := publicCloud.NewCreateTargetGroupOpts(
+	opts := publiccloud.NewCreateTargetGroupOpts(
 		t.Name.ValueString(),
-		publicCloud.Protocol(t.Protocol.ValueString()),
+		publiccloud.Protocol(t.Protocol.ValueString()),
 		t.Port.ValueInt32(),
-		publicCloud.RegionName(t.Region.ValueString()),
+		publiccloud.RegionName(t.Region.ValueString()),
 	)
 
 	if !t.HealthCheck.IsNull() {
@@ -64,10 +64,10 @@ func (t targetGroupResourceModel) generateCreateOpts(ctx context.Context) (
 }
 
 func (t targetGroupResourceModel) generateUpdateOpts(ctx context.Context) (
-	*publicCloud.UpdateTargetGroupOpts,
+	*publiccloud.UpdateTargetGroupOpts,
 	error,
 ) {
-	opts := publicCloud.NewUpdateTargetGroupOpts()
+	opts := publiccloud.NewUpdateTargetGroupOpts()
 	opts.SetName(t.Name.ValueString())
 	opts.SetPort(t.Port.ValueInt32())
 
@@ -89,7 +89,7 @@ func (t targetGroupResourceModel) generateUpdateOpts(ctx context.Context) (
 }
 
 func adaptTargetGroupToTargetGroupResource(
-	sdkTargetGroup publicCloud.TargetGroup,
+	sdkTargetGroup publiccloud.TargetGroup,
 	ctx context.Context,
 ) (*targetGroupResourceModel, error) {
 	targetGroup := targetGroupResourceModel{
@@ -134,22 +134,22 @@ func (h healthCheckResourceModel) attributeTypes() map[string]attr.Type {
 	}
 }
 
-func (h healthCheckResourceModel) generateOpts() publicCloud.HealthCheckOpts {
-	opts := publicCloud.NewHealthCheckOpts(
-		publicCloud.Protocol(h.Protocol.ValueString()),
+func (h healthCheckResourceModel) generateOpts() publiccloud.HealthCheckOpts {
+	opts := publiccloud.NewHealthCheckOpts(
+		publiccloud.Protocol(h.Protocol.ValueString()),
 		h.URI.ValueString(),
 		h.Port.ValueInt32(),
 	)
 
 	if !h.Method.IsNull() {
-		opts.SetMethod(publicCloud.HttpMethodOpt(h.Method.ValueString()))
+		opts.SetMethod(publiccloud.HttpMethodOpt(h.Method.ValueString()))
 	}
 	opts.Host = utils.AdaptStringPointerValueToNullableString(h.Host)
 
 	return *opts
 }
 
-func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publicCloud.HealthCheck) healthCheckResourceModel {
+func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publiccloud.HealthCheck) healthCheckResourceModel {
 	healthCheck := healthCheckResourceModel{
 		Protocol: basetypes.NewStringValue(string(sdkHealthCheck.GetProtocol())),
 		URI:      basetypes.NewStringValue(sdkHealthCheck.GetUri()),
@@ -167,7 +167,7 @@ func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publicCloud.HealthChec
 
 type targetGroupResource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (t *targetGroupResource) ImportState(
@@ -216,9 +216,9 @@ func (t *targetGroupResource) Schema(
 			},
 			"protocol": schema.StringAttribute{
 				Required:    true,
-				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedProtocolEnumValues) + "\n" + warningError,
+				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedProtocolEnumValues) + "\n" + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedProtocolEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedProtocolEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
@@ -233,9 +233,9 @@ func (t *targetGroupResource) Schema(
 			},
 			"region": schema.StringAttribute{
 				Required:    true,
-				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedRegionNameEnumValues) + "\n" + warningError,
+				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedRegionNameEnumValues) + "\n" + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedRegionNameEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedRegionNameEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
@@ -262,15 +262,15 @@ func (t *targetGroupResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"protocol": schema.StringAttribute{
 						Required:    true,
-						Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedProtocolEnumValues),
+						Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedProtocolEnumValues),
 						Validators: []validator.String{
-							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedProtocolEnumValues)...),
+							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedProtocolEnumValues)...),
 						},
 					},
 					"method": schema.StringAttribute{
-						Description: "Required if `protocol` is `HTTP` or `HTTPS`. Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedHttpMethodEnumValues),
+						Description: "Required if `protocol` is `HTTP` or `HTTPS`. Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedHttpMethodEnumValues),
 						Validators: []validator.String{
-							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedHttpMethodEnumValues)...),
+							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedHttpMethodEnumValues)...),
 						},
 						Optional: true,
 					},
@@ -465,7 +465,7 @@ func (t *targetGroupResource) Configure(
 		return
 	}
 
-	t.client = coreClient.PublicCloudAPI
+	t.client = coreClient.PubliccloudAPI
 }
 
 func NewTargetGroupResource() resource.Resource {

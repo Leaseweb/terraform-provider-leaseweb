@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -43,7 +43,7 @@ func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func adaptContractToContractResource(sdkContract publicCloud.Contract) contractResourceModel {
+func adaptContractToContractResource(sdkContract publiccloud.Contract) contractResourceModel {
 	return contractResourceModel{
 		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
@@ -92,10 +92,10 @@ func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 }
 
 func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
-	*publicCloud.LaunchInstanceOpts,
+	*publiccloud.LaunchInstanceOpts,
 	error,
 ) {
-	sdkRootDiskStorageType, err := publicCloud.NewStorageTypeFromValue(
+	sdkRootDiskStorageType, err := publiccloud.NewStorageTypeFromValue(
 		i.RootDiskStorageType.ValueString(),
 	)
 	if err != nil {
@@ -114,42 +114,42 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 		return nil, utils.ReturnError("GetLaunchInstanceOpts", contractDiags)
 	}
 
-	sdkContractType, err := publicCloud.NewContractTypeFromValue(
+	sdkContractType, err := publiccloud.NewContractTypeFromValue(
 		contract.Type.ValueString(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkContractTerm, err := publicCloud.NewContractTermFromValue(
+	sdkContractTerm, err := publiccloud.NewContractTermFromValue(
 		contract.Term.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+	sdkBillingFrequency, err := publiccloud.NewBillingFrequencyFromValue(
 		contract.BillingFrequency.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkRegionName, err := publicCloud.NewRegionNameFromValue(
+	sdkRegionName, err := publiccloud.NewRegionNameFromValue(
 		i.Region.ValueString(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkTypeName, err := publicCloud.NewTypeNameFromValue(
+	sdkTypeName, err := publiccloud.NewTypeNameFromValue(
 		i.Type.ValueString(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	opts := publicCloud.NewLaunchInstanceOpts(
+	opts := publiccloud.NewLaunchInstanceOpts(
 		*sdkRegionName,
 		*sdkTypeName,
 		image.ID.ValueString(),
@@ -167,10 +167,10 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 }
 
 func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
-	*publicCloud.UpdateInstanceOpts,
+	*publiccloud.UpdateInstanceOpts,
 	error,
 ) {
-	opts := publicCloud.NewUpdateInstanceOpts()
+	opts := publiccloud.NewUpdateInstanceOpts()
 
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(i.Reference)
 	opts.RootDiskSize = utils.AdaptInt32PointerValueToNullableInt32(i.RootDiskSize)
@@ -186,7 +186,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	if contract.Type.ValueString() != "" {
-		contractType, err := publicCloud.NewContractTypeFromValue(
+		contractType, err := publiccloud.NewContractTypeFromValue(
 			contract.Type.ValueString(),
 		)
 		if err != nil {
@@ -196,7 +196,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	if contract.Term.ValueInt32() != 0 {
-		contractTerm, err := publicCloud.NewContractTermFromValue(
+		contractTerm, err := publiccloud.NewContractTermFromValue(
 			contract.Term.ValueInt32(),
 		)
 		if err != nil {
@@ -206,7 +206,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	if contract.BillingFrequency.ValueInt32() != 0 {
-		billingFrequency, err := publicCloud.NewBillingFrequencyFromValue(
+		billingFrequency, err := publiccloud.NewBillingFrequencyFromValue(
 			contract.BillingFrequency.ValueInt32(),
 		)
 		if err != nil {
@@ -216,7 +216,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	}
 
 	if i.Type.ValueString() != "" {
-		instanceType, err := publicCloud.NewTypeNameFromValue(
+		instanceType, err := publiccloud.NewTypeNameFromValue(
 			i.Type.ValueString(),
 		)
 		if err != nil {
@@ -229,7 +229,7 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 }
 
 func adaptInstanceToInstanceResource(
-	sdkInstance publicCloud.Instance,
+	sdkInstance publiccloud.Instance,
 	ctx context.Context,
 ) (*instanceResourceModel, error) {
 	instance := instanceResourceModel{
@@ -280,7 +280,7 @@ func adaptInstanceToInstanceResource(
 }
 
 func adaptInstanceDetailsToInstanceResource(
-	sdkInstanceDetails publicCloud.InstanceDetails,
+	sdkInstanceDetails publiccloud.InstanceDetails,
 	ctx context.Context,
 ) (*instanceResourceModel, error) {
 	instance := instanceResourceModel{
@@ -340,13 +340,13 @@ func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func adaptIpToIPResource(sdkIp publicCloud.Ip) iPResourceModel {
+func adaptIpToIPResource(sdkIp publiccloud.Ip) iPResourceModel {
 	return iPResourceModel{
 		IP: basetypes.NewStringValue(sdkIp.GetIp()),
 	}
 }
 
-func adaptIpDetailsToIPResource(sdkIpDetails publicCloud.IpDetails) iPResourceModel {
+func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) iPResourceModel {
 	return iPResourceModel{
 		IP: basetypes.NewStringValue(sdkIpDetails.GetIp()),
 	}
@@ -360,7 +360,7 @@ func NewInstanceResource() resource.Resource {
 
 type instanceResource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (i *instanceResource) Configure(
@@ -386,7 +386,7 @@ func (i *instanceResource) Configure(
 		return
 	}
 
-	i.client = coreClient.PublicCloudAPI
+	i.client = coreClient.PubliccloudAPI
 }
 
 func (i *instanceResource) Create(
@@ -554,11 +554,11 @@ func (i *instanceResource) Schema(
 	// 0 has to be prepended manually as it's a valid option.
 	billingFrequencies := utils.NewIntMarkdownList(
 		append(
-			[]publicCloud.BillingFrequency{0},
-			publicCloud.AllowedBillingFrequencyEnumValues...,
+			[]publiccloud.BillingFrequency{0},
+			publiccloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := utils.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := utils.NewIntMarkdownList(publiccloud.AllowedContractTermEnumValues)
 	warningError := "**WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created."
 
 	resp.Schema = schema.Schema{
@@ -575,10 +575,10 @@ func (i *instanceResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.StringTypeArrayToMarkdown(publicCloud.AllowedRegionNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publiccloud.AllowedRegionNameEnumValues),
 				),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedRegionNameEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedRegionNameEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -638,13 +638,13 @@ func (i *instanceResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.StringTypeArrayToMarkdown(publicCloud.AllowedTypeNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publiccloud.AllowedTypeNameEnumValues),
 				),
 				Validators: []validator.String{
 					stringvalidator.AlsoRequires(
 						path.Expressions{path.MatchRoot("region")}...,
 					),
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedTypeNameEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedTypeNameEnumValues)...),
 				},
 			},
 			"root_disk_size": schema.Int32Attribute{
@@ -659,7 +659,7 @@ func (i *instanceResource) Schema(
 				Required:    true,
 				Description: "The root disk's storage type. Can be *LOCAL* or *CENTRAL*. " + warningError,
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedStorageTypeEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedStorageTypeEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -694,7 +694,7 @@ func (i *instanceResource) Schema(
 						Required:    true,
 						Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 						Validators: []validator.String{
-							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedContractTypeEnumValues)...),
 						},
 					},
 					"ends_at": schema.StringAttribute{Computed: true},

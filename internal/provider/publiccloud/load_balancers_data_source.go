@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -32,7 +32,7 @@ type loadBalancersDataSourceModel struct {
 	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"load_balancers"`
 }
 
-func adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem publicCloud.LoadBalancerListItem) loadBalancerDataSourceModel {
+func adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem publiccloud.LoadBalancerListItem) loadBalancerDataSourceModel {
 	var ips []iPDataSourceModel
 	for _, ip := range sdkLoadBalancerListItem.Ips {
 		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
@@ -49,7 +49,7 @@ func adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem p
 	}
 }
 
-func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.LoadBalancerListItem) loadBalancersDataSourceModel {
+func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publiccloud.LoadBalancerListItem) loadBalancersDataSourceModel {
 	var loadBalancers loadBalancersDataSourceModel
 
 	for _, sdkLoadBalancerListItem := range sdkLoadBalancers {
@@ -62,9 +62,9 @@ func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publicCloud.
 
 func getAllLoadBalancers(
 	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.LoadBalancerListItem, *http.Response, error) {
-	var loadBalancers []publicCloud.LoadBalancerListItem
+	api publiccloud.PubliccloudAPI,
+) ([]publiccloud.LoadBalancerListItem, *http.Response, error) {
+	var loadBalancers []publiccloud.LoadBalancerListItem
 	var offset *int32
 
 	request := api.GetLoadBalancerList(ctx)
@@ -97,7 +97,7 @@ func getAllLoadBalancers(
 
 type loadBalancersDataSource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (l *loadBalancersDataSource) Metadata(
@@ -212,7 +212,7 @@ func (l *loadBalancersDataSource) Configure(
 		return
 	}
 
-	l.client = coreClient.PublicCloudAPI
+	l.client = coreClient.PubliccloudAPI
 }
 
 func NewLoadBalancersDataSource() datasource.DataSource {

@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptImageToImageDataSource(t *testing.T) {
-	sdkImage := publicCloud.Image{
+	sdkImage := publiccloud.Image{
 		Id:      "imageId",
 		Name:    "name",
 		Custom:  true,
@@ -28,18 +28,18 @@ func Test_adaptImageToImageDataSource(t *testing.T) {
 }
 
 func Test_adaptImageDetailsToImageDataSource(t *testing.T) {
-	state := publicCloud.IMAGESTATE_READY
-	region := publicCloud.REGIONNAME_EU_WEST_3
+	state := publiccloud.IMAGESTATE_READY
+	region := publiccloud.REGIONNAME_EU_WEST_3
 
-	sdkImageDetails := publicCloud.ImageDetails{
+	sdkImageDetails := publiccloud.ImageDetails{
 		Id:           "imageId",
 		Name:         "name",
 		Custom:       true,
-		State:        *publicCloud.NewNullableImageState(&state),
-		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
-		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
+		State:        *publiccloud.NewNullableImageState(&state),
+		MarketApps:   []publiccloud.MarketAppId{publiccloud.MARKETAPPID_CPANEL_30},
+		StorageTypes: []publiccloud.StorageType{publiccloud.STORAGETYPE_CENTRAL},
 		Flavour:      "flavour",
-		Region:       *publicCloud.NewNullableRegionName(&region),
+		Region:       *publiccloud.NewNullableRegionName(&region),
 	}
 
 	want := imageModelDataSource{
@@ -58,7 +58,7 @@ func Test_adaptImageDetailsToImageDataSource(t *testing.T) {
 }
 
 func Test_adaptImagesToImagesDataSource(t *testing.T) {
-	sdkImages := []publicCloud.ImageDetails{
+	sdkImages := []publiccloud.ImageDetails{
 		{Id: "id"},
 	}
 

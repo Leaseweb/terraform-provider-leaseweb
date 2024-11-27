@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -46,7 +46,7 @@ func (l *loadBalancerResourceModel) AttributeTypes() map[string]attr.Type {
 }
 
 func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Context) (
-	*publicCloud.LaunchLoadBalancerOpts,
+	*publiccloud.LaunchLoadBalancerOpts,
 	error,
 ) {
 	contract := contractResourceModel{}
@@ -55,32 +55,32 @@ func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Contex
 		return nil, utils.ReturnError("GetLaunchLoadBalancerOpts", contractDiags)
 	}
 
-	sdkContractType, err := publicCloud.NewContractTypeFromValue(contract.Type.ValueString())
+	sdkContractType, err := publiccloud.NewContractTypeFromValue(contract.Type.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkContractTerm, err := publicCloud.NewContractTermFromValue(contract.Term.ValueInt32())
+	sdkContractTerm, err := publiccloud.NewContractTermFromValue(contract.Term.ValueInt32())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkBillingFrequency, err := publicCloud.NewBillingFrequencyFromValue(contract.BillingFrequency.ValueInt32())
+	sdkBillingFrequency, err := publiccloud.NewBillingFrequencyFromValue(contract.BillingFrequency.ValueInt32())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkRegionName, err := publicCloud.NewRegionNameFromValue(l.Region.ValueString())
+	sdkRegionName, err := publiccloud.NewRegionNameFromValue(l.Region.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkTypeName, err := publicCloud.NewTypeNameFromValue(l.Type.ValueString())
+	sdkTypeName, err := publiccloud.NewTypeNameFromValue(l.Type.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	opts := publicCloud.NewLaunchLoadBalancerOpts(
+	opts := publiccloud.NewLaunchLoadBalancerOpts(
 		*sdkRegionName,
 		*sdkTypeName,
 		*sdkContractType,
@@ -94,14 +94,14 @@ func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Contex
 }
 
 func (l *loadBalancerResourceModel) GetUpdateLoadBalancerOpts() (
-	*publicCloud.UpdateLoadBalancerOpts,
+	*publiccloud.UpdateLoadBalancerOpts,
 	error,
 ) {
-	opts := publicCloud.NewUpdateLoadBalancerOpts()
+	opts := publiccloud.NewUpdateLoadBalancerOpts()
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(l.Reference)
 
 	if l.Type.ValueString() != "" {
-		instanceType, err := publicCloud.NewTypeNameFromValue(l.Type.ValueString())
+		instanceType, err := publiccloud.NewTypeNameFromValue(l.Type.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("GetUpdateLoadBalancerOpts: %w", err)
 		}
@@ -112,7 +112,7 @@ func (l *loadBalancerResourceModel) GetUpdateLoadBalancerOpts() (
 }
 
 func adaptLoadBalancerDetailsToLoadBalancerResource(
-	sdkLoadBalancerDetails publicCloud.LoadBalancerDetails,
+	sdkLoadBalancerDetails publiccloud.LoadBalancerDetails,
 	ctx context.Context,
 ) (*loadBalancerResourceModel, error) {
 	loadBalancer := loadBalancerResourceModel{
@@ -138,7 +138,7 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 
 type loadBalancerResource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (l *loadBalancerResource) ImportState(
@@ -172,7 +172,7 @@ func (l *loadBalancerResource) Configure(
 		return
 	}
 
-	l.client = coreClient.PublicCloudAPI
+	l.client = coreClient.PubliccloudAPI
 }
 
 func (l *loadBalancerResource) Metadata(
@@ -190,12 +190,12 @@ func (l *loadBalancerResource) Schema(
 ) {
 	warningError := "**WARNING!** Changing this value once running will cause this loadbalancer to be destroyed and a new one to be created."
 
-	contractTerms := utils.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := utils.NewIntMarkdownList(publiccloud.AllowedContractTermEnumValues)
 	// 0 has to be prepended manually as it's a valid option.
 	billingFrequencies := utils.NewIntMarkdownList(
 		append(
-			[]publicCloud.BillingFrequency{0},
-			publicCloud.AllowedBillingFrequencyEnumValues...,
+			[]publiccloud.BillingFrequency{0},
+			publiccloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
 
@@ -234,7 +234,7 @@ func (l *loadBalancerResource) Schema(
 						Required:    true,
 						Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 						Validators: []validator.String{
-							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+							stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedContractTypeEnumValues)...),
 						},
 					},
 					"ends_at": schema.StringAttribute{Computed: true},
@@ -248,10 +248,10 @@ func (l *loadBalancerResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.StringTypeArrayToMarkdown(publicCloud.AllowedRegionNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publiccloud.AllowedRegionNameEnumValues),
 				),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedRegionNameEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedRegionNameEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -262,13 +262,13 @@ func (l *loadBalancerResource) Schema(
 				Description: fmt.Sprintf(
 					"%s Valid options are %s",
 					warningError,
-					utils.StringTypeArrayToMarkdown(publicCloud.AllowedTypeNameEnumValues),
+					utils.StringTypeArrayToMarkdown(publiccloud.AllowedTypeNameEnumValues),
 				),
 				Validators: []validator.String{
 					stringvalidator.AlsoRequires(
 						path.Expressions{path.MatchRoot("region")}...,
 					),
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedTypeNameEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedTypeNameEnumValues)...),
 				},
 			},
 		},

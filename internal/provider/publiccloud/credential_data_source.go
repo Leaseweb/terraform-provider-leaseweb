@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -20,7 +20,7 @@ var (
 
 type credentialDataSource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func NewCredentialDataSource() datasource.DataSource {
@@ -59,7 +59,7 @@ func (d *credentialDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient.PublicCloudAPI
+	d.client = coreClient.PubliccloudAPI
 }
 
 func (d *credentialDataSource) Metadata(
@@ -83,9 +83,9 @@ func (d *credentialDataSource) Schema(
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: "The type of the credential. Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedCredentialTypeEnumValues),
+				Description: "The type of the credential. Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedCredentialTypeEnumValues),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedCredentialTypeEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedCredentialTypeEnumValues)...),
 				},
 			},
 			"username": schema.StringAttribute{

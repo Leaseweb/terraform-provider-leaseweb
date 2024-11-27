@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -21,7 +21,7 @@ var (
 
 type controlPanelsDataSource struct {
 	name   string
-	client dedicatedServer.DedicatedServerAPI
+	client dedicatedserver.DedicatedserverAPI
 }
 
 type controlPanelDataSourceModel struct {
@@ -57,7 +57,7 @@ func (c *controlPanelsDataSource) Configure(
 		return
 	}
 
-	c.client = coreClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedserverAPI
 }
 
 func (c *controlPanelsDataSource) Metadata(
@@ -77,7 +77,7 @@ func (c *controlPanelsDataSource) Read(
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	var controlPanels []controlPanelDataSourceModel
-	var result *dedicatedServer.ControlPanelList
+	var result *dedicatedserver.ControlPanelList
 	var response *http.Response
 	var err error
 

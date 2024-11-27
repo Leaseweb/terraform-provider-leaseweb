@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -25,12 +25,12 @@ type loadBalancerListenersDataSourceModel struct {
 
 func (l loadBalancerListenersDataSourceModel) generateRequest(
 	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) publicCloud.ApiGetLoadBalancerListenerListRequest {
+	api publiccloud.PubliccloudAPI,
+) publiccloud.ApiGetLoadBalancerListenerListRequest {
 	return api.GetLoadBalancerListenerList(ctx, l.LoadBalancerID.ValueString())
 }
 
-func adaptLoadBalancerListenersToLoadBalancerListenersDataSource(sdkLoadBalancerListeners []publicCloud.LoadBalancerListener) loadBalancerListenersDataSourceModel {
+func adaptLoadBalancerListenersToLoadBalancerListenersDataSource(sdkLoadBalancerListeners []publiccloud.LoadBalancerListener) loadBalancerListenersDataSourceModel {
 	var listeners loadBalancerListenersDataSourceModel
 
 	for _, sdkLoadBalancerListener := range sdkLoadBalancerListeners {
@@ -47,12 +47,12 @@ type loadBalancerListenerDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 }
 
-func getAllLoadBalancerListeners(request publicCloud.ApiGetLoadBalancerListenerListRequest) (
-	[]publicCloud.LoadBalancerListener,
+func getAllLoadBalancerListeners(request publiccloud.ApiGetLoadBalancerListenerListRequest) (
+	[]publiccloud.LoadBalancerListener,
 	*http.Response,
 	error,
 ) {
-	var listeners []publicCloud.LoadBalancerListener
+	var listeners []publiccloud.LoadBalancerListener
 	var offset *int32
 
 	for {
@@ -86,7 +86,7 @@ func getAllLoadBalancerListeners(request publicCloud.ApiGetLoadBalancerListenerL
 
 type loadBalancerListenersDataSource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (l *loadBalancerListenersDataSource) Metadata(
@@ -182,7 +182,7 @@ func (l *loadBalancerListenersDataSource) Configure(
 		return
 	}
 
-	l.client = coreClient.PublicCloudAPI
+	l.client = coreClient.PubliccloudAPI
 }
 
 func NewLoadBalancerListenersDataSource() datasource.DataSource {
