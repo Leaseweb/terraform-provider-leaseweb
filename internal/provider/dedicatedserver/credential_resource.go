@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -23,7 +23,7 @@ var (
 
 type credentialResource struct {
 	name   string
-	client dedicatedServer.DedicatedServerAPI
+	client dedicatedserver.DedicatedserverAPI
 }
 
 type credentialResourceModel struct {
@@ -70,7 +70,7 @@ func (c *credentialResource) Configure(
 		return
 	}
 
-	c.client = coreClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedserverAPI
 }
 
 func (c *credentialResource) Schema(
@@ -123,9 +123,9 @@ func (c *credentialResource) Create(
 		return
 	}
 
-	opts := dedicatedServer.NewCreateServerCredentialOpts(
+	opts := dedicatedserver.NewCreateServerCredentialOpts(
 		plan.Password.ValueString(),
-		dedicatedServer.CredentialType(plan.Type.ValueString()),
+		dedicatedserver.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	)
 	request := c.client.CreateServerCredential(
@@ -171,7 +171,7 @@ func (c *credentialResource) Read(
 	request := c.client.GetServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
-		dedicatedServer.CredentialType(state.Type.ValueString()),
+		dedicatedserver.CredentialType(state.Type.ValueString()),
 		state.Username.ValueString(),
 	)
 	result, response, err := request.Execute()
@@ -210,13 +210,13 @@ func (c *credentialResource) Update(
 		return
 	}
 
-	opts := dedicatedServer.NewUpdateServerCredentialOpts(
+	opts := dedicatedserver.NewUpdateServerCredentialOpts(
 		plan.Password.ValueString(),
 	)
 	request := c.client.UpdateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
-		dedicatedServer.CredentialType(plan.Type.ValueString()),
+		dedicatedserver.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
@@ -258,7 +258,7 @@ func (c *credentialResource) Delete(
 	request := c.client.DeleteServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
-		dedicatedServer.CredentialType(state.Type.ValueString()),
+		dedicatedserver.CredentialType(state.Type.ValueString()),
 		state.Username.ValueString(),
 	)
 	response, err := request.Execute()

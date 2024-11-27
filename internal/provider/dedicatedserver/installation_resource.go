@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -36,7 +36,7 @@ func NewInstallationResource() resource.Resource {
 
 type installationResource struct {
 	name   string
-	client dedicatedServer.DedicatedServerAPI
+	client dedicatedserver.DedicatedserverAPI
 }
 
 type installationResourceModel struct {
@@ -107,7 +107,7 @@ func (i *installationResource) Configure(
 		return
 	}
 
-	i.client = coreClient.DedicatedServerAPI
+	i.client = coreClient.DedicatedserverAPI
 }
 
 func (i *installationResource) Schema(
@@ -307,7 +307,7 @@ func (i *installationResource) Create(
 	}
 
 	// Preparing partitions for the installation options.
-	var partitions []dedicatedServer.Partition
+	var partitions []dedicatedserver.Partition
 	if !plan.Partitions.IsNull() && !plan.Partitions.IsUnknown() {
 
 		for _, p := range partitionsPlan {
@@ -318,7 +318,7 @@ func (i *installationResource) Create(
 				continue
 			}
 
-			partitions = append(partitions, dedicatedServer.Partition{
+			partitions = append(partitions, dedicatedserver.Partition{
 				Filesystem: utils.AdaptStringPointerValueToNullableString(p.Filesystem),
 				Size:       utils.AdaptStringPointerValueToNullableString(p.Size),
 				Mountpoint: utils.AdaptStringPointerValueToNullableString(p.Mountpoint),
@@ -328,17 +328,17 @@ func (i *installationResource) Create(
 	}
 
 	// Preparing RAID configuration for the installation options
-	var raid *dedicatedServer.Raid
+	var raid *dedicatedserver.Raid
 	// Check that at least one RAID field is set before initializing the RAID struct.
 	if !plan.Raid.IsNull() && !plan.Raid.IsUnknown() &&
 		(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level) != nil ||
 			utils.AdaptInt32PointerValueToNullableInt32(raidPlan.NumberOfDisks) != nil ||
 			utils.AdaptStringPointerValueToNullableString(raidPlan.Type) != nil) {
 
-		raid = &dedicatedServer.Raid{
-			Level:         (*dedicatedServer.RaidLevel)(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level)),
+		raid = &dedicatedserver.Raid{
+			Level:         (*dedicatedserver.RaidLevel)(utils.AdaptInt32PointerValueToNullableInt32(raidPlan.Level)),
 			NumberOfDisks: utils.AdaptInt32PointerValueToNullableInt32(raidPlan.NumberOfDisks),
-			Type:          (*dedicatedServer.RaidType)(utils.AdaptStringPointerValueToNullableString(raidPlan.Type)),
+			Type:          (*dedicatedserver.RaidType)(utils.AdaptStringPointerValueToNullableString(raidPlan.Type)),
 		}
 	}
 
@@ -351,7 +351,7 @@ func (i *installationResource) Create(
 	}
 	SSHKeys := strings.Join(SSHKeysList, "\n")
 
-	opts := dedicatedServer.NewInstallOperatingSystemOpts(plan.OperatingSystemID.ValueString())
+	opts := dedicatedserver.NewInstallOperatingSystemOpts(plan.OperatingSystemID.ValueString())
 	opts.CallbackUrl = utils.AdaptStringPointerValueToNullableString(plan.CallbackURL)
 	opts.ControlPanelId = utils.AdaptStringPointerValueToNullableString(plan.ControlPanelID)
 	opts.Device = utils.AdaptStringPointerValueToNullableString(plan.Device)

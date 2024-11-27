@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptLoadBalancerListenersToLoadBalancerListenersDataSource(t *testing.T) {
-	sdkListeners := []publicCloud.LoadBalancerListener{{Id: "id"}}
+	sdkListeners := []publiccloud.LoadBalancerListener{{Id: "id"}}
 	got := adaptLoadBalancerListenersToLoadBalancerListenersDataSource(sdkListeners)
 
 	want := loadBalancerListenersDataSourceModel{
@@ -28,7 +28,7 @@ func Test_loadBalancerListenersDataSourceModel_generateRequest(t *testing.T) {
 	listeners := loadBalancerListenersDataSourceModel{
 		LoadBalancerID: basetypes.NewStringValue("id"),
 	}
-	api := publicCloud.PublicCloudAPIService{}
+	api := publiccloud.PubliccloudAPIService{}
 
 	want := api.GetLoadBalancerListenerList(context.TODO(), "id")
 

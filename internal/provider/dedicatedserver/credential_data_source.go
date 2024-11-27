@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -21,7 +21,7 @@ var (
 
 type credentialDataSource struct {
 	name   string
-	client dedicatedServer.DedicatedServerAPI
+	client dedicatedserver.DedicatedserverAPI
 }
 
 type credentialDataSourceModel struct {
@@ -54,7 +54,7 @@ func (c *credentialDataSource) Configure(
 		return
 	}
 
-	c.client = coreClient.DedicatedServerAPI
+	c.client = coreClient.DedicatedserverAPI
 }
 
 func (c *credentialDataSource) Metadata(
@@ -109,7 +109,7 @@ func (c *credentialDataSource) Read(
 	}
 
 	serverID := config.DedicatedServerID.ValueString()
-	credType := dedicatedServer.CredentialType(config.Type.ValueString())
+	credType := dedicatedserver.CredentialType(config.Type.ValueString())
 	username := config.Username.ValueString()
 
 	credential, response, err := c.client.GetServerCredential(

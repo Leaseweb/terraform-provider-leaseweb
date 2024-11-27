@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +25,7 @@ func Test_adaptTargetGroupToTargetGroupDataSource(t *testing.T) {
 }
 
 func Test_adaptTargetGroupsToTargetGroupsDataSource(t *testing.T) {
-	targetGroups := []publicCloud.TargetGroup{
+	targetGroups := []publiccloud.TargetGroup{
 		generateTargetGroup(),
 	}
 
@@ -45,13 +45,13 @@ func Test_adaptTargetGroupsToTargetGroupsDataSource(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func generateTargetGroup() publicCloud.TargetGroup {
-	return publicCloud.TargetGroup{
+func generateTargetGroup() publiccloud.TargetGroup {
+	return publiccloud.TargetGroup{
 		Id:       "id",
 		Name:     "name",
-		Protocol: publicCloud.PROTOCOL_HTTP,
+		Protocol: publiccloud.PROTOCOL_HTTP,
 		Port:     80,
-		Region:   publicCloud.REGIONNAME_EU_WEST_3,
+		Region:   publiccloud.REGIONNAME_EU_WEST_3,
 	}
 }
 
@@ -64,7 +64,7 @@ func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
 			Port:     basetypes.NewInt32Value(80),
 			Region:   basetypes.NewStringValue("eu-west-3"),
 		}
-		api := publicCloud.PublicCloudAPIService{}
+		api := publiccloud.PubliccloudAPIService{}
 
 		want := api.GetTargetGroupList(context.TODO()).
 			Id("id").
@@ -84,7 +84,7 @@ func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
 			Protocol: basetypes.NewStringValue("tralala"),
 		}
 
-		_, err := targetGroups.generateRequest(context.TODO(), &publicCloud.PublicCloudAPIService{})
+		_, err := targetGroups.generateRequest(context.TODO(), &publiccloud.PubliccloudAPIService{})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -95,7 +95,7 @@ func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
 			Region: basetypes.NewStringValue("tralala"),
 		}
 
-		_, err := targetGroups.generateRequest(context.TODO(), &publicCloud.PublicCloudAPIService{})
+		_, err := targetGroups.generateRequest(context.TODO(), &publiccloud.PubliccloudAPIService{})
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")

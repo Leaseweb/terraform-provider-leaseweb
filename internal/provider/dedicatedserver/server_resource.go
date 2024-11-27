@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedServer"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -30,7 +30,7 @@ var (
 
 type serverResource struct {
 	name   string
-	client dedicatedServer.DedicatedServerAPI
+	client dedicatedserver.DedicatedserverAPI
 }
 
 type serverResourceModel struct {
@@ -100,7 +100,7 @@ func (s *serverResource) Configure(
 		return
 	}
 
-	s.client = coreClient.DedicatedServerAPI
+	s.client = coreClient.DedicatedserverAPI
 }
 
 func (s *serverResource) Schema(
@@ -274,7 +274,7 @@ func (s *serverResource) Update(
 
 	// Updating reference
 	if !plan.Reference.IsNull() && !plan.Reference.IsUnknown() {
-		opts := dedicatedServer.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
+		opts := dedicatedserver.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
 		response, err := s.client.UpdateServerReference(
 			ctx,
 			state.ID.ValueString(),
@@ -324,7 +324,7 @@ func (s *serverResource) Update(
 	// Updating Reverse Lookup
 	isPublicIPExists := !state.PublicIP.IsNull() && !state.PublicIP.IsUnknown() && state.PublicIP.ValueString() != ""
 	if !plan.ReverseLookup.IsNull() && !plan.ReverseLookup.IsUnknown() && isPublicIPExists {
-		opts := dedicatedServer.NewUpdateIpProfileOpts()
+		opts := dedicatedserver.NewUpdateIpProfileOpts()
 		opts.ReverseLookup = plan.ReverseLookup.ValueStringPointer()
 		_, response, err := s.client.UpdateIpProfile(
 			ctx,
@@ -384,7 +384,7 @@ func (s *serverResource) Update(
 	// Updating dhcp lease
 	if !plan.DHCPLease.IsNull() && !plan.DHCPLease.IsUnknown() {
 		if plan.DHCPLease.ValueString() != "" {
-			opts := dedicatedServer.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
+			opts := dedicatedserver.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
 			response, err := s.client.CreateServerDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
@@ -422,7 +422,7 @@ func (s *serverResource) Update(
 			response, err := s.client.OpenNetworkInterface(
 				ctx,
 				state.ID.ValueString(),
-				dedicatedServer.NETWORKTYPEURL_PUBLIC,
+				dedicatedserver.NETWORKTYPEURL_PUBLIC,
 			).Execute()
 			if err != nil {
 				summary := fmt.Sprintf(
@@ -437,7 +437,7 @@ func (s *serverResource) Update(
 			response, err := s.client.CloseNetworkInterface(
 				ctx,
 				state.ID.ValueString(),
-				dedicatedServer.NETWORKTYPEURL_PUBLIC,
+				dedicatedserver.NETWORKTYPEURL_PUBLIC,
 			).Execute()
 			if err != nil {
 				summary := fmt.Sprintf(
@@ -546,7 +546,7 @@ func (s *serverResource) getServer(
 	networkRequest := s.client.GetNetworkInterface(
 		ctx,
 		serverID,
-		dedicatedServer.NETWORKTYPEURL_PUBLIC,
+		dedicatedserver.NETWORKTYPEURL_PUBLIC,
 	)
 	networkResult, networkResponse, err := networkRequest.Execute()
 	if err != nil && networkResponse != nil && networkResponse.StatusCode != http.StatusNotFound {
@@ -587,7 +587,7 @@ func (s *serverResource) getServer(
 		reverseLookup = ipResult.GetReverseLookup()
 	}
 
-	dedicatedServerResource := serverResourceModel{
+	dedicatedserverResource := serverResourceModel{
 		ID:                           types.StringValue(serverResult.GetId()),
 		Reference:                    types.StringValue(reference),
 		ReverseLookup:                types.StringValue(reverseLookup),
@@ -601,5 +601,5 @@ func (s *serverResource) getServer(
 		Location:                     location,
 	}
 
-	return &dedicatedServerResource, nil, nil
+	return &dedicatedserverResource, nil, nil
 }

@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptImageToImageResource(t *testing.T) {
-	sdkImage := publicCloud.Image{
+	sdkImage := publiccloud.Image{
 		Id:      "imageId",
 		Name:    "name",
 		Custom:  true,
@@ -34,18 +34,18 @@ func Test_adaptImageToImageResource(t *testing.T) {
 }
 
 func Test_adaptImageDetailsToImageResource(t *testing.T) {
-	state := publicCloud.IMAGESTATE_READY
-	region := publicCloud.REGIONNAME_EU_WEST_3
+	state := publiccloud.IMAGESTATE_READY
+	region := publiccloud.REGIONNAME_EU_WEST_3
 
-	sdkImageDetails := publicCloud.ImageDetails{
+	sdkImageDetails := publiccloud.ImageDetails{
 		Id:           "imageId",
 		Name:         "name",
 		Custom:       true,
-		State:        *publicCloud.NewNullableImageState(&state),
-		MarketApps:   []publicCloud.MarketAppId{publicCloud.MARKETAPPID_CPANEL_30},
-		StorageTypes: []publicCloud.StorageType{publicCloud.STORAGETYPE_CENTRAL},
+		State:        *publiccloud.NewNullableImageState(&state),
+		MarketApps:   []publiccloud.MarketAppId{publiccloud.MARKETAPPID_CPANEL_30},
+		StorageTypes: []publiccloud.StorageType{publiccloud.STORAGETYPE_CENTRAL},
 		Flavour:      "flavour",
-		Region:       *publicCloud.NewNullableRegionName(&region),
+		Region:       *publiccloud.NewNullableRegionName(&region),
 	}
 
 	marketApps, _ := basetypes.NewListValueFrom(
@@ -84,7 +84,7 @@ func Test_imageResourceModel_GetUpdateImageOpts(t *testing.T) {
 	}
 	got := image.GetUpdateImageOpts()
 
-	want := publicCloud.UpdateImageOpts{Name: "name"}
+	want := publiccloud.UpdateImageOpts{Name: "name"}
 
 	assert.Equal(t, want, got)
 }
@@ -96,7 +96,7 @@ func Test_imageResourceModel_GetCreateImageOpts(t *testing.T) {
 	}
 	got := image.GetCreateImageOpts()
 
-	want := publicCloud.CreateImageOpts{
+	want := publiccloud.CreateImageOpts{
 		Name:       "name",
 		InstanceId: "instanceId",
 	}

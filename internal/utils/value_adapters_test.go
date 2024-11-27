@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -208,12 +208,12 @@ func ExampleAdaptSdkModelToResourceObject() {
 	}
 
 	resourceModel, _ := AdaptSdkModelToResourceObject(
-		publicCloud.Image{Id: "imageId"},
+		publiccloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(image publicCloud.Image) Image {
+		func(image publiccloud.Image) Image {
 			return Image{
 				Id: basetypes.NewStringValue(image.Id),
 			}
@@ -230,12 +230,12 @@ func ExampleAdaptSdkModelsToListValue() {
 	}
 
 	listValue, _ := AdaptSdkModelsToListValue(
-		[]publicCloud.Ip{{Ip: "1.2.3.4"}},
+		[]publiccloud.Ip{{Ip: "1.2.3.4"}},
 		map[string]attr.Type{
 			"ip": types.StringType,
 		},
 		context.TODO(),
-		func(ip publicCloud.Ip) Ip {
+		func(ip publiccloud.Ip) Ip {
 			return Ip{
 				Ip: basetypes.NewStringValue(ip.Ip),
 			}
@@ -298,7 +298,7 @@ func ExampleReturnError() {
 
 func TestAdaptStringTypeArrayToStringArray(t *testing.T) {
 	want := []string{"HOURLY", "MONTHLY"}
-	got := AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)
+	got := AdaptStringTypeArrayToStringArray(publiccloud.AllowedContractTypeEnumValues)
 
 	assert.Equal(t, want, got)
 }
@@ -396,12 +396,12 @@ func ExampleAdaptNullableSdkModelToResourceObject() {
 	}
 
 	resourceModel, _ := AdaptNullableSdkModelToResourceObject(
-		&publicCloud.Image{Id: "imageId"},
+		&publiccloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(image publicCloud.Image) Image {
+		func(image publiccloud.Image) Image {
 			return Image{
 				Id: basetypes.NewStringValue(image.Id),
 			}
@@ -423,7 +423,7 @@ func ExampleAdaptNullableSdkModelToResourceObject_second() {
 			"id": types.StringType,
 		},
 		context.TODO(),
-		func(image publicCloud.Image) Image {
+		func(image publiccloud.Image) Image {
 			return Image{
 				Id: basetypes.NewStringValue(image.Id),
 			}

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +22,7 @@ func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 
 		got, err := targetGroup.generateCreateOpts(context.TODO())
 
-		want := publicCloud.CreateTargetGroupOpts{
+		want := publiccloud.CreateTargetGroupOpts{
 			Name:     "Name",
 			Protocol: "HTTP",
 			Port:     80,
@@ -47,9 +47,9 @@ func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 
 		got, err := targetGroup.generateCreateOpts(context.TODO())
 
-		want := publicCloud.CreateTargetGroupOpts{
-			HealthCheck: &publicCloud.HealthCheckOpts{
-				Protocol: publicCloud.Protocol("HTTP"),
+		want := publiccloud.CreateTargetGroupOpts{
+			HealthCheck: &publiccloud.HealthCheckOpts{
+				Protocol: publiccloud.Protocol("HTTP"),
 			},
 		}
 
@@ -79,8 +79,8 @@ func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 
 func Test_adaptHealthCheckToHealthCheckResource(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
-		sdkHealthCheck := publicCloud.HealthCheck{
-			Protocol: publicCloud.PROTOCOL_HTTP,
+		sdkHealthCheck := publiccloud.HealthCheck{
+			Protocol: publiccloud.PROTOCOL_HTTP,
 			Uri:      "/",
 			Port:     80,
 		}
@@ -97,11 +97,11 @@ func Test_adaptHealthCheckToHealthCheckResource(t *testing.T) {
 	})
 
 	t.Run("optional fields are set", func(t *testing.T) {
-		httpMethod := publicCloud.HTTPMETHOD_GET
+		httpMethod := publiccloud.HTTPMETHOD_GET
 		host := "example.com"
-		sdkHealthCheck := publicCloud.HealthCheck{
-			Method: *publicCloud.NewNullableHttpMethod(&httpMethod),
-			Host:   *publicCloud.NewNullableString(&host),
+		sdkHealthCheck := publiccloud.HealthCheck{
+			Method: *publiccloud.NewNullableHttpMethod(&httpMethod),
+			Host:   *publiccloud.NewNullableString(&host),
 		}
 
 		got := adaptHealthCheckToHealthCheckResource(sdkHealthCheck)
@@ -131,7 +131,7 @@ func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 
 		name := "Name"
 		port := int32(80)
-		want := publicCloud.UpdateTargetGroupOpts{
+		want := publiccloud.UpdateTargetGroupOpts{
 			Name: &name,
 			Port: &port,
 		}
@@ -174,7 +174,7 @@ func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 		got, err := targetGroup.generateUpdateOpts(context.TODO())
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicCloud.PROTOCOL_HTTP, got.HealthCheck.Protocol)
+		assert.Equal(t, publiccloud.PROTOCOL_HTTP, got.HealthCheck.Protocol)
 	})
 }
 
@@ -188,10 +188,10 @@ func Test_healthCheckResourceModel_generateOpts(t *testing.T) {
 
 		got := healthCheck.generateOpts()
 
-		protocol := publicCloud.PROTOCOL_HTTP
+		protocol := publiccloud.PROTOCOL_HTTP
 		uri := "/"
 		port := int32(80)
-		want := publicCloud.HealthCheckOpts{
+		want := publiccloud.HealthCheckOpts{
 			Protocol: protocol,
 			Uri:      uri,
 			Port:     port,
@@ -208,9 +208,9 @@ func Test_healthCheckResourceModel_generateOpts(t *testing.T) {
 
 		got := healthCheck.generateOpts()
 
-		method := publicCloud.HTTPMETHODOPT_GET
+		method := publiccloud.HTTPMETHODOPT_GET
 		host := "example.com"
-		want := publicCloud.HealthCheckOpts{
+		want := publiccloud.HealthCheckOpts{
 			Method: &method,
 			Host:   &host,
 		}
@@ -222,12 +222,12 @@ func Test_healthCheckResourceModel_generateOpts(t *testing.T) {
 
 func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 	t.Run("main fields are set", func(t *testing.T) {
-		sdkTargetGroup := publicCloud.TargetGroup{
+		sdkTargetGroup := publiccloud.TargetGroup{
 			Id:       "ID",
 			Name:     "Name",
-			Protocol: publicCloud.PROTOCOL_HTTP,
+			Protocol: publiccloud.PROTOCOL_HTTP,
 			Port:     80,
-			Region:   publicCloud.REGIONNAME_EU_CENTRAL_1,
+			Region:   publiccloud.REGIONNAME_EU_CENTRAL_1,
 		}
 
 		got, err := adaptTargetGroupToTargetGroupResource(
@@ -249,10 +249,10 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 	})
 
 	t.Run("healthCheck is set", func(t *testing.T) {
-		sdkTargetGroup := publicCloud.TargetGroup{
-			HealthCheck: *publicCloud.NewNullableHealthCheck(
-				&publicCloud.HealthCheck{
-					Protocol: publicCloud.PROTOCOL_HTTP,
+		sdkTargetGroup := publiccloud.TargetGroup{
+			HealthCheck: *publiccloud.NewNullableHealthCheck(
+				&publiccloud.HealthCheck{
+					Protocol: publiccloud.PROTOCOL_HTTP,
 				},
 			),
 		}

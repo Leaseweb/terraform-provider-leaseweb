@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -29,7 +29,7 @@ type contractDataSourceModel struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func adaptContractToContractDataSource(sdkContract publicCloud.Contract) contractDataSourceModel {
+func adaptContractToContractDataSource(sdkContract publiccloud.Contract) contractDataSourceModel {
 	return contractDataSourceModel{
 		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
 		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
@@ -53,7 +53,7 @@ type instanceDataSourceModel struct {
 	MarketAppID         types.String            `tfsdk:"market_app_id"`
 }
 
-func adaptInstanceToInstanceDataSource(sdkInstance publicCloud.Instance) instanceDataSourceModel {
+func adaptInstanceToInstanceDataSource(sdkInstance publiccloud.Instance) instanceDataSourceModel {
 	var ips []iPDataSourceModel
 	for _, ip := range sdkInstance.Ips {
 		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
@@ -82,7 +82,7 @@ type instancesDataSourceModel struct {
 	Instances []instanceDataSourceModel `tfsdk:"instances"`
 }
 
-func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) instancesDataSourceModel {
+func adaptInstancesToInstancesDataSource(sdkInstances []publiccloud.Instance) instancesDataSourceModel {
 	var instances instancesDataSourceModel
 
 	for _, sdkInstance := range sdkInstances {
@@ -95,9 +95,9 @@ func adaptInstancesToInstancesDataSource(sdkInstances []publicCloud.Instance) in
 
 func getAllInstances(
 	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) ([]publicCloud.Instance, *http.Response, error) {
-	var instances []publicCloud.Instance
+	api publiccloud.PubliccloudAPI,
+) ([]publiccloud.Instance, *http.Response, error) {
+	var instances []publiccloud.Instance
 	var offset *int32
 
 	request := api.GetInstanceList(ctx)
@@ -134,7 +134,7 @@ func NewInstancesDataSource() datasource.DataSource {
 
 type instancesDataSource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (d *instancesDataSource) Configure(
@@ -159,7 +159,7 @@ func (d *instancesDataSource) Configure(
 		return
 	}
 
-	d.client = coreClient.PublicCloudAPI
+	d.client = coreClient.PubliccloudAPI
 }
 
 func (d *instancesDataSource) Metadata(
@@ -198,11 +198,11 @@ func (d *instancesDataSource) Schema(
 	// 0 has to be prepended manually as it's a valid option.
 	billingFrequencies := utils.NewIntMarkdownList(
 		append(
-			[]publicCloud.BillingFrequency{0},
-			publicCloud.AllowedBillingFrequencyEnumValues...,
+			[]publiccloud.BillingFrequency{0},
+			publiccloud.AllowedBillingFrequencyEnumValues...,
 		),
 	)
-	contractTerms := utils.NewIntMarkdownList(publicCloud.AllowedContractTermEnumValues)
+	contractTerms := utils.NewIntMarkdownList(publiccloud.AllowedContractTermEnumValues)
 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -269,7 +269,7 @@ func (d *instancesDataSource) Schema(
 									Computed:    true,
 									Description: "Select *HOURLY* for billing based on hourly usage, else *MONTHLY* for billing per month usage",
 									Validators: []validator.String{
-										stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedContractTypeEnumValues)...),
+										stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedContractTypeEnumValues)...),
 									},
 								},
 								"ends_at": schema.StringAttribute{Computed: true},

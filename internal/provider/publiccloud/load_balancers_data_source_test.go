@@ -3,24 +3,24 @@ package publiccloud
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptLoadBalancerListItemToLoadBalancerDataSource(t *testing.T) {
 	reference := "reference"
 
-	sdkLoadBalancerDetails := publicCloud.LoadBalancerListItem{
+	sdkLoadBalancerDetails := publiccloud.LoadBalancerListItem{
 		Id:        "id",
 		Region:    "region",
-		Reference: *publicCloud.NewNullableString(&reference),
-		State:     publicCloud.STATE_CREATING,
-		Type:      publicCloud.TYPENAME_C3_2XLARGE,
-		Ips: []publicCloud.Ip{
+		Reference: *publiccloud.NewNullableString(&reference),
+		State:     publiccloud.STATE_CREATING,
+		Type:      publiccloud.TYPENAME_C3_2XLARGE,
+		Ips: []publiccloud.Ip{
 			{Ip: "127.0.0.1"},
 		},
-		Contract: publicCloud.Contract{
-			Term: publicCloud.CONTRACTTERM__1,
+		Contract: publiccloud.Contract{
+			Term: publiccloud.CONTRACTTERM__1,
 		},
 	}
 
@@ -37,7 +37,7 @@ func Test_adaptLoadBalancerListItemToLoadBalancerDataSource(t *testing.T) {
 }
 
 func Test_adaptLoadBalancersToLoadBalancersDatasource(t *testing.T) {
-	sdkLoadBalancers := []publicCloud.LoadBalancerListItem{
+	sdkLoadBalancers := []publiccloud.LoadBalancerListItem{
 		{Id: "id"},
 	}
 

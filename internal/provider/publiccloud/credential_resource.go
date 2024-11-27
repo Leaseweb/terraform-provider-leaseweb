@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -24,7 +24,7 @@ var (
 
 type credentialResource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 type credentialResourceModel struct {
@@ -71,7 +71,7 @@ func (c *credentialResource) Configure(
 		return
 	}
 
-	c.client = coreClient.PublicCloudAPI
+	c.client = coreClient.PubliccloudAPI
 }
 
 func (c *credentialResource) Schema(
@@ -100,9 +100,9 @@ func (c *credentialResource) Schema(
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: `The type of the credential. Valid options are ` + utils.StringTypeArrayToMarkdown(publicCloud.AllowedCredentialTypeEnumValues),
+				Description: `The type of the credential. Valid options are ` + utils.StringTypeArrayToMarkdown(publiccloud.AllowedCredentialTypeEnumValues),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedCredentialTypeEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedCredentialTypeEnumValues)...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -131,8 +131,8 @@ func (c *credentialResource) Create(
 		return
 	}
 
-	opts := publicCloud.NewStoreCredentialOpts(
-		publicCloud.CredentialType(plan.Type.ValueString()),
+	opts := publiccloud.NewStoreCredentialOpts(
+		publiccloud.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 		plan.Password.ValueString(),
 	)
@@ -218,7 +218,7 @@ func (c *credentialResource) Update(
 		return
 	}
 
-	opts := publicCloud.NewUpdateCredentialOpts(
+	opts := publiccloud.NewUpdateCredentialOpts(
 		plan.Password.ValueString(),
 	)
 	request := c.client.UpdateCredential(

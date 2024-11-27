@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -32,8 +32,8 @@ type targetGroupsDataSourceModel struct {
 
 func (t targetGroupsDataSourceModel) generateRequest(
 	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ApiGetTargetGroupListRequest, error) {
+	api publiccloud.PubliccloudAPI,
+) (*publiccloud.ApiGetTargetGroupListRequest, error) {
 	funcName := "generateRequest"
 
 	request := api.GetTargetGroupList(ctx)
@@ -44,7 +44,7 @@ func (t targetGroupsDataSourceModel) generateRequest(
 		request = request.Name(t.Name.ValueString())
 	}
 	if !t.Protocol.IsNull() {
-		sdkProtocol, err := publicCloud.NewProtocolFromValue(t.Protocol.ValueString())
+		sdkProtocol, err := publiccloud.NewProtocolFromValue(t.Protocol.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", funcName, err)
 		}
@@ -54,7 +54,7 @@ func (t targetGroupsDataSourceModel) generateRequest(
 		request = request.Port(t.Port.ValueInt32())
 	}
 	if !t.Region.IsNull() {
-		sdkRegion, err := publicCloud.NewRegionNameFromValue(t.Region.ValueString())
+		sdkRegion, err := publiccloud.NewRegionNameFromValue(t.Region.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", funcName, err)
 		}
@@ -64,7 +64,7 @@ func (t targetGroupsDataSourceModel) generateRequest(
 	return &request, nil
 }
 
-func adaptTargetGroupsToTargetGroupsDataSource(sdkTargetGroups []publicCloud.TargetGroup) targetGroupsDataSourceModel {
+func adaptTargetGroupsToTargetGroupsDataSource(sdkTargetGroups []publiccloud.TargetGroup) targetGroupsDataSourceModel {
 	targetGroups := targetGroupsDataSourceModel{}
 	for _, sdkTargetGroup := range sdkTargetGroups {
 		targetGroups.TargetGroups = append(
@@ -84,7 +84,7 @@ type targetGroupDataSourceModel struct {
 	Region   types.String `tfsdk:"region"`
 }
 
-func adaptTargetGroupToTargetGroupDataSource(sdkTargetGroup publicCloud.TargetGroup) targetGroupDataSourceModel {
+func adaptTargetGroupToTargetGroupDataSource(sdkTargetGroup publiccloud.TargetGroup) targetGroupDataSourceModel {
 	return targetGroupDataSourceModel{
 		ID:       basetypes.NewStringValue(sdkTargetGroup.GetId()),
 		Name:     basetypes.NewStringValue(sdkTargetGroup.GetName()),
@@ -94,12 +94,12 @@ func adaptTargetGroupToTargetGroupDataSource(sdkTargetGroup publicCloud.TargetGr
 	}
 }
 
-func getTargetGroups(request publicCloud.ApiGetTargetGroupListRequest) (
-	[]publicCloud.TargetGroup,
+func getTargetGroups(request publiccloud.ApiGetTargetGroupListRequest) (
+	[]publiccloud.TargetGroup,
 	*http.Response,
 	error,
 ) {
-	var targetGroups []publicCloud.TargetGroup
+	var targetGroups []publiccloud.TargetGroup
 	var offset *int32
 
 	for {
@@ -130,7 +130,7 @@ func getTargetGroups(request publicCloud.ApiGetTargetGroupListRequest) (
 
 type targetGroupsDataSource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (t *targetGroupsDataSource) Metadata(
@@ -158,9 +158,9 @@ func (t *targetGroupsDataSource) Schema(
 			},
 			"protocol": schema.StringAttribute{
 				Optional:    true,
-				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedProtocolEnumValues),
+				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedProtocolEnumValues),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedProtocolEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedProtocolEnumValues)...),
 				},
 			},
 			"port": schema.Int32Attribute{
@@ -172,9 +172,9 @@ func (t *targetGroupsDataSource) Schema(
 			},
 			"region": schema.StringAttribute{
 				Optional:    true,
-				Description: "Region name. Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedRegionNameEnumValues),
+				Description: "Region name. Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedRegionNameEnumValues),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedRegionNameEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedRegionNameEnumValues)...),
 				},
 			},
 			"target_groups": schema.ListNestedAttribute{
@@ -268,7 +268,7 @@ func (t *targetGroupsDataSource) Configure(
 		return
 	}
 
-	t.client = coreClient.PublicCloudAPI
+	t.client = coreClient.PubliccloudAPI
 }
 
 func NewTargetGroupsDataSource() datasource.DataSource {

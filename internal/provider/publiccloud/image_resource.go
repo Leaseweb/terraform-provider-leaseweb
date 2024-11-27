@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -47,14 +47,14 @@ func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (i imageResourceModel) GetUpdateImageOpts() publicCloud.UpdateImageOpts {
-	return publicCloud.UpdateImageOpts{
+func (i imageResourceModel) GetUpdateImageOpts() publiccloud.UpdateImageOpts {
+	return publiccloud.UpdateImageOpts{
 		Name: i.Name.ValueString(),
 	}
 }
 
-func (i imageResourceModel) GetCreateImageOpts() publicCloud.CreateImageOpts {
-	return publicCloud.CreateImageOpts{
+func (i imageResourceModel) GetCreateImageOpts() publiccloud.CreateImageOpts {
+	return publiccloud.CreateImageOpts{
 		Name:       i.Name.ValueString(),
 		InstanceId: i.InstanceID.ValueString(),
 	}
@@ -62,7 +62,7 @@ func (i imageResourceModel) GetCreateImageOpts() publicCloud.CreateImageOpts {
 
 func adaptImageDetailsToImageResource(
 	ctx context.Context,
-	sdkImageDetails publicCloud.ImageDetails,
+	sdkImageDetails publiccloud.ImageDetails,
 ) (*imageResourceModel, error) {
 	marketApps, diags := basetypes.NewListValueFrom(
 		ctx,
@@ -96,7 +96,7 @@ func adaptImageDetailsToImageResource(
 	return &image, nil
 }
 
-func adaptImageToImageResource(sdkImage publicCloud.Image) imageResourceModel {
+func adaptImageToImageResource(sdkImage publiccloud.Image) imageResourceModel {
 	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
 
 	return imageResourceModel{
@@ -112,8 +112,8 @@ func adaptImageToImageResource(sdkImage publicCloud.Image) imageResourceModel {
 func getImage(
 	ID string,
 	ctx context.Context,
-	api publicCloud.PublicCloudAPI,
-) (*publicCloud.ImageDetails, *http.Response, error) {
+	api publiccloud.PubliccloudAPI,
+) (*publiccloud.ImageDetails, *http.Response, error) {
 	sdkImages, httpResponse, err := getAllImages(ctx, api)
 
 	if err != nil {
@@ -131,7 +131,7 @@ func getImage(
 
 type imageResource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (i *imageResource) Metadata(
@@ -342,7 +342,7 @@ func (i *imageResource) Configure(
 		return
 	}
 
-	i.client = coreClient.PublicCloudAPI
+	i.client = coreClient.PubliccloudAPI
 }
 
 func NewImageResource() resource.Resource {

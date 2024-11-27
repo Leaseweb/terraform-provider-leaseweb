@@ -6,19 +6,19 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
-		loadBalancerDetails := publicCloud.LoadBalancerDetails{
+		loadBalancerDetails := publiccloud.LoadBalancerDetails{
 			Id:        "id",
 			Region:    "region",
-			Type:      publicCloud.TYPENAME_C3_2XLARGE,
-			Reference: *publicCloud.NewNullableString(nil),
-			Contract: publicCloud.Contract{
-				Type: publicCloud.CONTRACTTYPE_MONTHLY,
+			Type:      publiccloud.TYPENAME_C3_2XLARGE,
+			Reference: *publiccloud.NewNullableString(nil),
+			Contract: publiccloud.Contract{
+				Type: publiccloud.CONTRACTTYPE_MONTHLY,
 			},
 		}
 
@@ -41,13 +41,13 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 	t.Run("optional fields are set", func(t *testing.T) {
 		reference := "reference"
 
-		loadBalancerDetails := publicCloud.LoadBalancerDetails{
+		loadBalancerDetails := publiccloud.LoadBalancerDetails{
 			Id:        "id",
 			Region:    "region",
-			Type:      publicCloud.TYPENAME_C3_2XLARGE,
-			Reference: *publicCloud.NewNullableString(&reference),
-			Contract: publicCloud.Contract{
-				Type: publicCloud.CONTRACTTYPE_MONTHLY,
+			Type:      publiccloud.TYPENAME_C3_2XLARGE,
+			Reference: *publiccloud.NewNullableString(&reference),
+			Contract: publiccloud.Contract{
+				Type: publiccloud.CONTRACTTYPE_MONTHLY,
 			},
 		}
 
@@ -70,11 +70,11 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 		got, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicCloud.REGIONNAME_EU_WEST_3, got.Region)
-		assert.Equal(t, publicCloud.TYPENAME_C3_2XLARGE, got.Type)
-		assert.Equal(t, publicCloud.CONTRACTTYPE_MONTHLY, got.ContractType)
-		assert.Equal(t, publicCloud.CONTRACTTERM__3, got.ContractTerm)
-		assert.Equal(t, publicCloud.BILLINGFREQUENCY__1, got.BillingFrequency)
+		assert.Equal(t, publiccloud.REGIONNAME_EU_WEST_3, got.Region)
+		assert.Equal(t, publiccloud.TYPENAME_C3_2XLARGE, got.Type)
+		assert.Equal(t, publiccloud.CONTRACTTYPE_MONTHLY, got.ContractType)
+		assert.Equal(t, publiccloud.CONTRACTTERM__3, got.ContractTerm)
+		assert.Equal(t, publiccloud.BILLINGFREQUENCY__1, got.BillingFrequency)
 
 		reference, _ := got.GetReferenceOk()
 		assert.Nil(t, reference)
@@ -192,7 +192,7 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 func Test_loadBalancerResourceModel_GetUpdateLoadBalancerOpts(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
 		reference := "reference"
-		loadBalancerType := string(publicCloud.TYPENAME_C3_2XLARGE)
+		loadBalancerType := string(publiccloud.TYPENAME_C3_2XLARGE)
 
 		loadBalancer := generateLoadBalancerResourceModel()
 		loadBalancer.Type = basetypes.NewStringPointerValue(&loadBalancerType)
@@ -201,7 +201,7 @@ func Test_loadBalancerResourceModel_GetUpdateLoadBalancerOpts(t *testing.T) {
 		got, err := loadBalancer.GetUpdateLoadBalancerOpts()
 
 		assert.NoError(t, err)
-		assert.Equal(t, publicCloud.TYPENAME_C3_2XLARGE, *got.Type)
+		assert.Equal(t, publiccloud.TYPENAME_C3_2XLARGE, *got.Type)
 		assert.Equal(t, "reference", *got.Reference)
 	})
 
@@ -228,8 +228,8 @@ func generateLoadBalancerResourceModel() loadBalancerResourceModel {
 
 	return loadBalancerResourceModel{
 		ID:        basetypes.NewStringValue("305c0bd8-b157-4a9c-885a-e07df86a714f"),
-		Region:    basetypes.NewStringValue(string(publicCloud.REGIONNAME_EU_WEST_3)),
-		Type:      basetypes.NewStringValue(string(publicCloud.TYPENAME_C3_2XLARGE)),
+		Region:    basetypes.NewStringValue(string(publiccloud.REGIONNAME_EU_WEST_3)),
+		Type:      basetypes.NewStringValue(string(publiccloud.TYPENAME_C3_2XLARGE)),
 		Reference: basetypes.NewStringPointerValue(nil),
 		Contract:  contract,
 	}

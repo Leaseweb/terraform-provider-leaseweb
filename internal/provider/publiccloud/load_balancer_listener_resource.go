@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/publicCloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -30,8 +30,8 @@ type loadBalancerListenerDefaultRuleResourceModel struct {
 	TargetGroupID types.String `tfsdk:"target_group_id"`
 }
 
-func (l loadBalancerListenerDefaultRuleResourceModel) generateLoadBalancerListenerDefaultRule() publicCloud.LoadBalancerListenerDefaultRule {
-	return *publicCloud.NewLoadBalancerListenerDefaultRule(l.TargetGroupID.ValueString())
+func (l loadBalancerListenerDefaultRuleResourceModel) generateLoadBalancerListenerDefaultRule() publiccloud.LoadBalancerListenerDefaultRule {
+	return *publiccloud.NewLoadBalancerListenerDefaultRule(l.TargetGroupID.ValueString())
 }
 
 func (l loadBalancerListenerDefaultRuleResourceModel) attributeTypes() map[string]attr.Type {
@@ -40,7 +40,7 @@ func (l loadBalancerListenerDefaultRuleResourceModel) attributeTypes() map[strin
 	}
 }
 
-func adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(sdkLoadBalancerListenerRule publicCloud.LoadBalancerListenerRule) loadBalancerListenerDefaultRuleResourceModel {
+func adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(sdkLoadBalancerListenerRule publiccloud.LoadBalancerListenerRule) loadBalancerListenerDefaultRuleResourceModel {
 	return loadBalancerListenerDefaultRuleResourceModel{
 		TargetGroupID: basetypes.NewStringValue(sdkLoadBalancerListenerRule.GetTargetGroupId()),
 	}
@@ -60,8 +60,8 @@ func (l loadBalancerListenerCertificateResourceModel) attributeTypes() map[strin
 	}
 }
 
-func (l loadBalancerListenerCertificateResourceModel) generateSslCertificate() publicCloud.SslCertificate {
-	sslCertificate := publicCloud.NewSslCertificate(
+func (l loadBalancerListenerCertificateResourceModel) generateSslCertificate() publiccloud.SslCertificate {
+	sslCertificate := publiccloud.NewSslCertificate(
 		l.PrivateKey.ValueString(),
 		l.Certificate.ValueString(),
 	)
@@ -72,7 +72,7 @@ func (l loadBalancerListenerCertificateResourceModel) generateSslCertificate() p
 	return *sslCertificate
 }
 
-func adaptSslCertificateToLoadBalancerListenerCertificateResource(sdkSslCertificate publicCloud.SslCertificate) loadBalancerListenerCertificateResourceModel {
+func adaptSslCertificateToLoadBalancerListenerCertificateResource(sdkSslCertificate publiccloud.SslCertificate) loadBalancerListenerCertificateResourceModel {
 	listener := loadBalancerListenerCertificateResourceModel{
 		PrivateKey:  basetypes.NewStringValue(sdkSslCertificate.GetPrivateKey()),
 		Certificate: basetypes.NewStringValue(sdkSslCertificate.GetCertificate()),
@@ -96,7 +96,7 @@ type LoadBalancerListenerResourceModel struct {
 }
 
 func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpts(ctx context.Context) (
-	*publicCloud.LoadBalancerListenerCreateOpts,
+	*publiccloud.LoadBalancerListenerCreateOpts,
 	error,
 ) {
 	defaultRule := loadBalancerListenerDefaultRuleResourceModel{}
@@ -105,8 +105,8 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpt
 		return nil, utils.ReturnError("generateLoadBalancerListenerCreateOpts", defaultRuleDiags)
 	}
 
-	opts := publicCloud.NewLoadBalancerListenerCreateOpts(
-		publicCloud.Protocol(l.Protocol.ValueString()),
+	opts := publiccloud.NewLoadBalancerListenerCreateOpts(
+		publiccloud.Protocol(l.Protocol.ValueString()),
 		l.Port.ValueInt32(),
 		defaultRule.generateLoadBalancerListenerDefaultRule(),
 	)
@@ -125,11 +125,11 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpt
 }
 
 func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpts(ctx context.Context) (
-	*publicCloud.LoadBalancerListenerOpts,
+	*publiccloud.LoadBalancerListenerOpts,
 	error,
 ) {
-	opts := publicCloud.NewLoadBalancerListenerOpts()
-	opts.SetProtocol(publicCloud.Protocol(l.Protocol.ValueString()))
+	opts := publiccloud.NewLoadBalancerListenerOpts()
+	opts.SetProtocol(publiccloud.Protocol(l.Protocol.ValueString()))
 	opts.SetPort(l.Port.ValueInt32())
 
 	if !l.Certificate.IsNull() {
@@ -170,7 +170,7 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpt
 }
 
 func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
-	sdkLoadBalancerListenerDetails publicCloud.LoadBalancerListenerDetails,
+	sdkLoadBalancerListenerDetails publiccloud.LoadBalancerListenerDetails,
 	ctx context.Context,
 ) (*LoadBalancerListenerResourceModel, error) {
 	listener := LoadBalancerListenerResourceModel{
@@ -215,7 +215,7 @@ func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
 }
 
 func adaptLoadBalancerListenerToLoadBalancerListenerResource(
-	sdkLoadBalancerListener publicCloud.LoadBalancerListener,
+	sdkLoadBalancerListener publiccloud.LoadBalancerListener,
 	ctx context.Context,
 ) (*LoadBalancerListenerResourceModel, error) {
 	listener := LoadBalancerListenerResourceModel{
@@ -245,7 +245,7 @@ func adaptLoadBalancerListenerToLoadBalancerListenerResource(
 
 type loadBalancerListenerResource struct {
 	name   string
-	client publicCloud.PublicCloudAPI
+	client publiccloud.PubliccloudAPI
 }
 
 func (l *loadBalancerListenerResource) Configure(
@@ -271,7 +271,7 @@ func (l *loadBalancerListenerResource) Configure(
 		return
 	}
 
-	l.client = coreClient.PublicCloudAPI
+	l.client = coreClient.PubliccloudAPI
 }
 
 func (l *loadBalancerListenerResource) Metadata(
@@ -302,9 +302,9 @@ func (l *loadBalancerListenerResource) Schema(
 			},
 			"protocol": schema.StringAttribute{
 				Required:    true,
-				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publicCloud.AllowedProtocolEnumValues),
+				Description: "Valid options are " + utils.StringTypeArrayToMarkdown(publiccloud.AllowedProtocolEnumValues),
 				Validators: []validator.String{
-					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publicCloud.AllowedProtocolEnumValues)...),
+					stringvalidator.OneOf(utils.AdaptStringTypeArrayToStringArray(publiccloud.AllowedProtocolEnumValues)...),
 				},
 			},
 			"port": schema.Int32Attribute{
