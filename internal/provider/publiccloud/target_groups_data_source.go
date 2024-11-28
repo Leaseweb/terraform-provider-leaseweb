@@ -147,6 +147,7 @@ func (t *targetGroupsDataSource) Schema(
 	response *datasource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{
+		Description: utils.BetaDescription,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Optional:    true,

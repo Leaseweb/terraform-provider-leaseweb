@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
+const (
+	BetaDescription string = "**Warning:** This functionality is in BETA. Documentation might be incorrect or incomplete. Functionality might change with the final release."
+)
+
 type Action int
 
 const (
