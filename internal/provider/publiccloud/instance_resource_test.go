@@ -435,29 +435,3 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 		},
 	)
 }
-
-func Test_adaptIpToIPResource(t *testing.T) {
-	sdkIp := publiccloud.Ip{
-		Ip: "127.0.0.1",
-	}
-
-	want := iPResourceModel{
-		IP: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := adaptIpToIPResource(sdkIp)
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptIpDetailsToIPResource(t *testing.T) {
-	sdkIpDetails := publiccloud.IpDetails{
-		Ip: "127.0.0.1",
-	}
-
-	want := iPResourceModel{
-		IP: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := adaptIpDetailsToIPResource(sdkIpDetails)
-
-	assert.Equal(t, want, got)
-}
