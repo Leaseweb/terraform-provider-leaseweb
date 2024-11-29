@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.12.1...v1.13.0) (2024-11-29)
+
+
+### Features
+
+* tell user if server takes too long to respond ([72c86e7](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/72c86e710259b1c19687ac6336a99d4ab7205808))
+
 ## [1.12.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.12.0...v1.12.1) (2024-11-26)
 
 
