@@ -489,7 +489,7 @@ func (s *serverResource) Create(
 		&response.Diagnostics,
 		fmt.Sprintf(
 			"Resource %s can only be imported, not created.",
-			s.name,
+			s.Name,
 		),
 		nil,
 		nil,
