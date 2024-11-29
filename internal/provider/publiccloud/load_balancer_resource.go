@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -137,8 +136,7 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 }
 
 type loadBalancerResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 func (l *loadBalancerResource) ImportState(
@@ -147,40 +145,6 @@ func (l *loadBalancerResource) ImportState(
 	response *resource.ImportStateResponse,
 ) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
-}
-
-func (l *loadBalancerResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	l.client = coreClient.PubliccloudAPI
-}
-
-func (l *loadBalancerResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
 }
 
 func (l *loadBalancerResource) Schema(
@@ -286,7 +250,7 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Launching resource %s", l.name)
+	summary := fmt.Sprintf("Launching resource %s", l.Name)
 
 	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
 	if err != nil {
@@ -294,7 +258,7 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	sdkLoadBalancer, httpResponse, err := l.client.LaunchLoadBalancer(ctx).
+	sdkLoadBalancer, httpResponse, err := l.Client.LaunchLoadBalancer(ctx).
 		LaunchLoadBalancerOpts(*opts).
 		Execute()
 
@@ -328,11 +292,11 @@ func (l *loadBalancerResource) Read(
 
 	summary := fmt.Sprintf(
 		"Reading resource %s for id %q",
-		l.name,
+		l.Name,
 		state.ID.ValueString(),
 	)
 
-	sdkLoadBalancerDetails, httpResponse, err := l.client.
+	sdkLoadBalancerDetails, httpResponse, err := l.Client.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -362,7 +326,7 @@ func (l *loadBalancerResource) Update(
 
 	summary := fmt.Sprintf(
 		"Updating resource %s for id %q",
-		l.name,
+		l.Name,
 		plan.ID.ValueString(),
 	)
 
@@ -372,7 +336,7 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	sdkLoadBalancerDetails, httpResponse, err := l.client.
+	sdkLoadBalancerDetails, httpResponse, err := l.Client.
 		UpdateLoadBalancer(ctx, plan.ID.ValueString()).
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
@@ -402,15 +366,24 @@ func (l *loadBalancerResource) Delete(
 		return
 	}
 
-	httpResponse, err := l.client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
+	httpResponse, err := l.Client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Terminating resource %s for id %q", l.name, state.ID.ValueString())
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.Error(
+			ctx,
+			&response.Diagnostics,
+			fmt.Sprintf(
+				"Terminating resource %s for id %q",
+				l.Name,
+				state.ID.ValueString(),
+			),
+			err,
+			httpResponse,
+		)
 	}
 }
 
 func NewLoadBalancerResource() resource.Resource {
 	return &loadBalancerResource{
-		name: "public_cloud_load_balancer",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_load_balancer"),
 	}
 }

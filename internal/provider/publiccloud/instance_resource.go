@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -354,39 +353,12 @@ func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) iPResourceMo
 
 func NewInstanceResource() resource.Resource {
 	return &instanceResource{
-		name: "public_cloud_instance",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_instance"),
 	}
 }
 
 type instanceResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *instanceResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 func (i *instanceResource) Create(
@@ -400,7 +372,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Launching resource %s", i.name)
+	summary := fmt.Sprintf("Launching resource %s", i.Name)
 
 	opts, err := plan.GetLaunchInstanceOpts(ctx)
 	if err != nil {
@@ -408,7 +380,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, httpResponse, err := i.client.LaunchInstance(ctx).
+	sdkInstance, httpResponse, err := i.Client.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 
@@ -436,14 +408,23 @@ func (i *instanceResource) Delete(
 		return
 	}
 
-	httpResponse, err := i.client.TerminateInstance(
+	httpResponse, err := i.Client.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Terminating resource %s for id %q",
+				i.Name,
+				state.ID.ValueString(),
+			),
+			err,
+			httpResponse,
+		)
 	}
 }
 
@@ -460,14 +441,6 @@ func (i *instanceResource) ImportState(
 	)
 }
 
-func (i *instanceResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
-}
-
 func (i *instanceResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
@@ -481,11 +454,11 @@ func (i *instanceResource) Read(
 
 	summary := fmt.Sprintf(
 		"Reading resource %s for id %q",
-		i.name,
+		i.Name,
 		state.ID.ValueString(),
 	)
 
-	sdkInstance, httpResponse, err := i.client.
+	sdkInstance, httpResponse, err := i.Client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -519,7 +492,7 @@ func (i *instanceResource) Update(
 
 	summary := fmt.Sprintf(
 		"Updating resource %s for id %q",
-		i.name,
+		i.Name,
 		plan.ID.ValueString(),
 	)
 
@@ -529,7 +502,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstanceDetails, httpResponse, err := i.client.
+	sdkInstanceDetails, httpResponse, err := i.Client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()

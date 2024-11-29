@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -22,8 +21,7 @@ var (
 )
 
 type notificationSettingDatatrafficResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DedicatedserverResourceAPI
 }
 
 type notificationSettingDatatrafficResourceModel struct {
@@ -36,42 +34,8 @@ type notificationSettingDatatrafficResourceModel struct {
 
 func NewNotificationSettingDatatrafficResource() resource.Resource {
 	return &notificationSettingDatatrafficResource{
-		name: "dedicated_server_notification_setting_datatraffic",
+		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_notification_setting_datatraffic"),
 	}
-}
-
-func (n *notificationSettingDatatrafficResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, n.name)
-}
-
-func (n *notificationSettingDatatrafficResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	n.client = coreClient.DedicatedserverAPI
 }
 
 func (n *notificationSettingDatatrafficResource) Schema(
@@ -133,18 +97,23 @@ func (n *notificationSettingDatatrafficResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.client.CreateServerDataTrafficNotificationSetting(
+	request := n.Client.CreateServerDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Creating resource %s for dedicated_server_id %q",
-			n.name,
-			plan.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Creating resource %s for dedicated_server_id %q",
+				n.Name,
+				plan.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -173,20 +142,25 @@ func (n *notificationSettingDatatrafficResource) Read(
 		return
 	}
 
-	request := n.client.GetServerDataTrafficNotificationSetting(
+	request := n.Client.GetServerDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading resource %s for id %q and dedicated_server_id %q",
-			n.name,
-			state.Id.ValueString(),
-			state.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Reading resource %s for id %q and dedicated_server_id %q",
+				n.Name,
+				state.Id.ValueString(),
+				state.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -220,20 +194,25 @@ func (n *notificationSettingDatatrafficResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.client.UpdateServerDataTrafficNotificationSetting(
+	request := n.Client.UpdateServerDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		plan.Id.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Updating resource %s for id %q and dedicated_server_id %q",
-			n.name,
-			plan.Id.ValueString(),
-			plan.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Updating resource %s for id %q and dedicated_server_id %q",
+				n.Name,
+				plan.Id.ValueString(),
+				plan.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -262,19 +241,24 @@ func (n *notificationSettingDatatrafficResource) Delete(
 		return
 	}
 
-	request := n.client.DeleteServerDataTrafficNotificationSetting(
+	request := n.Client.DeleteServerDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting resource %s for id %q and dedicated_server_id %q",
-			n.name,
-			state.Id.ValueString(),
-			state.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Deleting resource %s for id %q and dedicated_server_id %q",
+				n.Name,
+				state.Id.ValueString(),
+				state.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 	}
 }

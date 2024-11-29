@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -128,46 +127,12 @@ func getAllInstances(
 
 func NewInstancesDataSource() datasource.DataSource {
 	return &instancesDataSource{
-		name: "public_cloud_instances",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_instances"),
 	}
 }
 
 type instancesDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (d *instancesDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	d.client = coreClient.PubliccloudAPI
-}
-
-func (d *instancesDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+	utils.PubliccloudDataSourceAPI
 }
 
 func (d *instancesDataSource) Read(
@@ -175,10 +140,15 @@ func (d *instancesDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	instances, httpResponse, err := getAllInstances(ctx, d.client)
+	instances, httpResponse, err := getAllInstances(ctx, d.Client)
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", d.name)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf("Reading data %s", d.Name),
+			err,
+			httpResponse,
+		)
 		return
 	}
 

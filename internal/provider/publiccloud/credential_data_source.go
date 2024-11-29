@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -19,13 +18,12 @@ var (
 )
 
 type credentialDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudDataSourceAPI
 }
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		name: "public_cloud_credential",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_credential"),
 	}
 }
 
@@ -34,40 +32,6 @@ type credentialDataSourceModel struct {
 	Username   types.String `tfsdk:"username"`
 	Password   types.String `tfsdk:"password"`
 	Type       types.String `tfsdk:"type"`
-}
-
-func (d *credentialDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	d.client = coreClient.PubliccloudAPI
-}
-
-func (d *credentialDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *credentialDataSource) Schema(
@@ -116,7 +80,7 @@ func (d *credentialDataSource) Read(
 	type_ := config.Type.ValueString()
 	username := config.Username.ValueString()
 
-	credential, response, err := d.client.GetCredential(
+	credential, response, err := d.Client.GetCredential(
 		ctx,
 		instanceID,
 		type_,
@@ -124,12 +88,17 @@ func (d *credentialDataSource) Read(
 	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading data %s for instance_id %q",
-			d.name,
-			instanceID,
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Reading data %s for instance_id %q",
+				d.Name,
+				instanceID,
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 

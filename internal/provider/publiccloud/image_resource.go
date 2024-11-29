@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -130,20 +129,7 @@ func getImage(
 }
 
 type imageResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *imageResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf(
-		"%s_%s",
-		request.ProviderTypeName,
-		i.name,
-	)
+	utils.PubliccloudResourceAPI
 }
 
 func (i *imageResource) Schema(
@@ -220,9 +206,9 @@ func (i *imageResource) Create(
 	}
 
 	opts := plan.GetCreateImageOpts()
-	summary := fmt.Sprintf("Creating resource %s", i.name)
+	summary := fmt.Sprintf("Creating resource %s", i.Name)
 
-	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
+	sdkImage, httpResponse, err := i.Client.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
@@ -253,9 +239,9 @@ func (i *imageResource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf("Reading resource %s", i.name)
+	summary := fmt.Sprintf("Reading resource %s", i.Name)
 
-	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
+	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.Client)
 	if err != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
@@ -287,14 +273,14 @@ func (i *imageResource) Update(
 
 	opts := plan.GetUpdateImageOpts()
 
-	sdkImageDetails, httpResponse, err := i.client.UpdateImage(
+	sdkImageDetails, httpResponse, err := i.Client.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Updating resource %s for id %q",
-			i.name,
+			i.Name,
 			plan.ID.ValueString(),
 		)
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
@@ -303,7 +289,7 @@ func (i *imageResource) Update(
 
 	state, err := adaptImageDetailsToImageResource(ctx, *sdkImageDetails)
 	if err != nil {
-		summary := fmt.Sprintf("Reading resource %s", i.name)
+		summary := fmt.Sprintf("Reading resource %s", i.Name)
 		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
 		return
 	}
@@ -319,34 +305,8 @@ func (i *imageResource) Delete(
 ) {
 }
 
-func (i *imageResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewImageResource() resource.Resource {
 	return &imageResource{
-		name: "public_cloud_image",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_image"),
 	}
 }

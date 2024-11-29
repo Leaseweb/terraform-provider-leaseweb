@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -22,8 +21,7 @@ var (
 )
 
 type credentialResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DedicatedserverResourceAPI
 }
 
 type credentialResourceModel struct {
@@ -35,42 +33,8 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		name: "dedicated_server_credential",
+		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_credential"),
 	}
-}
-
-func (c *credentialResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
-}
-
-func (c *credentialResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	c.client = coreClient.DedicatedserverAPI
 }
 
 func (c *credentialResource) Schema(
@@ -128,19 +92,24 @@ func (c *credentialResource) Create(
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	)
-	request := c.client.CreateServerCredential(
+	request := c.Client.CreateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Creating resource %s for username %q and dedicated_server_id %q",
-			c.name,
-			plan.Username.ValueString(),
-			plan.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Creating resource %s for username %q and dedicated_server_id %q",
+				c.Name,
+				plan.Username.ValueString(),
+				plan.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -168,7 +137,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.client.GetServerCredential(
+	request := c.Client.GetServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),
@@ -176,13 +145,18 @@ func (c *credentialResource) Read(
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading resource %s for username %q and dedicated_server_id %q",
-			c.name,
-			state.Username.ValueString(),
-			state.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Reading resource %s for username %q and dedicated_server_id %q",
+				c.Name,
+				state.Username.ValueString(),
+				state.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -213,7 +187,7 @@ func (c *credentialResource) Update(
 	opts := dedicatedserver.NewUpdateServerCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.client.UpdateServerCredential(
+	request := c.Client.UpdateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
@@ -221,13 +195,18 @@ func (c *credentialResource) Update(
 	).UpdateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Updating resource %s for username %q and dedicated_server_id %q",
-			c.name,
-			plan.Username.ValueString(),
-			plan.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Updating resource %s for username %q and dedicated_server_id %q",
+				c.Name,
+				plan.Username.ValueString(),
+				plan.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -255,7 +234,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.client.DeleteServerCredential(
+	request := c.Client.DeleteServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),
@@ -263,12 +242,17 @@ func (c *credentialResource) Delete(
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting resource %s for username %q and dedicated_server_id %q",
-			c.name,
-			state.Username.ValueString(),
-			state.DedicatedServerId.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Deleting resource %s for username %q and dedicated_server_id %q",
+				c.Name,
+				state.Username.ValueString(),
+				state.DedicatedServerId.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 	}
 }
