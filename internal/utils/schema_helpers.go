@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
+const (
+	BetaDescription string = "**Warning:** This functionality is in BETA. Documentation might be incorrect or incomplete. Functionality might change with the final release."
+)
+
 type Action int
 
 const (
@@ -34,9 +38,15 @@ func (a Action) string(unsupportedActions []Action) string {
 		log.Fatal(fmt.Printf("do not know how to handle action: %q", a))
 	}
 
+	firstAction := a.firstAction(unsupportedActions)
+
+	if slices.Contains(unsupportedActions, CreateAction) && a == CreateAction {
+		return "This resource cannot be created, only imported"
+	}
+
 	return fmt.Sprintf(
 		format,
-		a.firstAction(unsupportedActions),
+		firstAction,
 		secondAction,
 	)
 }
