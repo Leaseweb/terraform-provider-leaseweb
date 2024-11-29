@@ -2582,6 +2582,122 @@ resource "leaseweb_public_cloud_target_group" "test" {
 	})
 }
 
+func TestAccDedicatedServerResource(t *testing.T) {
+	t.Run("imports and updates a server", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// ImportState testing
+				{
+					Config: providerConfig + `
+					  resource "leaseweb_dedicated_server" "test" {
+					    id    = "12345"
+					  }
+					  `,
+					ResourceName:       "leaseweb_dedicated_server.test",
+					ImportState:        true,
+					ImportStatePersist: true,
+					ImportStateId:      "12345",
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+					  resource "leaseweb_dedicated_server" "test" {
+					    id    = "12345"
+					  }
+					  `,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"reference",
+							"database.server",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"reverse_lookup",
+							"domain.example.com",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"dhcp_lease",
+							"http://mirror.leaseweb.com/ipxe-files/ubuntu-18.04.ipxe",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"powered_on",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"public_network_interface_opened",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"public_ip_null_routed",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"public_ip",
+							"123.123.123.123",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"remote_management_ip",
+							"",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"internal_mac",
+							"AA:BB:CC:DD:EE:FF",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"location.rack",
+							"13",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"location.site",
+							"AMS-01",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"location.suite",
+							"A6",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"location.unit",
+							"16-17",
+						),
+					),
+				},
+			},
+			// Delete testing automatically occurs in TestCase
+		})
+	})
+
+	t.Run("creating a new server causes an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_dedicated_server" "test" {
+  id    = "12345"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Resource dedicated_server can only be imported, not created.",
+					),
+				},
+			},
+		})
+	})
+}
+
 func TestAccPublicCloudIpResource(t *testing.T) {
 	t.Run("imports and updates an ip", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{

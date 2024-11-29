@@ -4,13 +4,13 @@ page_title: "leaseweb_public_cloud_ip Resource - leaseweb"
 subcategory: ""
 description: |-
   Note:
-  Once imported, this resource cannot be created.Once imported, this resource cannot be deleted.
+  This resource cannot be created, only imported.Once imported, this resource cannot be deleted.
 ---
 
 # leaseweb_public_cloud_ip (Resource)
 
 **Note:**
-- Once imported, this resource cannot be created.
+- This resource cannot be created, only imported.
 - Once imported, this resource cannot be deleted.
 
 ## Example Usage

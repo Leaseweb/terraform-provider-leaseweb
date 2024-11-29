@@ -111,7 +111,7 @@ func (s *serverResource) Schema(
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the server.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -456,10 +456,20 @@ func (s *serverResource) Update(
 }
 
 func (s *serverResource) Create(
-	_ context.Context,
+	ctx context.Context,
 	_ resource.CreateRequest,
-	_ *resource.CreateResponse,
+	response *resource.CreateResponse,
 ) {
+	utils.Error(
+		ctx,
+		&response.Diagnostics,
+		fmt.Sprintf(
+			"Resource %s can only be imported, not created.",
+			s.name,
+		),
+		nil,
+		nil,
+	)
 }
 
 func (s *serverResource) Delete(
