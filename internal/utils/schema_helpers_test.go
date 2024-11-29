@@ -32,38 +32,57 @@ func TestAction_firstAction(t *testing.T) {
 }
 
 func TestAction_string(t *testing.T) {
-	tests := []struct {
-		name string
-		a    Action
-		want string
-	}{
-		{
-			name: "create action",
-			a:    CreateAction,
-			want: "Once created, this resource cannot be created",
+	t.Run(
+		"expected string is returned for the default user case",
+		func(t *testing.T) {
+			tests := []struct {
+				name string
+				a    Action
+				want string
+			}{
+				{
+					name: "create action",
+					a:    CreateAction,
+					want: "Once created, this resource cannot be created",
+				},
+				{
+					name: "read action",
+					a:    ReadAction,
+					want: "Once created, this resource cannot be read",
+				},
+				{
+					name: "update action",
+					a:    UpdateAction,
+					want: "Once created, this resource cannot be updated",
+				},
+				{
+					name: "delete action",
+					a:    DeleteAction,
+					want: "Once created, this resource cannot be deleted",
+				},
+			}
+			for _, tt := range tests {
+				t.Run(tt.name, func(t *testing.T) {
+					got := tt.a.string(nil)
+					assert.Equal(t, tt.want, got)
+				})
+			}
 		},
-		{
-			name: "read action",
-			a:    ReadAction,
-			want: "Once created, this resource cannot be read",
+	)
+
+	t.Run(
+		"expected string is returned when unsupported actions contain created and the current action is created",
+		func(t *testing.T) {
+			response := resource.SchemaResponse{}
+			AddUnsupportedActionsNotation(&response, []Action{CreateAction})
+			assert.Equal(
+				t,
+				"This resource cannot be created, only imported",
+				CreateAction.string([]Action{CreateAction}),
+			)
 		},
-		{
-			name: "update action",
-			a:    UpdateAction,
-			want: "Once created, this resource cannot be updated",
-		},
-		{
-			name: "delete action",
-			a:    DeleteAction,
-			want: "Once created, this resource cannot be deleted",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.a.string(nil)
-			assert.Equal(t, tt.want, got)
-		})
-	}
+	)
+
 }
 
 func TestAddUnsupportedActionsNotation(t *testing.T) {

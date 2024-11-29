@@ -34,9 +34,15 @@ func (a Action) string(unsupportedActions []Action) string {
 		log.Fatal(fmt.Printf("do not know how to handle action: %q", a))
 	}
 
+	firstAction := a.firstAction(unsupportedActions)
+
+	if slices.Contains(unsupportedActions, CreateAction) && a == CreateAction {
+		return "This resource cannot be created, only imported"
+	}
+
 	return fmt.Sprintf(
 		format,
-		a.firstAction(unsupportedActions),
+		firstAction,
 		secondAction,
 	)
 }
