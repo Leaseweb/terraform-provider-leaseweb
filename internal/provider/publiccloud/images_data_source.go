@@ -171,6 +171,7 @@ func (i *imagesDataSource) Schema(
 	response *datasource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{
+		Description: utils.BetaDescription,
 		Attributes: map[string]schema.Attribute{
 			"images": schema.ListNestedAttribute{
 				Computed: true,

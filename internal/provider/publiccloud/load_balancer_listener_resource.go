@@ -288,6 +288,7 @@ func (l *loadBalancerListenerResource) Schema(
 	response *resource.SchemaResponse,
 ) {
 	response.Schema = schema.Schema{
+		Description: utils.BetaDescription,
 		Attributes: map[string]schema.Attribute{
 			"load_balancer_id": schema.StringAttribute{
 				Required:    true,
