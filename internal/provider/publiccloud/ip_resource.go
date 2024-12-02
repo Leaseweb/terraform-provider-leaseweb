@@ -21,13 +21,13 @@ var (
 	_ resource.ResourceWithImportState = &ipResource{}
 )
 
-type iPResourceModel struct {
+type ipResourceModel struct {
 	ReverseLookup types.String `tfsdk:"reverse_lookup"`
 	InstanceID    types.String `tfsdk:"instance_id"`
 	IP            types.String `tfsdk:"ip"`
 }
 
-func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
+func (i ipResourceModel) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"reverse_lookup": types.StringType,
 		"instance_id":    types.StringType,
@@ -35,7 +35,7 @@ func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (i iPResourceModel) generateUpdateOpts() publiccloud.UpdateIpOpts {
+func (i ipResourceModel) generateUpdateOpts() publiccloud.UpdateIpOpts {
 	return *publiccloud.NewUpdateIpOpts(i.ReverseLookup.ValueString())
 }
 
@@ -44,17 +44,17 @@ type ipResource struct {
 	client publiccloud.PubliccloudAPI
 }
 
-func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) iPResourceModel {
+func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) ipResourceModel {
 	reverseLookup, _ := sdkIpDetails.GetReverseLookupOk()
-	return iPResourceModel{
+	return ipResourceModel{
 		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
 		IP:            basetypes.NewStringValue(sdkIpDetails.GetIp()),
 	}
 }
 
-func adaptIpToIPResource(sdkIp publiccloud.Ip) iPResourceModel {
+func adaptIpToIPResource(sdkIp publiccloud.Ip) ipResourceModel {
 	reverseLookup, _ := sdkIp.GetReverseLookupOk()
-	return iPResourceModel{
+	return ipResourceModel{
 		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
 		IP:            basetypes.NewStringValue(sdkIp.GetIp()),
 	}
@@ -145,7 +145,7 @@ func (i *ipResource) Read(
 	request resource.ReadRequest,
 	response *resource.ReadResponse,
 ) {
-	var state iPResourceModel
+	var state ipResourceModel
 	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -183,7 +183,7 @@ func (i *ipResource) Update(
 	request resource.UpdateRequest,
 	response *resource.UpdateResponse,
 ) {
-	var plan iPResourceModel
+	var plan ipResourceModel
 	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -253,7 +253,7 @@ func (i *ipResource) Configure(
 	i.client = coreClient.PubliccloudAPI
 }
 
-func NewIpResource() resource.Resource {
+func NewIPResource() resource.Resource {
 	return &ipResource{
 		name: "public_cloud_ip",
 	}

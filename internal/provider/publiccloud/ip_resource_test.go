@@ -16,7 +16,7 @@ func Test_adaptIpToIPResource(t *testing.T) {
 			ReverseLookup: *publiccloud.NewNullableString(&reverseLookup),
 		}
 
-		want := iPResourceModel{
+		want := ipResourceModel{
 			IP:            basetypes.NewStringValue("127.0.0.1"),
 			ReverseLookup: basetypes.NewStringPointerValue(&reverseLookup),
 		}
@@ -31,7 +31,7 @@ func Test_adaptIpToIPResource(t *testing.T) {
 			ReverseLookup: *publiccloud.NewNullableString(nil),
 		}
 
-		want := iPResourceModel{
+		want := ipResourceModel{
 			IP:            basetypes.NewStringValue("127.0.0.1"),
 			ReverseLookup: basetypes.NewStringPointerValue(nil),
 		}
@@ -49,7 +49,7 @@ func Test_adaptIpDetailsToIPResource(t *testing.T) {
 			ReverseLookup: *publiccloud.NewNullableString(&reverseLookup),
 		}
 
-		want := iPResourceModel{
+		want := ipResourceModel{
 			IP:            basetypes.NewStringValue("127.0.0.1"),
 			ReverseLookup: basetypes.NewStringPointerValue(&reverseLookup),
 		}
@@ -64,7 +64,7 @@ func Test_adaptIpDetailsToIPResource(t *testing.T) {
 			ReverseLookup: *publiccloud.NewNullableString(nil),
 		}
 
-		want := iPResourceModel{
+		want := ipResourceModel{
 			IP:            basetypes.NewStringValue("127.0.0.1"),
 			ReverseLookup: basetypes.NewStringPointerValue(nil),
 		}
@@ -77,7 +77,7 @@ func Test_adaptIpDetailsToIPResource(t *testing.T) {
 func Test_iPResourceModel_generateUpdateOpts(t *testing.T) {
 	t.Run("is set properly when reverseLookup is set", func(t *testing.T) {
 		reverseLookup := "example.com"
-		ip := iPResourceModel{
+		ip := ipResourceModel{
 			ReverseLookup: basetypes.NewStringPointerValue(&reverseLookup),
 		}
 		got := ip.generateUpdateOpts()
@@ -90,7 +90,7 @@ func Test_iPResourceModel_generateUpdateOpts(t *testing.T) {
 	})
 
 	t.Run("is set properly when reverseLookup is not set", func(t *testing.T) {
-		ip := iPResourceModel{
+		ip := ipResourceModel{
 			ReverseLookup: basetypes.NewStringPointerValue(nil),
 		}
 		got := ip.generateUpdateOpts()

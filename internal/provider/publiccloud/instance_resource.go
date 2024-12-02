@@ -81,7 +81,7 @@ func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
-				AttrTypes: iPResourceModel{}.AttributeTypes(),
+				AttrTypes: ipResourceModel{}.AttributeTypes(),
 			},
 		},
 		"contract": types.ObjectType{
@@ -256,7 +256,7 @@ func adaptInstanceToInstanceResource(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		iPResourceModel{}.AttributeTypes(),
+		ipResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptIpToIPResource,
 	)
@@ -307,7 +307,7 @@ func adaptInstanceDetailsToInstanceResource(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
-		iPResourceModel{}.AttributeTypes(),
+		ipResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptIpDetailsToIPResource,
 	)

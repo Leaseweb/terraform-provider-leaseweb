@@ -143,7 +143,7 @@ func Test_adaptInstanceToInstanceResource(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []iPResourceModel
+	var ips []ipResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
@@ -196,7 +196,7 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []iPResourceModel
+	var ips []ipResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
