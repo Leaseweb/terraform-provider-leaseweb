@@ -265,6 +265,25 @@ func Test_errorHandler_processErrorResponse(t *testing.T) {
 }
 
 func Test_errorHandler_handleHTTPError(t *testing.T) {
+	t.Run("sets error if server returns a 504 resposne", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+
+		errorHandler := errorHandler{
+			summary: "summary",
+			diags:   &diags,
+			resp: &http.Response{
+				Body: io.NopCloser(bytes.NewReader([]byte("tralala"))),
+			},
+			ctx: context.TODO(),
+		}
+		errorHandler.resp.StatusCode = 504
+		errorHandler.handleHTTPError()
+
+		want := diag.Diagnostics{}
+		want.AddError("summary", "The server took too long to respond.")
+
+		assert.Equal(t, want, diags)
+	})
 	t.Run(
 		"sets error if response body cannot be mapped to errorResponse",
 		func(t *testing.T) {
