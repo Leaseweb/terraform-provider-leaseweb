@@ -96,62 +96,12 @@ func generateInstanceResourceModel() instanceResourceModel {
 	return instance
 }
 
-func Test_adaptInstanceToInstanceResource(t *testing.T) {
-	marketAppId := "marketAppId"
-	reference := "reference"
-
-	instance := publiccloud.Instance{
-		Id:                  "id",
-		Type:                publiccloud.TYPENAME_C3_2XLARGE,
-		Region:              "region",
-		Reference:           *publiccloud.NewNullableString(&reference),
-		MarketAppId:         *publiccloud.NewNullableString(&marketAppId),
-		State:               publiccloud.STATE_CREATING,
-		RootDiskSize:        50,
-		RootDiskStorageType: publiccloud.STORAGETYPE_CENTRAL,
-		Contract: publiccloud.Contract{
-			Type: publiccloud.CONTRACTTYPE_MONTHLY,
-		},
-		Image: publiccloud.Image{
-			Id: "UBUNTU_20_04_64BIT",
-		},
-		Ips: []publiccloud.Ip{
-			{
-				Ip: "127.0.0.1",
-			},
-		},
-	}
-
-	got, err := adaptInstanceToInstanceResource(instance, context.TODO())
-
-	assert.NoError(t, err)
-
-	assert.Equal(t, "id", got.ID.ValueString())
-	assert.Equal(t, "region", got.Region.ValueString())
-	assert.Equal(t, "CREATING", got.State.ValueString())
-	assert.Equal(t, int32(50), got.RootDiskSize.ValueInt32())
-	assert.Equal(t, "CENTRAL", got.RootDiskStorageType.ValueString())
-	assert.Equal(t, "marketAppId", got.MarketAppID.ValueString())
-	assert.Equal(t, "reference", got.Reference.ValueString())
-	assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
-
-	image := imageResourceModel{}
-	got.Image.As(context.TODO(), &image, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "UBUNTU_20_04_64BIT", image.ID.ValueString())
-
-	contract := contractResourceModel{}
-	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
-	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
-
-	var ips []iPResourceModel
-	got.IPs.ElementsAs(context.TODO(), &ips, false)
-	assert.Len(t, ips, 1)
-	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
-}
-
 func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	marketAppId := "marketAppId"
 	reference := "reference"
+	isoSdk := publiccloud.Iso{
+		Id: "isoId",
+	}
 
 	instance := publiccloud.InstanceDetails{
 		Id:                  "id",
@@ -173,6 +123,7 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 				Ip: "127.0.0.1",
 			},
 		},
+		Iso: *publiccloud.NewNullableIso(&isoSdk),
 	}
 
 	got, err := adaptInstanceDetailsToInstanceResource(instance, context.TODO())
@@ -196,10 +147,14 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []iPResourceModel
+	var ips []ipResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
+
+	iso := isoResourceModel{}
+	got.ISO.As(context.TODO(), &iso, basetypes.ObjectAsOptions{})
+	assert.Equal(t, "isoId", iso.ID.ValueString())
 }
 
 func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
@@ -441,7 +396,7 @@ func Test_adaptIpToIPResource(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := iPResourceModel{
+	want := ipResourceModel{
 		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got := adaptIpToIPResource(sdkIp)
@@ -454,10 +409,25 @@ func Test_adaptIpDetailsToIPResource(t *testing.T) {
 		Ip: "127.0.0.1",
 	}
 
-	want := iPResourceModel{
+	want := ipResourceModel{
 		IP: basetypes.NewStringValue("127.0.0.1"),
 	}
 	got := adaptIpDetailsToIPResource(sdkIpDetails)
+
+	assert.Equal(t, want, got)
+}
+
+func Test_adaptIsoToISOResource(t *testing.T) {
+	iso := publiccloud.Iso{
+		Id:   "id",
+		Name: "name",
+	}
+	got := adaptIsoToISOResource(iso)
+
+	want := isoResourceModel{
+		ID:   basetypes.NewStringValue("id"),
+		Name: basetypes.NewStringValue("name"),
+	}
 
 	assert.Equal(t, want, got)
 }

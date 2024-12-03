@@ -25,6 +25,25 @@ var (
 	_ resource.ResourceWithImportState = &instanceResource{}
 )
 
+type isoResourceModel struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+func (i isoResourceModel) attributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
+}
+
+func adaptIsoToISOResource(iso publiccloud.Iso) isoResourceModel {
+	return isoResourceModel{
+		ID:   basetypes.NewStringValue(iso.GetId()),
+		Name: basetypes.NewStringValue(iso.GetName()),
+	}
+}
+
 type contractResourceModel struct {
 	BillingFrequency types.Int32  `tfsdk:"billing_frequency"`
 	Term             types.Int32  `tfsdk:"term"`
@@ -58,6 +77,7 @@ type instanceResourceModel struct {
 	Region              types.String `tfsdk:"region"`
 	Reference           types.String `tfsdk:"reference"`
 	Image               types.Object `tfsdk:"image"`
+	ISO                 types.Object `tfsdk:"iso"`
 	State               types.String `tfsdk:"state"`
 	Type                types.String `tfsdk:"type"`
 	RootDiskSize        types.Int32  `tfsdk:"root_disk_size"`
@@ -81,8 +101,11 @@ func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
-				AttrTypes: iPResourceModel{}.AttributeTypes(),
+				AttrTypes: ipResourceModel{}.attributeTypes(),
 			},
+		},
+		"iso": types.ObjectType{
+			AttrTypes: isoResourceModel{}.attributeTypes(),
 		},
 		"contract": types.ObjectType{
 			AttrTypes: contractResourceModel{}.AttributeTypes(),
@@ -228,57 +251,6 @@ func (i instanceResourceModel) GetUpdateInstanceOpts(ctx context.Context) (
 	return opts, nil
 }
 
-func adaptInstanceToInstanceResource(
-	sdkInstance publiccloud.Instance,
-	ctx context.Context,
-) (*instanceResourceModel, error) {
-	instance := instanceResourceModel{
-		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
-		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
-		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
-		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
-		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt32Value(sdkInstance.GetRootDiskSize()),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
-		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
-	}
-
-	image, err := utils.AdaptSdkModelToResourceObject(
-		sdkInstance.Image,
-		imageResourceModel{}.AttributeTypes(),
-		ctx,
-		adaptImageToImageResource,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
-	}
-	instance.Image = image
-
-	ips, err := utils.AdaptSdkModelsToListValue(
-		sdkInstance.Ips,
-		iPResourceModel{}.AttributeTypes(),
-		ctx,
-		adaptIpToIPResource,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
-	}
-	instance.IPs = ips
-
-	contract, err := utils.AdaptSdkModelToResourceObject(
-		sdkInstance.Contract,
-		contractResourceModel{}.AttributeTypes(),
-		ctx,
-		adaptContractToContractResource,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
-	}
-	instance.Contract = contract
-
-	return &instance, nil
-}
-
 func adaptInstanceDetailsToInstanceResource(
 	sdkInstanceDetails publiccloud.InstanceDetails,
 	ctx context.Context,
@@ -307,7 +279,7 @@ func adaptInstanceDetailsToInstanceResource(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
-		iPResourceModel{}.AttributeTypes(),
+		ipResourceModel{}.attributeTypes(),
 		ctx,
 		adaptIpDetailsToIPResource,
 	)
@@ -327,27 +299,39 @@ func adaptInstanceDetailsToInstanceResource(
 	}
 	instance.Contract = contract
 
+	sdkIso, _ := sdkInstanceDetails.GetIsoOk()
+	iso, err := utils.AdaptNullableSdkModelToResourceObject(
+		sdkIso,
+		isoResourceModel{}.attributeTypes(),
+		ctx,
+		adaptIsoToISOResource,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	}
+	instance.ISO = iso
+
 	return &instance, nil
 }
 
-type iPResourceModel struct {
+type ipResourceModel struct {
 	IP types.String `tfsdk:"ip"`
 }
 
-func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
+func (i ipResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"ip": types.StringType,
 	}
 }
 
-func adaptIpToIPResource(sdkIp publiccloud.Ip) iPResourceModel {
-	return iPResourceModel{
+func adaptIpToIPResource(sdkIp publiccloud.Ip) ipResourceModel {
+	return ipResourceModel{
 		IP: basetypes.NewStringValue(sdkIp.GetIp()),
 	}
 }
 
-func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) iPResourceModel {
-	return iPResourceModel{
+func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) ipResourceModel {
+	return ipResourceModel{
 		IP: basetypes.NewStringValue(sdkIpDetails.GetIp()),
 	}
 }
@@ -411,17 +395,27 @@ func (i *instanceResource) Create(
 	sdkInstance, httpResponse, err := i.client.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
-
 	if err != nil {
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	state, err := adaptInstanceToInstanceResource(*sdkInstance, ctx)
+	// Get ISO data from instanceDetails
+	instanceDetails, httpResponse, err := i.client.GetInstance(
+		ctx,
+		sdkInstance.GetId(),
+	).Execute()
+	if err != nil {
+		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		return
+	}
+
+	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
@@ -440,10 +434,18 @@ func (i *instanceResource) Delete(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
-
 	if err != nil {
-		summary := fmt.Sprintf("Terminating resource %s for id %q", i.name, state.ID.ValueString())
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Terminating resource %s for id %q",
+				i.name,
+				state.ID.ValueString(),
+			),
+			err,
+			httpResponse,
+		)
 	}
 }
 
@@ -485,7 +487,7 @@ func (i *instanceResource) Read(
 		state.ID.ValueString(),
 	)
 
-	sdkInstance, httpResponse, err := i.client.
+	instanceDetails, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -494,12 +496,11 @@ func (i *instanceResource) Read(
 	}
 
 	newState, err := adaptInstanceDetailsToInstanceResource(
-		*sdkInstance,
+		*instanceDetails,
 		ctx,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
-
 		return
 	}
 
@@ -529,7 +530,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstanceDetails, httpResponse, err := i.client.
+	instanceDetails, httpResponse, err := i.client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
@@ -537,7 +538,8 @@ func (i *instanceResource) Update(
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
-	state, err := adaptInstanceDetailsToInstanceResource(*sdkInstanceDetails, ctx)
+
+	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
 	if err != nil {
 		utils.Error(ctx, &resp.Diagnostics, summary, err, nil)
 		return
@@ -626,6 +628,18 @@ func (i *instanceResource) Schema(
 						Computed: true,
 					},
 					"region": schema.StringAttribute{
+						Computed: true,
+					},
+				},
+			},
+			"iso": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"id": schema.StringAttribute{
+						Computed:    true,
+						Description: "The ISO ID.",
+					},
+					"name": schema.StringAttribute{
 						Computed: true,
 					},
 				},
