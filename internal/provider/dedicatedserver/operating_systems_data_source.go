@@ -8,8 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -19,8 +17,7 @@ var (
 )
 
 type operatingSystemsDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DedicatedserverDataSourceAPI
 }
 
 type operatingSystemDataSourceModel struct {
@@ -33,40 +30,6 @@ type operatingSystemsDataSourceModel struct {
 	ControlPanelId   types.String                     `tfsdk:"control_panel_id"`
 }
 
-func (o *operatingSystemsDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	o.client = coreClient.DedicatedserverAPI
-}
-
-func (o *operatingSystemsDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, o.name)
-}
-
 func (o *operatingSystemsDataSource) Read(
 	ctx context.Context,
 	req datasource.ReadRequest,
@@ -75,15 +38,20 @@ func (o *operatingSystemsDataSource) Read(
 	var config operatingSystemsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := o.client.GetOperatingSystemList(ctx)
+	request := o.Client.GetOperatingSystemList(ctx)
 	if !config.ControlPanelId.IsNull() && !config.ControlPanelId.IsUnknown() {
 		request = request.ControlPanelId(config.ControlPanelId.ValueString())
 	}
 	// NOTE: we show only the latest 50 items.
 	result, response, err := request.Limit(50).Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", o.name)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf("Reading data %s", o.Name),
+			err,
+			response,
+		)
 		return
 	}
 
@@ -138,6 +106,6 @@ func (o *operatingSystemsDataSource) Schema(
 
 func NewOperatingSystemsDataSource() datasource.DataSource {
 	return &operatingSystemsDataSource{
-		name: "dedicated_server_operating_systems",
+		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server_operating_systems"),
 	}
 }

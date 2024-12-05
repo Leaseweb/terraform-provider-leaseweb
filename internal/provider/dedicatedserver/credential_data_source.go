@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -20,8 +19,7 @@ var (
 )
 
 type credentialDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DedicatedserverDataSourceAPI
 }
 
 type credentialDataSourceModel struct {
@@ -29,40 +27,6 @@ type credentialDataSourceModel struct {
 	Username          types.String `tfsdk:"username"`
 	Password          types.String `tfsdk:"password"`
 	Type              types.String `tfsdk:"type"`
-}
-
-func (c *credentialDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	c.client = coreClient.DedicatedserverAPI
-}
-
-func (c *credentialDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
 func (c *credentialDataSource) Schema(
@@ -112,7 +76,7 @@ func (c *credentialDataSource) Read(
 	credType := dedicatedserver.CredentialType(config.Type.ValueString())
 	username := config.Username.ValueString()
 
-	credential, response, err := c.client.GetServerCredential(
+	credential, response, err := c.Client.GetServerCredential(
 		ctx,
 		serverID,
 		credType,
@@ -120,12 +84,17 @@ func (c *credentialDataSource) Read(
 	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading data %s for dedicated_server_id %q",
-			c.name,
-			serverID,
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Reading data %s for dedicated_server_id %q",
+				c.Name,
+				serverID,
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -135,6 +104,6 @@ func (c *credentialDataSource) Read(
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		name: "dedicated_server_credential",
+		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server_credential"),
 	}
 }

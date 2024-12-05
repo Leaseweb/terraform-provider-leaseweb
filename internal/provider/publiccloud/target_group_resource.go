@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -166,8 +165,7 @@ func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publiccloud.HealthChec
 }
 
 type targetGroupResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 func (t *targetGroupResource) ImportState(
@@ -180,18 +178,6 @@ func (t *targetGroupResource) ImportState(
 		path.Root("id"),
 		request,
 		response,
-	)
-}
-
-func (t *targetGroupResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf(
-		"%s_%s",
-		request.ProviderTypeName,
-		t.name,
 	)
 }
 
@@ -307,7 +293,7 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Creating resource %s", t.name)
+	summary := fmt.Sprintf("Creating resource %s", t.Name)
 
 	opts, err := plan.generateCreateOpts(ctx)
 	if err != nil {
@@ -315,7 +301,7 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.client.CreateTargetGroup(ctx).
+	sdkTargetGroup, httpResponse, err := t.Client.CreateTargetGroup(ctx).
 		CreateTargetGroupOpts(*opts).
 		Execute()
 
@@ -349,11 +335,11 @@ func (t *targetGroupResource) Read(
 
 	summary := fmt.Sprintf(
 		"Reading resource %s for ID %q",
-		t.name,
+		t.Name,
 		state.ID.ValueString(),
 	)
 
-	targetGroupSdk, httpResponse, err := t.client.
+	targetGroupSdk, httpResponse, err := t.Client.
 		GetTargetGroup(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -386,7 +372,7 @@ func (t *targetGroupResource) Update(
 
 	summary := fmt.Sprintf(
 		"Updating resource %s for ID %q",
-		t.name,
+		t.Name,
 		plan.ID.ValueString(),
 	)
 
@@ -396,7 +382,7 @@ func (t *targetGroupResource) Update(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.client.
+	sdkTargetGroup, httpResponse, err := t.Client.
 		UpdateTargetGroup(ctx, plan.ID.ValueString()).
 		UpdateTargetGroupOpts(*opts).
 		Execute()
@@ -428,49 +414,28 @@ func (t *targetGroupResource) Delete(
 		return
 	}
 
-	httpResponse, err := t.client.DeleteTargetGroup(
+	httpResponse, err := t.Client.DeleteTargetGroup(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting resource %s for ID %q",
-			t.name,
-			state.ID.ValueString(),
-		)
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
-	}
-}
-
-func (t *targetGroupResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
+		utils.Error(
+			ctx,
+			&response.Diagnostics,
 			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
+				"Deleting resource %s for ID %q",
+				t.Name,
+				state.ID.ValueString(),
 			),
+			err,
+			httpResponse,
 		)
-
-		return
 	}
-
-	t.client = coreClient.PubliccloudAPI
 }
 
 func NewTargetGroupResource() resource.Resource {
 	return &targetGroupResource{
-		name: "public_cloud_target_group",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_target_group"),
 	}
 }

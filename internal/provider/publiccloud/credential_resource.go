@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -23,8 +22,7 @@ var (
 )
 
 type credentialResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 type credentialResourceModel struct {
@@ -36,42 +34,8 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		name: "public_cloud_credential",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_credential"),
 	}
-}
-
-func (c *credentialResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
-}
-
-func (c *credentialResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	c.client = coreClient.PubliccloudAPI
 }
 
 func (c *credentialResource) Schema(
@@ -137,7 +101,7 @@ func (c *credentialResource) Create(
 		plan.Username.ValueString(),
 		plan.Password.ValueString(),
 	)
-	request := c.client.StoreCredential(
+	request := c.Client.StoreCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 	).StoreCredentialOpts(*opts)
@@ -145,7 +109,7 @@ func (c *credentialResource) Create(
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Creating %s for username: %q and instance_id: %q",
-			c.name,
+			c.Name,
 			plan.Username.ValueString(),
 			plan.InstanceID.ValueString(),
 		)
@@ -177,7 +141,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.client.GetCredential(
+	request := c.Client.GetCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.Type.ValueString(),
@@ -187,7 +151,7 @@ func (c *credentialResource) Read(
 	if err != nil {
 		summary := fmt.Sprintf(
 			"Reading %s for username: %q and instance_id: %q",
-			c.name,
+			c.Name,
 			state.Username.ValueString(),
 			state.InstanceID.ValueString(),
 		)
@@ -222,7 +186,7 @@ func (c *credentialResource) Update(
 	opts := publiccloud.NewUpdateCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.client.UpdateCredential(
+	request := c.Client.UpdateCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.Type.ValueString(),
@@ -230,13 +194,18 @@ func (c *credentialResource) Update(
 	).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Updating %s for username: %q and instance_id: %q",
-			c.name,
-			plan.Username.ValueString(),
-			plan.InstanceID.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Updating %s for username: %q and instance_id: %q",
+				c.Name,
+				plan.Username.ValueString(),
+				plan.InstanceID.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 		return
 	}
 
@@ -264,7 +233,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.client.DeleteCredential(
+	request := c.Client.DeleteCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.Type.ValueString(),
@@ -272,12 +241,17 @@ func (c *credentialResource) Delete(
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting %s for username: %q and instance_id: %q",
-			c.name,
-			state.Username.ValueString(),
-			state.InstanceID.ValueString(),
+		utils.Error(
+			ctx,
+			&resp.Diagnostics,
+			fmt.Sprintf(
+				"Deleting %s for username: %q and instance_id: %q",
+				c.Name,
+				state.Username.ValueString(),
+				state.InstanceID.ValueString(),
+			),
+			err,
+			response,
 		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
 	}
 }

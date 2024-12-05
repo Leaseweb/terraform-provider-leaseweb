@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -85,16 +84,7 @@ func getAllLoadBalancerListeners(request publiccloud.ApiGetLoadBalancerListenerL
 }
 
 type loadBalancerListenersDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (l *loadBalancerListenersDataSource) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
+	utils.PubliccloudDataSourceAPI
 }
 
 func (l *loadBalancerListenersDataSource) Schema(
@@ -135,19 +125,16 @@ func (l *loadBalancerListenersDataSource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading data %s for load_balancer_id %q",
-		l.name,
-		config.LoadBalancerID,
-	)
-
-	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.client))
-
+	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.Client))
 	if err != nil {
 		utils.Error(
 			ctx,
 			&response.Diagnostics,
-			summary,
+			fmt.Sprintf(
+				"Reading data %s for load_balancer_id %q",
+				l.Name,
+				config.LoadBalancerID,
+			),
 			err,
 			httpResponse,
 		)
@@ -161,33 +148,8 @@ func (l *loadBalancerListenersDataSource) Read(
 	response.Diagnostics.Append(response.State.Set(ctx, &state)...)
 }
 
-func (l *loadBalancerListenersDataSource) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	l.client = coreClient.PubliccloudAPI
-}
-
 func NewLoadBalancerListenersDataSource() datasource.DataSource {
 	return &loadBalancerListenersDataSource{
-		name: "public_cloud_load_balancer_listeners",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_load_balancer_listeners"),
 	}
 }

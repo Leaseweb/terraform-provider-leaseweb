@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -149,20 +148,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *imagesDataSource) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf(
-		"%s_%s",
-		request.ProviderTypeName,
-		i.name,
-	)
+	utils.PubliccloudDataSourceAPI
 }
 
 func (i *imagesDataSource) Schema(
@@ -188,10 +174,16 @@ func (i *imagesDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	images, httpResponse, err := getAllImages(ctx, i.client)
+	images, httpResponse, err := getAllImages(ctx, i.Client)
 
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, fmt.Sprintf("Reading data %s", i.name), err, httpResponse)
+		utils.Error(
+			ctx,
+			&response.Diagnostics,
+			fmt.Sprintf("Reading data %s", i.Name),
+			err,
+			httpResponse,
+		)
 		return
 	}
 
@@ -200,33 +192,8 @@ func (i *imagesDataSource) Read(
 	)
 }
 
-func (i *imagesDataSource) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewImagesDataSource() datasource.DataSource {
 	return &imagesDataSource{
-		name: "public_cloud_images",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_images"),
 	}
 }
