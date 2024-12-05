@@ -2698,6 +2698,37 @@ resource "leaseweb_dedicated_server" "test" {
 	})
 }
 
+func TestAccPublicCloudISOsDataSource(t *testing.T) {
+	t.Run("can read all ISOs", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `data "leaseweb_public_cloud_isos" "test" {}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_isos.test",
+							"isos.#",
+							"2",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_isos.test",
+							"isos.0.id",
+							"GRML",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_isos.test",
+							"isos.0.name",
+							"GRML 2022.11",
+						),
+					),
+				},
+			},
+		})
+	})
+}
+
 func TestAccPublicCloudIpResource(t *testing.T) {
 	t.Run("imports and updates an ip", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{

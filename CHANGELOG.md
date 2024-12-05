@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.13.0...v1.14.0) (2024-12-03)
+
+
+### Features
+
+* implement public cloud isos data source ([#188](https://github.com/Leaseweb/terraform-provider-leaseweb/issues/188)) ([ae82e33](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/ae82e339e724117ef3fa013017fe75ddb08ad86c))
+
 ## [1.13.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.12.1...v1.13.0) (2024-11-29)
 
 
