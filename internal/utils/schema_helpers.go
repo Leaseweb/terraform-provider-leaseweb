@@ -44,6 +44,14 @@ func (a Action) string(unsupportedActions []Action) string {
 		return "This resource cannot be created, only imported"
 	}
 
+	if firstAction == secondAction {
+		log.Fatal(fmt.Printf(
+			"firstAction %q and secondAction %q cannot be equal",
+			firstAction,
+			secondAction,
+		))
+	}
+
 	return fmt.Sprintf(
 		format,
 		firstAction,

@@ -41,11 +41,6 @@ func TestAction_string(t *testing.T) {
 				want string
 			}{
 				{
-					name: "create action",
-					a:    CreateAction,
-					want: "Once created, this resource cannot be created",
-				},
-				{
 					name: "read action",
 					a:    ReadAction,
 					want: "Once created, this resource cannot be read",
