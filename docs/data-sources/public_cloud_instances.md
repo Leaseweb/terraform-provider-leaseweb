@@ -33,6 +33,7 @@ Read-Only:
 - `id` (String) The instance unique identifier
 - `image` (Attributes) (see [below for nested schema](#nestedatt--instances--image))
 - `ips` (Attributes List) (see [below for nested schema](#nestedatt--instances--ips))
+- `iso` (Attributes) (see [below for nested schema](#nestedatt--instances--iso))
 - `market_app_id` (String) Market App ID
 - `reference` (String) The identifying name set to the instance
 - `region` (String)
@@ -84,3 +85,12 @@ Read-Only:
 Read-Only:
 
 - `ip` (String)
+
+
+<a id="nestedatt--instances--iso"></a>
+### Nested Schema for `instances.iso`
+
+Read-Only:
+
+- `id` (String) The ISO ID.
+- `name` (String)
