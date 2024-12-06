@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -2721,6 +2722,71 @@ func TestAccPublicCloudISOsDataSource(t *testing.T) {
 							"isos.0.name",
 							"GRML 2022.11",
 						),
+					),
+				},
+			},
+		})
+	})
+}
+
+func TestAccPublicCloudIpResource(t *testing.T) {
+	t.Run("imports and updates an ip", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// ImportState testing
+				{
+					Config: providerConfig + `
+					  resource "leaseweb_public_cloud_ip" "test" {
+					    instance_id    = "695ddd91-051f-4dd6-9120-938a927a47d0"
+					    ip             = "10.0.0.1"
+					    reverse_lookup = "a-valid-domain.xpto"
+					  }
+					  `,
+					ResourceName:                         "leaseweb_public_cloud_ip.test",
+					ImportState:                          true,
+					ImportStatePersist:                   true,
+					ImportStateId:                        "695ddd91-051f-4dd6-9120-938a927a47d0,10.0.0.1",
+					ImportStateVerifyIdentifierAttribute: "instance_id",
+					ImportStateCheck: func(states []*terraform.InstanceState) error {
+						for _, state := range states {
+							if state.Attributes["ip"] != "10.0.0.1" || state.Attributes["instance_id"] != "695ddd91-051f-4dd6-9120-938a927a47d0" {
+								return fmt.Errorf("%v", state.Attributes)
+							}
+						}
+
+						return nil
+					},
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+					  resource "leaseweb_public_cloud_ip" "test" {
+					    instance_id    = "695ddd91-051f-4dd6-9120-938a927a47d0"
+					    ip             = "10.0.0.1"
+					    reverse_lookup = "a-valid-domain.xpto"
+					  }
+					  `,
+				},
+			},
+			// Delete testing automatically occurs in TestCase
+		})
+	})
+
+	t.Run("creating a new ip causes an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+resource "leaseweb_public_cloud_ip" "test" {
+  instance_id    = "695ddd91-051f-4dd6-9120-938a927a47d0"
+  ip             = "10.0.0.1"
+  reverse_lookup = "example.com"
+}
+`,
+					ExpectError: regexp.MustCompile(
+						"Resource public_cloud_ip can only be imported, not created.",
 					),
 				},
 			},
