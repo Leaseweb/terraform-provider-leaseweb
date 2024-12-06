@@ -40,7 +40,7 @@ func (l *loadBalancerResourceModel) AttributeTypes() map[string]attr.Type {
 		"type":      types.StringType,
 		"reference": types.StringType,
 		"contract": types.ObjectType{
-			AttrTypes: contractResourceModel{}.AttributeTypes(),
+			AttrTypes: contractResourceModel{}.attributeTypes(),
 		},
 	}
 }
@@ -124,7 +124,7 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
 		loadBalancerDetails.Contract,
-		contractResourceModel{}.AttributeTypes(),
+		contractResourceModel{}.attributeTypes(),
 		ctx,
 		adaptContractToContractResource,
 	)

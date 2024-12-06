@@ -27,7 +27,7 @@ type ipResourceModel struct {
 	IP            types.String `tfsdk:"ip"`
 }
 
-func (i ipResourceModel) AttributeTypes() map[string]attr.Type {
+func (i ipResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"reverse_lookup": types.StringType,
 		"instance_id":    types.StringType,
