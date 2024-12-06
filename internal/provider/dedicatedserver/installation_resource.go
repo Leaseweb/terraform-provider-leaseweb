@@ -68,7 +68,7 @@ type partitionsResourceModel struct {
 	Size       types.String `tfsdk:"size"`
 }
 
-func (p partitionsResourceModel) AttributeTypes() map[string]attr.Type {
+func (p partitionsResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"filesystem": types.StringType,
 		"mountpoint": types.StringType,
@@ -395,7 +395,7 @@ func (i *installationResource) Create(
 			Size:       types.StringValue(p.GetSize()),
 		}
 
-		partitionObj, diags := types.ObjectValueFrom(ctx, partition.AttributeTypes(), partition)
+		partitionObj, diags := types.ObjectValueFrom(ctx, partition.attributeTypes(), partition)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -405,7 +405,7 @@ func (i *installationResource) Create(
 	}
 
 	// Convert the slice of partition objects to a types.List and store it in the plan
-	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: partitionsResourceModel{}.AttributeTypes()}, partitionsObjects)
+	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: partitionsResourceModel{}.attributeTypes()}, partitionsObjects)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

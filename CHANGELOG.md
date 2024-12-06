@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.0...v1.14.1) (2024-12-06)
+
+
+### Bug Fixes
+
+* fix typo ([39c371d](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/39c371d98cf565c91e8ba53cf26750c3cfa4f4b2))
+
 ## [1.14.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.13.0...v1.14.0) (2024-12-03)
 
 

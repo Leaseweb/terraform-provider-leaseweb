@@ -18,30 +18,29 @@ var (
 	_ datasource.DataSourceWithConfigure = &ISOsDataSource{}
 )
 
-type ISODataSourceModel struct {
+type isoDataSourceModel struct {
 	ID   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
-type ISOsDataSourceModel struct {
-	ISOs []ISODataSourceModel `tfsdk:"isos"`
+type isosDataSourceModel struct {
+	ISOs []isoDataSourceModel `tfsdk:"isos"`
 }
 
-func adaptIsosToISOsDataSource(sdkISOs []publiccloud.Iso) ISOsDataSourceModel {
-	var ISOs ISOsDataSourceModel
+func adaptIsosToISOsDataSource(sdkISOs []publiccloud.Iso) isosDataSourceModel {
+	var isos isosDataSourceModel
 
-	for _, sdkISO := range sdkISOs {
-		ISO := adaptIsoToISODataSource(sdkISO)
-		ISOs.ISOs = append(ISOs.ISOs, ISO)
+	for _, iso := range sdkISOs {
+		isos.ISOs = append(isos.ISOs, adaptIsoToISODataSource(iso))
 	}
 
-	return ISOs
+	return isos
 }
 
-func adaptIsoToISODataSource(sdkISO publiccloud.Iso) ISODataSourceModel {
-	return ISODataSourceModel{
-		ID:   basetypes.NewStringValue(sdkISO.GetId()),
-		Name: basetypes.NewStringValue(sdkISO.GetName()),
+func adaptIsoToISODataSource(iso publiccloud.Iso) isoDataSourceModel {
+	return isoDataSourceModel{
+		ID:   basetypes.NewStringValue(iso.GetId()),
+		Name: basetypes.NewStringValue(iso.GetName()),
 	}
 }
 

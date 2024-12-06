@@ -27,7 +27,7 @@ type ipResourceModel struct {
 	IP            types.String `tfsdk:"ip"`
 }
 
-func (i ipResourceModel) AttributeTypes() map[string]attr.Type {
+func (i ipResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"reverse_lookup": types.StringType,
 		"instance_id":    types.StringType,
@@ -44,19 +44,19 @@ type ipResource struct {
 	client publiccloud.PubliccloudAPI
 }
 
-func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) ipResourceModel {
-	reverseLookup, _ := sdkIpDetails.GetReverseLookupOk()
+func adaptIpDetailsToIPResource(ipDetails publiccloud.IpDetails) ipResourceModel {
+	reverseLookup, _ := ipDetails.GetReverseLookupOk()
 	return ipResourceModel{
 		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
-		IP:            basetypes.NewStringValue(sdkIpDetails.GetIp()),
+		IP:            basetypes.NewStringValue(ipDetails.GetIp()),
 	}
 }
 
-func adaptIpToIPResource(sdkIp publiccloud.Ip) ipResourceModel {
-	reverseLookup, _ := sdkIp.GetReverseLookupOk()
+func adaptIpToIPResource(ip publiccloud.Ip) ipResourceModel {
+	reverseLookup, _ := ip.GetReverseLookupOk()
 	return ipResourceModel{
 		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
-		IP:            basetypes.NewStringValue(sdkIp.GetIp()),
+		IP:            basetypes.NewStringValue(ip.GetIp()),
 	}
 }
 

@@ -78,23 +78,23 @@ func Test_adaptImageDetailsToImageResource(t *testing.T) {
 	assert.Equal(t, want, *got)
 }
 
-func Test_imageResourceModel_GetUpdateImageOpts(t *testing.T) {
+func Test_imageResourceModel_getUpdateImageOpts(t *testing.T) {
 	image := imageResourceModel{
 		Name: basetypes.NewStringValue("name"),
 	}
-	got := image.GetUpdateImageOpts()
+	got := image.getUpdateImageOpts()
 
 	want := publiccloud.UpdateImageOpts{Name: "name"}
 
 	assert.Equal(t, want, got)
 }
 
-func Test_imageResourceModel_GetCreateImageOpts(t *testing.T) {
+func Test_imageResourceModel_getCreateImageOpts(t *testing.T) {
 	image := imageResourceModel{
 		InstanceID: basetypes.NewStringValue("instanceId"),
 		Name:       basetypes.NewStringValue("name"),
 	}
-	got := image.GetCreateImageOpts()
+	got := image.getCreateImageOpts()
 
 	want := publiccloud.CreateImageOpts{
 		Name:       "name",
