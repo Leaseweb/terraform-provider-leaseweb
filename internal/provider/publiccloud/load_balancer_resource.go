@@ -55,37 +55,37 @@ func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Contex
 		return nil, utils.ReturnError("GetLaunchLoadBalancerOpts", contractDiags)
 	}
 
-	sdkContractType, err := publiccloud.NewContractTypeFromValue(contract.Type.ValueString())
+	contractType, err := publiccloud.NewContractTypeFromValue(contract.Type.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkContractTerm, err := publiccloud.NewContractTermFromValue(contract.Term.ValueInt32())
+	contractTerm, err := publiccloud.NewContractTermFromValue(contract.Term.ValueInt32())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkBillingFrequency, err := publiccloud.NewBillingFrequencyFromValue(contract.BillingFrequency.ValueInt32())
+	billingFrequency, err := publiccloud.NewBillingFrequencyFromValue(contract.BillingFrequency.ValueInt32())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkRegionName, err := publiccloud.NewRegionNameFromValue(l.Region.ValueString())
+	regionName, err := publiccloud.NewRegionNameFromValue(l.Region.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
-	sdkTypeName, err := publiccloud.NewTypeNameFromValue(l.Type.ValueString())
+	typeName, err := publiccloud.NewTypeNameFromValue(l.Type.ValueString())
 	if err != nil {
 		return nil, err
 	}
 
 	opts := publiccloud.NewLaunchLoadBalancerOpts(
-		*sdkRegionName,
-		*sdkTypeName,
-		*sdkContractType,
-		*sdkContractTerm,
-		*sdkBillingFrequency,
+		*regionName,
+		*typeName,
+		*contractType,
+		*contractTerm,
+		*billingFrequency,
 	)
 
 	opts.Reference = utils.AdaptStringPointerValueToNullableString(l.Reference)
@@ -112,24 +112,24 @@ func (l *loadBalancerResourceModel) GetUpdateLoadBalancerOpts() (
 }
 
 func adaptLoadBalancerDetailsToLoadBalancerResource(
-	sdkLoadBalancerDetails publiccloud.LoadBalancerDetails,
+	loadBalancerDetails publiccloud.LoadBalancerDetails,
 	ctx context.Context,
 ) (*loadBalancerResourceModel, error) {
 	loadBalancer := loadBalancerResourceModel{
-		ID:        basetypes.NewStringValue(sdkLoadBalancerDetails.GetId()),
-		Region:    basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetRegion())),
-		Type:      basetypes.NewStringValue(string(sdkLoadBalancerDetails.GetType())),
-		Reference: basetypes.NewStringPointerValue(sdkLoadBalancerDetails.Reference.Get()),
+		ID:        basetypes.NewStringValue(loadBalancerDetails.GetId()),
+		Region:    basetypes.NewStringValue(string(loadBalancerDetails.GetRegion())),
+		Type:      basetypes.NewStringValue(string(loadBalancerDetails.GetType())),
+		Reference: basetypes.NewStringPointerValue(loadBalancerDetails.Reference.Get()),
 	}
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
-		sdkLoadBalancerDetails.Contract,
+		loadBalancerDetails.Contract,
 		contractResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptContractToContractResource,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("adaptSdkInstanceToResourceInstance: %w", err)
+		return nil, fmt.Errorf("adaptLoadBalancerDetailsToLoadBalancerResource: %w", err)
 	}
 	loadBalancer.Contract = contract
 
@@ -295,7 +295,7 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	sdkLoadBalancer, httpResponse, err := l.client.LaunchLoadBalancer(ctx).
+	loadBalancer, httpResponse, err := l.client.LaunchLoadBalancer(ctx).
 		LaunchLoadBalancerOpts(*opts).
 		Execute()
 
@@ -305,7 +305,7 @@ func (l *loadBalancerResource) Create(
 	}
 
 	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
-		*sdkLoadBalancer,
+		*loadBalancer,
 		ctx,
 	)
 	if err != nil {
@@ -333,7 +333,7 @@ func (l *loadBalancerResource) Read(
 		state.ID.ValueString(),
 	)
 
-	sdkLoadBalancerDetails, httpResponse, err := l.client.
+	loadBalancerDetails, httpResponse, err := l.client.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -341,7 +341,7 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	newState, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*sdkLoadBalancerDetails, ctx)
+	newState, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*loadBalancerDetails, ctx)
 	if resourceErr != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
 		return
@@ -373,7 +373,7 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	sdkLoadBalancerDetails, httpResponse, err := l.client.
+	loadBalancerDetails, httpResponse, err := l.client.
 		UpdateLoadBalancer(ctx, plan.ID.ValueString()).
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
@@ -382,7 +382,7 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
-		*sdkLoadBalancerDetails,
+		*loadBalancerDetails,
 		ctx,
 	)
 	if err != nil {

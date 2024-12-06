@@ -28,20 +28,19 @@ type ISOsDataSourceModel struct {
 }
 
 func adaptIsosToISOsDataSource(sdkISOs []publiccloud.Iso) ISOsDataSourceModel {
-	var ISOs ISOsDataSourceModel
+	var isos ISOsDataSourceModel
 
-	for _, sdkISO := range sdkISOs {
-		ISO := adaptIsoToISODataSource(sdkISO)
-		ISOs.ISOs = append(ISOs.ISOs, ISO)
+	for _, iso := range sdkISOs {
+		isos.ISOs = append(isos.ISOs, adaptIsoToISODataSource(iso))
 	}
 
-	return ISOs
+	return isos
 }
 
-func adaptIsoToISODataSource(sdkISO publiccloud.Iso) ISODataSourceModel {
+func adaptIsoToISODataSource(iso publiccloud.Iso) ISODataSourceModel {
 	return ISODataSourceModel{
-		ID:   basetypes.NewStringValue(sdkISO.GetId()),
-		Name: basetypes.NewStringValue(sdkISO.GetName()),
+		ID:   basetypes.NewStringValue(iso.GetId()),
+		Name: basetypes.NewStringValue(iso.GetName()),
 	}
 }
 
