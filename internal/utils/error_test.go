@@ -265,7 +265,7 @@ func Test_errorHandler_processErrorResponse(t *testing.T) {
 }
 
 func Test_errorHandler_handleHTTPError(t *testing.T) {
-	t.Run("sets error if server returns a 504 resposne", func(t *testing.T) {
+	t.Run("sets error if server returns a 504 response", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 
 		errorHandler := errorHandler{
