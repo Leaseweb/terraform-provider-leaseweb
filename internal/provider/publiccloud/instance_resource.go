@@ -43,13 +43,13 @@ func (c contractResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func adaptContractToContractResource(sdkContract publiccloud.Contract) contractResourceModel {
+func adaptContractToContractResource(contract publiccloud.Contract) contractResourceModel {
 	return contractResourceModel{
-		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
-		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
-		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
-		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
-		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
+		BillingFrequency: basetypes.NewInt32Value(int32(contract.GetBillingFrequency())),
+		Term:             basetypes.NewInt32Value(int32(contract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(contract.GetType())),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(contract.EndsAt.Get()),
+		State:            basetypes.NewStringValue(string(contract.GetState())),
 	}
 }
 
@@ -81,7 +81,7 @@ func (i instanceResourceModel) AttributeTypes() map[string]attr.Type {
 		"root_disk_storage_type": types.StringType,
 		"ips": types.ListType{
 			ElemType: types.ObjectType{
-				AttrTypes: iPResourceModel{}.AttributeTypes(),
+				AttrTypes: ipResourceModel{}.AttributeTypes(),
 			},
 		},
 		"contract": types.ObjectType{
@@ -95,7 +95,7 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 	*publiccloud.LaunchInstanceOpts,
 	error,
 ) {
-	sdkRootDiskStorageType, err := publiccloud.NewStorageTypeFromValue(
+	rootDiskStorageType, err := publiccloud.NewStorageTypeFromValue(
 		i.RootDiskStorageType.ValueString(),
 	)
 	if err != nil {
@@ -114,35 +114,35 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 		return nil, utils.ReturnError("GetLaunchInstanceOpts", contractDiags)
 	}
 
-	sdkContractType, err := publiccloud.NewContractTypeFromValue(
+	contractType, err := publiccloud.NewContractTypeFromValue(
 		contract.Type.ValueString(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkContractTerm, err := publiccloud.NewContractTermFromValue(
+	contractTerm, err := publiccloud.NewContractTermFromValue(
 		contract.Term.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkBillingFrequency, err := publiccloud.NewBillingFrequencyFromValue(
+	billingFrequency, err := publiccloud.NewBillingFrequencyFromValue(
 		contract.BillingFrequency.ValueInt32(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkRegionName, err := publiccloud.NewRegionNameFromValue(
+	regionName, err := publiccloud.NewRegionNameFromValue(
 		i.Region.ValueString(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkTypeName, err := publiccloud.NewTypeNameFromValue(
+	typeName, err := publiccloud.NewTypeNameFromValue(
 		i.Type.ValueString(),
 	)
 	if err != nil {
@@ -150,13 +150,13 @@ func (i instanceResourceModel) GetLaunchInstanceOpts(ctx context.Context) (
 	}
 
 	opts := publiccloud.NewLaunchInstanceOpts(
-		*sdkRegionName,
-		*sdkTypeName,
+		*regionName,
+		*typeName,
 		image.ID.ValueString(),
-		*sdkContractType,
-		*sdkContractTerm,
-		*sdkBillingFrequency,
-		*sdkRootDiskStorageType,
+		*contractType,
+		*contractTerm,
+		*billingFrequency,
+		*rootDiskStorageType,
 	)
 
 	opts.MarketAppId = utils.AdaptStringPointerValueToNullableString(i.MarketAppID)
@@ -256,7 +256,7 @@ func adaptInstanceToInstanceResource(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstance.Ips,
-		iPResourceModel{}.AttributeTypes(),
+		ipResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptIpToIPResource,
 	)
@@ -307,7 +307,7 @@ func adaptInstanceDetailsToInstanceResource(
 
 	ips, err := utils.AdaptSdkModelsToListValue(
 		sdkInstanceDetails.Ips,
-		iPResourceModel{}.AttributeTypes(),
+		ipResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptIpDetailsToIPResource,
 	)
@@ -328,28 +328,6 @@ func adaptInstanceDetailsToInstanceResource(
 	instance.Contract = contract
 
 	return &instance, nil
-}
-
-type iPResourceModel struct {
-	IP types.String `tfsdk:"ip"`
-}
-
-func (i iPResourceModel) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"ip": types.StringType,
-	}
-}
-
-func adaptIpToIPResource(sdkIp publiccloud.Ip) iPResourceModel {
-	return iPResourceModel{
-		IP: basetypes.NewStringValue(sdkIp.GetIp()),
-	}
-}
-
-func adaptIpDetailsToIPResource(sdkIpDetails publiccloud.IpDetails) iPResourceModel {
-	return iPResourceModel{
-		IP: basetypes.NewStringValue(sdkIpDetails.GetIp()),
-	}
 }
 
 func NewInstanceResource() resource.Resource {
@@ -408,16 +386,15 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	sdkInstance, httpResponse, err := i.client.LaunchInstance(ctx).
+	instance, httpResponse, err := i.client.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
-
 	if err != nil {
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	state, err := adaptInstanceToInstanceResource(*sdkInstance, ctx)
+	state, err := adaptInstanceToInstanceResource(*instance, ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 		return
@@ -485,7 +462,7 @@ func (i *instanceResource) Read(
 		state.ID.ValueString(),
 	)
 
-	sdkInstance, httpResponse, err := i.client.
+	instance, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -494,7 +471,7 @@ func (i *instanceResource) Read(
 	}
 
 	newState, err := adaptInstanceDetailsToInstanceResource(
-		*sdkInstance,
+		*instance,
 		ctx,
 	)
 	if err != nil {
@@ -529,7 +506,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	sdkInstanceDetails, httpResponse, err := i.client.
+	instanceDetails, httpResponse, err := i.client.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()
@@ -537,7 +514,7 @@ func (i *instanceResource) Update(
 		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
 		return
 	}
-	state, err := adaptInstanceDetailsToInstanceResource(*sdkInstanceDetails, ctx)
+	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
 	if err != nil {
 		utils.Error(ctx, &resp.Diagnostics, summary, err, nil)
 		return
@@ -671,6 +648,12 @@ func (i *instanceResource) Schema(
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"ip": schema.StringAttribute{Computed: true},
+						"instance_id": schema.StringAttribute{
+							Computed: true,
+						},
+						"reverse_lookup": schema.StringAttribute{
+							Computed: true,
+						},
 					},
 				},
 			},

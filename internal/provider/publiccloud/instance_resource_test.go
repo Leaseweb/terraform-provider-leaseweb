@@ -143,7 +143,7 @@ func Test_adaptInstanceToInstanceResource(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []iPResourceModel
+	var ips []ipResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
@@ -196,7 +196,7 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	got.Contract.As(context.TODO(), &contract, basetypes.ObjectAsOptions{})
 	assert.Equal(t, "MONTHLY", contract.Type.ValueString())
 
-	var ips []iPResourceModel
+	var ips []ipResourceModel
 	got.IPs.ElementsAs(context.TODO(), &ips, false)
 	assert.Len(t, ips, 1)
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
@@ -434,30 +434,4 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 			assert.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
-}
-
-func Test_adaptIpToIPResource(t *testing.T) {
-	sdkIp := publiccloud.Ip{
-		Ip: "127.0.0.1",
-	}
-
-	want := iPResourceModel{
-		IP: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := adaptIpToIPResource(sdkIp)
-
-	assert.Equal(t, want, got)
-}
-
-func Test_adaptIpDetailsToIPResource(t *testing.T) {
-	sdkIpDetails := publiccloud.IpDetails{
-		Ip: "127.0.0.1",
-	}
-
-	want := iPResourceModel{
-		IP: basetypes.NewStringValue("127.0.0.1"),
-	}
-	got := adaptIpDetailsToIPResource(sdkIpDetails)
-
-	assert.Equal(t, want, got)
 }
