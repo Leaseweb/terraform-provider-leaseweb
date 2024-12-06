@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.2](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.1...v1.14.2) (2024-12-06)
+
+
+### Bug Fixes
+
+* first & second action can never be equal when generating unsupported action string ([815078b](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/815078bfb712aba7ff6b03046a937c3b85d5dc77))
+
 ## [1.14.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.0...v1.14.1) (2024-12-06)
 
 
