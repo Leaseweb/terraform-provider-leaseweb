@@ -280,22 +280,22 @@ func adaptInstanceToInstanceResource(
 }
 
 func adaptInstanceDetailsToInstanceResource(
-	sdkInstanceDetails publiccloud.InstanceDetails,
+	instanceDetails publiccloud.InstanceDetails,
 	ctx context.Context,
 ) (*instanceResourceModel, error) {
 	instance := instanceResourceModel{
-		ID:                  basetypes.NewStringValue(sdkInstanceDetails.GetId()),
-		Region:              basetypes.NewStringValue(string(sdkInstanceDetails.GetRegion())),
-		Reference:           basetypes.NewStringPointerValue(sdkInstanceDetails.Reference.Get()),
-		State:               basetypes.NewStringValue(string(sdkInstanceDetails.GetState())),
-		Type:                basetypes.NewStringValue(string(sdkInstanceDetails.GetType())),
-		RootDiskSize:        basetypes.NewInt32Value(sdkInstanceDetails.GetRootDiskSize()),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstanceDetails.GetRootDiskStorageType())),
-		MarketAppID:         basetypes.NewStringPointerValue(sdkInstanceDetails.MarketAppId.Get()),
+		ID:                  basetypes.NewStringValue(instanceDetails.GetId()),
+		Region:              basetypes.NewStringValue(string(instanceDetails.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(instanceDetails.Reference.Get()),
+		State:               basetypes.NewStringValue(string(instanceDetails.GetState())),
+		Type:                basetypes.NewStringValue(string(instanceDetails.GetType())),
+		RootDiskSize:        basetypes.NewInt32Value(instanceDetails.GetRootDiskSize()),
+		RootDiskStorageType: basetypes.NewStringValue(string(instanceDetails.GetRootDiskStorageType())),
+		MarketAppID:         basetypes.NewStringPointerValue(instanceDetails.MarketAppId.Get()),
 	}
 
 	image, err := utils.AdaptSdkModelToResourceObject(
-		sdkInstanceDetails.Image,
+		instanceDetails.Image,
 		imageResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptImageToImageResource,
@@ -306,7 +306,7 @@ func adaptInstanceDetailsToInstanceResource(
 	instance.Image = image
 
 	ips, err := utils.AdaptSdkModelsToListValue(
-		sdkInstanceDetails.Ips,
+		instanceDetails.Ips,
 		ipResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptIpDetailsToIPResource,
@@ -317,7 +317,7 @@ func adaptInstanceDetailsToInstanceResource(
 	instance.IPs = ips
 
 	contract, err := utils.AdaptSdkModelToResourceObject(
-		sdkInstanceDetails.Contract,
+		instanceDetails.Contract,
 		contractResourceModel{}.AttributeTypes(),
 		ctx,
 		adaptContractToContractResource,
