@@ -40,9 +40,9 @@ func (l loadBalancerListenerDefaultRuleResourceModel) attributeTypes() map[strin
 	}
 }
 
-func adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(sdkLoadBalancerListenerRule publiccloud.LoadBalancerListenerRule) loadBalancerListenerDefaultRuleResourceModel {
+func adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(loadBalancerListenerRule publiccloud.LoadBalancerListenerRule) loadBalancerListenerDefaultRuleResourceModel {
 	return loadBalancerListenerDefaultRuleResourceModel{
-		TargetGroupID: basetypes.NewStringValue(sdkLoadBalancerListenerRule.GetTargetGroupId()),
+		TargetGroupID: basetypes.NewStringValue(loadBalancerListenerRule.GetTargetGroupId()),
 	}
 }
 
@@ -72,13 +72,13 @@ func (l loadBalancerListenerCertificateResourceModel) generateSslCertificate() p
 	return *sslCertificate
 }
 
-func adaptSslCertificateToLoadBalancerListenerCertificateResource(sdkSslCertificate publiccloud.SslCertificate) loadBalancerListenerCertificateResourceModel {
+func adaptSslCertificateToLoadBalancerListenerCertificateResource(sslCertificate publiccloud.SslCertificate) loadBalancerListenerCertificateResourceModel {
 	listener := loadBalancerListenerCertificateResourceModel{
-		PrivateKey:  basetypes.NewStringValue(sdkSslCertificate.GetPrivateKey()),
-		Certificate: basetypes.NewStringValue(sdkSslCertificate.GetCertificate()),
+		PrivateKey:  basetypes.NewStringValue(sslCertificate.GetPrivateKey()),
+		Certificate: basetypes.NewStringValue(sslCertificate.GetCertificate()),
 	}
 
-	chain, _ := sdkSslCertificate.GetChainOk()
+	chain, _ := sslCertificate.GetChainOk()
 	if chain != nil && *chain != "" {
 		listener.Chain = basetypes.NewStringPointerValue(chain)
 	}
@@ -170,18 +170,18 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpt
 }
 
 func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
-	sdkLoadBalancerListenerDetails publiccloud.LoadBalancerListenerDetails,
+	loadBalancerListenerDetails publiccloud.LoadBalancerListenerDetails,
 	ctx context.Context,
 ) (*LoadBalancerListenerResourceModel, error) {
 	listener := LoadBalancerListenerResourceModel{
-		ListenerID: basetypes.NewStringValue(sdkLoadBalancerListenerDetails.GetId()),
-		Protocol:   basetypes.NewStringValue(string(sdkLoadBalancerListenerDetails.GetProtocol())),
-		Port:       basetypes.NewInt32Value(sdkLoadBalancerListenerDetails.GetPort()),
+		ListenerID: basetypes.NewStringValue(loadBalancerListenerDetails.GetId()),
+		Protocol:   basetypes.NewStringValue(string(loadBalancerListenerDetails.GetProtocol())),
+		Port:       basetypes.NewInt32Value(loadBalancerListenerDetails.GetPort()),
 	}
 
-	if len(sdkLoadBalancerListenerDetails.SslCertificates) > 0 {
+	if len(loadBalancerListenerDetails.SslCertificates) > 0 {
 		certificate, err := utils.AdaptSdkModelToResourceObject(
-			sdkLoadBalancerListenerDetails.SslCertificates[0],
+			loadBalancerListenerDetails.SslCertificates[0],
 			loadBalancerListenerCertificateResourceModel{}.attributeTypes(),
 			ctx,
 			adaptSslCertificateToLoadBalancerListenerCertificateResource,
@@ -195,9 +195,9 @@ func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
 		listener.Certificate = certificate
 	}
 
-	if len(sdkLoadBalancerListenerDetails.Rules) > 0 {
+	if len(loadBalancerListenerDetails.Rules) > 0 {
 		defaultRule, err := utils.AdaptSdkModelToResourceObject(
-			sdkLoadBalancerListenerDetails.Rules[0],
+			loadBalancerListenerDetails.Rules[0],
 			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
 			ctx,
 			adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource,
@@ -215,18 +215,18 @@ func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
 }
 
 func adaptLoadBalancerListenerToLoadBalancerListenerResource(
-	sdkLoadBalancerListener publiccloud.LoadBalancerListener,
+	loadBalancerListener publiccloud.LoadBalancerListener,
 	ctx context.Context,
 ) (*LoadBalancerListenerResourceModel, error) {
 	listener := LoadBalancerListenerResourceModel{
-		ListenerID: basetypes.NewStringValue(sdkLoadBalancerListener.GetId()),
-		Protocol:   basetypes.NewStringValue(string(sdkLoadBalancerListener.Protocol)),
-		Port:       basetypes.NewInt32Value(sdkLoadBalancerListener.GetPort()),
+		ListenerID: basetypes.NewStringValue(loadBalancerListener.GetId()),
+		Protocol:   basetypes.NewStringValue(string(loadBalancerListener.Protocol)),
+		Port:       basetypes.NewInt32Value(loadBalancerListener.GetPort()),
 	}
 
-	if len(sdkLoadBalancerListener.Rules) > 0 {
+	if len(loadBalancerListener.Rules) > 0 {
 		defaultRule, err := utils.AdaptSdkModelToResourceObject(
-			sdkLoadBalancerListener.Rules[0],
+			loadBalancerListener.Rules[0],
 			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
 			ctx,
 			adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource,
@@ -368,7 +368,7 @@ func (l *loadBalancerListenerResource) Create(
 		return
 	}
 
-	sdkLoadBalancerListener, httpResponse, err := l.client.CreateLoadBalancerListener(
+	loadBalancerListener, httpResponse, err := l.client.CreateLoadBalancerListener(
 		ctx,
 		plan.LoadBalancerID.ValueString(),
 	).LoadBalancerListenerCreateOpts(*opts).Execute()
@@ -378,7 +378,7 @@ func (l *loadBalancerListenerResource) Create(
 	}
 
 	state, resourceErr := adaptLoadBalancerListenerToLoadBalancerListenerResource(
-		*sdkLoadBalancerListener,
+		*loadBalancerListener,
 		ctx,
 	)
 	if resourceErr != nil {
@@ -410,7 +410,7 @@ func (l *loadBalancerListenerResource) Read(
 		state.ListenerID.ValueString(),
 	)
 
-	sdkLoadBalancerListenerDetails, httpResponse, err := l.client.GetLoadBalancerListener(
+	loadBalancerListenerDetails, httpResponse, err := l.client.GetLoadBalancerListener(
 		ctx,
 		state.LoadBalancerID.ValueString(),
 		state.ListenerID.ValueString(),
@@ -420,7 +420,7 @@ func (l *loadBalancerListenerResource) Read(
 		return
 	}
 
-	newState, resourceErr := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*sdkLoadBalancerListenerDetails, ctx)
+	newState, resourceErr := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*loadBalancerListenerDetails, ctx)
 	if resourceErr != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
 		return
@@ -459,7 +459,7 @@ func (l *loadBalancerListenerResource) Update(
 		return
 	}
 
-	sdkLoadBalancerListener, httpResponse, err := l.client.
+	loadBalancerListener, httpResponse, err := l.client.
 		UpdateLoadBalancerListener(
 			ctx,
 			plan.LoadBalancerID.ValueString(),
@@ -473,7 +473,7 @@ func (l *loadBalancerListenerResource) Update(
 	}
 
 	state, resourceErr := adaptLoadBalancerListenerToLoadBalancerListenerResource(
-		*sdkLoadBalancerListener,
+		*loadBalancerListener,
 		ctx,
 	)
 	if resourceErr != nil {

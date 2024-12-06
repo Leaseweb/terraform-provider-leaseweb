@@ -62,12 +62,12 @@ func (i imageResourceModel) getCreateImageOpts() publiccloud.CreateImageOpts {
 
 func adaptImageDetailsToImageResource(
 	ctx context.Context,
-	sdkImageDetails publiccloud.ImageDetails,
+	imageDetails publiccloud.ImageDetails,
 ) (*imageResourceModel, error) {
 	marketApps, diags := basetypes.NewListValueFrom(
 		ctx,
 		basetypes.StringType{},
-		sdkImageDetails.MarketApps,
+		imageDetails.MarketApps,
 	)
 	if diags.HasError() {
 		return nil, fmt.Errorf(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
@@ -76,34 +76,34 @@ func adaptImageDetailsToImageResource(
 	storageTypes, diags := basetypes.NewListValueFrom(
 		ctx,
 		basetypes.StringType{},
-		sdkImageDetails.StorageTypes,
+		imageDetails.StorageTypes,
 	)
 	if diags.HasError() {
 		return nil, fmt.Errorf(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
 	}
 
 	image := imageResourceModel{
-		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
-		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
-		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
-		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
+		ID:           basetypes.NewStringValue(imageDetails.GetId()),
+		Name:         basetypes.NewStringValue(imageDetails.GetName()),
+		Custom:       basetypes.NewBoolValue(imageDetails.GetCustom()),
+		State:        basetypes.NewStringValue(string(imageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.GetFlavour())),
-		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
+		Flavour:      basetypes.NewStringValue(string(imageDetails.GetFlavour())),
+		Region:       basetypes.NewStringValue(string(imageDetails.GetRegion())),
 	}
 
 	return &image, nil
 }
 
-func adaptImageToImageResource(sdkImage publiccloud.Image) imageResourceModel {
+func adaptImageToImageResource(image publiccloud.Image) imageResourceModel {
 	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
 
 	return imageResourceModel{
-		ID:           basetypes.NewStringValue(sdkImage.GetId()),
-		Name:         basetypes.NewStringValue(sdkImage.GetName()),
-		Custom:       basetypes.NewBoolValue(sdkImage.GetCustom()),
-		Flavour:      basetypes.NewStringValue(string(sdkImage.GetFlavour())),
+		ID:           basetypes.NewStringValue(image.GetId()),
+		Name:         basetypes.NewStringValue(image.GetName()),
+		Custom:       basetypes.NewBoolValue(image.GetCustom()),
+		Flavour:      basetypes.NewStringValue(string(image.GetFlavour())),
 		MarketApps:   emptyList,
 		StorageTypes: emptyList,
 	}
@@ -114,15 +114,14 @@ func getImage(
 	ctx context.Context,
 	api publiccloud.PubliccloudAPI,
 ) (*publiccloud.ImageDetails, *http.Response, error) {
-	sdkImages, httpResponse, err := getAllImages(ctx, api)
-
+	images, httpResponse, err := getAllImages(ctx, api)
 	if err != nil {
 		return nil, httpResponse, err
 	}
 
-	for _, sdkImage := range sdkImages {
-		if sdkImage.GetId() == ID {
-			return &sdkImage, nil, nil
+	for _, image := range images {
+		if image.GetId() == ID {
+			return &image, nil, nil
 		}
 	}
 
@@ -223,7 +222,7 @@ func (i *imageResource) Create(
 	opts := plan.getCreateImageOpts()
 	summary := fmt.Sprintf("Creating resource %s", i.name)
 
-	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
+	image, httpResponse, err := i.client.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
@@ -231,7 +230,7 @@ func (i *imageResource) Create(
 		return
 	}
 
-	state, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
+	state, resourceErr := adaptImageDetailsToImageResource(ctx, *image)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
@@ -248,21 +247,25 @@ func (i *imageResource) Read(
 	request resource.ReadRequest,
 	response *resource.ReadResponse,
 ) {
-	var state imageResourceModel
-	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	var currentState imageResourceModel
+	response.Diagnostics.Append(request.State.Get(ctx, &currentState)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
 	summary := fmt.Sprintf("Reading resource %s", i.name)
 
-	sdkImage, httpResponse, err := getImage(state.ID.ValueString(), ctx, i.client)
+	image, httpResponse, err := getImage(
+		currentState.ID.ValueString(),
+		ctx,
+		i.client,
+	)
 	if err != nil {
 		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
 		return
 	}
 
-	image, resourceErr := adaptImageDetailsToImageResource(ctx, *sdkImage)
+	state, resourceErr := adaptImageDetailsToImageResource(ctx, *image)
 	if resourceErr != nil {
 		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
 
@@ -270,9 +273,9 @@ func (i *imageResource) Read(
 	}
 
 	// instanceId has to be set manually as it isn't returned from the API
-	image.InstanceID = state.InstanceID
+	state.InstanceID = currentState.InstanceID
 
-	response.Diagnostics.Append(response.State.Set(ctx, image)...)
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 func (i *imageResource) Update(
@@ -288,7 +291,7 @@ func (i *imageResource) Update(
 
 	opts := plan.getUpdateImageOpts()
 
-	sdkImageDetails, httpResponse, err := i.client.UpdateImage(
+	imageDetails, httpResponse, err := i.client.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
@@ -302,7 +305,7 @@ func (i *imageResource) Update(
 		return
 	}
 
-	state, err := adaptImageDetailsToImageResource(ctx, *sdkImageDetails)
+	state, err := adaptImageDetailsToImageResource(ctx, *imageDetails)
 	if err != nil {
 		summary := fmt.Sprintf("Reading resource %s", i.name)
 		utils.Error(ctx, &response.Diagnostics, summary, err, nil)

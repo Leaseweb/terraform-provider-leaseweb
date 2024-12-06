@@ -78,6 +78,12 @@ func (e *errorHandler) handleHTTPError() {
 		return
 	}
 
+	if e.resp.StatusCode == 404 {
+		e.writeLog(fmt.Sprintf("server response: %v", e.resp.Body))
+		e.writeOutput("Resource not found.")
+		return
+	}
+
 	// Close response body with direct defer reference for clarity
 	defer func() {
 		if err := e.resp.Body.Close(); err != nil {

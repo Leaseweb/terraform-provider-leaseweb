@@ -29,13 +29,13 @@ type contractDataSourceModel struct {
 	State            types.String `tfsdk:"state"`
 }
 
-func adaptContractToContractDataSource(sdkContract publiccloud.Contract) contractDataSourceModel {
+func adaptContractToContractDataSource(contract publiccloud.Contract) contractDataSourceModel {
 	return contractDataSourceModel{
-		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
-		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
-		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
-		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
-		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
+		BillingFrequency: basetypes.NewInt32Value(int32(contract.GetBillingFrequency())),
+		Term:             basetypes.NewInt32Value(int32(contract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(contract.GetType())),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(contract.EndsAt.Get()),
+		State:            basetypes.NewStringValue(string(contract.GetState())),
 	}
 }
 
@@ -53,24 +53,24 @@ type instanceDataSourceModel struct {
 	MarketAppID         types.String            `tfsdk:"market_app_id"`
 }
 
-func adaptInstanceToInstanceDataSource(sdkInstance publiccloud.Instance) instanceDataSourceModel {
+func adaptInstanceToInstanceDataSource(instance publiccloud.Instance) instanceDataSourceModel {
 	var ips []iPDataSourceModel
-	for _, ip := range sdkInstance.Ips {
+	for _, ip := range instance.Ips {
 		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
 	return instanceDataSourceModel{
-		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
-		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
-		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
-		Image:               adaptImageToImageDataSource(sdkInstance.GetImage()),
-		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
-		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt32Value(sdkInstance.GetRootDiskSize()),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
+		ID:                  basetypes.NewStringValue(instance.GetId()),
+		Region:              basetypes.NewStringValue(string(instance.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(instance.Reference.Get()),
+		Image:               adaptImageToImageDataSource(instance.GetImage()),
+		State:               basetypes.NewStringValue(string(instance.GetState())),
+		Type:                basetypes.NewStringValue(string(instance.GetType())),
+		RootDiskSize:        basetypes.NewInt32Value(instance.GetRootDiskSize()),
+		RootDiskStorageType: basetypes.NewStringValue(string(instance.GetRootDiskStorageType())),
 		IPs:                 ips,
-		Contract:            adaptContractToContractDataSource(sdkInstance.GetContract()),
-		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
+		Contract:            adaptContractToContractDataSource(instance.GetContract()),
+		MarketAppID:         basetypes.NewStringPointerValue(instance.MarketAppId.Get()),
 	}
 }
 
