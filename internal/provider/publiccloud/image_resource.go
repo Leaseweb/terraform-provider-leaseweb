@@ -33,7 +33,7 @@ type imageResourceModel struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
+func (i imageResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":            types.StringType,
 		"instance_id":   types.StringType,
@@ -47,13 +47,13 @@ func (i imageResourceModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func (i imageResourceModel) GetUpdateImageOpts() publiccloud.UpdateImageOpts {
+func (i imageResourceModel) getUpdateImageOpts() publiccloud.UpdateImageOpts {
 	return publiccloud.UpdateImageOpts{
 		Name: i.Name.ValueString(),
 	}
 }
 
-func (i imageResourceModel) GetCreateImageOpts() publiccloud.CreateImageOpts {
+func (i imageResourceModel) getCreateImageOpts() publiccloud.CreateImageOpts {
 	return publiccloud.CreateImageOpts{
 		Name:       i.Name.ValueString(),
 		InstanceId: i.InstanceID.ValueString(),
@@ -220,7 +220,7 @@ func (i *imageResource) Create(
 		return
 	}
 
-	opts := plan.GetCreateImageOpts()
+	opts := plan.getCreateImageOpts()
 	summary := fmt.Sprintf("Creating resource %s", i.name)
 
 	sdkImage, httpResponse, err := i.client.CreateImage(ctx).
@@ -286,7 +286,7 @@ func (i *imageResource) Update(
 		return
 	}
 
-	opts := plan.GetUpdateImageOpts()
+	opts := plan.getUpdateImageOpts()
 
 	sdkImageDetails, httpResponse, err := i.client.UpdateImage(
 		ctx,

@@ -55,7 +55,7 @@ func generateContractObject(
 
 	contract, _ := types.ObjectValueFrom(
 		context.TODO(),
-		contractResourceModel{}.AttributeTypes(),
+		contractResourceModel{}.attributeTypes(),
 		contractResourceModel{
 			BillingFrequency: basetypes.NewInt32Value(int32(*billingFrequency)),
 			Term:             basetypes.NewInt32Value(int32(*contractTerm)),
@@ -72,7 +72,7 @@ func generateInstanceResourceModel() instanceResourceModel {
 
 	image, _ := types.ObjectValueFrom(
 		context.TODO(),
-		imageResourceModel{}.AttributeTypes(),
+		imageResourceModel{}.attributeTypes(),
 		imageResourceModel{
 			ID:           basetypes.NewStringValue("UBUNTU_20_04_64BIT"),
 			MarketApps:   emptyList,
@@ -202,14 +202,14 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 	assert.Equal(t, "127.0.0.1", ips[0].IP.ValueString())
 }
 
-func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
+func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 	t.Run("required values are set", func(t *testing.T) {
 		instance := generateInstanceResourceModel()
 		instance.MarketAppID = basetypes.NewStringPointerValue(nil)
 		instance.Reference = basetypes.NewStringPointerValue(nil)
 		instance.RootDiskSize = basetypes.NewInt32PointerValue(nil)
 
-		got, err := instance.GetLaunchInstanceOpts(context.TODO())
+		got, err := instance.getLaunchOpts(context.TODO())
 
 		assert.NoError(t, err)
 		assert.Equal(t, publiccloud.REGIONNAME_EU_WEST_3, got.Region)
@@ -233,7 +233,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 	t.Run("optional values are passed", func(t *testing.T) {
 		instance := generateInstanceResourceModel()
 
-		got, err := instance.GetLaunchInstanceOpts(context.TODO())
+		got, err := instance.getLaunchOpts(context.TODO())
 
 		assert.NoError(t, err)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
@@ -247,7 +247,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.RootDiskStorageType = basetypes.NewStringValue("tralala")
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "tralala")
@@ -260,7 +260,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "tralala")
@@ -275,7 +275,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			contract := generateContractObject(nil, nil, &contractType)
 			instance.Contract = contract
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "tralala")
@@ -290,7 +290,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			contract := generateContractObject(nil, &contractTerm, nil)
 			instance.Contract = contract
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "555")
@@ -305,7 +305,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			contract := generateContractObject(&billingFrequency, nil, nil)
 			instance.Contract = contract
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "555")
@@ -316,7 +316,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 		instance := generateInstanceResourceModel()
 		instance.Region = basetypes.NewStringValue("tralala")
 
-		_, err := instance.GetLaunchInstanceOpts(context.TODO())
+		_, err := instance.getLaunchOpts(context.TODO())
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "tralala")
@@ -328,7 +328,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.Image = basetypes.NewObjectNull(map[string]attr.Type{})
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, ".imageResourceModel")
@@ -341,7 +341,7 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
-			_, err := instance.GetLaunchInstanceOpts(context.TODO())
+			_, err := instance.getLaunchOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, ".contractResourceModel")
@@ -349,11 +349,11 @@ func Test_instanceResourceModel_GetLaunchInstanceOpts(t *testing.T) {
 	)
 }
 
-func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
+func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 	t.Run("optional values are set", func(t *testing.T) {
 		instance := generateInstanceResourceModel()
 
-		got, err := instance.GetUpdateInstanceOpts(context.TODO())
+		got, err := instance.getUpdateOpts(context.TODO())
 
 		assert.NoError(t, err)
 		assert.Equal(t, publiccloud.TYPENAME_M5A_4XLARGE, *got.Type)
@@ -370,7 +370,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.Type = basetypes.NewStringValue("tralala")
 
-			_, err := instance.GetUpdateInstanceOpts(context.TODO())
+			_, err := instance.getUpdateOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "tralala")
@@ -385,7 +385,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 			contract := generateContractObject(nil, nil, &contractType)
 			instance.Contract = contract
 
-			_, err := instance.GetUpdateInstanceOpts(context.TODO())
+			_, err := instance.getUpdateOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "tralala")
@@ -400,7 +400,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 			contract := generateContractObject(nil, &contractTerm, nil)
 			instance.Contract = contract
 
-			_, err := instance.GetUpdateInstanceOpts(context.TODO())
+			_, err := instance.getUpdateOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "555")
@@ -415,7 +415,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 			contract := generateContractObject(&billingFrequency, nil, nil)
 			instance.Contract = contract
 
-			_, err := instance.GetUpdateInstanceOpts(context.TODO())
+			_, err := instance.getUpdateOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "555")
@@ -428,7 +428,7 @@ func Test_instanceResourceModel_GetUpdateInstanceOpts(t *testing.T) {
 			instance := generateInstanceResourceModel()
 			instance.Contract = basetypes.NewObjectNull(map[string]attr.Type{})
 
-			_, err := instance.GetUpdateInstanceOpts(context.TODO())
+			_, err := instance.getUpdateOpts(context.TODO())
 
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, ".contractResourceModel")
