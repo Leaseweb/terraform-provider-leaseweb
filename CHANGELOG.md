@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.2...v1.15.0) (2024-12-09)
+
+
+### Features
+
+* add ISO to instances data source ([122f662](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/122f6620359e61f6e85f0610cf5ba61946695de5))
+
 ## [1.14.2](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.1...v1.14.2) (2024-12-06)
 
 
