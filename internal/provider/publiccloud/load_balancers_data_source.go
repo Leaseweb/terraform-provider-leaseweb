@@ -20,7 +20,7 @@ var (
 
 type loadBalancerDataSourceModel struct {
 	ID        types.String            `tfsdk:"id"`
-	IPs       []iPDataSourceModel     `tfsdk:"ips"`
+	IPs       []ipDataSourceModel     `tfsdk:"ips"`
 	Reference types.String            `tfsdk:"reference"`
 	Contract  contractDataSourceModel `tfsdk:"contract"`
 	State     types.String            `tfsdk:"state"`
@@ -33,9 +33,9 @@ type loadBalancersDataSourceModel struct {
 }
 
 func adaptLoadBalancerListItemToLoadBalancerDataSource(loadBalancerListItem publiccloud.LoadBalancerListItem) loadBalancerDataSourceModel {
-	var ips []iPDataSourceModel
+	var ips []ipDataSourceModel
 	for _, ip := range loadBalancerListItem.Ips {
-		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
+		ips = append(ips, ipDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
 	return loadBalancerDataSourceModel{
