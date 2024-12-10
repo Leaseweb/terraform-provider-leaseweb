@@ -22,13 +22,13 @@ var (
 )
 
 type invalidISOIDError struct {
-	supportedISOIds []string
+	supportedISOIDs []string
 }
 
 func (u invalidISOIDError) Error() string {
 	return fmt.Sprintf(
 		"Attribute iso_id value must be one of: %q",
-		u.supportedISOIds,
+		u.supportedISOIDs,
 	)
 }
 
@@ -384,7 +384,7 @@ func updateISO(
 			for _, supportedISO := range supportedISOs {
 				supportedISOIDs = append(supportedISOIDs, supportedISO.GetId())
 			}
-			return nil, nil, invalidISOIDError{supportedISOIds: supportedISOIDs}
+			return nil, nil, invalidISOIDError{supportedISOIDs: supportedISOIDs}
 		}
 	}
 
