@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.15.0...v1.16.0) (2024-12-12)
+
+
+### Features
+
+* implement public cloud ISO resource ([e3cf3f5](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/e3cf3f5981226eedf56f685d9e011355a0671c86))
+
 ## [1.15.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.2...v1.15.0) (2024-12-09)
 
 
