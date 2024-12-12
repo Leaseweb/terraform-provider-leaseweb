@@ -132,6 +132,7 @@ resource "leaseweb_public_cloud_instance" "example" {
 
 - `id` (String) The instance unique identifier
 - `ips` (Attributes List) (see [below for nested schema](#nestedatt--ips))
+- `iso` (Attributes) (see [below for nested schema](#nestedatt--iso))
 - `state` (String) The instance's current state
 
 <a id="nestedatt--contract"></a>
@@ -186,6 +187,15 @@ Read-Only:
 - `instance_id` (String)
 - `ip` (String)
 - `reverse_lookup` (String)
+
+
+<a id="nestedatt--iso"></a>
+### Nested Schema for `iso`
+
+Read-Only:
+
+- `id` (String) The ISO ID.
+- `name` (String)
 
 ## Import
 

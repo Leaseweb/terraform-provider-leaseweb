@@ -177,6 +177,16 @@ resource "leaseweb_public_cloud_instance" "test" {
 							"contract.state",
 							"ACTIVE",
 						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"iso.id",
+							"ACRONIS_BOOT_MEDIA",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance.test",
+							"iso.name",
+							"Acronis Boot Media",
+						),
 					),
 				},
 				// ImportState testing
@@ -2787,6 +2797,242 @@ resource "leaseweb_public_cloud_ip" "test" {
 `,
 					ExpectError: regexp.MustCompile(
 						"Resource public_cloud_ip can only be imported, not created.",
+					),
+				},
+			},
+		})
+	})
+}
+
+func TestAccPublicCloudInstanceIsoResource(t *testing.T) {
+	t.Run("can create/import/update/delete iso", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance_iso.test",
+							"name",
+							"Acronis Boot Media",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance_iso.test",
+							"id",
+							"ACRONIS_BOOT_MEDIA",
+						),
+					),
+				},
+				// ImportState testing
+				{
+					ResourceName:                         "leaseweb_public_cloud_instance_iso.test",
+					ImportState:                          true,
+					ImportStateVerify:                    true,
+					ImportStateId:                        "ace712e9-a166-47f1-9065-4af0f7e7fce1",
+					ImportStateVerifyIdentifierAttribute: "instance_id",
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance_iso.test",
+							"name",
+							"Acronis Boot Media",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance_iso.test",
+							"id",
+							"ACRONIS_BOOT_MEDIA",
+						),
+					),
+				},
+				// Delete testing automatically occurs in TestCase
+			},
+		})
+	})
+
+	t.Run("importing sets desired_id to id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					  resource "leaseweb_public_cloud_instance_iso" "test" {
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					  }
+					  `,
+					ResourceName:                         "leaseweb_public_cloud_instance_iso.test",
+					ImportState:                          true,
+					ImportStateId:                        "ace712e9-a166-47f1-9065-4af0f7e7fce1",
+					ImportStateVerifyIdentifierAttribute: "instance_id",
+					ImportStatePersist:                   true,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_instance_iso.test",
+							"desired_id",
+							"ACRONIS_BOOT_MEDIA",
+						),
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("detaching an ISO works as expected", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+				},
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+				},
+			},
+		})
+	})
+
+	t.Run("changing an attached ISO works as expected", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+				},
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "GRML"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+				},
+			},
+		})
+	})
+
+	t.Run("attaching a new ISO works as expected", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+				},
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "GRML"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+				},
+			},
+		})
+	})
+
+	t.Run(
+		"updating to a non existent id returns an error",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+					},
+					{
+						Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "tralala"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+						ExpectError: regexp.MustCompile(
+							`Attribute id value must be one of`,
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run(
+		"creating a resource with a non existent id returns an error",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "tralala"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					}`,
+						ExpectError: regexp.MustCompile(
+							`Attribute id value must be one of`,
+						),
+					},
+				},
+			})
+		},
+	)
+
+	t.Run("updating instance_id triggers replace", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+
+					}`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_public_cloud_instance_iso.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					Config: providerConfig + `
+					resource "leaseweb_public_cloud_instance_iso" "test" {
+						desired_id = "ACRONIS_BOOT_MEDIA"
+						instance_id = "71d840af-f1c6-4c96-b82d-de4da216ee09"
+					}`,
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
 					),
 				},
 			},
