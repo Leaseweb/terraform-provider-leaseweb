@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithConfigure = &ISOsDataSource{}
+	_ datasource.DataSourceWithConfigure = &isosDataSource{}
 )
 
 type isoDataSourceModel struct {
@@ -77,12 +77,12 @@ func getISOs(
 	return isos, nil, nil
 }
 
-type ISOsDataSource struct {
+type isosDataSource struct {
 	name   string
 	client publiccloud.PubliccloudAPI
 }
 
-func (i *ISOsDataSource) Metadata(
+func (i *isosDataSource) Metadata(
 	_ context.Context,
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,
@@ -90,7 +90,7 @@ func (i *ISOsDataSource) Metadata(
 	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
 }
 
-func (i *ISOsDataSource) Schema(
+func (i *isosDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	response *datasource.SchemaResponse,
@@ -116,7 +116,7 @@ func (i *ISOsDataSource) Schema(
 	}
 }
 
-func (i *ISOsDataSource) Read(
+func (i *isosDataSource) Read(
 	ctx context.Context,
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
@@ -135,7 +135,7 @@ func (i *ISOsDataSource) Read(
 	)
 }
 
-func (i *ISOsDataSource) Configure(
+func (i *isosDataSource) Configure(
 	_ context.Context,
 	request datasource.ConfigureRequest,
 	response *datasource.ConfigureResponse,
@@ -160,7 +160,7 @@ func (i *ISOsDataSource) Configure(
 }
 
 func NewISOsDataSource() datasource.DataSource {
-	return &ISOsDataSource{
+	return &isosDataSource{
 		name: "public_cloud_isos",
 	}
 }
