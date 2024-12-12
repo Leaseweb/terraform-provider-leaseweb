@@ -76,7 +76,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 			context.TODO(),
 		)
 
-		want := LoadBalancerListenerResourceModel{
+		want := loadBalancerListenerResourceModel{
 			ListenerID: basetypes.NewStringValue("id"),
 			Protocol:   basetypes.NewStringValue("HTTP"),
 			Port:       basetypes.NewInt32Value(22),
@@ -148,7 +148,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 	})
 }
 
-func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpts(t *testing.T) {
+func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpts(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
 		defaultRule := loadBalancerListenerDefaultRuleResourceModel{
 			TargetGroupID: basetypes.NewStringValue("targetGroupId"),
@@ -159,7 +159,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 			defaultRule,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Protocol:    basetypes.NewStringValue("HTTPS"),
 			Port:        basetypes.NewInt32Value(22),
 			DefaultRule: defaultRuleObject,
@@ -185,7 +185,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 			defaultRule,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Protocol:    basetypes.NewStringValue("HTTPS"),
 			Port:        basetypes.NewInt32Value(22),
 			DefaultRule: defaultRuleObject,
@@ -216,7 +216,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 			certificate,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Protocol:    basetypes.NewStringValue("HTTPS"),
 			Port:        basetypes.NewInt32Value(22),
 			DefaultRule: defaultRuleObject,
@@ -253,7 +253,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOpt
 			certificate,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Protocol:    basetypes.NewStringValue("HTTPS"),
 			Port:        basetypes.NewInt32Value(22),
 			DefaultRule: defaultRuleObject,
@@ -280,7 +280,7 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			context.TODO(),
 		)
 
-		want := LoadBalancerListenerResourceModel{
+		want := loadBalancerListenerResourceModel{
 			ListenerID: basetypes.NewStringValue("id"),
 			Protocol:   basetypes.NewStringValue("HTTP"),
 			Port:       basetypes.NewInt32Value(22),
@@ -320,9 +320,9 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 	})
 }
 
-func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpts(t *testing.T) {
+func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpts(t *testing.T) {
 	t.Run("optional fields are set", func(t *testing.T) {
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Protocol: basetypes.NewStringValue("HTTPS"),
 			Port:     basetypes.NewInt32Value(22),
 		}
@@ -351,7 +351,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 			certificate,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Certificate: certificateObject,
 		}
 
@@ -371,7 +371,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 			defaultRule,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			DefaultRule: defaultRuleObject,
 		}
 
@@ -393,7 +393,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 			certificate,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			Certificate: certificateObject,
 		}
 
@@ -411,7 +411,7 @@ func TestLoadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOpt
 			defaultRule,
 		)
 
-		listener := LoadBalancerListenerResourceModel{
+		listener := loadBalancerListenerResourceModel{
 			DefaultRule: defaultRuleObject,
 		}
 

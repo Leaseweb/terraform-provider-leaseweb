@@ -86,7 +86,7 @@ func adaptSslCertificateToLoadBalancerListenerCertificateResource(sslCertificate
 	return listener
 }
 
-type LoadBalancerListenerResourceModel struct {
+type loadBalancerListenerResourceModel struct {
 	ListenerID     types.String `tfsdk:"listener_id"`
 	LoadBalancerID types.String `tfsdk:"load_balancer_id"`
 	Protocol       types.String `tfsdk:"protocol"`
@@ -95,7 +95,7 @@ type LoadBalancerListenerResourceModel struct {
 	DefaultRule    types.Object `tfsdk:"default_rule"`
 }
 
-func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpts(ctx context.Context) (
+func (l loadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpts(ctx context.Context) (
 	*publiccloud.LoadBalancerListenerCreateOpts,
 	error,
 ) {
@@ -124,7 +124,7 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpt
 	return opts, nil
 }
 
-func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpts(ctx context.Context) (
+func (l loadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpts(ctx context.Context) (
 	*publiccloud.LoadBalancerListenerOpts,
 	error,
 ) {
@@ -172,8 +172,8 @@ func (l LoadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpt
 func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
 	loadBalancerListenerDetails publiccloud.LoadBalancerListenerDetails,
 	ctx context.Context,
-) (*LoadBalancerListenerResourceModel, error) {
-	listener := LoadBalancerListenerResourceModel{
+) (*loadBalancerListenerResourceModel, error) {
+	listener := loadBalancerListenerResourceModel{
 		ListenerID: basetypes.NewStringValue(loadBalancerListenerDetails.GetId()),
 		Protocol:   basetypes.NewStringValue(string(loadBalancerListenerDetails.GetProtocol())),
 		Port:       basetypes.NewInt32Value(loadBalancerListenerDetails.GetPort()),
@@ -217,8 +217,8 @@ func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
 func adaptLoadBalancerListenerToLoadBalancerListenerResource(
 	loadBalancerListener publiccloud.LoadBalancerListener,
 	ctx context.Context,
-) (*LoadBalancerListenerResourceModel, error) {
-	listener := LoadBalancerListenerResourceModel{
+) (*loadBalancerListenerResourceModel, error) {
+	listener := loadBalancerListenerResourceModel{
 		ListenerID: basetypes.NewStringValue(loadBalancerListener.GetId()),
 		Protocol:   basetypes.NewStringValue(string(loadBalancerListener.Protocol)),
 		Port:       basetypes.NewInt32Value(loadBalancerListener.GetPort()),
@@ -354,7 +354,7 @@ func (l *loadBalancerListenerResource) Create(
 	request resource.CreateRequest,
 	response *resource.CreateResponse,
 ) {
-	var plan LoadBalancerListenerResourceModel
+	var plan loadBalancerListenerResourceModel
 	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -397,7 +397,7 @@ func (l *loadBalancerListenerResource) Read(
 	request resource.ReadRequest,
 	response *resource.ReadResponse,
 ) {
-	var state LoadBalancerListenerResourceModel
+	var state loadBalancerListenerResourceModel
 	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -440,7 +440,7 @@ func (l *loadBalancerListenerResource) Update(
 	request resource.UpdateRequest,
 	response *resource.UpdateResponse,
 ) {
-	var plan LoadBalancerListenerResourceModel
+	var plan loadBalancerListenerResourceModel
 	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
@@ -494,7 +494,7 @@ func (l *loadBalancerListenerResource) Delete(
 	request resource.DeleteRequest,
 	response *resource.DeleteResponse,
 ) {
-	var state LoadBalancerListenerResourceModel
+	var state loadBalancerListenerResourceModel
 	diags := request.State.Get(ctx, &state)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
