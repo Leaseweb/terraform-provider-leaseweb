@@ -29,38 +29,38 @@ type imageModelDataSource struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func adaptImageToImageDataSource(sdkImage publiccloud.Image) imageModelDataSource {
+func adaptImageToImageDataSource(image publiccloud.Image) imageModelDataSource {
 	return imageModelDataSource{
-		ID:      basetypes.NewStringValue(sdkImage.GetId()),
-		Name:    basetypes.NewStringValue(sdkImage.GetName()),
-		Custom:  basetypes.NewBoolValue(sdkImage.GetCustom()),
-		Flavour: basetypes.NewStringValue(string(sdkImage.GetFlavour())),
+		ID:      basetypes.NewStringValue(image.GetId()),
+		Name:    basetypes.NewStringValue(image.GetName()),
+		Custom:  basetypes.NewBoolValue(image.GetCustom()),
+		Flavour: basetypes.NewStringValue(string(image.GetFlavour())),
 	}
 }
 
 func adaptImageDetailsToImageDataSource(
-	sdkImageDetails publiccloud.ImageDetails,
+	imageDetails publiccloud.ImageDetails,
 ) imageModelDataSource {
 	var marketApps []string
 	var storageTypes []string
 
-	for _, marketApp := range sdkImageDetails.GetMarketApps() {
+	for _, marketApp := range imageDetails.GetMarketApps() {
 		marketApps = append(marketApps, string(marketApp))
 	}
 
-	for _, storageType := range sdkImageDetails.GetStorageTypes() {
+	for _, storageType := range imageDetails.GetStorageTypes() {
 		storageTypes = append(storageTypes, string(storageType))
 	}
 
 	return imageModelDataSource{
-		ID:           basetypes.NewStringValue(sdkImageDetails.GetId()),
-		Name:         basetypes.NewStringValue(sdkImageDetails.GetName()),
-		Custom:       basetypes.NewBoolValue(sdkImageDetails.GetCustom()),
-		State:        basetypes.NewStringValue(string(sdkImageDetails.GetState())),
+		ID:           basetypes.NewStringValue(imageDetails.GetId()),
+		Name:         basetypes.NewStringValue(imageDetails.GetName()),
+		Custom:       basetypes.NewBoolValue(imageDetails.GetCustom()),
+		State:        basetypes.NewStringValue(string(imageDetails.GetState())),
 		MarketApps:   marketApps,
 		StorageTypes: storageTypes,
-		Flavour:      basetypes.NewStringValue(string(sdkImageDetails.GetFlavour())),
-		Region:       basetypes.NewStringValue(string(sdkImageDetails.GetRegion())),
+		Flavour:      basetypes.NewStringValue(string(imageDetails.GetFlavour())),
+		Region:       basetypes.NewStringValue(string(imageDetails.GetRegion())),
 	}
 }
 
@@ -71,8 +71,8 @@ type imagesDataSourceModel struct {
 func adaptImagesToImagesDataSource(sdkImages []publiccloud.ImageDetails) imagesDataSourceModel {
 	var images imagesDataSourceModel
 
-	for _, sdkImageDetails := range sdkImages {
-		image := adaptImageDetailsToImageDataSource(sdkImageDetails)
+	for _, imageDetails := range sdkImages {
+		image := adaptImageDetailsToImageDataSource(imageDetails)
 		images.Images = append(images.Images, image)
 	}
 

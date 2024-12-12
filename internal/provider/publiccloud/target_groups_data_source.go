@@ -44,21 +44,21 @@ func (t targetGroupsDataSourceModel) generateRequest(
 		request = request.Name(t.Name.ValueString())
 	}
 	if !t.Protocol.IsNull() {
-		sdkProtocol, err := publiccloud.NewProtocolFromValue(t.Protocol.ValueString())
+		protocol, err := publiccloud.NewProtocolFromValue(t.Protocol.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", funcName, err)
 		}
-		request = request.Protocol(*sdkProtocol)
+		request = request.Protocol(*protocol)
 	}
 	if !t.Port.IsNull() {
 		request = request.Port(t.Port.ValueInt32())
 	}
 	if !t.Region.IsNull() {
-		sdkRegion, err := publiccloud.NewRegionNameFromValue(t.Region.ValueString())
+		regionName, err := publiccloud.NewRegionNameFromValue(t.Region.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", funcName, err)
 		}
-		request = request.Region(*sdkRegion)
+		request = request.Region(*regionName)
 	}
 
 	return &request, nil
@@ -66,10 +66,10 @@ func (t targetGroupsDataSourceModel) generateRequest(
 
 func adaptTargetGroupsToTargetGroupsDataSource(sdkTargetGroups []publiccloud.TargetGroup) targetGroupsDataSourceModel {
 	targetGroups := targetGroupsDataSourceModel{}
-	for _, sdkTargetGroup := range sdkTargetGroups {
+	for _, targetGroup := range sdkTargetGroups {
 		targetGroups.TargetGroups = append(
 			targetGroups.TargetGroups,
-			adaptTargetGroupToTargetGroupDataSource(sdkTargetGroup),
+			adaptTargetGroupToTargetGroupDataSource(targetGroup),
 		)
 	}
 
@@ -84,13 +84,13 @@ type targetGroupDataSourceModel struct {
 	Region   types.String `tfsdk:"region"`
 }
 
-func adaptTargetGroupToTargetGroupDataSource(sdkTargetGroup publiccloud.TargetGroup) targetGroupDataSourceModel {
+func adaptTargetGroupToTargetGroupDataSource(targetGroup publiccloud.TargetGroup) targetGroupDataSourceModel {
 	return targetGroupDataSourceModel{
-		ID:       basetypes.NewStringValue(sdkTargetGroup.GetId()),
-		Name:     basetypes.NewStringValue(sdkTargetGroup.GetName()),
-		Protocol: basetypes.NewStringValue(string(sdkTargetGroup.GetProtocol())),
-		Port:     basetypes.NewInt32Value(sdkTargetGroup.GetPort()),
-		Region:   basetypes.NewStringValue(string(sdkTargetGroup.GetRegion())),
+		ID:       basetypes.NewStringValue(targetGroup.GetId()),
+		Name:     basetypes.NewStringValue(targetGroup.GetName()),
+		Protocol: basetypes.NewStringValue(string(targetGroup.GetProtocol())),
+		Port:     basetypes.NewInt32Value(targetGroup.GetPort()),
+		Region:   basetypes.NewStringValue(string(targetGroup.GetRegion())),
 	}
 }
 

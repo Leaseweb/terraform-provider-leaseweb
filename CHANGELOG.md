@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.15.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.2...v1.15.0) (2024-12-09)
+
+
+### Features
+
+* add ISO to instances data source ([122f662](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/122f6620359e61f6e85f0610cf5ba61946695de5))
+
+## [1.14.2](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.1...v1.14.2) (2024-12-06)
+
+
+### Bug Fixes
+
+* first & second action can never be equal when generating unsupported action string ([815078b](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/815078bfb712aba7ff6b03046a937c3b85d5dc77))
+
+## [1.14.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.14.0...v1.14.1) (2024-12-06)
+
+
+### Bug Fixes
+
+* fix typo ([39c371d](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/39c371d98cf565c91e8ba53cf26750c3cfa4f4b2))
+
+## [1.14.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.13.0...v1.14.0) (2024-12-03)
+
+
+### Features
+
+* implement public cloud isos data source ([#188](https://github.com/Leaseweb/terraform-provider-leaseweb/issues/188)) ([ae82e33](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/ae82e339e724117ef3fa013017fe75ddb08ad86c))
+
 ## [1.13.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.12.1...v1.13.0) (2024-11-29)
 
 

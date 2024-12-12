@@ -20,7 +20,7 @@ var (
 
 type loadBalancerDataSourceModel struct {
 	ID        types.String            `tfsdk:"id"`
-	IPs       []iPDataSourceModel     `tfsdk:"ips"`
+	IPs       []ipDataSourceModel     `tfsdk:"ips"`
 	Reference types.String            `tfsdk:"reference"`
 	Contract  contractDataSourceModel `tfsdk:"contract"`
 	State     types.String            `tfsdk:"state"`
@@ -32,20 +32,20 @@ type loadBalancersDataSourceModel struct {
 	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"load_balancers"`
 }
 
-func adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem publiccloud.LoadBalancerListItem) loadBalancerDataSourceModel {
-	var ips []iPDataSourceModel
-	for _, ip := range sdkLoadBalancerListItem.Ips {
-		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
+func adaptLoadBalancerListItemToLoadBalancerDataSource(loadBalancerListItem publiccloud.LoadBalancerListItem) loadBalancerDataSourceModel {
+	var ips []ipDataSourceModel
+	for _, ip := range loadBalancerListItem.Ips {
+		ips = append(ips, ipDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
 	}
 
 	return loadBalancerDataSourceModel{
-		ID:        basetypes.NewStringValue(sdkLoadBalancerListItem.GetId()),
+		ID:        basetypes.NewStringValue(loadBalancerListItem.GetId()),
 		IPs:       ips,
-		Reference: basetypes.NewStringPointerValue(sdkLoadBalancerListItem.Reference.Get()),
-		Contract:  adaptContractToContractDataSource(sdkLoadBalancerListItem.GetContract()),
-		State:     basetypes.NewStringValue(string(sdkLoadBalancerListItem.GetState())),
-		Region:    basetypes.NewStringValue(string(sdkLoadBalancerListItem.GetRegion())),
-		Type:      basetypes.NewStringValue(string(sdkLoadBalancerListItem.GetType())),
+		Reference: basetypes.NewStringPointerValue(loadBalancerListItem.Reference.Get()),
+		Contract:  adaptContractToContractDataSource(loadBalancerListItem.GetContract()),
+		State:     basetypes.NewStringValue(string(loadBalancerListItem.GetState())),
+		Region:    basetypes.NewStringValue(string(loadBalancerListItem.GetRegion())),
+		Type:      basetypes.NewStringValue(string(loadBalancerListItem.GetType())),
 	}
 }
 

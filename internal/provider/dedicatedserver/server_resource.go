@@ -54,7 +54,7 @@ type locationResourceModel struct {
 	Unit  types.String `tfsdk:"unit"`
 }
 
-func (l locationResourceModel) AttributeTypes() map[string]attr.Type {
+func (l locationResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"rack":  types.StringType,
 		"site":  types.StringType,
@@ -532,7 +532,7 @@ func (s *serverResource) getServer(
 		Suite: types.StringValue(serverLocation.GetSuite()),
 		Unit:  types.StringValue(serverLocation.GetUnit()),
 	}
-	location, digs := types.ObjectValueFrom(ctx, l.AttributeTypes(), l)
+	location, digs := types.ObjectValueFrom(ctx, l.attributeTypes(), l)
 
 	if digs.HasError() {
 		return nil, nil, fmt.Errorf("error reading dedicated server location with id: %q", serverID)

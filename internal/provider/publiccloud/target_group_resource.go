@@ -353,7 +353,7 @@ func (t *targetGroupResource) Read(
 		state.ID.ValueString(),
 	)
 
-	targetGroupSdk, httpResponse, err := t.client.
+	sdkTargetGroup, httpResponse, err := t.client.
 		GetTargetGroup(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -362,7 +362,7 @@ func (t *targetGroupResource) Read(
 	}
 
 	targetGroup, err := adaptTargetGroupToTargetGroupResource(
-		*targetGroupSdk,
+		*sdkTargetGroup,
 		ctx,
 	)
 	if err != nil {

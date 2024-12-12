@@ -265,7 +265,7 @@ func Test_errorHandler_processErrorResponse(t *testing.T) {
 }
 
 func Test_errorHandler_handleHTTPError(t *testing.T) {
-	t.Run("sets error if server returns a 504 resposne", func(t *testing.T) {
+	t.Run("sets error if server returns a 504 response", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 
 		errorHandler := errorHandler{
@@ -284,6 +284,7 @@ func Test_errorHandler_handleHTTPError(t *testing.T) {
 
 		assert.Equal(t, want, diags)
 	})
+
 	t.Run(
 		"sets error if response body cannot be mapped to errorResponse",
 		func(t *testing.T) {
@@ -305,6 +306,26 @@ func Test_errorHandler_handleHTTPError(t *testing.T) {
 			assert.Equal(t, want, diags)
 		},
 	)
+
+	t.Run("sets error if server returns a 404 response", func(t *testing.T) {
+		diags := diag.Diagnostics{}
+
+		errorHandler := errorHandler{
+			summary: "summary",
+			diags:   &diags,
+			resp: &http.Response{
+				Body: io.NopCloser(bytes.NewReader([]byte("tralala"))),
+			},
+			ctx: context.TODO(),
+		}
+		errorHandler.resp.StatusCode = 404
+		errorHandler.handleHTTPError()
+
+		want := diag.Diagnostics{}
+		want.AddError("summary", "Resource not found.")
+
+		assert.Equal(t, want, diags)
+	})
 }
 
 func Test_errorHandler_report(t *testing.T) {

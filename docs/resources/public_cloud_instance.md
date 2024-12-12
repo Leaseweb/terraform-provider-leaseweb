@@ -184,7 +184,9 @@ Read-Only:
 
 Read-Only:
 
+- `instance_id` (String)
 - `ip` (String)
+- `reverse_lookup` (String)
 
 
 <a id="nestedatt--iso"></a>

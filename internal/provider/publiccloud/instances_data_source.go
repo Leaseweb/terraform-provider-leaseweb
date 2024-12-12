@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -21,60 +22,89 @@ var (
 	_ datasource.DataSourceWithConfigure = &instancesDataSource{}
 )
 
-type contractDataSourceModel struct {
-	BillingFrequency types.Int32  `tfsdk:"billing_frequency"`
-	Term             types.Int32  `tfsdk:"term"`
-	Type             types.String `tfsdk:"type"`
-	EndsAt           types.String `tfsdk:"ends_at"`
-	State            types.String `tfsdk:"state"`
+type instanceDetailsErr struct {
+	err          error
+	httpResponse *http.Response
 }
 
-func adaptContractToContractDataSource(sdkContract publiccloud.Contract) contractDataSourceModel {
+type instanceDetailsList []publiccloud.InstanceDetails
+
+func (inst instanceDetailsList) orderById() instanceDetailsList {
+	sort.Slice(inst, func(i, j int) bool {
+		return inst[i].Id < inst[j].Id
+	})
+
+	return inst
+}
+
+type contractDataSourceModel struct {
+	BillingFrequency types.Int32  `tfsdk:"billing_frequency"`
+	EndsAt           types.String `tfsdk:"ends_at"`
+	State            types.String `tfsdk:"state"`
+	Term             types.Int32  `tfsdk:"term"`
+	Type             types.String `tfsdk:"type"`
+}
+
+func adaptContractToContractDataSource(contract publiccloud.Contract) contractDataSourceModel {
 	return contractDataSourceModel{
-		BillingFrequency: basetypes.NewInt32Value(int32(sdkContract.GetBillingFrequency())),
-		Term:             basetypes.NewInt32Value(int32(sdkContract.GetTerm())),
-		Type:             basetypes.NewStringValue(string(sdkContract.GetType())),
-		EndsAt:           utils.AdaptNullableTimeToStringValue(sdkContract.EndsAt.Get()),
-		State:            basetypes.NewStringValue(string(sdkContract.GetState())),
+		BillingFrequency: basetypes.NewInt32Value(int32(contract.GetBillingFrequency())),
+		EndsAt:           utils.AdaptNullableTimeToStringValue(contract.EndsAt.Get()),
+		State:            basetypes.NewStringValue(string(contract.GetState())),
+		Term:             basetypes.NewInt32Value(int32(contract.GetTerm())),
+		Type:             basetypes.NewStringValue(string(contract.GetType())),
 	}
 }
 
 type instanceDataSourceModel struct {
+	Contract            contractDataSourceModel `tfsdk:"contract"`
 	ID                  types.String            `tfsdk:"id"`
-	Region              types.String            `tfsdk:"region"`
-	Reference           types.String            `tfsdk:"reference"`
 	Image               imageModelDataSource    `tfsdk:"image"`
-	State               types.String            `tfsdk:"state"`
-	Type                types.String            `tfsdk:"type"`
+	IPs                 []ipDataSourceModel     `tfsdk:"ips"`
+	ISO                 *isoDataSourceModel     `tfsdk:"iso"`
+	MarketAppID         types.String            `tfsdk:"market_app_id"`
+	Reference           types.String            `tfsdk:"reference"`
+	Region              types.String            `tfsdk:"region"`
 	RootDiskSize        types.Int32             `tfsdk:"root_disk_size"`
 	RootDiskStorageType types.String            `tfsdk:"root_disk_storage_type"`
-	IPs                 []iPDataSourceModel     `tfsdk:"ips"`
-	Contract            contractDataSourceModel `tfsdk:"contract"`
-	MarketAppID         types.String            `tfsdk:"market_app_id"`
+	State               types.String            `tfsdk:"state"`
+	Type                types.String            `tfsdk:"type"`
 }
 
-func adaptInstanceToInstanceDataSource(sdkInstance publiccloud.Instance) instanceDataSourceModel {
-	var ips []iPDataSourceModel
-	for _, ip := range sdkInstance.Ips {
-		ips = append(ips, iPDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
+func adaptInstanceDetailsToInstanceDataSource(instanceDetails publiccloud.InstanceDetails) instanceDataSourceModel {
+	var ips []ipDataSourceModel
+	for _, ip := range instanceDetails.Ips {
+		ips = append(
+			ips,
+			ipDataSourceModel{
+				IP: basetypes.NewStringValue(ip.GetIp()),
+			},
+		)
 	}
 
-	return instanceDataSourceModel{
-		ID:                  basetypes.NewStringValue(sdkInstance.GetId()),
-		Region:              basetypes.NewStringValue(string(sdkInstance.GetRegion())),
-		Reference:           basetypes.NewStringPointerValue(sdkInstance.Reference.Get()),
-		Image:               adaptImageToImageDataSource(sdkInstance.GetImage()),
-		State:               basetypes.NewStringValue(string(sdkInstance.GetState())),
-		Type:                basetypes.NewStringValue(string(sdkInstance.GetType())),
-		RootDiskSize:        basetypes.NewInt32Value(sdkInstance.GetRootDiskSize()),
-		RootDiskStorageType: basetypes.NewStringValue(string(sdkInstance.GetRootDiskStorageType())),
+	instance := instanceDataSourceModel{
+		Contract:            adaptContractToContractDataSource(instanceDetails.GetContract()),
+		ID:                  basetypes.NewStringValue(instanceDetails.GetId()),
 		IPs:                 ips,
-		Contract:            adaptContractToContractDataSource(sdkInstance.GetContract()),
-		MarketAppID:         basetypes.NewStringPointerValue(sdkInstance.MarketAppId.Get()),
+		Image:               adaptImageToImageDataSource(instanceDetails.GetImage()),
+		MarketAppID:         basetypes.NewStringPointerValue(instanceDetails.MarketAppId.Get()),
+		RootDiskSize:        basetypes.NewInt32Value(instanceDetails.GetRootDiskSize()),
+		RootDiskStorageType: basetypes.NewStringValue(string(instanceDetails.GetRootDiskStorageType())),
+		Region:              basetypes.NewStringValue(string(instanceDetails.GetRegion())),
+		Reference:           basetypes.NewStringPointerValue(instanceDetails.Reference.Get()),
+		State:               basetypes.NewStringValue(string(instanceDetails.GetState())),
+		Type:                basetypes.NewStringValue(string(instanceDetails.GetType())),
 	}
+
+	sdkIso, _ := instanceDetails.GetIsoOk()
+	if sdkIso != nil {
+		iso := adaptIsoToISODataSource(*sdkIso)
+		instance.ISO = &iso
+	}
+
+	return instance
 }
 
-type iPDataSourceModel struct {
+type ipDataSourceModel struct {
 	IP types.String `tfsdk:"ip"`
 }
 
@@ -82,48 +112,15 @@ type instancesDataSourceModel struct {
 	Instances []instanceDataSourceModel `tfsdk:"instances"`
 }
 
-func adaptInstancesToInstancesDataSource(sdkInstances []publiccloud.Instance) instancesDataSourceModel {
+func adaptInstancesToInstancesDataSource(instanceDetailsList instanceDetailsList) instancesDataSourceModel {
 	var instances instancesDataSourceModel
 
-	for _, sdkInstance := range sdkInstances {
-		instance := adaptInstanceToInstanceDataSource(sdkInstance)
+	for _, instanceDetails := range instanceDetailsList {
+		instance := adaptInstanceDetailsToInstanceDataSource(instanceDetails)
 		instances.Instances = append(instances.Instances, instance)
 	}
 
 	return instances
-}
-
-func getAllInstances(
-	ctx context.Context,
-	api publiccloud.PubliccloudAPI,
-) ([]publiccloud.Instance, *http.Response, error) {
-	var instances []publiccloud.Instance
-	var offset *int32
-
-	request := api.GetInstanceList(ctx)
-
-	for {
-		result, httpResponse, err := request.Execute()
-		if err != nil {
-			return nil, httpResponse, fmt.Errorf("getAllInstances: %w", err)
-		}
-		instances = append(instances, result.Instances...)
-
-		metadata := result.GetMetadata()
-
-		offset = utils.NewOffset(
-			metadata.GetLimit(),
-			metadata.GetOffset(),
-			metadata.GetTotalCount(),
-		)
-		if offset == nil {
-			break
-		}
-
-		request = request.Offset(*offset)
-	}
-
-	return instances, nil, nil
 }
 
 func NewInstancesDataSource() datasource.DataSource {
@@ -175,17 +172,71 @@ func (d *instancesDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	instances, httpResponse, err := getAllInstances(ctx, d.client)
-	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", d.name)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
-		return
+	summary := fmt.Sprintf("Reading data %s", d.name)
+
+	var instances []publiccloud.Instance
+	var offset *int32
+
+	// Get instances
+	request := d.client.GetInstanceList(ctx)
+	for {
+		result, httpResponse, err := request.Execute()
+		if err != nil {
+			utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+			return
+		}
+
+		instances = append(instances, result.Instances...)
+
+		metadata := result.GetMetadata()
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+		if offset == nil {
+			break
+		}
+		request = request.Offset(*offset)
+	}
+
+	// Get instanceDetails for each instance
+	var instanceDetailsList instanceDetailsList
+	resultChan := make(chan publiccloud.InstanceDetails)
+	errorChan := make(chan instanceDetailsErr)
+	for _, instance := range instances {
+		go func(id string) {
+			instanceDetails, httpResponse, err := d.client.GetInstance(ctx, id).Execute()
+			if err != nil {
+				errorChan <- instanceDetailsErr{
+					err:          err,
+					httpResponse: httpResponse,
+				}
+				return
+			}
+			resultChan <- *instanceDetails
+		}(instance.Id)
+	}
+	for i := 0; i < len(instances); i++ {
+		select {
+		case err := <-errorChan:
+			utils.Error(
+				ctx,
+				&resp.Diagnostics,
+				summary,
+				err.err,
+				err.httpResponse,
+			)
+			return
+		case res := <-resultChan:
+			instanceDetailsList = append(instanceDetailsList, res)
+		}
 	}
 
 	resp.Diagnostics.Append(
 		resp.State.Set(
 			ctx,
-			adaptInstancesToInstancesDataSource(instances),
+			adaptInstancesToInstancesDataSource(instanceDetailsList.orderById()),
 		)...,
 	)
 }
@@ -215,37 +266,15 @@ func (d *instancesDataSource) Schema(
 							Computed:    true,
 							Description: "The instance unique identifier",
 						},
-						"region": schema.StringAttribute{
+						"iso": schema.SingleNestedAttribute{
 							Computed: true,
-						},
-						"reference": schema.StringAttribute{
-							Computed:    true,
-							Description: "The identifying name set to the instance",
-						},
-						"image": schema.SingleNestedAttribute{
-							Computed:   true,
-							Attributes: imageSchemaAttributes(),
-						},
-						"state": schema.StringAttribute{
-							Computed:    true,
-							Description: "The instance's current state",
-						},
-						"type": schema.StringAttribute{
-							Computed: true,
-						},
-						"root_disk_size": schema.Int32Attribute{
-							Computed:    true,
-							Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
-						},
-						"root_disk_storage_type": schema.StringAttribute{
-							Computed:    true,
-							Description: "The root disk's storage type",
-						},
-						"ips": schema.ListNestedAttribute{
-							Computed: true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"ip": schema.StringAttribute{Computed: true},
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									Computed:    true,
+									Description: "The ISO ID.",
+								},
+								"name": schema.StringAttribute{
+									Computed: true,
 								},
 							},
 						},
@@ -282,6 +311,40 @@ func (d *instancesDataSource) Schema(
 						"market_app_id": schema.StringAttribute{
 							Computed:    true,
 							Description: "Market App ID",
+						},
+						"reference": schema.StringAttribute{
+							Computed:    true,
+							Description: "The identifying name set to the instance",
+						},
+						"region": schema.StringAttribute{
+							Computed: true,
+						},
+						"root_disk_size": schema.Int32Attribute{
+							Computed:    true,
+							Description: "The root disk's size in GB. Must be at least 5 GB for Linux and FreeBSD instances and 50 GB for Windows instances",
+						},
+						"root_disk_storage_type": schema.StringAttribute{
+							Computed:    true,
+							Description: "The root disk's storage type",
+						},
+						"image": schema.SingleNestedAttribute{
+							Computed:   true,
+							Attributes: imageSchemaAttributes(),
+						},
+						"ips": schema.ListNestedAttribute{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"ip": schema.StringAttribute{Computed: true},
+								},
+							},
+						},
+						"state": schema.StringAttribute{
+							Computed:    true,
+							Description: "The instance's current state",
+						},
+						"type": schema.StringAttribute{
+							Computed: true,
 						},
 					},
 				},

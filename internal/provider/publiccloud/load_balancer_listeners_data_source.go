@@ -30,12 +30,12 @@ func (l loadBalancerListenersDataSourceModel) generateRequest(
 	return api.GetLoadBalancerListenerList(ctx, l.LoadBalancerID.ValueString())
 }
 
-func adaptLoadBalancerListenersToLoadBalancerListenersDataSource(sdkLoadBalancerListeners []publiccloud.LoadBalancerListener) loadBalancerListenersDataSourceModel {
+func adaptLoadBalancerListenersToLoadBalancerListenersDataSource(loadBalancerListeners []publiccloud.LoadBalancerListener) loadBalancerListenersDataSourceModel {
 	var listeners loadBalancerListenersDataSourceModel
 
-	for _, sdkLoadBalancerListener := range sdkLoadBalancerListeners {
+	for _, loadBalancerListener := range loadBalancerListeners {
 		listener := loadBalancerListenerDataSourceModel{
-			ID: basetypes.NewStringValue(sdkLoadBalancerListener.GetId()),
+			ID: basetypes.NewStringValue(loadBalancerListener.GetId()),
 		}
 		listeners.Listeners = append(listeners.Listeners, listener)
 	}

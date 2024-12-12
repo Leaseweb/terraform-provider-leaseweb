@@ -164,6 +164,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		publiccloud.NewLoadBalancersDataSource,
 		publiccloud.NewLoadBalancerListenersDataSource,
 		publiccloud.NewTargetGroupsDataSource,
+		publiccloud.NewISOsDataSource,
 	}
 }
 
@@ -180,6 +181,7 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 		publiccloud.NewLoadBalancerResource,
 		publiccloud.NewLoadBalancerListenerResource,
 		publiccloud.NewTargetGroupResource,
+		publiccloud.NewIPResource,
 		publiccloud.NewInstanceIsoResource,
 	}
 }
