@@ -60,14 +60,7 @@ func (n *notificationSettingBandwidthResource) Configure(
 	coreClient, ok := req.ProviderData.(client.Client)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
 		return
 	}
 
@@ -139,12 +132,7 @@ func (n *notificationSettingBandwidthResource) Create(
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Creating resource %s for dedicated_server_id %q",
-			n.name,
-			plan.DedicatedServerId.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -180,13 +168,7 @@ func (n *notificationSettingBandwidthResource) Read(
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading resource %s for id %q and dedicated_server_id %q",
-			n.name,
-			state.Id.ValueString(),
-			state.DedicatedServerId.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -227,13 +209,7 @@ func (n *notificationSettingBandwidthResource) Update(
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Updating resource %s for id %q and dedicated_server_id %q",
-			n.name,
-			plan.Id.ValueString(),
-			plan.DedicatedServerId.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -269,12 +245,6 @@ func (n *notificationSettingBandwidthResource) Delete(
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting resource %s for id %q and dedicated_server_id %q",
-			n.name,
-			state.Id.ValueString(),
-			state.DedicatedServerId.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 	}
 }

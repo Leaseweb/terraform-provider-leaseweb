@@ -260,14 +260,7 @@ func (l *loadBalancerListenerResource) Configure(
 	coreClient, ok := request.ProviderData.(client.Client)
 
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 
@@ -360,11 +353,9 @@ func (l *loadBalancerListenerResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Creating resource %s", l.name)
-
 	opts, err := plan.generateLoadBalancerListenerCreateOpts(ctx)
 	if err != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -373,16 +364,16 @@ func (l *loadBalancerListenerResource) Create(
 		plan.LoadBalancerID.ValueString(),
 	).LoadBalancerListenerCreateOpts(*opts).Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	state, resourceErr := adaptLoadBalancerListenerToLoadBalancerListenerResource(
+	state, err := adaptLoadBalancerListenerToLoadBalancerListenerResource(
 		*loadBalancerListener,
 		ctx,
 	)
-	if resourceErr != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+	if err != nil {
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -403,26 +394,19 @@ func (l *loadBalancerListenerResource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading resource %s for load_balancer_id %q listener_id %q",
-		l.name,
-		state.LoadBalancerID.ValueString(),
-		state.ListenerID.ValueString(),
-	)
-
 	loadBalancerListenerDetails, httpResponse, err := l.client.GetLoadBalancerListener(
 		ctx,
 		state.LoadBalancerID.ValueString(),
 		state.ListenerID.ValueString(),
 	).Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	newState, resourceErr := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*loadBalancerListenerDetails, ctx)
-	if resourceErr != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
+	newState, err := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*loadBalancerListenerDetails, ctx)
+	if err != nil {
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -446,16 +430,9 @@ func (l *loadBalancerListenerResource) Update(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Updating resource %s for load_balancer_id %q listener_id %q",
-		l.name,
-		plan.LoadBalancerID.ValueString(),
-		plan.ListenerID.ValueString(),
-	)
-
 	opts, err := plan.generateLoadBalancerListenerUpdateOpts(ctx)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -468,16 +445,16 @@ func (l *loadBalancerListenerResource) Update(
 		LoadBalancerListenerOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	state, resourceErr := adaptLoadBalancerListenerToLoadBalancerListenerResource(
+	state, err := adaptLoadBalancerListenerToLoadBalancerListenerResource(
 		*loadBalancerListener,
 		ctx,
 	)
-	if resourceErr != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
+	if err != nil {
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -507,13 +484,7 @@ func (l *loadBalancerListenerResource) Delete(
 		state.ListenerID.ValueString(),
 	).Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting resource %s for instance_id %q listener_id %q",
-			l.name,
-			state.LoadBalancerID.ValueString(),
-			state.ListenerID.ValueString(),
-		)
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 	}
 }
 
@@ -525,12 +496,10 @@ func (l *loadBalancerListenerResource) ImportState(
 	idParts := strings.Split(request.ID, ",")
 
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-		response.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf(
-				"Expected import identifier with format: load_balancer_id,listener_id. Got: %q",
-				request.ID,
-			),
+		utils.UnexpectedImportIdentifierError(
+			&response.Diagnostics,
+			"load_balancer_id,listener_id",
+			request.ID,
 		)
 		return
 	}

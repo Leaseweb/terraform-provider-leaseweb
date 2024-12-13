@@ -60,14 +60,7 @@ func (c *credentialResource) Configure(
 	coreClient, ok := req.ProviderData.(client.Client)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
 		return
 	}
 
@@ -143,13 +136,7 @@ func (c *credentialResource) Create(
 	).StoreCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Creating %s for username: %q and instance_id: %q",
-			c.name,
-			plan.Username.ValueString(),
-			plan.InstanceID.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -185,13 +172,7 @@ func (c *credentialResource) Read(
 	)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading %s for username: %q and instance_id: %q",
-			c.name,
-			state.Username.ValueString(),
-			state.InstanceID.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -230,13 +211,7 @@ func (c *credentialResource) Update(
 	).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Updating %s for username: %q and instance_id: %q",
-			c.name,
-			plan.Username.ValueString(),
-			plan.InstanceID.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -272,12 +247,6 @@ func (c *credentialResource) Delete(
 	)
 	response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting %s for username: %q and instance_id: %q",
-			c.name,
-			state.Username.ValueString(),
-			state.InstanceID.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 	}
 }

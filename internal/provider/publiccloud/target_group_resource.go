@@ -307,11 +307,9 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Creating resource %s", t.name)
-
 	opts, err := plan.generateCreateOpts(ctx)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -320,7 +318,7 @@ func (t *targetGroupResource) Create(
 		Execute()
 
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -329,7 +327,7 @@ func (t *targetGroupResource) Create(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -347,17 +345,11 @@ func (t *targetGroupResource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading resource %s for ID %q",
-		t.name,
-		state.ID.ValueString(),
-	)
-
 	sdkTargetGroup, httpResponse, err := t.client.
 		GetTargetGroup(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -366,7 +358,7 @@ func (t *targetGroupResource) Read(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -384,15 +376,9 @@ func (t *targetGroupResource) Update(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Updating resource %s for ID %q",
-		t.name,
-		plan.ID.ValueString(),
-	)
-
 	opts, err := plan.generateUpdateOpts(ctx)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -401,7 +387,7 @@ func (t *targetGroupResource) Update(
 		UpdateTargetGroupOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -410,7 +396,7 @@ func (t *targetGroupResource) Update(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, nil, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -434,12 +420,7 @@ func (t *targetGroupResource) Delete(
 	).Execute()
 
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Deleting resource %s for ID %q",
-			t.name,
-			state.ID.ValueString(),
-		)
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 	}
 }
 
@@ -455,14 +436,7 @@ func (t *targetGroupResource) Configure(
 	coreClient, ok := request.ProviderData.(client.Client)
 
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 

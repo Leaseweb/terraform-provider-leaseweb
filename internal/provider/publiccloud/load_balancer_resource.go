@@ -161,14 +161,7 @@ func (l *loadBalancerResource) Configure(
 	coreClient, ok := request.ProviderData.(client.Client)
 
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 
@@ -287,11 +280,9 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Launching resource %s", l.name)
-
 	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
 	if err != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -300,7 +291,7 @@ func (l *loadBalancerResource) Create(
 		Execute()
 
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -309,7 +300,7 @@ func (l *loadBalancerResource) Create(
 		ctx,
 	)
 	if err != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -327,23 +318,17 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading resource %s for id %q",
-		l.name,
-		state.ID.ValueString(),
-	)
-
 	loadBalancerDetails, httpResponse, err := l.client.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	newState, resourceErr := adaptLoadBalancerDetailsToLoadBalancerResource(*loadBalancerDetails, ctx)
-	if resourceErr != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, resourceErr, nil)
+	newState, err := adaptLoadBalancerDetailsToLoadBalancerResource(*loadBalancerDetails, ctx)
+	if err != nil {
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -361,15 +346,9 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Updating resource %s for id %q",
-		l.name,
-		plan.ID.ValueString(),
-	)
-
 	opts, err := plan.GetUpdateLoadBalancerOpts()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -378,7 +357,7 @@ func (l *loadBalancerResource) Update(
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
@@ -386,7 +365,7 @@ func (l *loadBalancerResource) Update(
 		ctx,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, state)...)
@@ -405,8 +384,7 @@ func (l *loadBalancerResource) Delete(
 
 	httpResponse, err := l.client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Terminating resource %s for id %q", l.name, state.ID.ValueString())
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 	}
 }
 
