@@ -220,20 +220,17 @@ func (i *imageResource) Create(
 	}
 
 	opts := plan.getCreateImageOpts()
-	summary := fmt.Sprintf("Creating resource %s", i.name)
-
 	image, httpResponse, err := i.client.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	state, resourceErr := adaptImageDetailsToImageResource(ctx, *image)
-	if resourceErr != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
-
+	state, err := adaptImageDetailsToImageResource(ctx, *image)
+	if err != nil {
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 	// instanceId has to be set manually as it isn't returned from the API
@@ -253,21 +250,19 @@ func (i *imageResource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf("Reading resource %s", i.name)
-
 	image, httpResponse, err := getImage(
 		currentState.ID.ValueString(),
 		ctx,
 		i.client,
 	)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	state, resourceErr := adaptImageDetailsToImageResource(ctx, *image)
-	if resourceErr != nil {
-		response.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+	state, err := adaptImageDetailsToImageResource(ctx, *image)
+	if err != nil {
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 
 		return
 	}
@@ -296,19 +291,13 @@ func (i *imageResource) Update(
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Updating resource %s for id %q",
-			i.name,
-			plan.ID.ValueString(),
-		)
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
 	state, err := adaptImageDetailsToImageResource(ctx, *imageDetails)
 	if err != nil {
-		summary := fmt.Sprintf("Reading resource %s", i.name)
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
@@ -335,14 +324,7 @@ func (i *imageResource) Configure(
 	coreClient, ok := request.ProviderData.(client.Client)
 
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 

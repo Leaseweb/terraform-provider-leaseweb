@@ -14,7 +14,61 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-const DefaultErrMsg = "An error has occurred in the program. Please consider opening an issue."
+const defaultErrMsg = "An error has occurred in the program. Please consider opening an issue."
+
+// GeneralError should be called when general errors need to be handled.
+func GeneralError(diags *diag.Diagnostics, ctx context.Context, err error) {
+	if err != nil {
+		tflog.Debug(ctx, err.Error())
+	}
+	diags.AddError("Unexpected Error", defaultErrMsg)
+}
+
+// ImportOnlyError should be used in resource Read() functions for resources that can only be imported.
+func ImportOnlyError(diags *diag.Diagnostics) {
+	diags.AddError("Resource can only be imported, not created.", "")
+}
+
+// ConfigError should be used in resource/data source Configure() functions to handle unexpected resource configure types.
+func ConfigError(diags *diag.Diagnostics, providerData any) {
+	diags.AddError(
+		"Unexpected Resource Configure Type",
+		fmt.Sprintf(
+			"Expected client.Client, got: %T. Please report this issue to the provider developers.",
+			providerData,
+		),
+	)
+}
+
+// UnexpectedImportIdentifierError should be used in Import() functions where the identifier is incorrect.
+func UnexpectedImportIdentifierError(diags *diag.Diagnostics, format string, got string) {
+	diags.AddError(
+		"Unexpected Import Identifier",
+		fmt.Sprintf(
+			"Expected import identifier with format: %q. Got: %q",
+			format,
+			got,
+		),
+	)
+}
+
+// SdkError should be used to handle errors returned by the SDK.
+func SdkError(
+	ctx context.Context,
+	diags *diag.Diagnostics,
+	err error,
+	resp *http.Response,
+) {
+	errorHandler := errorHandler{
+		ctx:     ctx,
+		diags:   diags,
+		summary: "Unexpected API Error",
+		err:     err,
+		resp:    resp,
+	}
+
+	errorHandler.report()
+}
 
 type errorResponse struct {
 	ErrorCode     string              `json:"errorCode,omitempty"`
@@ -32,34 +86,15 @@ type errorHandler struct {
 	ctx     context.Context
 }
 
-func Error(
-	ctx context.Context,
-	diags *diag.Diagnostics,
-	summary string,
-	err error,
-	resp *http.Response,
-) {
-
-	errorHandler := errorHandler{
-		ctx:     ctx,
-		diags:   diags,
-		summary: summary,
-		err:     err,
-		resp:    resp,
-	}
-
-	errorHandler.report()
-}
-
 func (e *errorHandler) report() {
 	if e.diags == nil {
 		e.writeLog("unable to record error details.")
-		log.Fatal(e.summary, DefaultErrMsg)
+		log.Fatal(e.summary, defaultErrMsg)
 	}
 
 	if e.err == nil {
 		e.writeLog("No error detail found.")
-		e.writeOutput(DefaultErrMsg)
+		e.writeOutput(defaultErrMsg)
 		return
 	}
 
@@ -95,7 +130,7 @@ func (e *errorHandler) handleHTTPError() {
 	var errorResponse errorResponse
 	if err := json.NewDecoder(e.resp.Body).Decode(&errorResponse); err != nil {
 		e.writeLog(fmt.Sprintf("error decoding HTTP response body: %v", err))
-		e.writeOutput(DefaultErrMsg)
+		e.writeOutput(defaultErrMsg)
 		return
 	}
 
@@ -118,7 +153,7 @@ func (e *errorHandler) processErrorResponse(errorResponse errorResponse) {
 			"failed to format error response as JSON: %v",
 			err,
 		))
-		e.writeOutput(DefaultErrMsg)
+		e.writeOutput(defaultErrMsg)
 		return
 	}
 

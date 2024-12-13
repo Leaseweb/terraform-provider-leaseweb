@@ -89,14 +89,7 @@ func (s *serverResource) Configure(
 	coreClient, ok := req.ProviderData.(client.Client)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
 		return
 	}
 
@@ -217,12 +210,7 @@ func (s *serverResource) Read(
 
 	newState, response, err := s.getServer(ctx, state.ID.ValueString())
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Reading resource %s for id %q",
-			s.name,
-			state.ID.ValueString(),
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -243,12 +231,7 @@ func (s *serverResource) ImportState(
 
 	state, response, err := s.getServer(ctx, req.ID)
 	if err != nil {
-		summary := fmt.Sprintf(
-			"Importing resource %s for id %q",
-			s.name,
-			req.ID,
-		)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
@@ -280,12 +263,7 @@ func (s *serverResource) Update(
 			state.ID.ValueString(),
 		).UpdateServerReferenceOpts(*opts).Execute()
 		if err != nil {
-			summary := fmt.Sprintf(
-				"Updating resource %s reference for id %q",
-				s.name,
-				plan.ID.ValueString(),
-			)
-			utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+			utils.SdkError(ctx, &resp.Diagnostics, err, response)
 			return
 		}
 		state.Reference = plan.Reference
@@ -297,24 +275,14 @@ func (s *serverResource) Update(
 			request := s.client.PowerServerOn(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s powering on for id %q",
-					s.name,
-					state.ID.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
 			request := s.client.PowerServerOff(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s powering off for id %q",
-					s.name,
-					state.ID.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		}
@@ -332,12 +300,7 @@ func (s *serverResource) Update(
 			state.PublicIP.ValueString(),
 		).UpdateIpProfileOpts(*opts).Execute()
 		if err != nil {
-			summary := fmt.Sprintf(
-				"Updating resource %s reverse lookup for id %q",
-				s.name,
-				state.ID.ValueString(),
-			)
-			utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+			utils.SdkError(ctx, &resp.Diagnostics, err, response)
 			return
 		}
 		state.ReverseLookup = plan.ReverseLookup
@@ -352,13 +315,7 @@ func (s *serverResource) Update(
 				state.PublicIP.ValueString(),
 			).Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s null routing an ip for id %q and ip %q",
-					s.name,
-					state.ID.ValueString(),
-					state.PublicIP.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
@@ -368,13 +325,7 @@ func (s *serverResource) Update(
 				state.PublicIP.ValueString(),
 			).Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s remove null routing an ip for id %q and ip %q",
-					s.name,
-					state.ID.ValueString(),
-					state.PublicIP.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		}
@@ -390,12 +341,7 @@ func (s *serverResource) Update(
 				state.ID.ValueString(),
 			).CreateServerDhcpReservationOpts(*opts).Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s creating a DHCP reservation for id %q",
-					s.name,
-					state.ID.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
@@ -404,12 +350,7 @@ func (s *serverResource) Update(
 				state.ID.ValueString(),
 			).Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s deleting DHCP reservation for id %q",
-					s.name,
-					state.ID.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		}
@@ -425,12 +366,7 @@ func (s *serverResource) Update(
 				dedicatedserver.NETWORKTYPEURL_PUBLIC,
 			).Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s opening public network interface for id %q",
-					s.name,
-					state.ID.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
@@ -440,12 +376,7 @@ func (s *serverResource) Update(
 				dedicatedserver.NETWORKTYPEURL_PUBLIC,
 			).Execute()
 			if err != nil {
-				summary := fmt.Sprintf(
-					"Updating resource %s closing public network interface for id %q",
-					s.name,
-					state.ID.ValueString(),
-				)
-				utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		}
@@ -456,20 +387,11 @@ func (s *serverResource) Update(
 }
 
 func (s *serverResource) Create(
-	ctx context.Context,
+	_ context.Context,
 	_ resource.CreateRequest,
 	response *resource.CreateResponse,
 ) {
-	utils.Error(
-		ctx,
-		&response.Diagnostics,
-		fmt.Sprintf(
-			"Resource %s can only be imported, not created.",
-			s.name,
-		),
-		nil,
-		nil,
-	)
+	utils.ImportOnlyError(&response.Diagnostics)
 }
 
 func (s *serverResource) Delete(

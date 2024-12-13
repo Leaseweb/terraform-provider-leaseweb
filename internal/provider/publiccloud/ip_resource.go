@@ -68,12 +68,10 @@ func (i *ipResource) ImportState(
 	idParts := strings.Split(request.ID, ",")
 
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-		response.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf(
-				"Expected import identifier with format: instance_id,ip. Got: %q",
-				request.ID,
-			),
+		utils.UnexpectedImportIdentifierError(
+			&response.Diagnostics,
+			"instance_id,ip",
+			request.ID,
 		)
 		return
 	}
@@ -124,20 +122,11 @@ func (i *ipResource) Schema(
 }
 
 func (i *ipResource) Create(
-	ctx context.Context,
+	_ context.Context,
 	_ resource.CreateRequest,
 	response *resource.CreateResponse,
 ) {
-	utils.Error(
-		ctx,
-		&response.Diagnostics,
-		fmt.Sprintf(
-			"Resource %s can only be imported, not created.",
-			i.name,
-		),
-		nil,
-		nil,
-	)
+	utils.ImportOnlyError(&response.Diagnostics)
 }
 
 func (i *ipResource) Read(
@@ -157,18 +146,7 @@ func (i *ipResource) Read(
 		state.IP.ValueString(),
 	).Execute()
 	if err != nil {
-		utils.Error(
-			ctx,
-			&response.Diagnostics,
-			fmt.Sprintf(
-				"Reading resource %s for instance_id %q ip %q",
-				i.name,
-				state.InstanceID.ValueString(),
-				state.IP.ValueString(),
-			),
-			err,
-			httpResponse,
-		)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -197,18 +175,7 @@ func (i *ipResource) Update(
 		plan.IP.ValueString(),
 	).UpdateIpOpts(opts).Execute()
 	if err != nil {
-		utils.Error(
-			ctx,
-			&response.Diagnostics,
-			fmt.Sprintf(
-				"Updating resource %s for instance_id %q ip %q",
-				i.name,
-				plan.InstanceID.ValueString(),
-				plan.IP.ValueString(),
-			),
-			err,
-			httpResponse,
-		)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -239,14 +206,7 @@ func (i *ipResource) Configure(
 	coreClient, ok := request.ProviderData.(client.Client)
 
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 

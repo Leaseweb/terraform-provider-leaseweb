@@ -45,14 +45,7 @@ func (s *serversDataSource) Configure(
 	coreClient, ok := req.ProviderData.(client.Client)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
 		return
 	}
 
@@ -109,8 +102,7 @@ func (s *serversDataSource) Read(
 
 	result, response, err := request.Execute()
 	if err != nil {
-		summary := fmt.Sprintf("Reading data %s", s.name)
-		utils.Error(ctx, &resp.Diagnostics, summary, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 	for _, server := range result.GetServers() {

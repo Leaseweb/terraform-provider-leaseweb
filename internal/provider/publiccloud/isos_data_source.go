@@ -123,7 +123,7 @@ func (i *isosDataSource) Read(
 ) {
 	ISOs, httpResponse, err := getISOs(ctx, i.client)
 	if err != nil {
-		utils.Error(ctx, &resp.Diagnostics, fmt.Sprintf("Reading data %s", i.name), err, httpResponse)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -146,13 +146,7 @@ func (i *isosDataSource) Configure(
 
 	coreClient, ok := request.ProviderData.(client.Client)
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 

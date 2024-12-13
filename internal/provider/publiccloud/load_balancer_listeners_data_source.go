@@ -135,23 +135,9 @@ func (l *loadBalancerListenersDataSource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading data %s for load_balancer_id %q",
-		l.name,
-		config.LoadBalancerID,
-	)
-
 	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.client))
-
 	if err != nil {
-		utils.Error(
-			ctx,
-			&response.Diagnostics,
-			summary,
-			err,
-			httpResponse,
-		)
-
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -172,14 +158,7 @@ func (l *loadBalancerListenersDataSource) Configure(
 
 	coreClient, ok := request.ProviderData.(client.Client)
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 

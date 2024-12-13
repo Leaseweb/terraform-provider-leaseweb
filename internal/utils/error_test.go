@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestError(t *testing.T) {
+func TestSdkError(t *testing.T) {
 	t.Run("adds generic error when err is nil", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 		httpResponse := http.Response{
@@ -22,10 +22,10 @@ func TestError(t *testing.T) {
 			Body:       io.NopCloser(bytes.NewReader([]byte(``))),
 		}
 
-		Error(context.TODO(), &diags, "summary", nil, &httpResponse)
+		SdkError(context.TODO(), &diags, nil, &httpResponse)
 
 		assert.Len(t, diags.Errors(), 1)
-		assert.Equal(t, "summary", diags.Errors()[0].Summary())
+		assert.Equal(t, "Unexpected API Error", diags.Errors()[0].Summary())
 		assert.Equal(
 			t,
 			"An error has occurred in the program. Please consider opening an issue.",
@@ -40,16 +40,15 @@ func TestError(t *testing.T) {
 			Body:       io.NopCloser(bytes.NewReader([]byte(`{"key":"value"}`))),
 		}
 
-		Error(
+		SdkError(
 			context.TODO(),
 			&diags,
-			"summary",
 			errors.New("SDK error: enum doesn't match"),
 			&httpResponse,
 		)
 
 		assert.Len(t, diags.Errors(), 1)
-		assert.Equal(t, "summary", diags.Errors()[0].Summary())
+		assert.Equal(t, "Unexpected API Error", diags.Errors()[0].Summary())
 		assert.Equal(t, "SDK error: enum doesn't match", diags.Errors()[0].Detail())
 	})
 
@@ -73,10 +72,9 @@ func TestError(t *testing.T) {
 			),
 		}
 
-		Error(
+		SdkError(
 			context.TODO(),
 			&diags,
-			"summary",
 			errors.New("error content"),
 			&httpResponse,
 		)
@@ -85,7 +83,7 @@ func TestError(t *testing.T) {
 		want := diag.Diagnostics{}
 		want.AddAttributeError(
 			attributePath,
-			"summary",
+			"Unexpected API Error",
 			"the name is invalid",
 		)
 		assert.Equal(t, want, diags.Errors())
@@ -108,16 +106,15 @@ func TestError(t *testing.T) {
 			),
 		}
 
-		Error(
+		SdkError(
 			context.TODO(),
 			&diags,
-			"summary",
 			errors.New("error content"),
 			&httpResponse,
 		)
 
 		assert.Len(t, diags.Errors(), 1)
-		assert.Equal(t, "summary", diags.Errors()[0].Summary())
+		assert.Equal(t, "Unexpected API Error", diags.Errors()[0].Summary())
 		assert.Equal(
 			t,
 			"{\n  \"errorCode\": \"404\",\n  \"errorMessage\": \"Server not found\",\n  \"correlationId\": \"correlationId\"\n}",
@@ -126,7 +123,7 @@ func TestError(t *testing.T) {
 	})
 }
 
-func ExampleError() {
+func ExampleSdkError() {
 	diags := diag.Diagnostics{}
 
 	httpResponse := http.Response{
@@ -147,16 +144,10 @@ func ExampleError() {
 		),
 	}
 
-	Error(
-		context.TODO(),
-		&diags,
-		"summary",
-		errors.New("error content"),
-		&httpResponse,
-	)
+	SdkError(context.TODO(), &diags, errors.New("error content"), &httpResponse)
 
 	fmt.Println(diags.Errors())
-	// Output: [{{the name is invalid summary} {[name]}}]
+	// Output: [{{the name is invalid Unexpected API Error} {[name]}}]
 }
 
 func Test_mapErrorDetailsKey(t *testing.T) {
@@ -301,7 +292,7 @@ func Test_errorHandler_handleHTTPError(t *testing.T) {
 			errorHandler.handleHTTPError()
 
 			want := diag.Diagnostics{}
-			want.AddError("summary", DefaultErrMsg)
+			want.AddError("summary", defaultErrMsg)
 
 			assert.Equal(t, want, diags)
 		},
@@ -340,9 +331,97 @@ func Test_errorHandler_report(t *testing.T) {
 		errorHandler.report()
 
 		want := diag.Diagnostics{}
-		want.AddError("summary", DefaultErrMsg)
+		want.AddError("summary", defaultErrMsg)
 
 		assert.Equal(t, want, diags)
 	})
 
+}
+
+func TestGeneralError(t *testing.T) {
+	diags := diag.Diagnostics{}
+	GeneralError(&diags, context.TODO(), errors.New("tralala"))
+
+	assert.Len(t, diags.Errors(), 1)
+	assert.Equal(t, diags.Errors()[0].Summary(), "Unexpected Error")
+	assert.Equal(t, diags.Errors()[0].Detail(), defaultErrMsg)
+}
+
+func ExampleGeneralError() {
+	diags := diag.Diagnostics{}
+	GeneralError(&diags, context.TODO(), errors.New("error content"))
+
+	fmt.Println(diags.Errors())
+	// Output: [{An error has occurred in the program. Please consider opening an issue. Unexpected Error}]
+}
+
+func TestImportOnlyError(t *testing.T) {
+	diags := diag.Diagnostics{}
+	ImportOnlyError(&diags)
+
+	assert.Len(t, diags.Errors(), 1)
+	assert.Equal(
+		t,
+		diags.Errors()[0].Summary(),
+		"Resource can only be imported, not created.",
+	)
+	assert.Equal(t, diags.Errors()[0].Detail(), "")
+}
+
+func ExampleImportOnlyError() {
+	diags := diag.Diagnostics{}
+	ImportOnlyError(&diags)
+
+	fmt.Println(diags.Errors())
+	// Output: [{ Resource can only be imported, not created.}]
+}
+
+func TestUnexpectedImportIdentifierError(t *testing.T) {
+	diags := diag.Diagnostics{}
+	UnexpectedImportIdentifierError(&diags, "format", "got")
+
+	assert.Len(t, diags.Errors(), 1)
+	assert.Equal(t, diags.Errors()[0].Summary(), "Unexpected Import Identifier")
+	assert.Equal(
+		t,
+		diags.Errors()[0].Detail(),
+		`Expected import identifier with format: "format". Got: "got"`,
+	)
+}
+
+func ExampleUnexpectedImportIdentifierError() {
+	diags := diag.Diagnostics{}
+	UnexpectedImportIdentifierError(
+		&diags,
+		"load_balancer_id,listener_id",
+		"f6d09965-c857-4d9b-a17f-c21bf13ddcd4",
+	)
+
+	fmt.Println(diags.Errors())
+	// Output: [{Expected import identifier with format: "load_balancer_id,listener_id". Got: "f6d09965-c857-4d9b-a17f-c21bf13ddcd4" Unexpected Import Identifier}]
+}
+
+func TestConfigError(t *testing.T) {
+	diags := diag.Diagnostics{}
+	ConfigError(&diags, "tralala")
+
+	assert.Len(t, diags.Errors(), 1)
+	assert.Equal(
+		t,
+		diags.Errors()[0].Summary(),
+		"Unexpected Resource Configure Type",
+	)
+	assert.Equal(
+		t,
+		diags.Errors()[0].Detail(),
+		"Expected client.Client, got: string. Please report this issue to the provider developers.",
+	)
+}
+
+func ExampleConfigError() {
+	diags := diag.Diagnostics{}
+	ConfigError(&diags, "tralala")
+
+	fmt.Println(diags.Errors())
+	// Output: [{Expected client.Client, got: string. Please report this issue to the provider developers. Unexpected Resource Configure Type}]
 }

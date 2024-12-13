@@ -219,21 +219,15 @@ func (t *targetGroupsDataSource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading data %s for id %q",
-		t.name,
-		config.ID,
-	)
-
 	apiRequest, err := config.generateRequest(ctx, t.client)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, nil)
+		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
 	}
 
 	targetGroups, httpResponse, err := getTargetGroups(*apiRequest)
 	if err != nil {
-		utils.Error(ctx, &response.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -259,13 +253,7 @@ func (t *targetGroupsDataSource) Configure(
 
 	coreClient, ok := request.ProviderData.(client.Client)
 	if !ok {
-		response.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				request.ProviderData,
-			),
-		)
+		utils.ConfigError(&response.Diagnostics, request.ProviderData)
 		return
 	}
 

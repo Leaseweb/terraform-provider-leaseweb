@@ -310,14 +310,7 @@ func (i *instanceResource) Configure(
 	coreClient, ok := req.ProviderData.(client.Client)
 
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
 		return
 	}
 
@@ -335,11 +328,9 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	summary := fmt.Sprintf("Launching resource %s", i.name)
-
 	opts, err := plan.getLaunchOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&resp.Diagnostics, ctx, err)
 		return
 	}
 
@@ -347,7 +338,7 @@ func (i *instanceResource) Create(
 		LaunchInstanceOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -357,13 +348,13 @@ func (i *instanceResource) Create(
 		instance.GetId(),
 	).Execute()
 	if err != nil {
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
 	}
 
 	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&resp.Diagnostics, ctx, err)
 		return
 	}
 
@@ -386,17 +377,7 @@ func (i *instanceResource) Delete(
 		state.ID.ValueString(),
 	).Execute()
 	if err != nil {
-		utils.Error(
-			ctx,
-			&resp.Diagnostics,
-			fmt.Sprintf(
-				"Terminating resource %s for id %q",
-				i.name,
-				state.ID.ValueString(),
-			),
-			err,
-			httpResponse,
-		)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 	}
 }
 
@@ -432,17 +413,11 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Reading resource %s for id %q",
-		i.name,
-		state.ID.ValueString(),
-	)
-
 	instanceDetails, httpResponse, err := i.client.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
 	}
 
@@ -451,7 +426,7 @@ func (i *instanceResource) Read(
 		ctx,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&resp.Diagnostics, ctx, err)
 		return
 	}
 
@@ -469,15 +444,9 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	summary := fmt.Sprintf(
-		"Updating resource %s for id %q",
-		i.name,
-		plan.ID.ValueString(),
-	)
-
 	opts, err := plan.getUpdateOpts(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError(summary, utils.DefaultErrMsg)
+		utils.GeneralError(&resp.Diagnostics, ctx, err)
 		return
 	}
 
@@ -486,13 +455,13 @@ func (i *instanceResource) Update(
 		UpdateInstanceOpts(*opts).
 		Execute()
 	if err != nil {
-		utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
 	}
 
 	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
 	if err != nil {
-		utils.Error(ctx, &resp.Diagnostics, summary, err, nil)
+		utils.GeneralError(&resp.Diagnostics, ctx, err)
 		return
 	}
 

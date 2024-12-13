@@ -145,14 +145,7 @@ func (d *instancesDataSource) Configure(
 
 	coreClient, ok := req.ProviderData.(client.Client)
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf(
-				"Expected provider.Client, got: %T. Please report this issue to the provider developers.",
-				req.ProviderData,
-			),
-		)
-
+		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
 		return
 	}
 
@@ -172,8 +165,6 @@ func (d *instancesDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	summary := fmt.Sprintf("Reading data %s", d.name)
-
 	var instances []publiccloud.Instance
 	var offset *int32
 
@@ -182,7 +173,7 @@ func (d *instancesDataSource) Read(
 	for {
 		result, httpResponse, err := request.Execute()
 		if err != nil {
-			utils.Error(ctx, &resp.Diagnostics, summary, err, httpResponse)
+			utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 			return
 		}
 
@@ -220,13 +211,7 @@ func (d *instancesDataSource) Read(
 	for i := 0; i < len(instances); i++ {
 		select {
 		case err := <-errorChan:
-			utils.Error(
-				ctx,
-				&resp.Diagnostics,
-				summary,
-				err.err,
-				err.httpResponse,
-			)
+			utils.SdkError(ctx, &resp.Diagnostics, err.err, err.httpResponse)
 			return
 		case res := <-resultChan:
 			instanceDetailsList = append(instanceDetailsList, res)

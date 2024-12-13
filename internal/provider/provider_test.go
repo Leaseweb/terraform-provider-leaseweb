@@ -2700,7 +2700,7 @@ resource "leaseweb_dedicated_server" "test" {
 }
 `,
 					ExpectError: regexp.MustCompile(
-						"Resource dedicated_server can only be imported, not created.",
+						"Resource can only be imported, not created.",
 					),
 				},
 			},
@@ -2796,7 +2796,7 @@ resource "leaseweb_public_cloud_ip" "test" {
 }
 `,
 					ExpectError: regexp.MustCompile(
-						"Resource public_cloud_ip can only be imported, not created.",
+						"Resource can only be imported, not created.",
 					),
 				},
 			},
