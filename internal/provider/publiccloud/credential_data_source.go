@@ -22,7 +22,9 @@ type credentialDataSource struct {
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_credential"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_credential",
+		},
 	}
 }
 

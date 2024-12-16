@@ -412,6 +412,8 @@ func (t *targetGroupResource) Delete(
 
 func NewTargetGroupResource() resource.Resource {
 	return &targetGroupResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_target_group"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_target_group",
+		},
 	}
 }

@@ -28,7 +28,9 @@ var (
 
 func NewInstallationResource() resource.Resource {
 	return &installationResource{
-		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_installation"),
+		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+			Name: "dedicated_server_installation",
+		},
 	}
 }
 

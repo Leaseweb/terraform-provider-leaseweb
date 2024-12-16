@@ -361,6 +361,8 @@ func (l *loadBalancerResource) Delete(
 
 func NewLoadBalancerResource() resource.Resource {
 	return &loadBalancerResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_load_balancer"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_load_balancer",
+		},
 	}
 }

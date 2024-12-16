@@ -63,7 +63,9 @@ func (l locationResourceModel) attributeTypes() map[string]attr.Type {
 
 func NewServerResource() resource.Resource {
 	return &serverResource{
-		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server"),
+		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+			Name: "dedicated_server",
+		},
 	}
 }
 

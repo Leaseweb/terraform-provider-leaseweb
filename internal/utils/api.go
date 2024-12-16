@@ -16,32 +16,6 @@ func generateTypeName(providerTypeName string, name string) string {
 	return fmt.Sprintf("%s_%s", providerTypeName, name)
 }
 
-// ResourceAPI contains a reusable Metadata function for resources.
-type ResourceAPI struct {
-	Name string
-}
-
-func (r ResourceAPI) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = generateTypeName(request.ProviderTypeName, r.Name)
-}
-
-// DataSourceAPI contains a reusable Metadata function for data sources.
-type DataSourceAPI struct {
-	Name string
-}
-
-func (d DataSourceAPI) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = generateTypeName(request.ProviderTypeName, d.Name)
-}
-
 func getCoreClient(
 	providerData any,
 	diagnostics *diag.Diagnostics,
@@ -66,9 +40,9 @@ func getCoreClient(
 	return &coreClient
 }
 
-// PubliccloudResourceAPI contains ResourceAPI & the publiccloud.PubliccloudAPI client and a reusable Configure function.
+// PubliccloudResourceAPI contains reusable Configure & Metadata functions for resources that implement publiccloud.PubliccloudAPI.
 type PubliccloudResourceAPI struct {
-	ResourceAPI
+	Name   string
 	Client publiccloud.PubliccloudAPI
 }
 
@@ -85,18 +59,17 @@ func (p *PubliccloudResourceAPI) Configure(
 	p.Client = coreClient.PubliccloudAPI
 }
 
-// NewPubliccloudResourceAPI returns a new PubliccloudResourceAPI.
-func NewPubliccloudResourceAPI(name string) PubliccloudResourceAPI {
-	return PubliccloudResourceAPI{
-		ResourceAPI: ResourceAPI{
-			Name: name,
-		},
-	}
+func (p *PubliccloudResourceAPI) Metadata(
+	_ context.Context,
+	request resource.MetadataRequest,
+	response *resource.MetadataResponse,
+) {
+	response.TypeName = generateTypeName(request.ProviderTypeName, p.Name)
 }
 
-// PubliccloudDataSourceAPI contains DataSourceAPI & the publiccloud.PubliccloudAPI client and a reusable Configure function.
+// PubliccloudDataSourceAPI contains reusable Configure & Metadata functions for data sources that implement publiccloud.PubliccloudAPI.
 type PubliccloudDataSourceAPI struct {
-	DataSourceAPI
+	Name   string
 	Client publiccloud.PubliccloudAPI
 }
 
@@ -113,18 +86,17 @@ func (p *PubliccloudDataSourceAPI) Configure(
 	p.Client = coreClient.PubliccloudAPI
 }
 
-// NewPubliccloudDataSourceAPI returns a new PubliccloudDataSourceAPI.
-func NewPubliccloudDataSourceAPI(name string) PubliccloudDataSourceAPI {
-	return PubliccloudDataSourceAPI{
-		DataSourceAPI: DataSourceAPI{
-			Name: name,
-		},
-	}
+func (p *PubliccloudDataSourceAPI) Metadata(
+	_ context.Context,
+	request datasource.MetadataRequest,
+	response *datasource.MetadataResponse,
+) {
+	response.TypeName = generateTypeName(request.ProviderTypeName, p.Name)
 }
 
-// DedicatedserverResourceAPI contains ResourceAPI & the dedicatedserver.DedicatedserverAPI client and a reusable Configure function.
+// DedicatedserverResourceAPI contains reusable Configure & Metadata functions for resources that implement dedicatedserver.DedicatedserverAPI.
 type DedicatedserverResourceAPI struct {
-	ResourceAPI
+	Name   string
 	Client dedicatedserver.DedicatedserverAPI
 }
 
@@ -141,18 +113,17 @@ func (d *DedicatedserverResourceAPI) Configure(
 	d.Client = coreClient.DedicatedserverAPI
 }
 
-// NewDedicatedserverResourceAPI returns a new DedicatedserverResourceAPI.
-func NewDedicatedserverResourceAPI(name string) DedicatedserverResourceAPI {
-	return DedicatedserverResourceAPI{
-		ResourceAPI: ResourceAPI{
-			Name: name,
-		},
-	}
+func (d *DedicatedserverResourceAPI) Metadata(
+	_ context.Context,
+	request resource.MetadataRequest,
+	response *resource.MetadataResponse,
+) {
+	response.TypeName = generateTypeName(request.ProviderTypeName, d.Name)
 }
 
-// DedicatedserverDataSourceAPI contains DataSourceAPI & the dedicatedserver.DedicatedserverAPI client and a reusable Configure function.
+// DedicatedserverDataSourceAPI contains reusable Configure & Metadata functions for data sources that implement dedicatedserver.DedicatedserverAPI.
 type DedicatedserverDataSourceAPI struct {
-	DataSourceAPI
+	Name   string
 	Client dedicatedserver.DedicatedserverAPI
 }
 
@@ -169,11 +140,10 @@ func (d *DedicatedserverDataSourceAPI) Configure(
 	d.Client = coreClient.DedicatedserverAPI
 }
 
-// NewDedicatedserverDataSourceAPI returns a new DedicatedserverDataSourceAPI.
-func NewDedicatedserverDataSourceAPI(name string) DedicatedserverDataSourceAPI {
-	return DedicatedserverDataSourceAPI{
-		DataSourceAPI: DataSourceAPI{
-			Name: name,
-		},
-	}
+func (d *DedicatedserverDataSourceAPI) Metadata(
+	_ context.Context,
+	request datasource.MetadataRequest,
+	response *datasource.MetadataResponse,
+) {
+	response.TypeName = generateTypeName(request.ProviderTypeName, d.Name)
 }

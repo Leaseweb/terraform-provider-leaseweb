@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -19,28 +18,6 @@ func Test_generateTypeName(t *testing.T) {
 	want := "provider_name"
 
 	assert.Equal(t, want, got)
-}
-
-func TestResourceAPI_Metadata(t *testing.T) {
-	api := ResourceAPI{
-		Name: "name",
-	}
-	response := resource.MetadataResponse{}
-	request := resource.MetadataRequest{ProviderTypeName: "providerTypeName"}
-	api.Metadata(context.TODO(), request, &response)
-
-	assert.Equal(t, "providerTypeName_name", response.TypeName)
-}
-
-func TestDataSourceAPI_Metadata(t *testing.T) {
-	api := DataSourceAPI{
-		Name: "name",
-	}
-	response := datasource.MetadataResponse{}
-	request := datasource.MetadataRequest{ProviderTypeName: "providerTypeName"}
-	api.Metadata(context.TODO(), request, &response)
-
-	assert.Equal(t, "providerTypeName_name", response.TypeName)
 }
 
 func Test_getCoreClient(t *testing.T) {
@@ -116,21 +93,17 @@ func TestPubliccloudResourceAPI_Configure(t *testing.T) {
 	})
 }
 
-func TestNewPubliccloudResourceAPI(t *testing.T) {
-	got := NewPubliccloudResourceAPI("name")
-	want := PubliccloudResourceAPI{
-		ResourceAPI: ResourceAPI{
-			Name: "name",
-		},
+func TestPubliccloudResourceAPI_Metadata(t *testing.T) {
+	api := PubliccloudResourceAPI{
+		Name: "tralala",
 	}
+	request := resource.MetadataRequest{
+		ProviderTypeName: "providerTypeName",
+	}
+	response := resource.MetadataResponse{}
+	api.Metadata(context.TODO(), request, &response)
 
-	assert.Equal(t, want, got)
-}
-
-func ExampleNewPubliccloudResourceAPI() {
-	api := NewPubliccloudResourceAPI("name")
-	fmt.Println(api)
-	// Output: {{name} <nil>}
+	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
 }
 
 func TestPubliccloudDataSourceAPI_Configure(t *testing.T) {
@@ -160,15 +133,17 @@ func TestPubliccloudDataSourceAPI_Configure(t *testing.T) {
 	})
 }
 
-func TestNewPubliccloudDataSourceAPI(t *testing.T) {
-	got := NewPubliccloudDataSourceAPI("name")
-	want := PubliccloudDataSourceAPI{
-		DataSourceAPI: DataSourceAPI{
-			Name: "name",
-		},
+func TestPubliccloudDataSourceAPI_Metadata(t *testing.T) {
+	api := PubliccloudDataSourceAPI{
+		Name: "tralala",
 	}
+	request := datasource.MetadataRequest{
+		ProviderTypeName: "providerTypeName",
+	}
+	response := datasource.MetadataResponse{}
+	api.Metadata(context.TODO(), request, &response)
 
-	assert.Equal(t, want, got)
+	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
 }
 
 func TestDedicatedserverResourceAPI_Configure(t *testing.T) {
@@ -198,21 +173,17 @@ func TestDedicatedserverResourceAPI_Configure(t *testing.T) {
 	})
 }
 
-func TestNewDedicatedserverResourceAPI(t *testing.T) {
-	got := NewDedicatedserverResourceAPI("name")
-	want := DedicatedserverResourceAPI{
-		ResourceAPI: ResourceAPI{
-			Name: "name",
-		},
+func TestDedicatedServerResourceAPI_Metadata(t *testing.T) {
+	api := DedicatedserverResourceAPI{
+		Name: "tralala",
 	}
+	request := resource.MetadataRequest{
+		ProviderTypeName: "providerTypeName",
+	}
+	response := resource.MetadataResponse{}
+	api.Metadata(context.TODO(), request, &response)
 
-	assert.Equal(t, want, got)
-}
-
-func ExampleNewDedicatedserverResourceAPI() {
-	api := NewDedicatedserverResourceAPI("name")
-	fmt.Println(api)
-	// Output: {{name} <nil>}
+	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
 }
 
 func TestDedicatedserverDataSourceAPI_Configure(t *testing.T) {
@@ -242,19 +213,15 @@ func TestDedicatedserverDataSourceAPI_Configure(t *testing.T) {
 	})
 }
 
-func TestNewDedicatedserverDataSourceAPI(t *testing.T) {
-	got := NewDedicatedserverDataSourceAPI("name")
-	want := DedicatedserverDataSourceAPI{
-		DataSourceAPI: DataSourceAPI{
-			Name: "name",
-		},
+func TestDedicatedServerDataSourceAPI_Metadata(t *testing.T) {
+	api := DedicatedserverDataSourceAPI{
+		Name: "tralala",
 	}
+	request := datasource.MetadataRequest{
+		ProviderTypeName: "providerTypeName",
+	}
+	response := datasource.MetadataResponse{}
+	api.Metadata(context.TODO(), request, &response)
 
-	assert.Equal(t, want, got)
-}
-
-func ExampleNewDedicatedserverDataSourceAPI() {
-	api := NewDedicatedserverDataSourceAPI("name")
-	fmt.Println(api)
-	// Output: {{name} <nil>}
+	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
 }

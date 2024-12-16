@@ -252,7 +252,9 @@ func (i *instanceISOResource) Delete(
 
 func NewInstanceIsoResource() resource.Resource {
 	return &instanceISOResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_instance_iso"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_instance_iso",
+		},
 	}
 }
 

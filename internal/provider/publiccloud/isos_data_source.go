@@ -127,6 +127,8 @@ func (i *isosDataSource) Read(
 
 func NewISOsDataSource() datasource.DataSource {
 	return &isosDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_isos"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_isos",
+		},
 	}
 }

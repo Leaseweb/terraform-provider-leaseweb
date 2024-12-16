@@ -111,6 +111,8 @@ func (c *controlPanelsDataSource) Schema(
 
 func NewControlPanelsDataSource() datasource.DataSource {
 	return &controlPanelsDataSource{
-		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server_control_panels"),
+		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+			Name: "dedicated_server_control_panels",
+		},
 	}
 }

@@ -182,6 +182,8 @@ func (l *loadBalancersDataSource) Read(
 
 func NewLoadBalancersDataSource() datasource.DataSource {
 	return &loadBalancersDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_load_balancers"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_load_balancers",
+		},
 	}
 }

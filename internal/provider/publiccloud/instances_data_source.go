@@ -123,7 +123,9 @@ func adaptInstancesToInstancesDataSource(instanceDetailsList instanceDetailsList
 
 func NewInstancesDataSource() datasource.DataSource {
 	return &instancesDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_instances"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_instances",
+		},
 	}
 }
 

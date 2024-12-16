@@ -309,6 +309,8 @@ func (s *serverDataSource) Schema(
 
 func NewServerDataSource() datasource.DataSource {
 	return &serverDataSource{
-		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server"),
+		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+			Name: "dedicated_server",
+		},
 	}
 }

@@ -99,6 +99,8 @@ func (o *operatingSystemsDataSource) Schema(
 
 func NewOperatingSystemsDataSource() datasource.DataSource {
 	return &operatingSystemsDataSource{
-		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server_operating_systems"),
+		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+			Name: "dedicated_server_operating_systems",
+		},
 	}
 }

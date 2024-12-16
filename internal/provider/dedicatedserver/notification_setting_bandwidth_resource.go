@@ -33,7 +33,9 @@ type notificationSettingBandwidthResourceModel struct {
 
 func NewNotificationSettingBandwidthResource() resource.Resource {
 	return &notificationSettingBandwidthResource{
-		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_notification_setting_bandwidth"),
+		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+			Name: "dedicated_server_notification_setting_bandwidth",
+		},
 	}
 }
 

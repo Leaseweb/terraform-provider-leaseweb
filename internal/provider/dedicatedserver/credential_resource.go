@@ -32,7 +32,9 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_credential"),
+		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+			Name: "dedicated_server_credential",
+		},
 	}
 }
 

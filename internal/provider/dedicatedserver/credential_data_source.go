@@ -93,6 +93,8 @@ func (c *credentialDataSource) Read(
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server_credential"),
+		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+			Name: "dedicated_server_credential",
+		},
 	}
 }

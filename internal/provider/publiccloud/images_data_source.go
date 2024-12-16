@@ -188,6 +188,8 @@ func (i *imagesDataSource) Read(
 
 func NewImagesDataSource() datasource.DataSource {
 	return &imagesDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_images"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_images",
+		},
 	}
 }

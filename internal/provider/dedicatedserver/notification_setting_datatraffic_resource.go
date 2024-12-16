@@ -33,7 +33,9 @@ type notificationSettingDatatrafficResourceModel struct {
 
 func NewNotificationSettingDatatrafficResource() resource.Resource {
 	return &notificationSettingDatatrafficResource{
-		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_notification_setting_datatraffic"),
+		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+			Name: "dedicated_server_notification_setting_datatraffic",
+		},
 	}
 }
 

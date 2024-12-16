@@ -185,6 +185,8 @@ func (i *ipResource) Delete(
 
 func NewIPResource() resource.Resource {
 	return &ipResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_ip"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_ip",
+		},
 	}
 }

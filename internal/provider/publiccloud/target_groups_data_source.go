@@ -234,6 +234,8 @@ func (t *targetGroupsDataSource) Read(
 
 func NewTargetGroupsDataSource() datasource.DataSource {
 	return &targetGroupsDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_target_groups"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_target_groups",
+		},
 	}
 }

@@ -489,6 +489,8 @@ func (l *loadBalancerListenerResource) ImportState(
 
 func NewLoadBalancerListenerResource() resource.Resource {
 	return &loadBalancerListenerResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_load_balancer_listener"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_load_balancer_listener",
+		},
 	}
 }

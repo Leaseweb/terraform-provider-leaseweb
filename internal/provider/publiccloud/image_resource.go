@@ -300,6 +300,8 @@ func (i *imageResource) Delete(
 
 func NewImageResource() resource.Resource {
 	return &imageResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_image"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_image",
+		},
 	}
 }

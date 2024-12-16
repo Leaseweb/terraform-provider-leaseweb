@@ -33,7 +33,9 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_credential"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_credential",
+		},
 	}
 }
 

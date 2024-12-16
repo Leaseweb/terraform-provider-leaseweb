@@ -288,7 +288,9 @@ func adaptInstanceDetailsToInstanceResource(
 
 func NewInstanceResource() resource.Resource {
 	return &instanceResource{
-		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_instance"),
+		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+			Name: "public_cloud_instance",
+		},
 	}
 }
 

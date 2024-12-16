@@ -139,6 +139,8 @@ func (l *loadBalancerListenersDataSource) Read(
 
 func NewLoadBalancerListenersDataSource() datasource.DataSource {
 	return &loadBalancerListenersDataSource{
-		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_load_balancer_listeners"),
+		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+			Name: "public_cloud_load_balancer_listeners",
+		},
 	}
 }
