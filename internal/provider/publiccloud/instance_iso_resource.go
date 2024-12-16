@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -62,8 +61,7 @@ func adaptIsoToInstanceISOResource(
 }
 
 type instanceISOResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 func (i *instanceISOResource) ImportState(
@@ -84,14 +82,6 @@ func (i *instanceISOResource) ImportState(
 		path.Root("desired_id"),
 		basetypes.NewStringUnknown(),
 	)
-}
-
-func (i *instanceISOResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
 }
 
 func (i *instanceISOResource) Schema(
@@ -133,7 +123,7 @@ func (i *instanceISOResource) Create(
 		return
 	}
 
-	state, httpResponse, err := updateISO(plan, i.client, ctx)
+	state, httpResponse, err := updateISO(plan, i.Client, ctx)
 	if err != nil {
 		var re invalidIDError
 		ok := errors.As(err, &re)
@@ -163,7 +153,7 @@ func (i *instanceISOResource) Read(
 		return
 	}
 
-	instanceDetails, httpResponse, err := i.client.GetInstance(
+	instanceDetails, httpResponse, err := i.Client.GetInstance(
 		ctx,
 		currentState.InstanceID.ValueString(),
 	).Execute()
@@ -218,7 +208,7 @@ func (i *instanceISOResource) Update(
 	}
 
 	if plan.DesiredID.ValueString() != currentState.ID.ValueString() {
-		state, httpResponse, err := updateISO(plan, i.client, ctx)
+		state, httpResponse, err := updateISO(plan, i.Client, ctx)
 		if err != nil {
 			var re invalidIDError
 			ok := errors.As(err, &re)
@@ -251,7 +241,7 @@ func (i *instanceISOResource) Delete(
 	}
 
 	currentState.DesiredID = basetypes.NewStringPointerValue(nil)
-	state, httpResponse, err := updateISO(currentState, i.client, ctx)
+	state, httpResponse, err := updateISO(currentState, i.Client, ctx)
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
@@ -260,27 +250,9 @@ func (i *instanceISOResource) Delete(
 	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
-func (i *instanceISOResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewInstanceIsoResource() resource.Resource {
 	return &instanceISOResource{
-		name: "public_cloud_instance_iso",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_instance_iso"),
 	}
 }
 

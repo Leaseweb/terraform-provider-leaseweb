@@ -2,14 +2,11 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -19,8 +16,7 @@ var (
 )
 
 type operatingSystemsDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DedicatedserverDataSourceAPI
 }
 
 type operatingSystemDataSourceModel struct {
@@ -33,33 +29,6 @@ type operatingSystemsDataSourceModel struct {
 	ControlPanelId   types.String                     `tfsdk:"control_panel_id"`
 }
 
-func (o *operatingSystemsDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	o.client = coreClient.DedicatedserverAPI
-}
-
-func (o *operatingSystemsDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, o.name)
-}
-
 func (o *operatingSystemsDataSource) Read(
 	ctx context.Context,
 	req datasource.ReadRequest,
@@ -68,7 +37,7 @@ func (o *operatingSystemsDataSource) Read(
 	var config operatingSystemsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := o.client.GetOperatingSystemList(ctx)
+	request := o.Client.GetOperatingSystemList(ctx)
 	if !config.ControlPanelId.IsNull() && !config.ControlPanelId.IsUnknown() {
 		request = request.ControlPanelId(config.ControlPanelId.ValueString())
 	}
@@ -130,6 +99,6 @@ func (o *operatingSystemsDataSource) Schema(
 
 func NewOperatingSystemsDataSource() datasource.DataSource {
 	return &operatingSystemsDataSource{
-		name: "dedicated_server_operating_systems",
+		DedicatedserverDataSourceAPI: utils.NewDedicatedserverDataSourceAPI("dedicated_server_operating_systems"),
 	}
 }

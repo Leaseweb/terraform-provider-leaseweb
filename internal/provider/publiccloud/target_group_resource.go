@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -166,8 +165,7 @@ func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publiccloud.HealthChec
 }
 
 type targetGroupResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 func (t *targetGroupResource) ImportState(
@@ -180,18 +178,6 @@ func (t *targetGroupResource) ImportState(
 		path.Root("id"),
 		request,
 		response,
-	)
-}
-
-func (t *targetGroupResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf(
-		"%s_%s",
-		request.ProviderTypeName,
-		t.name,
 	)
 }
 
@@ -313,7 +299,7 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.client.CreateTargetGroup(ctx).
+	sdkTargetGroup, httpResponse, err := t.Client.CreateTargetGroup(ctx).
 		CreateTargetGroupOpts(*opts).
 		Execute()
 
@@ -345,7 +331,7 @@ func (t *targetGroupResource) Read(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.client.
+	sdkTargetGroup, httpResponse, err := t.Client.
 		GetTargetGroup(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -382,7 +368,7 @@ func (t *targetGroupResource) Update(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.client.
+	sdkTargetGroup, httpResponse, err := t.Client.
 		UpdateTargetGroup(ctx, plan.ID.ValueString()).
 		UpdateTargetGroupOpts(*opts).
 		Execute()
@@ -414,7 +400,7 @@ func (t *targetGroupResource) Delete(
 		return
 	}
 
-	httpResponse, err := t.client.DeleteTargetGroup(
+	httpResponse, err := t.Client.DeleteTargetGroup(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -424,27 +410,8 @@ func (t *targetGroupResource) Delete(
 	}
 }
 
-func (t *targetGroupResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	t.client = coreClient.PubliccloudAPI
-}
-
 func NewTargetGroupResource() resource.Resource {
 	return &targetGroupResource{
-		name: "public_cloud_target_group",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_target_group"),
 	}
 }

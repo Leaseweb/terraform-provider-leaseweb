@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -96,16 +95,7 @@ func getAllLoadBalancers(
 }
 
 type loadBalancersDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (l *loadBalancersDataSource) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
+	utils.PubliccloudDataSourceAPI
 }
 
 func (l *loadBalancersDataSource) Schema(
@@ -176,7 +166,7 @@ func (l *loadBalancersDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.client)
+	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.Client)
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
@@ -190,26 +180,8 @@ func (l *loadBalancersDataSource) Read(
 	)
 }
 
-func (l *loadBalancersDataSource) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	l.client = coreClient.PubliccloudAPI
-}
-
 func NewLoadBalancersDataSource() datasource.DataSource {
 	return &loadBalancersDataSource{
-		name: "public_cloud_load_balancers",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_load_balancers"),
 	}
 }

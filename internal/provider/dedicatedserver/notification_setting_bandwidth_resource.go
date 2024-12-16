@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -22,8 +20,7 @@ var (
 )
 
 type notificationSettingBandwidthResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DedicatedserverResourceAPI
 }
 
 type notificationSettingBandwidthResourceModel struct {
@@ -36,35 +33,8 @@ type notificationSettingBandwidthResourceModel struct {
 
 func NewNotificationSettingBandwidthResource() resource.Resource {
 	return &notificationSettingBandwidthResource{
-		name: "dedicated_server_notification_setting_bandwidth",
+		DedicatedserverResourceAPI: utils.NewDedicatedserverResourceAPI("dedicated_server_notification_setting_bandwidth"),
 	}
-}
-
-func (n *notificationSettingBandwidthResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, n.name)
-}
-
-func (n *notificationSettingBandwidthResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	n.client = coreClient.DedicatedserverAPI
 }
 
 func (n *notificationSettingBandwidthResource) Schema(
@@ -126,7 +96,7 @@ func (n *notificationSettingBandwidthResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.client.CreateServerBandwidthNotificationSetting(
+	request := n.Client.CreateServerBandwidthNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
@@ -161,7 +131,7 @@ func (n *notificationSettingBandwidthResource) Read(
 		return
 	}
 
-	request := n.client.GetServerBandwidthNotificationSetting(
+	request := n.Client.GetServerBandwidthNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),
@@ -202,7 +172,7 @@ func (n *notificationSettingBandwidthResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.client.UpdateServerBandwidthNotificationSetting(
+	request := n.Client.UpdateServerBandwidthNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		plan.Id.ValueString(),
@@ -238,7 +208,7 @@ func (n *notificationSettingBandwidthResource) Delete(
 		return
 	}
 
-	request := n.client.DeleteServerBandwidthNotificationSetting(
+	request := n.Client.DeleteServerBandwidthNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),

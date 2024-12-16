@@ -2,7 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -10,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -19,13 +17,12 @@ var (
 )
 
 type credentialDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudDataSourceAPI
 }
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		name: "public_cloud_credential",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_credential"),
 	}
 }
 
@@ -34,33 +31,6 @@ type credentialDataSourceModel struct {
 	Username   types.String `tfsdk:"username"`
 	Password   types.String `tfsdk:"password"`
 	Type       types.String `tfsdk:"type"`
-}
-
-func (d *credentialDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	d.client = coreClient.PubliccloudAPI
-}
-
-func (d *credentialDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
 }
 
 func (d *credentialDataSource) Schema(
@@ -110,7 +80,7 @@ func (d *credentialDataSource) Read(
 	type_ := config.Type.ValueString()
 	username := config.Username.ValueString()
 
-	credential, response, err := d.client.GetCredential(
+	credential, response, err := d.Client.GetCredential(
 		ctx,
 		instanceID,
 		type_,

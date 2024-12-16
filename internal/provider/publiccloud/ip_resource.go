@@ -2,7 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -40,8 +38,7 @@ func (i ipResourceModel) generateUpdateOpts() publiccloud.UpdateIpOpts {
 }
 
 type ipResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 func adaptIpDetailsToIPResource(ipDetails publiccloud.IpDetails) ipResourceModel {
@@ -88,14 +85,6 @@ func (i *ipResource) ImportState(
 	)...)
 }
 
-func (i *ipResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
-}
-
 func (i *ipResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
@@ -140,7 +129,7 @@ func (i *ipResource) Read(
 		return
 	}
 
-	ip, httpResponse, err := i.client.GetIp(
+	ip, httpResponse, err := i.Client.GetIp(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.IP.ValueString(),
@@ -169,7 +158,7 @@ func (i *ipResource) Update(
 
 	opts := plan.generateUpdateOpts()
 
-	ipDetails, httpResponse, err := i.client.UpdateIp(
+	ipDetails, httpResponse, err := i.Client.UpdateIp(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.IP.ValueString(),
@@ -194,27 +183,8 @@ func (i *ipResource) Delete(
 ) {
 }
 
-func (i *ipResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewIPResource() resource.Resource {
 	return &ipResource{
-		name: "public_cloud_ip",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_ip"),
 	}
 }

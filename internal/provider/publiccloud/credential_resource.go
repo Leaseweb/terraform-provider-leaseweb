@@ -2,7 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -13,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -23,8 +21,7 @@ var (
 )
 
 type credentialResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
+	utils.PubliccloudResourceAPI
 }
 
 type credentialResourceModel struct {
@@ -36,35 +33,8 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		name: "public_cloud_credential",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_credential"),
 	}
-}
-
-func (c *credentialResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
-}
-
-func (c *credentialResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	c.client = coreClient.PubliccloudAPI
 }
 
 func (c *credentialResource) Schema(
@@ -130,7 +100,7 @@ func (c *credentialResource) Create(
 		plan.Username.ValueString(),
 		plan.Password.ValueString(),
 	)
-	request := c.client.StoreCredential(
+	request := c.Client.StoreCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 	).StoreCredentialOpts(*opts)
@@ -164,7 +134,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.client.GetCredential(
+	request := c.Client.GetCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.Type.ValueString(),
@@ -203,7 +173,7 @@ func (c *credentialResource) Update(
 	opts := publiccloud.NewUpdateCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.client.UpdateCredential(
+	request := c.Client.UpdateCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.Type.ValueString(),
@@ -239,7 +209,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.client.DeleteCredential(
+	request := c.Client.DeleteCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.Type.ValueString(),

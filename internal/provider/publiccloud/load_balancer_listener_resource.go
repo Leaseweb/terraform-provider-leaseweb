@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -244,35 +243,7 @@ func adaptLoadBalancerListenerToLoadBalancerListenerResource(
 }
 
 type loadBalancerListenerResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (l *loadBalancerListenerResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	l.client = coreClient.PubliccloudAPI
-}
-
-func (l *loadBalancerListenerResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, l.name)
+	utils.PubliccloudResourceAPI
 }
 
 func (l *loadBalancerListenerResource) Schema(
@@ -359,7 +330,7 @@ func (l *loadBalancerListenerResource) Create(
 		return
 	}
 
-	loadBalancerListener, httpResponse, err := l.client.CreateLoadBalancerListener(
+	loadBalancerListener, httpResponse, err := l.Client.CreateLoadBalancerListener(
 		ctx,
 		plan.LoadBalancerID.ValueString(),
 	).LoadBalancerListenerCreateOpts(*opts).Execute()
@@ -394,7 +365,7 @@ func (l *loadBalancerListenerResource) Read(
 		return
 	}
 
-	loadBalancerListenerDetails, httpResponse, err := l.client.GetLoadBalancerListener(
+	loadBalancerListenerDetails, httpResponse, err := l.Client.GetLoadBalancerListener(
 		ctx,
 		state.LoadBalancerID.ValueString(),
 		state.ListenerID.ValueString(),
@@ -436,7 +407,7 @@ func (l *loadBalancerListenerResource) Update(
 		return
 	}
 
-	loadBalancerListener, httpResponse, err := l.client.
+	loadBalancerListener, httpResponse, err := l.Client.
 		UpdateLoadBalancerListener(
 			ctx,
 			plan.LoadBalancerID.ValueString(),
@@ -478,7 +449,7 @@ func (l *loadBalancerListenerResource) Delete(
 		return
 	}
 
-	httpResponse, err := l.client.DeleteLoadBalancerListener(
+	httpResponse, err := l.Client.DeleteLoadBalancerListener(
 		ctx,
 		state.LoadBalancerID.ValueString(),
 		state.ListenerID.ValueString(),
@@ -518,6 +489,6 @@ func (l *loadBalancerListenerResource) ImportState(
 
 func NewLoadBalancerListenerResource() resource.Resource {
 	return &loadBalancerListenerResource{
-		name: "public_cloud_load_balancer_listener",
+		PubliccloudResourceAPI: utils.NewPubliccloudResourceAPI("public_cloud_load_balancer_listener"),
 	}
 }

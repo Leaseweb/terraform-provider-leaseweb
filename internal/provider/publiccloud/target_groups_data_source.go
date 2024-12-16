@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -129,16 +128,7 @@ func getTargetGroups(request publiccloud.ApiGetTargetGroupListRequest) (
 }
 
 type targetGroupsDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (t *targetGroupsDataSource) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, t.name)
+	utils.PubliccloudDataSourceAPI
 }
 
 func (t *targetGroupsDataSource) Schema(
@@ -219,7 +209,7 @@ func (t *targetGroupsDataSource) Read(
 		return
 	}
 
-	apiRequest, err := config.generateRequest(ctx, t.client)
+	apiRequest, err := config.generateRequest(ctx, t.Client)
 	if err != nil {
 		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
@@ -242,26 +232,8 @@ func (t *targetGroupsDataSource) Read(
 	response.Diagnostics.Append(diags...)
 }
 
-func (t *targetGroupsDataSource) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	t.client = coreClient.PubliccloudAPI
-}
-
 func NewTargetGroupsDataSource() datasource.DataSource {
 	return &targetGroupsDataSource{
-		name: "public_cloud_target_groups",
+		PubliccloudDataSourceAPI: utils.NewPubliccloudDataSourceAPI("public_cloud_target_groups"),
 	}
 }
