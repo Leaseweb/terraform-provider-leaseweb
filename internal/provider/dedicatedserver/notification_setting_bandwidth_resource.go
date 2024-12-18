@@ -20,7 +20,7 @@ var (
 )
 
 type notificationSettingBandwidthResource struct {
-	utils.DedicatedserverResourceAPI
+	utils.ResourceAPI
 }
 
 type notificationSettingBandwidthResourceModel struct {
@@ -33,7 +33,7 @@ type notificationSettingBandwidthResourceModel struct {
 
 func NewNotificationSettingBandwidthResource() resource.Resource {
 	return &notificationSettingBandwidthResource{
-		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "dedicated_server_notification_setting_bandwidth",
 		},
 	}
@@ -98,7 +98,7 @@ func (n *notificationSettingBandwidthResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.Client.CreateServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.CreateServerBandwidthNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
@@ -133,7 +133,7 @@ func (n *notificationSettingBandwidthResource) Read(
 		return
 	}
 
-	request := n.Client.GetServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.GetServerBandwidthNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),
@@ -174,7 +174,7 @@ func (n *notificationSettingBandwidthResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.Client.UpdateServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.UpdateServerBandwidthNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		plan.Id.ValueString(),
@@ -210,7 +210,7 @@ func (n *notificationSettingBandwidthResource) Delete(
 		return
 	}
 
-	request := n.Client.DeleteServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.DeleteServerBandwidthNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),

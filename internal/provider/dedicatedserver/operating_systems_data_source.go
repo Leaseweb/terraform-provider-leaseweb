@@ -16,7 +16,7 @@ var (
 )
 
 type operatingSystemsDataSource struct {
-	utils.DedicatedserverDataSourceAPI
+	utils.DataSourceAPI
 }
 
 type operatingSystemDataSourceModel struct {
@@ -37,7 +37,7 @@ func (o *operatingSystemsDataSource) Read(
 	var config operatingSystemsDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := o.Client.GetOperatingSystemList(ctx)
+	request := o.DedicatedserverAPI.GetOperatingSystemList(ctx)
 	if !config.ControlPanelId.IsNull() && !config.ControlPanelId.IsUnknown() {
 		request = request.ControlPanelId(config.ControlPanelId.ValueString())
 	}
@@ -99,7 +99,7 @@ func (o *operatingSystemsDataSource) Schema(
 
 func NewOperatingSystemsDataSource() datasource.DataSource {
 	return &operatingSystemsDataSource{
-		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "dedicated_server_operating_systems",
 		},
 	}

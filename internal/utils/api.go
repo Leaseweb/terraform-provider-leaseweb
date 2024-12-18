@@ -30,7 +30,7 @@ func getCoreClient(
 		diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf(
-				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
+				"Expected an SDK API, got: %T. Please report this issue to the provider developers.",
 				providerData,
 			),
 		)
@@ -40,13 +40,14 @@ func getCoreClient(
 	return &coreClient
 }
 
-// PubliccloudResourceAPI contains reusable Configure & Metadata functions for resources that implement publiccloud.PubliccloudAPI.
-type PubliccloudResourceAPI struct {
-	Name   string
-	Client publiccloud.PubliccloudAPI
+// ResourceAPI contains reusable Configure & Metadata functions for resources.
+type ResourceAPI struct {
+	Name               string
+	PubliccloudAPI     publiccloud.PubliccloudAPI
+	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
 }
 
-func (p *PubliccloudResourceAPI) Configure(
+func (p *ResourceAPI) Configure(
 	_ context.Context,
 	request resource.ConfigureRequest,
 	response *resource.ConfigureResponse,
@@ -56,10 +57,11 @@ func (p *PubliccloudResourceAPI) Configure(
 		return
 	}
 
-	p.Client = coreClient.PubliccloudAPI
+	p.PubliccloudAPI = coreClient.PubliccloudAPI
+	p.DedicatedserverAPI = coreClient.DedicatedserverAPI
 }
 
-func (p *PubliccloudResourceAPI) Metadata(
+func (p *ResourceAPI) Metadata(
 	_ context.Context,
 	request resource.MetadataRequest,
 	response *resource.MetadataResponse,
@@ -67,13 +69,14 @@ func (p *PubliccloudResourceAPI) Metadata(
 	response.TypeName = generateTypeName(request.ProviderTypeName, p.Name)
 }
 
-// PubliccloudDataSourceAPI contains reusable Configure & Metadata functions for data sources that implement publiccloud.PubliccloudAPI.
-type PubliccloudDataSourceAPI struct {
-	Name   string
-	Client publiccloud.PubliccloudAPI
+// DataSourceAPI contains reusable Configure & Metadata functions for data sources.
+type DataSourceAPI struct {
+	Name               string
+	PubliccloudAPI     publiccloud.PubliccloudAPI
+	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
 }
 
-func (p *PubliccloudDataSourceAPI) Configure(
+func (d *DataSourceAPI) Configure(
 	_ context.Context,
 	request datasource.ConfigureRequest,
 	response *datasource.ConfigureResponse,
@@ -83,64 +86,11 @@ func (p *PubliccloudDataSourceAPI) Configure(
 		return
 	}
 
-	p.Client = coreClient.PubliccloudAPI
+	d.DedicatedserverAPI = coreClient.DedicatedserverAPI
+	d.PubliccloudAPI = coreClient.PubliccloudAPI
 }
 
-func (p *PubliccloudDataSourceAPI) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = generateTypeName(request.ProviderTypeName, p.Name)
-}
-
-// DedicatedserverResourceAPI contains reusable Configure & Metadata functions for resources that implement dedicatedserver.DedicatedserverAPI.
-type DedicatedserverResourceAPI struct {
-	Name   string
-	Client dedicatedserver.DedicatedserverAPI
-}
-
-func (d *DedicatedserverResourceAPI) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	coreClient := getCoreClient(request.ProviderData, &response.Diagnostics)
-	if coreClient == nil {
-		return
-	}
-
-	d.Client = coreClient.DedicatedserverAPI
-}
-
-func (d *DedicatedserverResourceAPI) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = generateTypeName(request.ProviderTypeName, d.Name)
-}
-
-// DedicatedserverDataSourceAPI contains reusable Configure & Metadata functions for data sources that implement dedicatedserver.DedicatedserverAPI.
-type DedicatedserverDataSourceAPI struct {
-	Name   string
-	Client dedicatedserver.DedicatedserverAPI
-}
-
-func (d *DedicatedserverDataSourceAPI) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	coreClient := getCoreClient(request.ProviderData, &response.Diagnostics)
-	if coreClient == nil {
-		return
-	}
-
-	d.Client = coreClient.DedicatedserverAPI
-}
-
-func (d *DedicatedserverDataSourceAPI) Metadata(
+func (d *DataSourceAPI) Metadata(
 	_ context.Context,
 	request datasource.MetadataRequest,
 	response *datasource.MetadataResponse,

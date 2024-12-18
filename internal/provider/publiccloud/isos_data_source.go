@@ -77,7 +77,7 @@ func getISOs(
 }
 
 type isosDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func (i *isosDataSource) Schema(
@@ -111,7 +111,7 @@ func (i *isosDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	ISOs, httpResponse, err := getISOs(ctx, i.Client)
+	ISOs, httpResponse, err := getISOs(ctx, i.PubliccloudAPI)
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
@@ -127,7 +127,7 @@ func (i *isosDataSource) Read(
 
 func NewISOsDataSource() datasource.DataSource {
 	return &isosDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_isos",
 		},
 	}

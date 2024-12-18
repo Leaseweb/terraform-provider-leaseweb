@@ -128,7 +128,7 @@ func getTargetGroups(request publiccloud.ApiGetTargetGroupListRequest) (
 }
 
 type targetGroupsDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func (t *targetGroupsDataSource) Schema(
@@ -209,7 +209,7 @@ func (t *targetGroupsDataSource) Read(
 		return
 	}
 
-	apiRequest, err := config.generateRequest(ctx, t.Client)
+	apiRequest, err := config.generateRequest(ctx, t.PubliccloudAPI)
 	if err != nil {
 		utils.GeneralError(&response.Diagnostics, ctx, err)
 		return
@@ -234,7 +234,7 @@ func (t *targetGroupsDataSource) Read(
 
 func NewTargetGroupsDataSource() datasource.DataSource {
 	return &targetGroupsDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_target_groups",
 		},
 	}

@@ -61,7 +61,7 @@ func adaptIsoToInstanceISOResource(
 }
 
 type instanceISOResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func (i *instanceISOResource) ImportState(
@@ -123,7 +123,7 @@ func (i *instanceISOResource) Create(
 		return
 	}
 
-	state, httpResponse, err := updateISO(plan, i.Client, ctx)
+	state, httpResponse, err := updateISO(plan, i.PubliccloudAPI, ctx)
 	if err != nil {
 		var re invalidIDError
 		ok := errors.As(err, &re)
@@ -153,7 +153,7 @@ func (i *instanceISOResource) Read(
 		return
 	}
 
-	instanceDetails, httpResponse, err := i.Client.GetInstance(
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.GetInstance(
 		ctx,
 		currentState.InstanceID.ValueString(),
 	).Execute()
@@ -208,7 +208,7 @@ func (i *instanceISOResource) Update(
 	}
 
 	if plan.DesiredID.ValueString() != currentState.ID.ValueString() {
-		state, httpResponse, err := updateISO(plan, i.Client, ctx)
+		state, httpResponse, err := updateISO(plan, i.PubliccloudAPI, ctx)
 		if err != nil {
 			var re invalidIDError
 			ok := errors.As(err, &re)
@@ -241,7 +241,7 @@ func (i *instanceISOResource) Delete(
 	}
 
 	currentState.DesiredID = basetypes.NewStringPointerValue(nil)
-	state, httpResponse, err := updateISO(currentState, i.Client, ctx)
+	state, httpResponse, err := updateISO(currentState, i.PubliccloudAPI, ctx)
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
@@ -252,7 +252,7 @@ func (i *instanceISOResource) Delete(
 
 func NewInstanceIsoResource() resource.Resource {
 	return &instanceISOResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_instance_iso",
 		},
 	}

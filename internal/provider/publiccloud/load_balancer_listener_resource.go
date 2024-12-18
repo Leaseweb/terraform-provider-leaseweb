@@ -243,7 +243,7 @@ func adaptLoadBalancerListenerToLoadBalancerListenerResource(
 }
 
 type loadBalancerListenerResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func (l *loadBalancerListenerResource) Schema(
@@ -330,7 +330,7 @@ func (l *loadBalancerListenerResource) Create(
 		return
 	}
 
-	loadBalancerListener, httpResponse, err := l.Client.CreateLoadBalancerListener(
+	loadBalancerListener, httpResponse, err := l.PubliccloudAPI.CreateLoadBalancerListener(
 		ctx,
 		plan.LoadBalancerID.ValueString(),
 	).LoadBalancerListenerCreateOpts(*opts).Execute()
@@ -365,7 +365,7 @@ func (l *loadBalancerListenerResource) Read(
 		return
 	}
 
-	loadBalancerListenerDetails, httpResponse, err := l.Client.GetLoadBalancerListener(
+	loadBalancerListenerDetails, httpResponse, err := l.PubliccloudAPI.GetLoadBalancerListener(
 		ctx,
 		state.LoadBalancerID.ValueString(),
 		state.ListenerID.ValueString(),
@@ -407,7 +407,7 @@ func (l *loadBalancerListenerResource) Update(
 		return
 	}
 
-	loadBalancerListener, httpResponse, err := l.Client.
+	loadBalancerListener, httpResponse, err := l.PubliccloudAPI.
 		UpdateLoadBalancerListener(
 			ctx,
 			plan.LoadBalancerID.ValueString(),
@@ -449,7 +449,7 @@ func (l *loadBalancerListenerResource) Delete(
 		return
 	}
 
-	httpResponse, err := l.Client.DeleteLoadBalancerListener(
+	httpResponse, err := l.PubliccloudAPI.DeleteLoadBalancerListener(
 		ctx,
 		state.LoadBalancerID.ValueString(),
 		state.ListenerID.ValueString(),
@@ -489,7 +489,7 @@ func (l *loadBalancerListenerResource) ImportState(
 
 func NewLoadBalancerListenerResource() resource.Resource {
 	return &loadBalancerListenerResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_load_balancer_listener",
 		},
 	}

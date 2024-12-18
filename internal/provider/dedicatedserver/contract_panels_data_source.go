@@ -18,7 +18,7 @@ var (
 )
 
 type controlPanelsDataSource struct {
-	utils.DedicatedserverDataSourceAPI
+	utils.DataSourceAPI
 }
 
 type controlPanelDataSourceModel struct {
@@ -46,13 +46,13 @@ func (c *controlPanelsDataSource) Read(
 
 	// NOTE: we show only the latest 50 items.
 	if !config.OperatingSystemId.IsNull() && !config.OperatingSystemId.IsUnknown() {
-		request := c.Client.GetControlPanelListByOperatingSystemId(
+		request := c.DedicatedserverAPI.GetControlPanelListByOperatingSystemId(
 			ctx,
 			config.OperatingSystemId.ValueString(),
 		).Limit(50)
 		result, response, err = request.Execute()
 	} else {
-		request := c.Client.GetControlPanelList(ctx).Limit(50)
+		request := c.DedicatedserverAPI.GetControlPanelList(ctx).Limit(50)
 		result, response, err = request.Execute()
 	}
 
@@ -111,7 +111,7 @@ func (c *controlPanelsDataSource) Schema(
 
 func NewControlPanelsDataSource() datasource.DataSource {
 	return &controlPanelsDataSource{
-		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "dedicated_server_control_panels",
 		},
 	}

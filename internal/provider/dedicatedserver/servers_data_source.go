@@ -15,7 +15,7 @@ var (
 )
 
 type serversDataSource struct {
-	utils.DedicatedserverDataSourceAPI
+	utils.DataSourceAPI
 }
 
 type serversDataSourceModel struct {
@@ -37,7 +37,7 @@ func (s *serversDataSource) Read(
 	var config serversDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	// NOTE: we show only the latest 50 items.
-	request := s.Client.GetServerList(ctx).Limit(50)
+	request := s.DedicatedserverAPI.GetServerList(ctx).Limit(50)
 
 	if !config.Reference.IsNull() && !config.Reference.IsUnknown() {
 		request = request.Reference(config.Reference.ValueString())
@@ -141,7 +141,7 @@ func (s *serversDataSource) Schema(
 
 func NewServersDataSource() datasource.DataSource {
 	return &serversDataSource{
-		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "dedicated_servers",
 		},
 	}

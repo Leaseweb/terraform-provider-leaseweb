@@ -128,7 +128,7 @@ func getImage(
 }
 
 type imageResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func (i *imageResource) Schema(
@@ -206,7 +206,7 @@ func (i *imageResource) Create(
 	}
 
 	opts := plan.getCreateImageOpts()
-	image, httpResponse, err := i.Client.CreateImage(ctx).
+	image, httpResponse, err := i.PubliccloudAPI.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
@@ -239,7 +239,7 @@ func (i *imageResource) Read(
 	image, httpResponse, err := getImage(
 		currentState.ID.ValueString(),
 		ctx,
-		i.Client,
+		i.PubliccloudAPI,
 	)
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
@@ -272,7 +272,7 @@ func (i *imageResource) Update(
 
 	opts := plan.getUpdateImageOpts()
 
-	imageDetails, httpResponse, err := i.Client.UpdateImage(
+	imageDetails, httpResponse, err := i.PubliccloudAPI.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
@@ -300,7 +300,7 @@ func (i *imageResource) Delete(
 
 func NewImageResource() resource.Resource {
 	return &imageResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_image",
 		},
 	}

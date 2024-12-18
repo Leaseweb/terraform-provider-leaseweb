@@ -165,7 +165,7 @@ func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publiccloud.HealthChec
 }
 
 type targetGroupResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func (t *targetGroupResource) ImportState(
@@ -299,7 +299,7 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.Client.CreateTargetGroup(ctx).
+	sdkTargetGroup, httpResponse, err := t.PubliccloudAPI.CreateTargetGroup(ctx).
 		CreateTargetGroupOpts(*opts).
 		Execute()
 
@@ -331,7 +331,7 @@ func (t *targetGroupResource) Read(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.Client.
+	sdkTargetGroup, httpResponse, err := t.PubliccloudAPI.
 		GetTargetGroup(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -368,7 +368,7 @@ func (t *targetGroupResource) Update(
 		return
 	}
 
-	sdkTargetGroup, httpResponse, err := t.Client.
+	sdkTargetGroup, httpResponse, err := t.PubliccloudAPI.
 		UpdateTargetGroup(ctx, plan.ID.ValueString()).
 		UpdateTargetGroupOpts(*opts).
 		Execute()
@@ -400,7 +400,7 @@ func (t *targetGroupResource) Delete(
 		return
 	}
 
-	httpResponse, err := t.Client.DeleteTargetGroup(
+	httpResponse, err := t.PubliccloudAPI.DeleteTargetGroup(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -412,7 +412,7 @@ func (t *targetGroupResource) Delete(
 
 func NewTargetGroupResource() resource.Resource {
 	return &targetGroupResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_target_group",
 		},
 	}

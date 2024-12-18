@@ -84,7 +84,7 @@ func getAllLoadBalancerListeners(request publiccloud.ApiGetLoadBalancerListenerL
 }
 
 type loadBalancerListenersDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func (l *loadBalancerListenersDataSource) Schema(
@@ -125,7 +125,7 @@ func (l *loadBalancerListenersDataSource) Read(
 		return
 	}
 
-	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.Client))
+	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.PubliccloudAPI))
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
@@ -139,7 +139,7 @@ func (l *loadBalancerListenersDataSource) Read(
 
 func NewLoadBalancerListenersDataSource() datasource.DataSource {
 	return &loadBalancerListenersDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_load_balancer_listeners",
 		},
 	}

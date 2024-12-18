@@ -20,7 +20,7 @@ var (
 )
 
 type notificationSettingDatatrafficResource struct {
-	utils.DedicatedserverResourceAPI
+	utils.ResourceAPI
 }
 
 type notificationSettingDatatrafficResourceModel struct {
@@ -33,7 +33,7 @@ type notificationSettingDatatrafficResourceModel struct {
 
 func NewNotificationSettingDatatrafficResource() resource.Resource {
 	return &notificationSettingDatatrafficResource{
-		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "dedicated_server_notification_setting_datatraffic",
 		},
 	}
@@ -98,7 +98,7 @@ func (n *notificationSettingDatatrafficResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.Client.CreateServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.CreateServerDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
@@ -133,7 +133,7 @@ func (n *notificationSettingDatatrafficResource) Read(
 		return
 	}
 
-	request := n.Client.GetServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.GetServerDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),
@@ -174,7 +174,7 @@ func (n *notificationSettingDatatrafficResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.Client.UpdateServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.UpdateServerDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		plan.Id.ValueString(),
@@ -210,7 +210,7 @@ func (n *notificationSettingDatatrafficResource) Delete(
 		return
 	}
 
-	request := n.Client.DeleteServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.DeleteServerDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),

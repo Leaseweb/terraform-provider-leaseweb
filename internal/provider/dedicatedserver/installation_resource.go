@@ -28,14 +28,14 @@ var (
 
 func NewInstallationResource() resource.Resource {
 	return &installationResource{
-		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "dedicated_server_installation",
 		},
 	}
 }
 
 type installationResource struct {
-	utils.DedicatedserverResourceAPI
+	utils.ResourceAPI
 }
 
 type installationResourceModel struct {
@@ -332,7 +332,7 @@ func (i *installationResource) Create(
 	}
 
 	serverID := plan.DedicatedServerID.ValueString()
-	result, response, err := i.Client.InstallOperatingSystem(ctx, serverID).
+	result, response, err := i.DedicatedserverAPI.InstallOperatingSystem(ctx, serverID).
 		InstallOperatingSystemOpts(*opts).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)

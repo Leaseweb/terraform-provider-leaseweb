@@ -15,7 +15,7 @@ var (
 )
 
 type serverDataSource struct {
-	utils.DedicatedserverDataSourceAPI
+	utils.DataSourceAPI
 }
 
 type serverDataSourceModel struct {
@@ -58,7 +58,7 @@ func (s *serverDataSource) Read(
 	var config serverDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := s.Client.GetServer(ctx, config.Id.ValueString())
+	request := s.DedicatedserverAPI.GetServer(ctx, config.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)
@@ -309,7 +309,7 @@ func (s *serverDataSource) Schema(
 
 func NewServerDataSource() datasource.DataSource {
 	return &serverDataSource{
-		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "dedicated_server",
 		},
 	}

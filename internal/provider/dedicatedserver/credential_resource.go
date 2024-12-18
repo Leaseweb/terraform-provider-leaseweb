@@ -20,7 +20,7 @@ var (
 )
 
 type credentialResource struct {
-	utils.DedicatedserverResourceAPI
+	utils.ResourceAPI
 }
 
 type credentialResourceModel struct {
@@ -32,7 +32,7 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		DedicatedserverResourceAPI: utils.DedicatedserverResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "dedicated_server_credential",
 		},
 	}
@@ -93,7 +93,7 @@ func (c *credentialResource) Create(
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	)
-	request := c.Client.CreateServerCredential(
+	request := c.DedicatedserverAPI.CreateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).CreateServerCredentialOpts(*opts)
@@ -127,7 +127,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.Client.GetServerCredential(
+	request := c.DedicatedserverAPI.GetServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),
@@ -166,7 +166,7 @@ func (c *credentialResource) Update(
 	opts := dedicatedserver.NewUpdateServerCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.Client.UpdateServerCredential(
+	request := c.DedicatedserverAPI.UpdateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
@@ -202,7 +202,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.Client.DeleteServerCredential(
+	request := c.DedicatedserverAPI.DeleteServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),

@@ -38,7 +38,7 @@ func (i ipResourceModel) generateUpdateOpts() publiccloud.UpdateIpOpts {
 }
 
 type ipResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func adaptIpDetailsToIPResource(ipDetails publiccloud.IpDetails) ipResourceModel {
@@ -129,7 +129,7 @@ func (i *ipResource) Read(
 		return
 	}
 
-	ip, httpResponse, err := i.Client.GetIp(
+	ip, httpResponse, err := i.PubliccloudAPI.GetIp(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.IP.ValueString(),
@@ -158,7 +158,7 @@ func (i *ipResource) Update(
 
 	opts := plan.generateUpdateOpts()
 
-	ipDetails, httpResponse, err := i.Client.UpdateIp(
+	ipDetails, httpResponse, err := i.PubliccloudAPI.UpdateIp(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.IP.ValueString(),
@@ -185,7 +185,7 @@ func (i *ipResource) Delete(
 
 func NewIPResource() resource.Resource {
 	return &ipResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_ip",
 		},
 	}

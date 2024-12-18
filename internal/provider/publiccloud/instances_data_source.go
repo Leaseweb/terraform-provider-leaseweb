@@ -123,14 +123,14 @@ func adaptInstancesToInstancesDataSource(instanceDetailsList instanceDetailsList
 
 func NewInstancesDataSource() datasource.DataSource {
 	return &instancesDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_instances",
 		},
 	}
 }
 
 type instancesDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func (d *instancesDataSource) Read(
@@ -142,7 +142,7 @@ func (d *instancesDataSource) Read(
 	var offset *int32
 
 	// Get instances
-	request := d.Client.GetInstanceList(ctx)
+	request := d.PubliccloudAPI.GetInstanceList(ctx)
 	for {
 		result, httpResponse, err := request.Execute()
 		if err != nil {
@@ -170,7 +170,10 @@ func (d *instancesDataSource) Read(
 	errorChan := make(chan instanceDetailsErr)
 	for _, instance := range instances {
 		go func(id string) {
-			instanceDetails, httpResponse, err := d.Client.GetInstance(ctx, id).Execute()
+			instanceDetails, httpResponse, err := d.PubliccloudAPI.GetInstance(
+				ctx,
+				id,
+			).Execute()
 			if err != nil {
 				errorChan <- instanceDetailsErr{
 					err:          err,

@@ -136,7 +136,7 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 }
 
 type loadBalancerResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func (l *loadBalancerResource) ImportState(
@@ -257,7 +257,7 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	loadBalancer, httpResponse, err := l.Client.LaunchLoadBalancer(ctx).
+	loadBalancer, httpResponse, err := l.PubliccloudAPI.LaunchLoadBalancer(ctx).
 		LaunchLoadBalancerOpts(*opts).
 		Execute()
 
@@ -289,7 +289,7 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	loadBalancerDetails, httpResponse, err := l.Client.
+	loadBalancerDetails, httpResponse, err := l.PubliccloudAPI.
 		GetLoadBalancer(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -323,7 +323,7 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	loadBalancerDetails, httpResponse, err := l.Client.
+	loadBalancerDetails, httpResponse, err := l.PubliccloudAPI.
 		UpdateLoadBalancer(ctx, plan.ID.ValueString()).
 		UpdateLoadBalancerOpts(*opts).
 		Execute()
@@ -353,7 +353,10 @@ func (l *loadBalancerResource) Delete(
 		return
 	}
 
-	httpResponse, err := l.Client.TerminateLoadBalancer(ctx, state.ID.ValueString()).Execute()
+	httpResponse, err := l.PubliccloudAPI.TerminateLoadBalancer(
+		ctx,
+		state.ID.ValueString(),
+	).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 	}
@@ -361,7 +364,7 @@ func (l *loadBalancerResource) Delete(
 
 func NewLoadBalancerResource() resource.Resource {
 	return &loadBalancerResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_load_balancer",
 		},
 	}

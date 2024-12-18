@@ -95,7 +95,7 @@ func getAllLoadBalancers(
 }
 
 type loadBalancersDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func (l *loadBalancersDataSource) Schema(
@@ -166,7 +166,10 @@ func (l *loadBalancersDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	loadBalancers, httpResponse, err := getAllLoadBalancers(ctx, l.Client)
+	loadBalancers, httpResponse, err := getAllLoadBalancers(
+		ctx,
+		l.PubliccloudAPI,
+	)
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
@@ -182,7 +185,7 @@ func (l *loadBalancersDataSource) Read(
 
 func NewLoadBalancersDataSource() datasource.DataSource {
 	return &loadBalancersDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_load_balancers",
 		},
 	}

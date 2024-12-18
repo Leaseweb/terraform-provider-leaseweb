@@ -18,7 +18,7 @@ var (
 )
 
 type credentialDataSource struct {
-	utils.DedicatedserverDataSourceAPI
+	utils.DataSourceAPI
 }
 
 type credentialDataSourceModel struct {
@@ -75,7 +75,7 @@ func (c *credentialDataSource) Read(
 	credType := dedicatedserver.CredentialType(config.Type.ValueString())
 	username := config.Username.ValueString()
 
-	credential, response, err := c.Client.GetServerCredential(
+	credential, response, err := c.DedicatedserverAPI.GetServerCredential(
 		ctx,
 		serverID,
 		credType,
@@ -93,7 +93,7 @@ func (c *credentialDataSource) Read(
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		DedicatedserverDataSourceAPI: utils.DedicatedserverDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "dedicated_server_credential",
 		},
 	}

@@ -34,7 +34,7 @@ func ConfigError(diags *diag.Diagnostics, providerData any) {
 	diags.AddError(
 		"Unexpected Resource Configure Type",
 		fmt.Sprintf(
-			"Expected client.Client, got: %T. Please report this issue to the provider developers.",
+			"Expected client.PubliccloudAPI, got: %T. Please report this issue to the provider developers.",
 			providerData,
 		),
 	)

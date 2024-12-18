@@ -148,7 +148,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func (i *imagesDataSource) Schema(
@@ -174,7 +174,7 @@ func (i *imagesDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	images, httpResponse, err := getAllImages(ctx, i.Client)
+	images, httpResponse, err := getAllImages(ctx, i.PubliccloudAPI)
 
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
@@ -188,7 +188,7 @@ func (i *imagesDataSource) Read(
 
 func NewImagesDataSource() datasource.DataSource {
 	return &imagesDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_images",
 		},
 	}

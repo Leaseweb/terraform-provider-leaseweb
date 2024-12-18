@@ -288,14 +288,14 @@ func adaptInstanceDetailsToInstanceResource(
 
 func NewInstanceResource() resource.Resource {
 	return &instanceResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_instance",
 		},
 	}
 }
 
 type instanceResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 func (i *instanceResource) Create(
@@ -315,7 +315,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, httpResponse, err := i.Client.LaunchInstance(ctx).
+	instance, httpResponse, err := i.PubliccloudAPI.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 	if err != nil {
@@ -324,7 +324,7 @@ func (i *instanceResource) Create(
 	}
 
 	// Get ISO data from instanceDetails
-	instanceDetails, httpResponse, err := i.Client.GetInstance(
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.GetInstance(
 		ctx,
 		instance.GetId(),
 	).Execute()
@@ -353,7 +353,7 @@ func (i *instanceResource) Delete(
 		return
 	}
 
-	httpResponse, err := i.Client.TerminateInstance(
+	httpResponse, err := i.PubliccloudAPI.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -386,7 +386,7 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	instanceDetails, httpResponse, err := i.Client.
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -423,7 +423,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	instanceDetails, httpResponse, err := i.Client.
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()

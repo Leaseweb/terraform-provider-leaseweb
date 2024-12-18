@@ -414,7 +414,7 @@ func TestConfigError(t *testing.T) {
 	assert.Equal(
 		t,
 		diags.Errors()[0].Detail(),
-		"Expected client.Client, got: string. Please report this issue to the provider developers.",
+		"Expected client.PubliccloudAPI, got: string. Please report this issue to the provider developers.",
 	)
 }
 
@@ -423,5 +423,5 @@ func ExampleConfigError() {
 	ConfigError(&diags, "tralala")
 
 	fmt.Println(diags.Errors())
-	// Output: [{Expected client.Client, got: string. Please report this issue to the provider developers. Unexpected Resource Configure Type}]
+	// Output: [{Expected client.PubliccloudAPI, got: string. Please report this issue to the provider developers. Unexpected Resource Configure Type}]
 }

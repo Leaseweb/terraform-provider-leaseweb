@@ -21,7 +21,7 @@ var (
 )
 
 type credentialResource struct {
-	utils.PubliccloudResourceAPI
+	utils.ResourceAPI
 }
 
 type credentialResourceModel struct {
@@ -33,7 +33,7 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		PubliccloudResourceAPI: utils.PubliccloudResourceAPI{
+		ResourceAPI: utils.ResourceAPI{
 			Name: "public_cloud_credential",
 		},
 	}
@@ -102,7 +102,7 @@ func (c *credentialResource) Create(
 		plan.Username.ValueString(),
 		plan.Password.ValueString(),
 	)
-	request := c.Client.StoreCredential(
+	request := c.PubliccloudAPI.StoreCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 	).StoreCredentialOpts(*opts)
@@ -136,7 +136,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.Client.GetCredential(
+	request := c.PubliccloudAPI.GetCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.Type.ValueString(),
@@ -175,7 +175,7 @@ func (c *credentialResource) Update(
 	opts := publiccloud.NewUpdateCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.Client.UpdateCredential(
+	request := c.PubliccloudAPI.UpdateCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.Type.ValueString(),
@@ -211,7 +211,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.Client.DeleteCredential(
+	request := c.PubliccloudAPI.DeleteCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.Type.ValueString(),

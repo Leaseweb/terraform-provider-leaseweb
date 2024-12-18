@@ -17,12 +17,12 @@ var (
 )
 
 type credentialDataSource struct {
-	utils.PubliccloudDataSourceAPI
+	utils.DataSourceAPI
 }
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		PubliccloudDataSourceAPI: utils.PubliccloudDataSourceAPI{
+		DataSourceAPI: utils.DataSourceAPI{
 			Name: "public_cloud_credential",
 		},
 	}
@@ -82,7 +82,7 @@ func (d *credentialDataSource) Read(
 	type_ := config.Type.ValueString()
 	username := config.Username.ValueString()
 
-	credential, response, err := d.Client.GetCredential(
+	credential, response, err := d.PubliccloudAPI.GetCredential(
 		ctx,
 		instanceID,
 		type_,

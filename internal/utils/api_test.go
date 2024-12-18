@@ -59,42 +59,50 @@ func Test_getCoreClient(t *testing.T) {
 			)
 			assert.Equal(
 				t,
-				"Expected client.Client, got: string. Please report this issue to the provider developers.",
+				"Expected an SDK API, got: string. Please report this issue to the provider developers.",
 				diags[0].Detail(),
 			)
 		},
 	)
 }
 
-func TestPubliccloudResourceAPI_Configure(t *testing.T) {
+func TestResourceAPI_Configure(t *testing.T) {
 	t.Run("nothing is set if providerData is nil", func(t *testing.T) {
-		api := PubliccloudResourceAPI{}
+		api := ResourceAPI{}
 		response := resource.ConfigureResponse{}
 		api.Configure(context.TODO(), resource.ConfigureRequest{}, &response)
 
-		assert.Nil(t, api.Client)
+		assert.Nil(t, api.DedicatedserverAPI)
+		assert.Nil(t, api.PubliccloudAPI)
 	})
 
 	t.Run("client is set from ProviderData", func(t *testing.T) {
-		api := PubliccloudResourceAPI{}
+		api := ResourceAPI{}
 		response := resource.ConfigureResponse{}
-		apiClient := publiccloud.NewAPIClient(publiccloud.NewConfiguration())
+		publiccloudAPI := publiccloud.NewAPIClient(publiccloud.NewConfiguration())
+		dedicatedserverAPI := dedicatedserver.NewAPIClient(dedicatedserver.NewConfiguration())
 		api.Configure(
 			context.TODO(),
 			resource.ConfigureRequest{
 				ProviderData: client.Client{
-					PubliccloudAPI: apiClient.PubliccloudAPI,
+					PubliccloudAPI:     publiccloudAPI.PubliccloudAPI,
+					DedicatedserverAPI: dedicatedserverAPI.DedicatedserverAPI,
 				},
 			},
 			&response,
 		)
 
-		assert.Equal(t, apiClient.PubliccloudAPI, api.Client)
+		assert.Equal(t, publiccloudAPI.PubliccloudAPI, api.PubliccloudAPI)
+		assert.Equal(
+			t,
+			dedicatedserverAPI.DedicatedserverAPI,
+			api.DedicatedserverAPI,
+		)
 	})
 }
 
-func TestPubliccloudResourceAPI_Metadata(t *testing.T) {
-	api := PubliccloudResourceAPI{
+func TestResourceAPI_Metadata(t *testing.T) {
+	api := ResourceAPI{
 		Name: "tralala",
 	}
 	request := resource.MetadataRequest{
@@ -106,115 +114,42 @@ func TestPubliccloudResourceAPI_Metadata(t *testing.T) {
 	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
 }
 
-func TestPubliccloudDataSourceAPI_Configure(t *testing.T) {
+func TestDataSourceAPI_Configure(t *testing.T) {
 	t.Run("nothing is set if providerData is nil", func(t *testing.T) {
-		api := PubliccloudDataSourceAPI{}
+		api := DataSourceAPI{}
 		response := datasource.ConfigureResponse{}
 		api.Configure(context.TODO(), datasource.ConfigureRequest{}, &response)
 
-		assert.Nil(t, api.Client)
+		assert.Nil(t, api.PubliccloudAPI)
 	})
 
 	t.Run("client is set from ProviderData", func(t *testing.T) {
-		api := PubliccloudDataSourceAPI{}
+		api := DataSourceAPI{}
 		response := datasource.ConfigureResponse{}
-		apiClient := publiccloud.NewAPIClient(publiccloud.NewConfiguration())
+		publiccloudAPI := publiccloud.NewAPIClient(publiccloud.NewConfiguration())
+		dedicatedserverAPI := dedicatedserver.NewAPIClient(dedicatedserver.NewConfiguration())
 		api.Configure(
 			context.TODO(),
 			datasource.ConfigureRequest{
 				ProviderData: client.Client{
-					PubliccloudAPI: apiClient.PubliccloudAPI,
+					PubliccloudAPI:     publiccloudAPI.PubliccloudAPI,
+					DedicatedserverAPI: dedicatedserverAPI.DedicatedserverAPI,
 				},
 			},
 			&response,
 		)
 
-		assert.Equal(t, apiClient.PubliccloudAPI, api.Client)
-	})
-}
-
-func TestPubliccloudDataSourceAPI_Metadata(t *testing.T) {
-	api := PubliccloudDataSourceAPI{
-		Name: "tralala",
-	}
-	request := datasource.MetadataRequest{
-		ProviderTypeName: "providerTypeName",
-	}
-	response := datasource.MetadataResponse{}
-	api.Metadata(context.TODO(), request, &response)
-
-	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
-}
-
-func TestDedicatedserverResourceAPI_Configure(t *testing.T) {
-	t.Run("nothing is set if providerData is nil", func(t *testing.T) {
-		api := DedicatedserverResourceAPI{}
-		response := resource.ConfigureResponse{}
-		api.Configure(context.TODO(), resource.ConfigureRequest{}, &response)
-
-		assert.Nil(t, api.Client)
-	})
-
-	t.Run("client is set from ProviderData", func(t *testing.T) {
-		api := DedicatedserverResourceAPI{}
-		response := resource.ConfigureResponse{}
-		apiClient := dedicatedserver.NewAPIClient(dedicatedserver.NewConfiguration())
-		api.Configure(
-			context.TODO(),
-			resource.ConfigureRequest{
-				ProviderData: client.Client{
-					DedicatedserverAPI: apiClient.DedicatedserverAPI,
-				},
-			},
-			&response,
+		assert.Equal(t, publiccloudAPI.PubliccloudAPI, api.PubliccloudAPI)
+		assert.Equal(
+			t,
+			dedicatedserverAPI.DedicatedserverAPI,
+			api.DedicatedserverAPI,
 		)
-
-		assert.Equal(t, apiClient.DedicatedserverAPI, api.Client)
 	})
 }
 
-func TestDedicatedServerResourceAPI_Metadata(t *testing.T) {
-	api := DedicatedserverResourceAPI{
-		Name: "tralala",
-	}
-	request := resource.MetadataRequest{
-		ProviderTypeName: "providerTypeName",
-	}
-	response := resource.MetadataResponse{}
-	api.Metadata(context.TODO(), request, &response)
-
-	assert.Equal(t, "providerTypeName_tralala", response.TypeName)
-}
-
-func TestDedicatedserverDataSourceAPI_Configure(t *testing.T) {
-	t.Run("nothing is set if providerData is nil", func(t *testing.T) {
-		api := DedicatedserverDataSourceAPI{}
-		response := datasource.ConfigureResponse{}
-		api.Configure(context.TODO(), datasource.ConfigureRequest{}, &response)
-
-		assert.Nil(t, api.Client)
-	})
-
-	t.Run("client is set from ProviderData", func(t *testing.T) {
-		api := DedicatedserverDataSourceAPI{}
-		response := datasource.ConfigureResponse{}
-		apiClient := dedicatedserver.NewAPIClient(dedicatedserver.NewConfiguration())
-		api.Configure(
-			context.TODO(),
-			datasource.ConfigureRequest{
-				ProviderData: client.Client{
-					DedicatedserverAPI: apiClient.DedicatedserverAPI,
-				},
-			},
-			&response,
-		)
-
-		assert.Equal(t, apiClient.DedicatedserverAPI, api.Client)
-	})
-}
-
-func TestDedicatedServerDataSourceAPI_Metadata(t *testing.T) {
-	api := DedicatedserverDataSourceAPI{
+func TestDataSourceAPI_Metadata(t *testing.T) {
+	api := DataSourceAPI{
 		Name: "tralala",
 	}
 	request := datasource.MetadataRequest{
