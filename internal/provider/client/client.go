@@ -2,8 +2,8 @@
 package client
 
 import (
-	"github.com/leaseweb/leaseweb-go-sdk/v2/dedicatedserver"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 )
 
 const userAgentBase = "leaseweb-terraform"

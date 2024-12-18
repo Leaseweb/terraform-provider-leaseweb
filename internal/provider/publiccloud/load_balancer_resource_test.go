@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 

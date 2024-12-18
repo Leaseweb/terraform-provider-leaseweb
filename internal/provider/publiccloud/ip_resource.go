@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -33,8 +33,8 @@ func (i ipResourceModel) attributeTypes() map[string]attr.Type {
 	}
 }
 
-func (i ipResourceModel) generateUpdateOpts() publiccloud.UpdateIpOpts {
-	return *publiccloud.NewUpdateIpOpts(i.ReverseLookup.ValueString())
+func (i ipResourceModel) generateUpdateOpts() publiccloud.UpdateIPOpts {
+	return *publiccloud.NewUpdateIPOpts(i.ReverseLookup.ValueString())
 }
 
 type ipResource struct {
@@ -129,7 +129,7 @@ func (i *ipResource) Read(
 		return
 	}
 
-	ip, httpResponse, err := i.PubliccloudAPI.GetIp(
+	ip, httpResponse, err := i.PubliccloudAPI.GetInstanceIP(
 		ctx,
 		state.InstanceID.ValueString(),
 		state.IP.ValueString(),
@@ -158,11 +158,11 @@ func (i *ipResource) Update(
 
 	opts := plan.generateUpdateOpts()
 
-	ipDetails, httpResponse, err := i.PubliccloudAPI.UpdateIp(
+	ipDetails, httpResponse, err := i.PubliccloudAPI.UpdateInstanceIP(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.IP.ValueString(),
-	).UpdateIpOpts(opts).Execute()
+	).UpdateIPOpts(opts).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return

@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -102,7 +102,7 @@ func (c *credentialResource) Create(
 		plan.Username.ValueString(),
 		plan.Password.ValueString(),
 	)
-	request := c.PubliccloudAPI.StoreCredential(
+	request := c.PubliccloudAPI.StoreInstanceCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 	).StoreCredentialOpts(*opts)
@@ -136,10 +136,10 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.PubliccloudAPI.GetCredential(
+	request := c.PubliccloudAPI.GetInstanceCredential(
 		ctx,
 		state.InstanceID.ValueString(),
-		state.Type.ValueString(),
+		publiccloud.CredentialType(state.Type.ValueString()),
 		state.Username.ValueString(),
 	)
 	result, response, err := request.Execute()
@@ -175,10 +175,10 @@ func (c *credentialResource) Update(
 	opts := publiccloud.NewUpdateCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.PubliccloudAPI.UpdateCredential(
+	request := c.PubliccloudAPI.UpdateInstanceCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
-		plan.Type.ValueString(),
+		publiccloud.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	).UpdateCredentialOpts(*opts)
 	result, response, err := request.Execute()
@@ -211,10 +211,10 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.PubliccloudAPI.DeleteCredential(
+	request := c.PubliccloudAPI.DeleteInstanceCredential(
 		ctx,
 		state.InstanceID.ValueString(),
-		state.Type.ValueString(),
+		publiccloud.CredentialType(state.Type.ValueString()),
 		state.Username.ValueString(),
 	)
 	response, err := request.Execute()
