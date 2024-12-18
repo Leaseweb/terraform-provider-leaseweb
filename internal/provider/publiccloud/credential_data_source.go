@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -106,15 +106,11 @@ func (d *credentialDataSource) Read(
 		return
 	}
 
-	instanceID := config.InstanceID.ValueString()
-	type_ := config.Type.ValueString()
-	username := config.Username.ValueString()
-
-	credential, response, err := d.client.GetCredential(
+	credential, response, err := d.client.GetInstanceCredential(
 		ctx,
-		instanceID,
-		type_,
-		username,
+		config.InstanceID.ValueString(),
+		publiccloud.CredentialType(config.Type.ValueString()),
+		config.Username.ValueString(),
 	).Execute()
 
 	if err != nil {

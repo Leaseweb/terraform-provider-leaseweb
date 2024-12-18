@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
@@ -345,7 +345,7 @@ func updateISO(
 	// Detach current ISO if anything is attached
 	isoSDK, _ := instanceDetails.GetIsoOk()
 	if isoSDK != nil {
-		httpResponse, err = api.DetachIso(
+		httpResponse, err = api.DetachInstanceISO(
 			ctx,
 			iso.InstanceID.ValueString(),
 		).Execute()
@@ -374,7 +374,7 @@ func updateISO(
 	}
 
 	// Attach new ISO
-	httpResponse, err = api.AttachIso(
+	httpResponse, err = api.AttachInstanceISO(
 		ctx,
 		iso.InstanceID.ValueString(),
 	).AttachIsoOpts(*publiccloud.NewAttachIsoOpts(iso.DesiredID.ValueString())).
