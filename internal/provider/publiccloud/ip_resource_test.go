@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v2/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -82,7 +82,7 @@ func Test_iPResourceModel_generateUpdateOpts(t *testing.T) {
 		}
 		got := ip.generateUpdateOpts()
 
-		want := publiccloud.UpdateIpOpts{
+		want := publiccloud.UpdateIPOpts{
 			ReverseLookup: "example.com",
 		}
 
@@ -95,7 +95,7 @@ func Test_iPResourceModel_generateUpdateOpts(t *testing.T) {
 		}
 		got := ip.generateUpdateOpts()
 
-		want := publiccloud.UpdateIpOpts{
+		want := publiccloud.UpdateIPOpts{
 			ReverseLookup: "",
 		}
 
