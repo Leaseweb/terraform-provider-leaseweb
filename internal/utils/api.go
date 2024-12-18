@@ -28,9 +28,9 @@ func getCoreClient(
 
 	if !ok {
 		diagnostics.AddError(
-			"Unexpected Resource Configure Type",
+			"Unexpected Configure Type",
 			fmt.Sprintf(
-				"Expected an SDK API, got: %T. Please report this issue to the provider developers.",
+				"Expected client.Client, got: %T. Please report this issue to the provider developers.",
 				providerData,
 			),
 		)

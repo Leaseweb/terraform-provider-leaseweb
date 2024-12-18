@@ -54,12 +54,12 @@ func Test_getCoreClient(t *testing.T) {
 			assert.Equal(t, 1, diags.ErrorsCount())
 			assert.Equal(
 				t,
-				"Unexpected Resource Configure Type",
+				"Unexpected Configure Type",
 				diags[0].Summary(),
 			)
 			assert.Equal(
 				t,
-				"Expected an SDK API, got: string. Please report this issue to the provider developers.",
+				"Expected client.Client, got: string. Please report this issue to the provider developers.",
 				diags[0].Detail(),
 			)
 		},

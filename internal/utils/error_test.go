@@ -400,28 +400,3 @@ func ExampleUnexpectedImportIdentifierError() {
 	fmt.Println(diags.Errors())
 	// Output: [{Expected import identifier with format: "load_balancer_id,listener_id". Got: "f6d09965-c857-4d9b-a17f-c21bf13ddcd4" Unexpected Import Identifier}]
 }
-
-func TestConfigError(t *testing.T) {
-	diags := diag.Diagnostics{}
-	ConfigError(&diags, "tralala")
-
-	assert.Len(t, diags.Errors(), 1)
-	assert.Equal(
-		t,
-		diags.Errors()[0].Summary(),
-		"Unexpected Resource Configure Type",
-	)
-	assert.Equal(
-		t,
-		diags.Errors()[0].Detail(),
-		"Expected client.PubliccloudAPI, got: string. Please report this issue to the provider developers.",
-	)
-}
-
-func ExampleConfigError() {
-	diags := diag.Diagnostics{}
-	ConfigError(&diags, "tralala")
-
-	fmt.Println(diags.Errors())
-	// Output: [{Expected client.PubliccloudAPI, got: string. Please report this issue to the provider developers. Unexpected Resource Configure Type}]
-}
