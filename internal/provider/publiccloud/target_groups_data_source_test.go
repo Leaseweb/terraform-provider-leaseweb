@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptTargetGroupToTargetGroupDataSource(t *testing.T) {
@@ -75,7 +76,7 @@ func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
 
 		got, err := targetGroups.generateRequest(context.TODO(), &api)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -86,8 +87,8 @@ func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
 
 		_, err := targetGroups.generateRequest(context.TODO(), &publiccloud.PubliccloudAPIService{})
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run("invalid region returns an error", func(t *testing.T) {
@@ -97,7 +98,7 @@ func Test_targetGroupsDataSourceModel_generateRequest(t *testing.T) {
 
 		_, err := targetGroups.generateRequest(context.TODO(), &publiccloud.PubliccloudAPIService{})
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "tralala")
 	})
 }

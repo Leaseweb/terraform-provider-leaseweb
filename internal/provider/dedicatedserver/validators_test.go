@@ -20,7 +20,7 @@ func Test_greaterThanZeroValidator_ValidateString(t *testing.T) {
 		greaterThanZeroValidator := greaterThanZero()
 		greaterThanZeroValidator.ValidateString(context.TODO(), request, &response)
 
-		assert.Len(t, response.Diagnostics.Errors(), 0)
+		assert.Empty(t, response.Diagnostics.Errors())
 	})
 
 	t.Run("does not set errors if the float value is greater than 0", func(t *testing.T) {
@@ -33,7 +33,7 @@ func Test_greaterThanZeroValidator_ValidateString(t *testing.T) {
 		greaterThanZeroValidator := greaterThanZero()
 		greaterThanZeroValidator.ValidateString(context.TODO(), request, &response)
 
-		assert.Len(t, response.Diagnostics.Errors(), 0)
+		assert.Empty(t, response.Diagnostics.Errors())
 	})
 
 	t.Run("set errors if the value is 0", func(t *testing.T) {

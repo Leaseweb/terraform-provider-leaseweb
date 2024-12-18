@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAdaptInt32PointerValueToNullableInt32(t *testing.T) {
@@ -105,8 +106,8 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Value Conversion Error")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Value Conversion Error")
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
@@ -119,7 +120,7 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 			},
 		)
 
-		assert.Nil(t, diags)
+		require.NoError(t, diags)
 		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
 	})
 }
@@ -139,9 +140,9 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 				},
 			)
 
-			assert.Nil(t, diags)
+			require.NoError(t, diags)
 			assert.Len(t, got.Elements(), 1)
-			assert.Equal(
+			assert.JSONEq(
 				t,
 				"{\"value\":\"tralala\"}",
 				got.Elements()[0].String(),
@@ -161,8 +162,8 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 				},
 			)
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "Value Conversion Error")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "Value Conversion Error")
 		},
 	)
 }
@@ -254,7 +255,7 @@ func TestReturnError(t *testing.T) {
 		got := ReturnError("functionName", diags)
 		want := `functionName: "summary" "detail"`
 
-		assert.Error(t, got)
+		require.Error(t, got)
 		assert.Equal(t, want, got.Error())
 	})
 
@@ -263,7 +264,7 @@ func TestReturnError(t *testing.T) {
 
 		got := ReturnError("functionName", diags)
 
-		assert.NoError(t, got)
+		require.NoError(t, got)
 	})
 }
 
@@ -357,8 +358,8 @@ func TestAdaptNullableSdkModelToResourceObject(t *testing.T) {
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Value Conversion Error")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Value Conversion Error")
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
@@ -371,7 +372,7 @@ func TestAdaptNullableSdkModelToResourceObject(t *testing.T) {
 			},
 		)
 
-		assert.Nil(t, diags)
+		require.NoError(t, diags)
 		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
 	})
 
@@ -385,7 +386,7 @@ func TestAdaptNullableSdkModelToResourceObject(t *testing.T) {
 			},
 		)
 
-		assert.Nil(t, diags)
+		require.NoError(t, diags)
 		assert.True(t, got.IsNull())
 	})
 }

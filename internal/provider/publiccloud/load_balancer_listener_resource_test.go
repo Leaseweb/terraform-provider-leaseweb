@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptSslCertificateToLoadBalancerListenerCertificateResource(t *testing.T) {
@@ -82,7 +83,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 			Port:       basetypes.NewInt32Value(22),
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -114,7 +115,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 			},
 		)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, got.Certificate)
 	})
 
@@ -143,7 +144,7 @@ func Test_adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(t *test
 			},
 		)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, got.DefaultRule)
 	})
 }
@@ -173,7 +174,7 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOp
 			*publiccloud.NewLoadBalancerListenerDefaultRule("targetGroupId"),
 		)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, got)
 	})
 
@@ -193,8 +194,8 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOp
 
 		_, err := listener.generateLoadBalancerListenerCreateOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Object defines fields not found in struct")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Object defines fields not found in struct")
 	})
 
 	t.Run("optional fields are set", func(t *testing.T) {
@@ -232,7 +233,7 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOp
 		)
 		want.SetCertificate(publiccloud.SslCertificate{PrivateKey: "privateKey"})
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, got)
 	})
 
@@ -262,8 +263,8 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerCreateOp
 
 		_, err := listener.generateLoadBalancerListenerCreateOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Struct defines fields not found in object")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Struct defines fields not found in object")
 	})
 }
 
@@ -286,7 +287,7 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			Port:       basetypes.NewInt32Value(22),
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -315,7 +316,7 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			},
 		)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, got.DefaultRule)
 	})
 }
@@ -336,7 +337,7 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOp
 			Port:     &port,
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -357,7 +358,7 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOp
 
 		got, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got.Certificate.Chain)
 	})
 
@@ -381,7 +382,7 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOp
 			TargetGroupId: "targetGroupId",
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got.DefaultRule)
 	})
 
@@ -399,8 +400,8 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOp
 
 		_, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Struct defines fields not found in object")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Struct defines fields not found in object")
 	})
 
 	t.Run("invalid defaultRule returns an error", func(t *testing.T) {
@@ -417,8 +418,8 @@ func Test_loadBalancerListenerResourceModel_generateLoadBalancerListenerUpdateOp
 
 		_, err := listener.generateLoadBalancerListenerUpdateOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Struct defines fields not found in object")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Struct defines fields not found in object")
 	})
 }
 
@@ -439,7 +440,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 			Chain:       &chain,
 		}
 
-		assert.Equal(t, got, want)
+		assert.Equal(t, want, got)
 	})
 
 	t.Run("chain is set to nil if model chain is nil", func(t *testing.T) {
@@ -457,7 +458,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 			Chain:       nil,
 		}
 
-		assert.Equal(t, got, want)
+		assert.Equal(t, want, got)
 	})
 
 	t.Run(
@@ -477,7 +478,7 @@ func Test_loadBalancerListenerCertificateResourceModel_generateSslCertificate(t 
 				Chain:       nil,
 			}
 
-			assert.Equal(t, got, want)
+			assert.Equal(t, want, got)
 		},
 	)
 }
@@ -493,5 +494,5 @@ func Test_loadBalancerListenerDefaultRuleResourceModel_generateLoadBalancerListe
 		TargetGroupId: "targetGroupId",
 	}
 
-	assert.Equal(t, got, want)
+	assert.Equal(t, want, got)
 }

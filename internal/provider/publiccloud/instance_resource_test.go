@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptContractToContractResource(t *testing.T) {
@@ -128,7 +129,7 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 
 	got, err := adaptInstanceDetailsToInstanceResource(instance, context.TODO())
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())
@@ -166,7 +167,7 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 		got, err := instance.getLaunchOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, publiccloud.REGIONNAME_EU_WEST_3, got.Region)
 		assert.Equal(t, publiccloud.TYPENAME_M5A_4XLARGE, got.Type)
 		assert.Equal(t, publiccloud.STORAGETYPE_CENTRAL, got.RootDiskStorageType)
@@ -190,7 +191,7 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 		got, err := instance.getLaunchOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "marketAppId", *got.MarketAppId)
 		assert.Equal(t, "reference", *got.Reference)
 		assert.Equal(t, int32(55), *got.RootDiskSize)
@@ -204,8 +205,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -217,8 +218,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -232,8 +233,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -247,8 +248,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "555")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "555")
 		},
 	)
 
@@ -262,8 +263,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "555")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "555")
 		},
 	)
 
@@ -273,8 +274,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 		_, err := instance.getLaunchOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "tralala")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "tralala")
 	})
 
 	t.Run(
@@ -285,8 +286,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".imageResourceModel")
+			require.Error(t, err)
+			require.ErrorContains(t, err, ".imageResourceModel")
 		},
 	)
 
@@ -298,8 +299,8 @@ func Test_instanceResourceModel_getLaunchOpts(t *testing.T) {
 
 			_, err := instance.getLaunchOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".contractResourceModel")
+			require.Error(t, err)
+			require.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
@@ -310,7 +311,7 @@ func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 
 		got, err := instance.getUpdateOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, publiccloud.TYPENAME_M5A_4XLARGE, *got.Type)
 		assert.Equal(t, publiccloud.CONTRACTTYPE_MONTHLY, *got.ContractType)
 		assert.Equal(t, publiccloud.CONTRACTTERM__3, *got.ContractTerm)
@@ -327,8 +328,8 @@ func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 
 			_, err := instance.getUpdateOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -342,8 +343,8 @@ func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 
 			_, err := instance.getUpdateOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -357,8 +358,8 @@ func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 
 			_, err := instance.getUpdateOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "555")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "555")
 		},
 	)
 
@@ -372,8 +373,8 @@ func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 
 			_, err := instance.getUpdateOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "555")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "555")
 		},
 	)
 
@@ -385,8 +386,8 @@ func Test_instanceResourceModel_getUpdateOpts(t *testing.T) {
 
 			_, err := instance.getUpdateOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".contractResourceModel")
+			require.Error(t, err)
+			require.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
