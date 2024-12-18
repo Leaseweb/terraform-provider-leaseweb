@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptImageToImageResource(t *testing.T) {
@@ -74,7 +75,7 @@ func Test_adaptImageDetailsToImageResource(t *testing.T) {
 		sdkImageDetails,
 	)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, want, *got)
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
@@ -27,7 +28,7 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "id", got.ID.ValueString())
 		assert.Equal(t, "region", got.Region.ValueString())
 		assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
@@ -56,7 +57,7 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 			context.TODO(),
 		)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "reference", got.Reference.ValueString())
 	})
 
@@ -69,7 +70,7 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 		got, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, publiccloud.REGIONNAME_EU_WEST_3, got.Region)
 		assert.Equal(t, publiccloud.TYPENAME_C3_2XLARGE, got.Type)
 		assert.Equal(t, publiccloud.CONTRACTTYPE_MONTHLY, got.ContractType)
@@ -88,7 +89,7 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 		got, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "reference", *got.Reference)
 	})
 
@@ -100,8 +101,8 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -119,8 +120,8 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -138,8 +139,8 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "555")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "555")
 		},
 	)
 
@@ -157,8 +158,8 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "555")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "555")
 		},
 	)
 
@@ -170,8 +171,8 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 
@@ -183,8 +184,8 @@ func Test_loadBalancerResourceModel_GetLaunchLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetLaunchLoadBalancerOpts(context.TODO())
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, ".contractResourceModel")
+			require.Error(t, err)
+			require.ErrorContains(t, err, ".contractResourceModel")
 		},
 	)
 }
@@ -200,7 +201,7 @@ func Test_loadBalancerResourceModel_GetUpdateLoadBalancerOpts(t *testing.T) {
 
 		got, err := loadBalancer.GetUpdateLoadBalancerOpts()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, publiccloud.TYPENAME_C3_2XLARGE, *got.Type)
 		assert.Equal(t, "reference", *got.Reference)
 	})
@@ -213,8 +214,8 @@ func Test_loadBalancerResourceModel_GetUpdateLoadBalancerOpts(t *testing.T) {
 
 			_, err := loadBalancer.GetUpdateLoadBalancerOpts()
 
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, "tralala")
+			require.Error(t, err)
+			require.ErrorContains(t, err, "tralala")
 		},
 	)
 }

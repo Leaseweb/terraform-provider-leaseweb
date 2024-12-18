@@ -115,7 +115,7 @@ func TestSdkError(t *testing.T) {
 
 		assert.Len(t, diags.Errors(), 1)
 		assert.Equal(t, "Unexpected API Error", diags.Errors()[0].Summary())
-		assert.Equal(
+		assert.JSONEq(
 			t,
 			"{\n  \"errorCode\": \"404\",\n  \"errorMessage\": \"Server not found\",\n  \"correlationId\": \"correlationId\"\n}",
 			diags.Errors()[0].Detail(),
@@ -343,8 +343,8 @@ func TestGeneralError(t *testing.T) {
 	GeneralError(&diags, context.TODO(), errors.New("tralala"))
 
 	assert.Len(t, diags.Errors(), 1)
-	assert.Equal(t, diags.Errors()[0].Summary(), "Unexpected Error")
-	assert.Equal(t, diags.Errors()[0].Detail(), defaultErrMsg)
+	assert.Equal(t, "Unexpected Error", diags.Errors()[0].Summary())
+	assert.Equal(t, defaultErrMsg, diags.Errors()[0].Detail())
 }
 
 func ExampleGeneralError() {
@@ -362,10 +362,10 @@ func TestImportOnlyError(t *testing.T) {
 	assert.Len(t, diags.Errors(), 1)
 	assert.Equal(
 		t,
-		diags.Errors()[0].Summary(),
 		"Resource can only be imported, not created.",
+		diags.Errors()[0].Summary(),
 	)
-	assert.Equal(t, diags.Errors()[0].Detail(), "")
+	assert.Equal(t, "", diags.Errors()[0].Detail())
 }
 
 func ExampleImportOnlyError() {
@@ -381,11 +381,11 @@ func TestUnexpectedImportIdentifierError(t *testing.T) {
 	UnexpectedImportIdentifierError(&diags, "format", "got")
 
 	assert.Len(t, diags.Errors(), 1)
-	assert.Equal(t, diags.Errors()[0].Summary(), "Unexpected Import Identifier")
+	assert.Equal(t, "Unexpected Import Identifier", diags.Errors()[0].Summary())
 	assert.Equal(
 		t,
-		diags.Errors()[0].Detail(),
 		`Expected import identifier with format: "format". Got: "got"`,
+		diags.Errors()[0].Detail(),
 	)
 }
 
@@ -408,13 +408,13 @@ func TestConfigError(t *testing.T) {
 	assert.Len(t, diags.Errors(), 1)
 	assert.Equal(
 		t,
-		diags.Errors()[0].Summary(),
 		"Unexpected Resource Configure Type",
+		diags.Errors()[0].Summary(),
 	)
 	assert.Equal(
 		t,
-		diags.Errors()[0].Detail(),
 		"Expected client.Client, got: string. Please report this issue to the provider developers.",
+		diags.Errors()[0].Detail(),
 	)
 }
 

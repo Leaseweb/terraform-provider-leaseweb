@@ -25,3 +25,4 @@ linters:
     - unparam
     - unused
     - govet
+    - testifylint
