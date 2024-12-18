@@ -1,0 +1,33 @@
+services:
+  prism_public_cloud:
+    container_name: prism_public_cloud
+    build:
+      dockerfile: prism/Dockerfile
+    command: >
+      mock -p 4010 --host 0.0.0.0
+      ${PUBLIC_CLOUD_API_SPEC_URL}
+    env_file:
+      - path: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  prism_dedicated_server:
+    container_name: prism_dedicated_server
+    build:
+      dockerfile: prism/Dockerfile
+    command: >
+      mock -p 4010 --host 0.0.0.0
+      ${DEDICATED_SERVER_API_SPEC_URL}
+    env_file:
+      - path: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  prism-proxy:
+    build:
+      dockerfile: caddy/Dockerfile
+    volumes:
+      - ./caddy/prism/Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - prism_public_cloud
+      - prism_dedicated_server
