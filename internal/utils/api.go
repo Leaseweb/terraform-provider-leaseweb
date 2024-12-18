@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/dns"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
@@ -45,6 +46,7 @@ type ResourceAPI struct {
 	Name               string
 	PubliccloudAPI     publiccloud.PubliccloudAPI
 	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
+	DNSAPI             dns.DnsAPI
 }
 
 func (p *ResourceAPI) Configure(
@@ -59,6 +61,7 @@ func (p *ResourceAPI) Configure(
 
 	p.PubliccloudAPI = coreClient.PubliccloudAPI
 	p.DedicatedserverAPI = coreClient.DedicatedserverAPI
+	p.DNSAPI = coreClient.DNSAPI
 }
 
 func (p *ResourceAPI) Metadata(
@@ -74,6 +77,7 @@ type DataSourceAPI struct {
 	Name               string
 	PubliccloudAPI     publiccloud.PubliccloudAPI
 	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
+	DNSAPI             dns.DnsAPI
 }
 
 func (d *DataSourceAPI) Configure(
@@ -88,6 +92,7 @@ func (d *DataSourceAPI) Configure(
 
 	d.DedicatedserverAPI = coreClient.DedicatedserverAPI
 	d.PubliccloudAPI = coreClient.PubliccloudAPI
+	d.DNSAPI = coreClient.DNSAPI
 }
 
 func (d *DataSourceAPI) Metadata(

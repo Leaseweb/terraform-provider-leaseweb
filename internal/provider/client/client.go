@@ -3,6 +3,7 @@ package client
 
 import (
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/v3/dns"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 )
 
@@ -12,6 +13,7 @@ const userAgentBase = "leaseweb-terraform"
 type Client struct {
 	PubliccloudAPI     publiccloud.PubliccloudAPI
 	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
+	DNSAPI             dns.DnsAPI
 }
 
 type Optional struct {
@@ -22,14 +24,17 @@ type Optional struct {
 func NewClient(token string, optional Optional, version string) Client {
 	publiccloudCFG := publiccloud.NewConfiguration()
 	dedicatedserverCFG := dedicatedserver.NewConfiguration()
+	dnsCFG := dns.NewConfiguration()
 
 	if optional.Host != nil {
 		publiccloudCFG.Host = *optional.Host
 		dedicatedserverCFG.Host = *optional.Host
+		dnsCFG.Host = *optional.Host
 	}
 	if optional.Scheme != nil {
 		publiccloudCFG.Scheme = *optional.Scheme
 		dedicatedserverCFG.Scheme = *optional.Scheme
+		dnsCFG.Scheme = *optional.Scheme
 	}
 
 	userAgent := userAgentBase + "-" + version
@@ -40,11 +45,16 @@ func NewClient(token string, optional Optional, version string) Client {
 	dedicatedserverCFG.AddDefaultHeader("X-LSW-Auth", token)
 	dedicatedserverCFG.UserAgent = userAgent
 
+	dnsCFG.AddDefaultHeader("X-LSW-Auth", token)
+	dnsCFG.UserAgent = userAgent
+
 	publiccloudAPI := publiccloud.NewAPIClient(publiccloudCFG)
 	dedicatedserverAPI := dedicatedserver.NewAPIClient(dedicatedserverCFG)
+	dnsAPI := dns.NewAPIClient(dnsCFG)
 
 	return Client{
 		PubliccloudAPI:     publiccloudAPI.PubliccloudAPI,
 		DedicatedserverAPI: dedicatedserverAPI.DedicatedserverAPI,
+		DNSAPI:             dnsAPI.DnsAPI,
 	}
 }
