@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
@@ -29,7 +30,7 @@ func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 			Region:   "region",
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -53,7 +54,7 @@ func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 			},
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -72,8 +73,8 @@ func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
 
 		_, err := targetGroup.generateCreateOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, ".healthCheckResourceModel")
+		require.Error(t, err)
+		require.ErrorContains(t, err, ".healthCheckResourceModel")
 	})
 }
 
@@ -136,7 +137,7 @@ func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 			Port: &port,
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -155,8 +156,8 @@ func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 
 		_, err := targetGroup.generateUpdateOpts(context.TODO())
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, ".healthCheckResourceModel")
+		require.Error(t, err)
+		require.ErrorContains(t, err, ".healthCheckResourceModel")
 	})
 
 	t.Run("healthCheck is set", func(t *testing.T) {
@@ -173,7 +174,7 @@ func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
 
 		got, err := targetGroup.generateUpdateOpts(context.TODO())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, publiccloud.PROTOCOL_HTTP, got.HealthCheck.Protocol)
 	})
 }
@@ -244,7 +245,7 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 			HealthCheck: basetypes.NewObjectNull(healthCheckResourceModel{}.attributeTypes()),
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, want, *got)
 	})
 
@@ -265,7 +266,7 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 		got := healthCheckResourceModel{}
 		targetGroup.HealthCheck.As(context.TODO(), &got, basetypes.ObjectAsOptions{})
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "HTTP", got.Protocol.ValueString())
 	})
 }
