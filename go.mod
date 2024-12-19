@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/leaseweb/leaseweb-go-sdk/v3 v3.1.1
+	github.com/leaseweb/leaseweb-go-sdk/v3 v3.2.0
 	github.com/stretchr/testify v1.10.0
 )
 
