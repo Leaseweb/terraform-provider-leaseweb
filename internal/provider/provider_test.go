@@ -93,10 +93,125 @@ func TestAccPublicCloudInstancesDataSource(t *testing.T) {
 						"instances.#",
 						"4",
 					),
+
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_instances.test",
 						"instances.0.id",
 						"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.reference",
+						"my webserver",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.region",
+						"eu-west-3",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.root_disk_size",
+						"5",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.root_disk_storage_type",
+						"CENTRAL",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.state",
+						"RUNNING",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.type",
+						"lsw.m3.large",
+					),
+
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.contract.billing_frequency",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.contract.state",
+						"ACTIVE",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.contract.term",
+						"0",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.contract.type",
+						"HOURLY",
+					),
+
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.custom",
+						"false",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.flavour",
+						"ubuntu",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.id",
+						"UBUNTU_20_04_64BIT",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.name",
+						"Ubuntu 20.04 LTS (x86_64)",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.region",
+						"eu-west-3",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.state",
+						"READY",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.storage_types.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.image.storage_types.1",
+						"CENTRAL",
+					),
+
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.ips.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.ips.0.ip",
+						"10.32.60.12",
+					),
+
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.iso.id",
+						"ACRONIS_BOOT_MEDIA",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_instances.test",
+						"instances.0.iso.name",
+						"Acronis Boot Media",
 					),
 				),
 			},
@@ -112,20 +227,20 @@ func TestAccPublicCloudInstanceResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_instance.test",
@@ -198,22 +313,23 @@ resource "leaseweb_public_cloud_instance" "test" {
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+				resource "leaseweb_public_cloud_instance" "test" {
+				  region = "eu-west-3"
+				  type = "lsw.m3.large"
+				  contract = {
+				    billing_frequency = 1
+				    term = 0
+				    type = "HOURLY"
+				  }
+				  image = {
+				    id = "UBUNTU_20_04_64BIT"
+				  }
+				  root_disk_storage_type = "CENTRAL"
+				}
+				`,
 				},
 			},
+
 			// Delete testing automatically occurs in TestCase
 		})
 	})
@@ -224,20 +340,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "tralala"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "tralala"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute region value must be one of:`,
 					),
@@ -252,20 +368,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 				},
 				{
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -281,20 +397,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_24_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_24_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 				},
 			},
 		})
@@ -306,20 +422,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "tralala"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "tralala"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute type value must be one of:`,
 					),
@@ -334,21 +450,21 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_size = 5000000
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_size = 5000000
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Attribute root_disk_size value must be between 5 and 1000",
 					),
@@ -363,20 +479,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "tralala"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "tralala"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Attribute root_disk_storage_type value must be one of:",
 					),
@@ -391,20 +507,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 55
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 55
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Attribute contract.billing_frequency value must be one of:",
 					),
@@ -419,20 +535,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 55
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 55
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Attribute contract.term value must be one of:",
 					),
@@ -447,20 +563,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "tralala"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "tralala"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Attribute contract.type value must be one of:",
 					),
@@ -475,20 +591,20 @@ resource "leaseweb_public_cloud_instance" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					}
+					`,
 				},
 				{
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -504,21 +620,21 @@ resource "leaseweb_public_cloud_instance" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_instance" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  contract = {
-    billing_frequency = 1
-    term = 0
-    type = "HOURLY"
-  }
-  image = {
-    id = "UBUNTU_20_04_64BIT"
-  }
-  root_disk_storage_type = "CENTRAL"
-  market_app_id = "test"
-}
-`,
+					resource "leaseweb_public_cloud_instance" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  contract = {
+					    billing_frequency = 1
+					    term = 0
+					    type = "HOURLY"
+					  }
+					  image = {
+					    id = "UBUNTU_20_04_64BIT"
+					  }
+					  root_disk_storage_type = "CENTRAL"
+					  market_app_id = "test"
+					}
+					`,
 				},
 			},
 		})
@@ -533,22 +649,22 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-	resource "leaseweb_public_cloud_credential" "test" {
-		instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-	   	username = "root"
-	   	type = "OPERATING_SYSTEM"
-	   	password = "12341234"
-	}`,
+					resource "leaseweb_public_cloud_credential" "test" {
+						instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+					   	username = "root"
+					   	type = "OPERATING_SYSTEM"
+					   	password = "12341234"
+					}`,
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-				resource "leaseweb_public_cloud_credential" "test" {
-					instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-				   	username = "root"
-				   	type = "OPERATING_SYSTEM"
-				   	password = "12341234"
-				}`,
+					resource "leaseweb_public_cloud_credential" "test" {
+						instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+					   	username = "root"
+					   	type = "OPERATING_SYSTEM"
+					   	password = "12341234"
+					}`,
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -563,13 +679,12 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-
-		resource "leaseweb_public_cloud_credential" "test" {
-			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-		   	username = ""
-		   	type = "OPERATING_SYSTEM"
-		   	password = "blah"
-		}`,
+						resource "leaseweb_public_cloud_credential" "test" {
+							instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						   	username = ""
+						   	type = "OPERATING_SYSTEM"
+						   	password = "blah"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute username string length must be at least 1, got: 0`,
 						),
@@ -587,13 +702,12 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-
-		resource "leaseweb_public_cloud_credential" "test" {
-			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-		   	username = "root"
-		   	type = "OPERATING_SYSTEM"
-		   	password = ""
-		}`,
+						resource "leaseweb_public_cloud_credential" "test" {
+							instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						   	username = "root"
+						   	type = "OPERATING_SYSTEM"
+						   	password = ""
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute password string length must be at least 1, got: 0`,
 						),
@@ -611,13 +725,12 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-
-		resource "leaseweb_public_cloud_credential" "test" {
-			instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-		   	username = "root"
-		   	type = "invalid"
-		   	password = "12341234"
-		}`,
+						resource "leaseweb_public_cloud_credential" "test" {
+							instance_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						   	username = "root"
+						   	type = "invalid"
+						   	password = "12341234"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute type value must be one of:`,
 						),
@@ -629,114 +742,101 @@ func TestAccPublicCloudCredentialResource(t *testing.T) {
 }
 
 func TestAccPublicCloudCredentialDataSource(t *testing.T) {
-	t.Run("reading data for public cloud credential",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-        data "leaseweb_public_cloud_credential" "test" {
-          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
-          type                = "OPERATING_SYSTEM"
-          username            = "root"
-        }`,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_public_cloud_credential.test",
-								"password",
-								"12341234",
-							),
+	t.Run("read data for public cloud credential", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        data "leaseweb_public_cloud_credential" "test" {
+						          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						          type                = "OPERATING_SYSTEM"
+						          username            = "root"
+						        }`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_credential.test",
+							"password",
+							"12341234",
 						),
-					},
+					),
 				},
-			})
+			},
 		})
+	})
 
-	t.Run(
-		"instance_id is required",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-        data "leaseweb_public_cloud_credential" "test" {
-          type                = "OPERATING_SYSTEM"
-          username            = "root"
-        }`,
-						ExpectError: regexp.MustCompile(
-							"The argument \"instance_id\" is required, but no definition was found",
-						),
-					},
+	t.Run("instance_id is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        data "leaseweb_public_cloud_credential" "test" {
+						          type                = "OPERATING_SYSTEM"
+						          username            = "root"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"instance_id\" is required, but no definition was found",
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
-	t.Run(
-		"type is required",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-        data "leaseweb_public_cloud_credential" "test" {
-          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
-          username            = "root"
-        }`,
-						ExpectError: regexp.MustCompile(
-							"The argument \"type\" is required, but no definition was found",
-						),
-					},
+	t.Run("type is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        data "leaseweb_public_cloud_credential" "test" {
+						          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						          username            = "root"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"type\" is required, but no definition was found",
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
-	t.Run(
-		"username is required",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-        data "leaseweb_public_cloud_credential" "test" {
-          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
-          type                = "OPERATING_SYSTEM"
-        }`,
-						ExpectError: regexp.MustCompile(
-							"The argument \"username\" is required, but no definition was found",
-						),
-					},
+	t.Run("username is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        data "leaseweb_public_cloud_credential" "test" {
+						          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						          type                = "OPERATING_SYSTEM"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"username\" is required, but no definition was found",
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
-	t.Run(
-		"invalid type is not accepted",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-        data "leaseweb_public_cloud_credential" "test" {
-          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
-          type                = "A_WRONG_TYPE"
-          username            = "root"
-        }`,
-						ExpectError: regexp.MustCompile(
-							"Attribute type value must be one of:",
-						),
-					},
+	t.Run("invalid type is not accepted", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        data "leaseweb_public_cloud_credential" "test" {
+						          instance_id         = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						          type                = "A_WRONG_TYPE"
+						          username            = "root"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute type value must be one of:",
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 }
 
 func TestAccPublicCloudImagesDataSource(t *testing.T) {
@@ -747,6 +847,7 @@ func TestAccPublicCloudImagesDataSource(t *testing.T) {
 			{
 				Config: providerConfig + `data "leaseweb_public_cloud_images" "test" {}`,
 				Check: resource.ComposeAggregateTestCheckFunc(
+
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_images.test",
 						"images.#",
@@ -754,8 +855,48 @@ func TestAccPublicCloudImagesDataSource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_images.test",
+						"images.0.custom",
+						"false",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.flavour",
+						"ubuntu",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
 						"images.0.id",
 						"UBUNTU_24_04_64BIT",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.market_apps.#",
+						"0",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.name",
+						"Ubuntu 24.04 LTS (x86_64)",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.region",
+						"eu-west-3",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.state",
+						"READY",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.storage_types.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_images.test",
+						"images.0.storage_types.0",
+						"LOCAL",
 					),
 				),
 			},
@@ -771,18 +912,55 @@ func TestAccPublicCloudImageResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_image" "test" {
-  instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
-  name = "Custom image - 03"
-}`,
+					resource "leaseweb_public_cloud_image" "test" {
+					  instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					  name = "Custom image - 03"
+					}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"custom",
+							"true",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"flavour",
+							"ubuntu",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"id",
+							"ace712e9-a166-47f1-9065-4af0f7e7fce1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"market_apps.#",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"region",
+							"eu-west-3",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"state",
+							"READY",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_image.test",
+							"storage_types.#",
+							"0",
+						),
+					),
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-				  resource "leaseweb_public_cloud_image" "test" {
-				    instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
-				    name = "Custom image - 03"
-				  }`,
+					  resource "leaseweb_public_cloud_image" "test" {
+					    instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+					    name = "Custom image - 03"
+					  }`,
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -808,6 +986,58 @@ func TestPublicCloudAccLoadBalancersDataSource(t *testing.T) {
 						"load_balancers.0.id",
 						"5fd135a9-3ff6-4794-8b92-8cd8747a3ea3",
 					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.reference",
+						"my-load-balancer",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.region",
+						"eu-west-3",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.state",
+						"RUNNING",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.type",
+						"lsw.c3.4xlarge",
+					),
+
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.contract.billing_frequency",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.contract.state",
+						"ACTIVE",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.contract.term",
+						"0",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.contract.type",
+						"HOURLY",
+					),
+
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.ips.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.leaseweb_public_cloud_load_balancers.test",
+						"load_balancers.0.ips.0.ip",
+						"85.99.99.99",
+					),
 				),
 			},
 		},
@@ -822,12 +1052,12 @@ func TestAccDedicatedServerNotificationSettingBandwidthResource(t *testing.T) {
 				// Create testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
-    dedicated_server_id = "12345678"
-    frequency = "WEEKLY"
-    threshold = "1"
-    unit = "Gbps"
-}`,
+					resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
+					    dedicated_server_id = "12345678"
+					    frequency = "WEEKLY"
+					    threshold = "1"
+					    unit = "Gbps"
+					}`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_dedicated_server_notification_setting_bandwidth.test",
@@ -848,11 +1078,11 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
-    frequency = "WEEKLY"
-    threshold = "1"
-    unit = "Gbps"
-}`,
+						resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
+						    frequency = "WEEKLY"
+						    threshold = "1"
+						    unit = "Gbps"
+						}`,
 						ExpectError: regexp.MustCompile(
 							"The argument \"dedicated_server_id\" is required, but no definition was found",
 						),
@@ -870,12 +1100,12 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
-	   dedicated_server_id = "12345678"
-	   frequency = "WRONG"
-	   threshold = "1"
-	   unit = "Gbps"
-	}`,
+						resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
+						   dedicated_server_id = "12345678"
+						   frequency = "WRONG"
+						   threshold = "1"
+						   unit = "Gbps"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute frequency value must be one of: \["DAILY" "WEEKLY" "MONTHLY"]`,
 						),
@@ -893,12 +1123,12 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
-    dedicated_server_id = "12345678"
-    frequency = "DAILY"
-    threshold = "0"
-    unit = "Gbps"
-}`,
+						resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
+						    dedicated_server_id = "12345678"
+						    frequency = "DAILY"
+						    threshold = "0"
+						    unit = "Gbps"
+						}`,
 						ExpectError: regexp.MustCompile(
 							"The value must be greater than 0, but got 0",
 						),
@@ -916,12 +1146,12 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-	resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
-	   dedicated_server_id = "12345678"
-	   frequency = "DAILY"
-	   threshold = "0"
-	   unit = "Kbps"
-	}`,
+						resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
+						   dedicated_server_id = "12345678"
+						   frequency = "DAILY"
+						   threshold = "0"
+						   unit = "Kbps"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute unit value must be one of: \["Mbps" "Gbps"], got: "Kbps"`,
 						),
@@ -933,38 +1163,40 @@ resource "leaseweb_dedicated_server_notification_setting_bandwidth" "test" {
 }
 
 func TestAccDedicatedServerAccControlPanelsDataSource(t *testing.T) {
-	t.Run(
-		"getting all control panels",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					// Read testing
-					{
-						Config: providerConfig + `
-	data "leaseweb_dedicated_server_control_panels" "dtest" {
-	}
-`,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_control_panels.dtest",
-								"control_panels.#",
-								"8",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_control_panels.dtest",
-								"control_panels.0.id",
-								"CPANEL_PREMIER_100",
-							),
+	t.Run("get all control panels", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `
+							data "leaseweb_dedicated_server_control_panels" "dtest" {
+							}
+						`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server_control_panels.dtest",
+							"control_panels.#",
+							"8",
 						),
-					},
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server_control_panels.dtest",
+							"control_panels.0.id",
+							"CPANEL_PREMIER_100",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server_control_panels.dtest",
+							"control_panels.0.name",
+							"cPanel Premier 100",
+						),
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
 	t.Run(
-		"filtering control panels by operating_system_id",
+		"filter control panels by operating_system_id",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -972,10 +1204,10 @@ func TestAccDedicatedServerAccControlPanelsDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-	data "leaseweb_dedicated_server_control_panels" "dtest" {
-	    operating_system_id = "ALMALINUX_8_64BIT"
-	}
-`,
+							data "leaseweb_dedicated_server_control_panels" "dtest" {
+							    operating_system_id = "ALMALINUX_8_64BIT"
+							}
+						`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_server_control_panels.dtest",
@@ -1001,11 +1233,11 @@ func TestAccDedicatedServerCredentialDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: providerConfig + `
-        data "leaseweb_dedicated_server_credential" "test" {
-          dedicated_server_id = "12345"
-          type                = "OPERATING_SYSTEM"
-          username            = "root"
-        }`,
+				        data "leaseweb_dedicated_server_credential" "test" {
+				          dedicated_server_id = "12345"
+				          type                = "OPERATING_SYSTEM"
+				          username            = "root"
+				        }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_dedicated_server_credential.test",
@@ -1026,50 +1258,47 @@ func TestAccDedicatedServerCredentialResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_credential" "test" {
-	dedicated_server_id = "12345"
-   	username = "root"
-   	type = "OPERATING_SYSTEM"
-   	password = "mys3cr3tp@ssw0rd"
-}`,
+					resource "leaseweb_dedicated_server_credential" "test" {
+						dedicated_server_id = "12345"
+					   	username = "root"
+					   	type = "OPERATING_SYSTEM"
+					   	password = "mys3cr3tp@ssw0rd"
+					}`,
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_credential" "test" {
-	dedicated_server_id = "12345"
-   	username = "root"
-   	type = "OPERATING_SYSTEM"
-   	password = "mys3cr3tp@ssw0rd"
-}`,
+					resource "leaseweb_dedicated_server_credential" "test" {
+						dedicated_server_id = "12345"
+					   	username = "root"
+					   	type = "OPERATING_SYSTEM"
+					   	password = "mys3cr3tp@ssw0rd"
+					}`,
 				},
 				// Delete testing automatically occurs in TestCase
 			},
 		})
 	})
 
-	t.Run(
-		"type must be a valid one",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config: providerConfig + `
-resource "leaseweb_dedicated_server_credential" "test" {
-	dedicated_server_id = "12345"
-   	username = "root"
-   	type = "invalid"
-   	password = "mys3cr3tp@ssw0rd"
-}`,
-						ExpectError: regexp.MustCompile(
-							`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"(\s*)"REMOTE_MANAGEMENT" "RESCUE_MODE" "SWITCH" "PDU" "FIREWALL" "LOAD_BALANCER"],(\s*)got: "invalid"`,
-						),
-					},
+	t.Run("type must be valid", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						resource "leaseweb_dedicated_server_credential" "test" {
+							dedicated_server_id = "12345"
+						   	username = "root"
+						   	type = "invalid"
+						   	password = "mys3cr3tp@ssw0rd"
+						}`,
+					ExpectError: regexp.MustCompile(
+						`Attribute type value must be one of: \["OPERATING_SYSTEM" "CONTROL_PANEL"(\s*)"REMOTE_MANAGEMENT" "RESCUE_MODE" "SWITCH" "PDU" "FIREWALL" "LOAD_BALANCER"],(\s*)got: "invalid"`,
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 }
 
 func TestAccDataTrafficNotificationSettingResource(t *testing.T) {
@@ -1080,22 +1309,22 @@ func TestAccDataTrafficNotificationSettingResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
-  dedicated_server_id = "145406"
-  frequency = "WEEKLY"
-  threshold = "1"
-  unit = "GB"
-}`,
+					resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
+					  dedicated_server_id = "145406"
+					  frequency = "WEEKLY"
+					  threshold = "1"
+					  unit = "GB"
+					}`,
 				},
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
-  dedicated_server_id = "145406"
-  frequency = "WEEKLY"
-  threshold = "1"
-  unit = "GB"
-}`,
+					resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
+					  dedicated_server_id = "145406"
+					  frequency = "WEEKLY"
+					  threshold = "1"
+					  unit = "GB"
+					}`,
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -1110,12 +1339,12 @@ resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
-  dedicated_server_id = "145406"
-  frequency = "WEEKLY"
-  threshold = "-1"
-  unit = "GB"
-}`,
+						resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
+						  dedicated_server_id = "145406"
+						  frequency = "WEEKLY"
+						  threshold = "-1"
+						  unit = "GB"
+						}`,
 						ExpectError: regexp.MustCompile(
 							"The value must be greater than 0, but got -1",
 						),
@@ -1133,12 +1362,12 @@ resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
-  dedicated_server_id = "145406"
-  frequency = "WEEKLY"
-  threshold = "1"
-  unit = "blah"
-}`,
+						resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
+						  dedicated_server_id = "145406"
+						  frequency = "WEEKLY"
+						  threshold = "1"
+						  unit = "blah"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute unit value must be one of: \["MB" "GB" "TB"], got: "blah"`,
 						),
@@ -1156,12 +1385,12 @@ resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
-  dedicated_server_id = "145406"
-  frequency = "blah"
-  threshold = "1"
-  unit = "GB"
-}`,
+						resource "leaseweb_dedicated_server_notification_setting_datatraffic" "test" {
+						  dedicated_server_id = "145406"
+						  frequency = "blah"
+						  threshold = "1"
+						  unit = "GB"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute frequency value must be one of: \["DAILY" "WEEKLY" "MONTHLY"], got:`,
 						),
@@ -1181,10 +1410,45 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 					// Create testing
 					{
 						Config: providerConfig + `
-    resource "leaseweb_dedicated_server_installation" "test" {
-      dedicated_server_id = "12345"
-      operating_system_id = "UBUNTU_22_04_64BIT"
-    }`,
+						resource "leaseweb_dedicated_server_installation" "test" {
+							dedicated_server_id = "12345"
+						    operating_system_id = "UBUNTU_22_04_64BIT"
+							callback_url = "https://example.com/callBack"
+							control_panel_id = "123456"
+							device = "SATA2TB"
+							hostname = "example.com"
+							password = "password"
+							post_install_script = "c2NyaXB0LnNo"
+							power_cycle = true
+							ssh_keys = ["tralala"]
+							timezone = "UTC"
+							partitions  = [
+								{
+									filesystem = "ext2"
+									mountpoint = "/boot"
+									size = 1024
+								},
+								{
+									filesystem = "swap"
+									size = 4096
+								},
+								{
+									filesystem = "ext4"
+									mountpoint = "/tmp"
+									size = 4096
+								},
+								{
+									filesystem = "ext4"
+									mountpoint = "/"
+									size = "*"
+								}
+							]
+							raid = {
+								level = 0
+								number_of_disks = 5
+								type = "NONE"
+							}
+						}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
 								"leaseweb_dedicated_server_installation.test",
@@ -1205,9 +1469,9 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-    resource "leaseweb_dedicated_server_installation" "test" {
-      operating_system_id = "UBUNTU_22_04_64BIT"
-    }`,
+						    resource "leaseweb_dedicated_server_installation" "test" {
+						      operating_system_id = "UBUNTU_22_04_64BIT"
+						    }`,
 						ExpectError: regexp.MustCompile(
 							"The argument \"dedicated_server_id\" is required, but no definition was found",
 						),
@@ -1225,9 +1489,9 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-    resource "leaseweb_dedicated_server_installation" "test" {
-      dedicated_server_id = "12345"
-    }`,
+						    resource "leaseweb_dedicated_server_installation" "test" {
+						      dedicated_server_id = "12345"
+						    }`,
 						ExpectError: regexp.MustCompile(
 							"The argument \"operating_system_id\" is required, but no definition was found",
 						),
@@ -1245,13 +1509,13 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-		resource "leaseweb_dedicated_server_installation" "test" {
-      dedicated_server_id = "12345"
-      operating_system_id = "UBUNTU_22_04_64BIT"
-      raid = {
-        level = 11
-      }
-    }`,
+						resource "leaseweb_dedicated_server_installation" "test" {
+							dedicated_server_id = "12345"
+						    operating_system_id = "UBUNTU_22_04_64BIT"
+						    raid = {
+						    	level = 11
+						    }
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute raid.level value must be one of: \["0" "1" "5" "10"]`,
 						),
@@ -1269,13 +1533,13 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-		resource "leaseweb_dedicated_server_installation" "test" {
-      dedicated_server_id = "12345"
-      operating_system_id = "UBUNTU_22_04_64BIT"
-      raid = {
-        type = "TEST"
-      }
-    }`,
+						resource "leaseweb_dedicated_server_installation" "test" {
+							dedicated_server_id = "12345"
+						    operating_system_id = "UBUNTU_22_04_64BIT"
+						    raid = {
+						    	type = "TEST"
+						    }
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute raid.type value must be one of: \["HW" "SW" "NONE"]`,
 						),
@@ -1293,11 +1557,11 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-		resource "leaseweb_dedicated_server_installation" "test" {
-      dedicated_server_id = "12345"
-      operating_system_id = "UBUNTU_22_04_64BIT"
-      ssh_keys = "test keys"
-    }`,
+						resource "leaseweb_dedicated_server_installation" "test" {
+							dedicated_server_id = "12345"
+						    operating_system_id = "UBUNTU_22_04_64BIT"
+						    ssh_keys = "test keys"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Inappropriate value for attribute "ssh_keys": set of string required`,
 						),
@@ -1309,44 +1573,41 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 }
 
 func TestAccOperatingSystemsDataSource(t *testing.T) {
-
-	t.Run(
-		"getting all operating systems",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					// Read testing
-					{
-						Config: providerConfig + `
-	data "leaseweb_dedicated_server_operating_systems" "dtest" {
-	}
-`,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_operating_systems.dtest",
-								"operating_systems.#",
-								"24",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_operating_systems.dtest",
-								"operating_systems.0.id",
-								"ALMALINUX_8_64BIT",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server_operating_systems.dtest",
-								"operating_systems.0.name",
-								"AlmaLinux 8 (x86_64)",
-							),
+	t.Run("get all operating systems", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `
+						data "leaseweb_dedicated_server_operating_systems" "dtest" {
+							control_panel_id = "1234"
+						}
+						`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server_operating_systems.dtest",
+							"operating_systems.#",
+							"24",
 						),
-					},
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server_operating_systems.dtest",
+							"operating_systems.0.id",
+							"ALMALINUX_8_64BIT",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server_operating_systems.dtest",
+							"operating_systems.0.name",
+							"AlmaLinux 8 (x86_64)",
+						),
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
 	t.Run(
-		"filtering operating systems by control_panel_id",
+		"filter operating systems by control_panel_id",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -1354,10 +1615,10 @@ func TestAccOperatingSystemsDataSource(t *testing.T) {
 					// Read testing
 					{
 						Config: providerConfig + `
-	data "leaseweb_dedicated_server_operating_systems" "dtest" {
-		control_panel_id = "CPANEL_PREMIER_100"
-	}
-`,
+							data "leaseweb_dedicated_server_operating_systems" "dtest" {
+								control_panel_id = "CPANEL_PREMIER_100"
+							}
+						`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_server_operating_systems.dtest",
@@ -1383,151 +1644,148 @@ func TestAccOperatingSystemsDataSource(t *testing.T) {
 }
 
 func TestAccDedicatedServerDataSource(t *testing.T) {
-	t.Run(
-		"getting dedicated server detail by id",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					// Read testing
-					{
-						Config: providerConfig + `
-		data "leaseweb_dedicated_server" "test" {
-			id = "12345"
-		}`,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"asset_id",
-								"627294",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"serial_number",
-								"JDK18291JK",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"contract_id",
-								"674382",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"rack_type",
-								"DEDICATED",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"is_automation_feature_available",
-								"true",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"is_ipmi_reboot_feature_available",
-								"false",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"is_power_cycle_feature_available",
-								"true",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"is_private_network_feature_available",
-								"true",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"is_remote_management_feature_available",
-								"false",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"location_rack",
-								"13",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"location_site",
-								"AMS-01",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"location_suite",
-								"A6",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"location_unit",
-								"16-17",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"public_mac",
-								"AA:BB:CC:DD:EE:FF",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"public_ip",
-								"123.123.123.123/27",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"public_gateway",
-								"123.123.123.126",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"internal_mac",
-								"AA:BB:CC:DD:EE:FF",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"internal_ip",
-								"123.123.123.123/27",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"internal_gateway",
-								"123.123.123.126",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"ram_size",
-								"32",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"ram_unit",
-								"GB",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"cpu_quantity",
-								"4",
-							),
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_server.test",
-								"cpu_type",
-								"Intel Xeon E3-1220",
-							),
+	t.Run("get dedicated server detail by id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `
+						data "leaseweb_dedicated_server" "test" {
+							id = "12345"
+						}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"asset_id",
+							"627294",
 						),
-					},
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"contract_id",
+							"674382",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"cpu_quantity",
+							"4",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"cpu_type",
+							"Intel Xeon E3-1220",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"internal_gateway",
+							"123.123.123.126",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"internal_ip",
+							"123.123.123.123/27",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"internal_mac",
+							"AA:BB:CC:DD:EE:FF",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"is_automation_feature_available",
+							"true",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"is_ipmi_reboot_feature_available",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"is_power_cycle_feature_available",
+							"true",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"is_private_network_feature_available",
+							"true",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"is_remote_management_feature_available",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"location_rack",
+							"13",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"location_site",
+							"AMS-01",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"location_suite",
+							"A6",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"location_unit",
+							"16-17",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"public_gateway",
+							"123.123.123.126",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"public_ip",
+							"123.123.123.123/27",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"public_mac",
+							"AA:BB:CC:DD:EE:FF",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"rack_type",
+							"DEDICATED",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"ram_size",
+							"32",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"ram_unit",
+							"GB",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_server.test",
+							"serial_number",
+							"JDK18291JK",
+						),
+					),
 				},
-			})
-		},
-	)
+			},
+		})
+	})
 
 	t.Run(
-		"id is required for getting the dedicated server detail",
+		"id is required to get the dedicated server detail",
 		func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_server" "test" {
-		}`,
+						data "leaseweb_dedicated_server" "test" {
+						}`,
 						ExpectError: regexp.MustCompile(
 							`The argument "id" is required, but no definition was found`,
 						),
@@ -1539,18 +1797,44 @@ func TestAccDedicatedServerDataSource(t *testing.T) {
 }
 
 func TestAccDedicatedServersDataSource(t *testing.T) {
-	t.Run(
-		"getting dedicated servers by reference",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
+	t.Run("get dedicated servers by reference", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `
+						data "leaseweb_dedicated_servers" "test" {
+							reference = "test-reference"
+						}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_servers.test",
+							"ids.#",
+							"2",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_servers.test",
+							"ids.0",
+							"12345",
+						),
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("get dedicated servers", func(t *testing.T) {
+		resource.Test(
+			t,
+			resource.TestCase{
 				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					// Read testing
 					{
 						Config: providerConfig + `
-		data "leaseweb_dedicated_servers" "test" {
-			reference = "test-reference"
-		}`,
+						data "leaseweb_dedicated_servers" "test" {
+						}`,
 						Check: resource.ComposeAggregateTestCheckFunc(
 							resource.TestCheckResourceAttr(
 								"data.leaseweb_dedicated_servers.test",
@@ -1560,64 +1844,37 @@ func TestAccDedicatedServersDataSource(t *testing.T) {
 						),
 					},
 				},
-			})
-		},
-	)
+			},
+		)
+	})
 
-	t.Run(
-		"getting dedicated servers",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					// Read testing
-					{
-						Config: providerConfig + `
-		data "leaseweb_dedicated_servers" "test" {
-		}`,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.test",
-								"ids.#",
-								"2",
-							),
+	t.Run("get dedicated servers with all filters", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `
+						data "leaseweb_dedicated_servers" "filter" {
+							reference = "test-reference"
+							ip = "127.0.0.4"
+							mac_address = "aa:bb:cc:dd:ee:ff"
+							site = "ams-01"
+							private_rack_id = "r id"
+							private_network_capable = "true"
+							private_network_enabled = "true"
+						}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dedicated_servers.filter",
+							"ids.#",
+							"2",
 						),
-					},
+					),
 				},
-			})
-		},
-	)
-
-	t.Run(
-		"getting dedicated servers with all filters",
-		func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					// Read testing
-					{
-						Config: providerConfig + `
-		data "leaseweb_dedicated_servers" "filter" {
-			reference = "test-reference"
-			ip = "127.0.0.4"
-			mac_address = "aa:bb:cc:dd:ee:ff"
-			site = "ams-01"
-			private_rack_id = "r id"
-			private_network_capable = "true"
-			private_network_enabled = "true"
-		}`,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr(
-								"data.leaseweb_dedicated_servers.filter",
-								"ids.#",
-								"2",
-							),
-						),
-					},
-				},
-			})
-		},
-	)
+			},
+		})
+	})
 }
 
 func TestAccPublicCloudLoadBalancerResource(t *testing.T) {
@@ -1628,21 +1885,26 @@ func TestAccPublicCloudLoadBalancerResource(t *testing.T) {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_load_balancer.test",
 							"id",
 							"32082a93-d1e2-4bc0-8f5e-8fe4312b0844",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"contract.state",
+							"ACTIVE",
 						),
 					),
 				},
@@ -1655,16 +1917,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_load_balancer.test",
@@ -1684,16 +1946,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "tralala"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-3"
+					  type = "tralala"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 					ExpectError: regexp.MustCompile(
 						"Attribute type value must be one of:",
 					),
@@ -1708,16 +1970,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "tralala"
-  type = "lsw.m4.2xlarge"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "tralala"
+					  type = "lsw.m4.2xlarge"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 					ExpectError: regexp.MustCompile("Attribute region value must be one of"),
 				},
 			},
@@ -1730,16 +1992,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.2xlarge"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 55
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.2xlarge"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 55
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 					ExpectError: regexp.MustCompile(
 						"Attribute contract.billing_frequency value must be one of",
 					),
@@ -1754,16 +2016,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.2xlarge"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 55
-    type              = "MONTHLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.2xlarge"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 55
+					    type              = "MONTHLY"
+					  }
+					}`,
 					ExpectError: regexp.MustCompile(
 						"Attribute contract.term value must be one of",
 					),
@@ -1803,9 +2065,9 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  contract = {}
-}`,
+						resource "leaseweb_public_cloud_load_balancer" "test" {
+						  contract = {}
+						}`,
 						ExpectError: regexp.MustCompile(scenario.expectedError),
 					},
 				},
@@ -1819,16 +2081,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-3"
-  type = "lsw.m3.large"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-3"
+					  type = "lsw.m3.large"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 				},
 				{
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -1844,16 +2106,16 @@ resource "leaseweb_public_cloud_load_balancer" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer" "test" {
-  region = "eu-west-2"
-  type = "lsw.m3.large"
-  reference = "my-loadbalancer1"
-  contract = {
-    billing_frequency = 1
-    term              = 0
-    type              = "HOURLY"
-  }
-}`,
+					resource "leaseweb_public_cloud_load_balancer" "test" {
+					  region = "eu-west-2"
+					  type = "lsw.m3.large"
+					  reference = "my-loadbalancer1"
+					  contract = {
+					    billing_frequency = 1
+					    term              = 0
+					    type              = "HOURLY"
+					  }
+					}`,
 				},
 			},
 		})
@@ -1867,10 +2129,10 @@ func TestAccPublicCloudLoadBalancerListenersDataSource(t *testing.T) {
 			// Read testing
 			{
 				Config: providerConfig + `
-data "leaseweb_public_cloud_load_balancer_listeners" "test" {
-    load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-}
-`,
+				data "leaseweb_public_cloud_load_balancer_listeners" "test" {
+				    load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+				}
+				`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.leaseweb_public_cloud_load_balancer_listeners.test",
@@ -1907,14 +2169,34 @@ func TestAccPublicCloudTargetGroupsDataSource(t *testing.T) {
 							"target_groups.0.id",
 							"7e59b33d-05f3-4078-b251-c7831ae8fe14",
 						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_target_groups.test",
+							"target_groups.0.name",
+							"Target group name",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_target_groups.test",
+							"target_groups.0.port",
+							"80",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_target_groups.test",
+							"target_groups.0.protocol",
+							"HTTP",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_public_cloud_target_groups.test",
+							"target_groups.0.region",
+							"eu-west-2",
+						),
 					),
 				},
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  id = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  id = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"data.leaseweb_public_cloud_target_groups.test",
@@ -1939,10 +2221,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  id = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  id = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"data.leaseweb_public_cloud_target_groups.test",
@@ -1967,10 +2249,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  name = "Foo bar"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  name = "Foo bar"
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"data.leaseweb_public_cloud_target_groups.test",
@@ -1995,10 +2277,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  protocol = "HTTP"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  protocol = "HTTP"
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"data.leaseweb_public_cloud_target_groups.test",
@@ -2022,10 +2304,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  protocol = "tralala"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  protocol = "tralala"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute protocol value must be one of:`,
 					),
@@ -2041,10 +2323,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  port = 80
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  port = 80
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"data.leaseweb_public_cloud_target_groups.test",
@@ -2069,10 +2351,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  port = 800000
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  port = 800000
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute port value must be between 1 and 65535`,
 					),
@@ -2088,10 +2370,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  region = "eu-west-3"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  region = "eu-west-3"
+					}
+					`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"data.leaseweb_public_cloud_target_groups.test",
@@ -2116,10 +2398,10 @@ data "leaseweb_public_cloud_target_groups" "test" {
 				// Read testing
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  region = "tralala"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  region = "tralala"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute region value must be one of:`,
 					),
@@ -2139,19 +2421,26 @@ func TestAccPublicCloudLoadBalancerListenerResource(t *testing.T) {
 					// Create and Read testing
 					{
 						Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer_listener" "test" {
-  certificate = {
-    certificate = "-----BEGIN CERTIFICATE-----MIIBhDCB7gIBADBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtWdKNbZxvkXKAADjJMJ7VTJz6uFoMD403C+gMIF8hwqIsHggzCao6iXrW9sZoyZtUBVBiiq5RumHbbpwvOdMmXrShEB4sTJkWRMDy7yD4D91WCU1fc10E/zBJMwssAvmHZo5kGW1Pj1N9ktb+O/TMsEc6yd5suvdQj6aaJbQlTQIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAWOQ2CJLRo8MQgJgvhdoSIkHITnrbjB5hS3f/dx0lIcnyI6Q9nOyuQHXkCgkdBaV8lz7l+IbqcGc3CaIRP2ZIVFvo2252n630tOOSsqoqJS1tYIoIKsohi3T3d8T1i/s0BWbTJi8Xgd186wyUn/jHwXROKx2rq6yYsAO6fISDKw8=-----END CERTIFICATE-----"
-    chain       = "-----BEGIN CERTIFICATE-----MIICNDCCAZ2gAwIBAgIUEby6nzM+o7vkKfzcMS/DGA8tgwQwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA0MjUwODE3MjZaFw0yNTA0MjUwODE3MjZaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMMiux2r1AFLVpIhdZ0bvgIvhiT9XCnfHJlGE7OarGKDKJDQ6XAquCfosLws2XAugGcMJWrsqVWtJEYSu6OMsDLYCJhh39AKqZIW0pktkr8LGlo4VLvzGPqwpHnzWthyCEFsE6p+JJQumDA/izJm2zjZL+xHDocOlNqDTB87AIdrAgMBAAGjITAfMB0GA1UdDgQWBBT3sXUrIR2vcwak0QCXoIsxHa4dDDANBgkqhkiG9w0BAQsFAAOBgQCh/l+5s713J02b8sWicUK2KjTPfyKmZFkoS+Mlo+//B/aM612ZJpGL2tAKGF3v0NDOrRYLZj0t/tlZI55pUNJI9cNj/RExvnfTSSNJIbV+8kQt5AHo50wGxj/apkuEtQre2Fpf4pyovcfIoF6HJvvp1jy96yL14UoEehZypR8FlA==-----END CERTIFICATE-----"
-    private_key = "-----BEGIN EC PRIVATE KEY-----MIHcAgEBBEIBVlC0IObonfQZIQ81l/WILKfWT5Fv96eNnYmQZ7uleu73igfiVESVuPfNlbW9oNEK1XcXli4YNZMxWMkKuzC3w8CgBwYFK4EEACOhgYkDgYYABAHvOqz9d2xeSpm1FNdw0NR5j/q6PMd6whZFsTPNYNj0/PsTpsHk78ZB4MYnJUXwHJjpj+gnKkLNc02f4w/vSF8VXADX4l40XU/w82TAOCftQwoxO5o0jZcwEUIYzl02Zd7uNxhjtKJQnYFi9x8WI8L8zQ6GZB/fJKYwoHaUr0I1h/5LzQ==-----END EC PRIVATE KEY-----"
-  }
-  default_rule = {
-    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
-  }
-	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-	port = 443
-  protocol = "HTTPS"
-}`,
+						resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+						  certificate = {
+						    certificate = "-----BEGIN CERTIFICATE-----MIIBhDCB7gIBADBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtWdKNbZxvkXKAADjJMJ7VTJz6uFoMD403C+gMIF8hwqIsHggzCao6iXrW9sZoyZtUBVBiiq5RumHbbpwvOdMmXrShEB4sTJkWRMDy7yD4D91WCU1fc10E/zBJMwssAvmHZo5kGW1Pj1N9ktb+O/TMsEc6yd5suvdQj6aaJbQlTQIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAWOQ2CJLRo8MQgJgvhdoSIkHITnrbjB5hS3f/dx0lIcnyI6Q9nOyuQHXkCgkdBaV8lz7l+IbqcGc3CaIRP2ZIVFvo2252n630tOOSsqoqJS1tYIoIKsohi3T3d8T1i/s0BWbTJi8Xgd186wyUn/jHwXROKx2rq6yYsAO6fISDKw8=-----END CERTIFICATE-----"
+						    chain       = "-----BEGIN CERTIFICATE-----MIICNDCCAZ2gAwIBAgIUEby6nzM+o7vkKfzcMS/DGA8tgwQwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA0MjUwODE3MjZaFw0yNTA0MjUwODE3MjZaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMMiux2r1AFLVpIhdZ0bvgIvhiT9XCnfHJlGE7OarGKDKJDQ6XAquCfosLws2XAugGcMJWrsqVWtJEYSu6OMsDLYCJhh39AKqZIW0pktkr8LGlo4VLvzGPqwpHnzWthyCEFsE6p+JJQumDA/izJm2zjZL+xHDocOlNqDTB87AIdrAgMBAAGjITAfMB0GA1UdDgQWBBT3sXUrIR2vcwak0QCXoIsxHa4dDDANBgkqhkiG9w0BAQsFAAOBgQCh/l+5s713J02b8sWicUK2KjTPfyKmZFkoS+Mlo+//B/aM612ZJpGL2tAKGF3v0NDOrRYLZj0t/tlZI55pUNJI9cNj/RExvnfTSSNJIbV+8kQt5AHo50wGxj/apkuEtQre2Fpf4pyovcfIoF6HJvvp1jy96yL14UoEehZypR8FlA==-----END CERTIFICATE-----"
+						    private_key = "-----BEGIN EC PRIVATE KEY-----MIHcAgEBBEIBVlC0IObonfQZIQ81l/WILKfWT5Fv96eNnYmQZ7uleu73igfiVESVuPfNlbW9oNEK1XcXli4YNZMxWMkKuzC3w8CgBwYFK4EEACOhgYkDgYYABAHvOqz9d2xeSpm1FNdw0NR5j/q6PMd6whZFsTPNYNj0/PsTpsHk78ZB4MYnJUXwHJjpj+gnKkLNc02f4w/vSF8VXADX4l40XU/w82TAOCftQwoxO5o0jZcwEUIYzl02Zd7uNxhjtKJQnYFi9x8WI8L8zQ6GZB/fJKYwoHaUr0I1h/5LzQ==-----END EC PRIVATE KEY-----"
+						  }
+						  default_rule = {
+						    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+						  }
+							load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+							port = 443
+						  protocol = "HTTPS"
+						}`,
+						Check: resource.ComposeAggregateTestCheckFunc(
+							resource.TestCheckResourceAttr(
+								"leaseweb_public_cloud_load_balancer_listener.test",
+								"listener_id",
+								"fac06878-6655-4956-8ea7-124a97f133ab",
+							),
+						),
 					},
 					// ImportState testing
 					{
@@ -2164,19 +2453,19 @@ resource "leaseweb_public_cloud_load_balancer_listener" "test" {
 					// Update and Read testing
 					{
 						Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer_listener" "test" {
-  certificate = {
-    certificate = "-----BEGIN CERTIFICATE-----MIIBhDCB7gIBADBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtWdKNbZxvkXKAADjJMJ7VTJz6uFoMD403C+gMIF8hwqIsHggzCao6iXrW9sZoyZtUBVBiiq5RumHbbpwvOdMmXrShEB4sTJkWRMDy7yD4D91WCU1fc10E/zBJMwssAvmHZo5kGW1Pj1N9ktb+O/TMsEc6yd5suvdQj6aaJbQlTQIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAWOQ2CJLRo8MQgJgvhdoSIkHITnrbjB5hS3f/dx0lIcnyI6Q9nOyuQHXkCgkdBaV8lz7l+IbqcGc3CaIRP2ZIVFvo2252n630tOOSsqoqJS1tYIoIKsohi3T3d8T1i/s0BWbTJi8Xgd186wyUn/jHwXROKx2rq6yYsAO6fISDKw8=-----END CERTIFICATE-----"
-    chain       = "-----BEGIN CERTIFICATE-----MIICNDCCAZ2gAwIBAgIUEby6nzM+o7vkKfzcMS/DGA8tgwQwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA0MjUwODE3MjZaFw0yNTA0MjUwODE3MjZaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMMiux2r1AFLVpIhdZ0bvgIvhiT9XCnfHJlGE7OarGKDKJDQ6XAquCfosLws2XAugGcMJWrsqVWtJEYSu6OMsDLYCJhh39AKqZIW0pktkr8LGlo4VLvzGPqwpHnzWthyCEFsE6p+JJQumDA/izJm2zjZL+xHDocOlNqDTB87AIdrAgMBAAGjITAfMB0GA1UdDgQWBBT3sXUrIR2vcwak0QCXoIsxHa4dDDANBgkqhkiG9w0BAQsFAAOBgQCh/l+5s713J02b8sWicUK2KjTPfyKmZFkoS+Mlo+//B/aM612ZJpGL2tAKGF3v0NDOrRYLZj0t/tlZI55pUNJI9cNj/RExvnfTSSNJIbV+8kQt5AHo50wGxj/apkuEtQre2Fpf4pyovcfIoF6HJvvp1jy96yL14UoEehZypR8FlA==-----END CERTIFICATE-----"
-    private_key = "-----BEGIN EC PRIVATE KEY-----MIHcAgEBBEIBVlC0IObonfQZIQ81l/WILKfWT5Fv96eNnYmQZ7uleu73igfiVESVuPfNlbW9oNEK1XcXli4YNZMxWMkKuzC3w8CgBwYFK4EEACOhgYkDgYYABAHvOqz9d2xeSpm1FNdw0NR5j/q6PMd6whZFsTPNYNj0/PsTpsHk78ZB4MYnJUXwHJjpj+gnKkLNc02f4w/vSF8VXADX4l40XU/w82TAOCftQwoxO5o0jZcwEUIYzl02Zd7uNxhjtKJQnYFi9x8WI8L8zQ6GZB/fJKYwoHaUr0I1h/5LzQ==-----END EC PRIVATE KEY-----"
-  }
-  default_rule = {
-    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
-  }
-	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-	port = 443
-  protocol = "HTTPS"
-}`,
+						resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+						  certificate = {
+						    certificate = "-----BEGIN CERTIFICATE-----MIIBhDCB7gIBADBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtWdKNbZxvkXKAADjJMJ7VTJz6uFoMD403C+gMIF8hwqIsHggzCao6iXrW9sZoyZtUBVBiiq5RumHbbpwvOdMmXrShEB4sTJkWRMDy7yD4D91WCU1fc10E/zBJMwssAvmHZo5kGW1Pj1N9ktb+O/TMsEc6yd5suvdQj6aaJbQlTQIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAWOQ2CJLRo8MQgJgvhdoSIkHITnrbjB5hS3f/dx0lIcnyI6Q9nOyuQHXkCgkdBaV8lz7l+IbqcGc3CaIRP2ZIVFvo2252n630tOOSsqoqJS1tYIoIKsohi3T3d8T1i/s0BWbTJi8Xgd186wyUn/jHwXROKx2rq6yYsAO6fISDKw8=-----END CERTIFICATE-----"
+						    chain       = "-----BEGIN CERTIFICATE-----MIICNDCCAZ2gAwIBAgIUEby6nzM+o7vkKfzcMS/DGA8tgwQwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA0MjUwODE3MjZaFw0yNTA0MjUwODE3MjZaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMMiux2r1AFLVpIhdZ0bvgIvhiT9XCnfHJlGE7OarGKDKJDQ6XAquCfosLws2XAugGcMJWrsqVWtJEYSu6OMsDLYCJhh39AKqZIW0pktkr8LGlo4VLvzGPqwpHnzWthyCEFsE6p+JJQumDA/izJm2zjZL+xHDocOlNqDTB87AIdrAgMBAAGjITAfMB0GA1UdDgQWBBT3sXUrIR2vcwak0QCXoIsxHa4dDDANBgkqhkiG9w0BAQsFAAOBgQCh/l+5s713J02b8sWicUK2KjTPfyKmZFkoS+Mlo+//B/aM612ZJpGL2tAKGF3v0NDOrRYLZj0t/tlZI55pUNJI9cNj/RExvnfTSSNJIbV+8kQt5AHo50wGxj/apkuEtQre2Fpf4pyovcfIoF6HJvvp1jy96yL14UoEehZypR8FlA==-----END CERTIFICATE-----"
+						    private_key = "-----BEGIN EC PRIVATE KEY-----MIHcAgEBBEIBVlC0IObonfQZIQ81l/WILKfWT5Fv96eNnYmQZ7uleu73igfiVESVuPfNlbW9oNEK1XcXli4YNZMxWMkKuzC3w8CgBwYFK4EEACOhgYkDgYYABAHvOqz9d2xeSpm1FNdw0NR5j/q6PMd6whZFsTPNYNj0/PsTpsHk78ZB4MYnJUXwHJjpj+gnKkLNc02f4w/vSF8VXADX4l40XU/w82TAOCftQwoxO5o0jZcwEUIYzl02Zd7uNxhjtKJQnYFi9x8WI8L8zQ6GZB/fJKYwoHaUr0I1h/5LzQ==-----END EC PRIVATE KEY-----"
+						  }
+						  default_rule = {
+						    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+						  }
+							load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+							port = 443
+						  protocol = "HTTPS"
+						}`,
 					},
 					// Delete testing automatically occurs in TestCase
 				},
@@ -2190,14 +2479,14 @@ resource "leaseweb_public_cloud_load_balancer_listener" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer_listener" "test" {
-  default_rule = {
-    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
-  }
-	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-	port = 80
-  protocol = "tralala"
-}`,
+					resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+					  default_rule = {
+					    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+					  }
+						load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						port = 80
+					  protocol = "tralala"
+					}`,
 					ExpectError: regexp.MustCompile(
 						`Attribute protocol value must be one of:`,
 					),
@@ -2212,28 +2501,28 @@ resource "leaseweb_public_cloud_load_balancer_listener" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer_listener" "test" {
-  default_rule = {
-    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
-  }
-	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-	port = -8
-  protocol = "HTTP"
-}`,
+					resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+					  default_rule = {
+					    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+					  }
+						load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						port = -8
+					  protocol = "HTTP"
+					}`,
 					ExpectError: regexp.MustCompile(
 						`Attribute port value must be between`,
 					),
 				},
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_load_balancer_listener" "test" {
-  default_rule = {
-    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
-  }
-	load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
-	port = 400000
-  protocol = "HTTP"
-}`,
+					resource "leaseweb_public_cloud_load_balancer_listener" "test" {
+					  default_rule = {
+					    target_group_id = "b05917e1-96a4-442a-900c-c41f273d95c9"
+					  }
+						load_balancer_id = "695ddd91-051f-4dd6-9120-938a927a47d0"
+						port = 400000
+					  protocol = "HTTP"
+					}`,
 					ExpectError: regexp.MustCompile(
 						`Attribute port value must be between`,
 					),
@@ -2249,14 +2538,13 @@ func TestAccPublicCloudTargetGroupResource(t *testing.T) {
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "name"
-  port = 80
-  region = "eu-west-3"
-  protocol = "tralala"
-}`,
+					  resource "leaseweb_public_cloud_target_group" "test" {
+					    name = "name"
+					    port = 80
+					    region = "eu-west-3"
+					    protocol = "tralala"
+					  }`,
 					ExpectError: regexp.MustCompile(
 						`Attribute protocol value must be one of:`,
 					),
@@ -2271,13 +2559,13 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-data "leaseweb_public_cloud_target_groups" "test" {
-  name = "name"
-  port = 800000
-  region = "eu-west-3"
-  protocol = "HTTP"
-}
-`,
+					data "leaseweb_public_cloud_target_groups" "test" {
+					  name = "name"
+					  port = 800000
+					  region = "eu-west-3"
+					  protocol = "HTTP"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute port value must be between 1 and 65535`,
 					),
@@ -2291,14 +2579,13 @@ data "leaseweb_public_cloud_target_groups" "test" {
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "name"
-  port = 80
-  region = "tralala"
-  protocol = "HTTP"
-}`,
+					  resource "leaseweb_public_cloud_target_group" "test" {
+					    name = "name"
+					    port = 80
+					    region = "tralala"
+					    protocol = "HTTP"
+					  }`,
 					ExpectError: regexp.MustCompile(
 						`Attribute region value must be one of:`,
 					),
@@ -2312,19 +2599,18 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "name"
-  port = 80
-  region = "eu-west-3"
-  protocol = "HTTP"
-  health_check = {
-    protocol = "tralala"
-    port = 80
-    uri = "/"
-  }
-}`,
+					  resource "leaseweb_public_cloud_target_group" "test" {
+					    name = "name"
+					    port = 80
+					    region = "eu-west-3"
+					    protocol = "HTTP"
+					    health_check = {
+					      protocol = "tralala"
+					      port = 80
+					      uri = "/"
+					    }
+					  }`,
 					ExpectError: regexp.MustCompile(
 						`Attribute health_check.protocol value must be one of:`,
 					),
@@ -2338,20 +2624,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "name"
-  port = 80
-  region = "eu-west-3"
-  protocol = "HTTP"
-  health_check = {
-    protocol = "HTTP"
-    method = "tralala"
-    port = 80
-    uri = "/"
-  }
-}`,
+					  resource "leaseweb_public_cloud_target_group" "test" {
+					    name = "name"
+					    port = 80
+					    region = "eu-west-3"
+					    protocol = "HTTP"
+					    health_check = {
+					      protocol = "HTTP"
+					      method = "tralala"
+					      port = 80
+					      uri = "/"
+					    }
+					  }`,
 					ExpectError: regexp.MustCompile(
 						`Attribute health_check.method value must be one of:`,
 					),
@@ -2366,18 +2651,18 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "name"
-  port = 80
-  region = "eu-west-3"
-  protocol = "HTTP"
-  health_check = {
-    protocol = "HTTP"
-    port = 80000
-    uri = "/"
-  }
-}
-`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "name"
+					  port = 80
+					  region = "eu-west-3"
+					  protocol = "HTTP"
+					  health_check = {
+					    protocol = "HTTP"
+					    port = 80000
+					    uri = "/"
+					  }
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						`Attribute health_check.port value must be between 1 and 65535`,
 					),
@@ -2393,19 +2678,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 				// Create and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTP"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTP"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"leaseweb_public_cloud_target_group.test",
@@ -2423,19 +2708,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 				// Update and Read testing
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTP"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTP"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 				},
 				// Delete testing automatically occurs in TestCase
 			},
@@ -2448,19 +2733,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTP"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTP"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 				},
 				{
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -2476,19 +2761,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-3"
-  protocol = "HTTP"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-3"
+					  protocol = "HTTP"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 				},
 			},
 		})
@@ -2500,19 +2785,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTP"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTP"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 				},
 				{
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -2528,19 +2813,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTPS"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTPS"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 				},
 			},
 		})
@@ -2552,19 +2837,19 @@ resource "leaseweb_public_cloud_target_group" "test" {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTP"
-  health_check = {
-    host = "example.com"
-    method = "GET"
-    protocol = "HTTP"
-    port = 80
-    uri = "/"
-  }
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTP"
+					  health_check = {
+					    host = "example.com"
+					    method = "GET"
+					    protocol = "HTTP"
+					    port = 80
+					    uri = "/"
+					  }
+					}`,
 				},
 				{
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -2580,12 +2865,12 @@ resource "leaseweb_public_cloud_target_group" "test" {
 						"Provider produced inconsistent result after apply",
 					),
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_target_group" "test" {
-  name = "Target group name"
-  port = 80
-  region = "eu-west-2"
-  protocol = "HTTP"
-}`,
+					resource "leaseweb_public_cloud_target_group" "test" {
+					  name = "Target group name"
+					  port = 80
+					  region = "eu-west-2"
+					  protocol = "HTTP"
+					}`,
 				},
 			},
 		})
@@ -2695,10 +2980,10 @@ func TestAccDedicatedServerResource(t *testing.T) {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_dedicated_server" "test" {
-  id    = "12345"
-}
-`,
+					resource "leaseweb_dedicated_server" "test" {
+					  id    = "12345"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Resource can only be imported, not created.",
 					),
@@ -2789,12 +3074,12 @@ func TestAccPublicCloudIpResource(t *testing.T) {
 			Steps: []resource.TestStep{
 				{
 					Config: providerConfig + `
-resource "leaseweb_public_cloud_ip" "test" {
-  instance_id    = "695ddd91-051f-4dd6-9120-938a927a47d0"
-  ip             = "10.0.0.1"
-  reverse_lookup = "example.com"
-}
-`,
+					resource "leaseweb_public_cloud_ip" "test" {
+					  instance_id    = "695ddd91-051f-4dd6-9120-938a927a47d0"
+					  ip             = "10.0.0.1"
+					  reverse_lookup = "example.com"
+					}
+					`,
 					ExpectError: regexp.MustCompile(
 						"Resource can only be imported, not created.",
 					),
@@ -2964,17 +3249,17 @@ func TestAccPublicCloudInstanceIsoResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-					resource "leaseweb_public_cloud_instance_iso" "test" {
-						desired_id = "ACRONIS_BOOT_MEDIA"
-						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
-					}`,
+						resource "leaseweb_public_cloud_instance_iso" "test" {
+							desired_id = "ACRONIS_BOOT_MEDIA"
+							instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+						}`,
 					},
 					{
 						Config: providerConfig + `
-					resource "leaseweb_public_cloud_instance_iso" "test" {
-						desired_id = "tralala"
-						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
-					}`,
+						resource "leaseweb_public_cloud_instance_iso" "test" {
+							desired_id = "tralala"
+							instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute id value must be one of`,
 						),
@@ -2992,10 +3277,10 @@ func TestAccPublicCloudInstanceIsoResource(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + `
-					resource "leaseweb_public_cloud_instance_iso" "test" {
-						desired_id = "tralala"
-						instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
-					}`,
+						resource "leaseweb_public_cloud_instance_iso" "test" {
+							desired_id = "tralala"
+							instance_id = "ace712e9-a166-47f1-9065-4af0f7e7fce1"
+						}`,
 						ExpectError: regexp.MustCompile(
 							`Attribute id value must be one of`,
 						),

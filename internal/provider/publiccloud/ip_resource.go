@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -25,18 +24,6 @@ type ipResourceModel struct {
 	IP            types.String `tfsdk:"ip"`
 }
 
-func (i ipResourceModel) attributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"reverse_lookup": types.StringType,
-		"instance_id":    types.StringType,
-		"ip":             types.StringType,
-	}
-}
-
-func (i ipResourceModel) generateUpdateOpts() publiccloud.UpdateIPOpts {
-	return *publiccloud.NewUpdateIPOpts(i.ReverseLookup.ValueString())
-}
-
 type ipResource struct {
 	utils.ResourceAPI
 }
@@ -46,14 +33,6 @@ func adaptIpDetailsToIPResource(ipDetails publiccloud.IpDetails) ipResourceModel
 	return ipResourceModel{
 		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
 		IP:            basetypes.NewStringValue(ipDetails.GetIp()),
-	}
-}
-
-func adaptIpToIPResource(ip publiccloud.Ip) ipResourceModel {
-	reverseLookup, _ := ip.GetReverseLookupOk()
-	return ipResourceModel{
-		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
-		IP:            basetypes.NewStringValue(ip.GetIp()),
 	}
 }
 
@@ -156,23 +135,22 @@ func (i *ipResource) Update(
 		return
 	}
 
-	opts := plan.generateUpdateOpts()
-
 	ipDetails, httpResponse, err := i.PubliccloudAPI.UpdateInstanceIP(
 		ctx,
 		plan.InstanceID.ValueString(),
 		plan.IP.ValueString(),
-	).UpdateIPOpts(opts).Execute()
+	).UpdateIPOpts(*publiccloud.NewUpdateIPOpts(plan.ReverseLookup.ValueString())).
+		Execute()
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	newState := adaptIpDetailsToIPResource(*ipDetails)
-	newState.InstanceID = plan.InstanceID
+	state := adaptIpDetailsToIPResource(*ipDetails)
+	state.InstanceID = plan.InstanceID
 
 	response.Diagnostics.Append(
-		response.State.Set(ctx, newState)...,
+		response.State.Set(ctx, state)...,
 	)
 }
 

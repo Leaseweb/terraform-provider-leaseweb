@@ -34,59 +34,6 @@ type targetGroupResourceModel struct {
 	HealthCheck types.Object `tfsdk:"health_check"`
 }
 
-func (t targetGroupResourceModel) generateCreateOpts(ctx context.Context) (
-	*publiccloud.CreateTargetGroupOpts,
-	error,
-) {
-	opts := publiccloud.NewCreateTargetGroupOpts(
-		t.Name.ValueString(),
-		publiccloud.Protocol(t.Protocol.ValueString()),
-		t.Port.ValueInt32(),
-		publiccloud.RegionName(t.Region.ValueString()),
-	)
-
-	if !t.HealthCheck.IsNull() {
-		healthCheck := healthCheckResourceModel{}
-		healthCheckDiags := t.HealthCheck.As(
-			ctx,
-			&healthCheck,
-			basetypes.ObjectAsOptions{},
-		)
-		if healthCheckDiags != nil {
-			return nil, utils.ReturnError("generateCreateOpts", healthCheckDiags)
-		}
-
-		opts.SetHealthCheck(healthCheck.generateOpts())
-	}
-
-	return opts, nil
-}
-
-func (t targetGroupResourceModel) generateUpdateOpts(ctx context.Context) (
-	*publiccloud.UpdateTargetGroupOpts,
-	error,
-) {
-	opts := publiccloud.NewUpdateTargetGroupOpts()
-	opts.SetName(t.Name.ValueString())
-	opts.SetPort(t.Port.ValueInt32())
-
-	if !t.HealthCheck.IsNull() {
-		healthCheck := healthCheckResourceModel{}
-		healthCheckDiags := t.HealthCheck.As(
-			ctx,
-			&healthCheck,
-			basetypes.ObjectAsOptions{},
-		)
-		if healthCheckDiags != nil {
-			return nil, utils.ReturnError("generateCreateOpts", healthCheckDiags)
-		}
-
-		opts.SetHealthCheck(healthCheck.generateOpts())
-	}
-
-	return opts, nil
-}
-
 func adaptTargetGroupToTargetGroupResource(
 	sdkTargetGroup publiccloud.TargetGroup,
 	ctx context.Context,
@@ -103,9 +50,29 @@ func adaptTargetGroupToTargetGroupResource(
 
 	healthCheck, err := utils.AdaptNullableSdkModelToResourceObject(
 		sdkHealthCheck,
-		healthCheckResourceModel{}.attributeTypes(),
+		map[string]attr.Type{
+			"protocol": types.StringType,
+			"method":   types.StringType,
+			"uri":      types.StringType,
+			"host":     types.StringType,
+			"port":     types.Int32Type,
+		},
 		ctx,
-		adaptHealthCheckToHealthCheckResource,
+		func(sdkHealthCheck publiccloud.HealthCheck) healthCheckResourceModel {
+			healthCheck := healthCheckResourceModel{
+				Protocol: basetypes.NewStringValue(string(sdkHealthCheck.GetProtocol())),
+				URI:      basetypes.NewStringValue(sdkHealthCheck.GetUri()),
+				Port:     basetypes.NewInt32Value(sdkHealthCheck.GetPort()),
+			}
+
+			method, _ := sdkHealthCheck.GetMethodOk()
+			healthCheck.Method = basetypes.NewStringPointerValue((*string)(method))
+
+			host, _ := sdkHealthCheck.GetHostOk()
+			healthCheck.Host = basetypes.NewStringPointerValue(host)
+
+			return healthCheck
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
@@ -123,16 +90,6 @@ type healthCheckResourceModel struct {
 	Port     types.Int32  `tfsdk:"port"`
 }
 
-func (h healthCheckResourceModel) attributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"protocol": types.StringType,
-		"method":   types.StringType,
-		"uri":      types.StringType,
-		"host":     types.StringType,
-		"port":     types.Int32Type,
-	}
-}
-
 func (h healthCheckResourceModel) generateOpts() publiccloud.HealthCheckOpts {
 	opts := publiccloud.NewHealthCheckOpts(
 		publiccloud.Protocol(h.Protocol.ValueString()),
@@ -146,22 +103,6 @@ func (h healthCheckResourceModel) generateOpts() publiccloud.HealthCheckOpts {
 	opts.Host = utils.AdaptStringPointerValueToNullableString(h.Host)
 
 	return *opts
-}
-
-func adaptHealthCheckToHealthCheckResource(sdkHealthCheck publiccloud.HealthCheck) healthCheckResourceModel {
-	healthCheck := healthCheckResourceModel{
-		Protocol: basetypes.NewStringValue(string(sdkHealthCheck.GetProtocol())),
-		URI:      basetypes.NewStringValue(sdkHealthCheck.GetUri()),
-		Port:     basetypes.NewInt32Value(sdkHealthCheck.GetPort()),
-	}
-
-	method, _ := sdkHealthCheck.GetMethodOk()
-	healthCheck.Method = basetypes.NewStringPointerValue((*string)(method))
-
-	host, _ := sdkHealthCheck.GetHostOk()
-	healthCheck.Host = basetypes.NewStringPointerValue(host)
-
-	return healthCheck
 }
 
 type targetGroupResource struct {
@@ -293,10 +234,25 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	opts, err := plan.generateCreateOpts(ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
-		return
+	opts := publiccloud.NewCreateTargetGroupOpts(
+		plan.Name.ValueString(),
+		publiccloud.Protocol(plan.Protocol.ValueString()),
+		plan.Port.ValueInt32(),
+		publiccloud.RegionName(plan.Region.ValueString()),
+	)
+	if !plan.HealthCheck.IsNull() {
+		healthCheck := healthCheckResourceModel{}
+		healthCheckDiags := plan.HealthCheck.As(
+			ctx,
+			&healthCheck,
+			basetypes.ObjectAsOptions{},
+		)
+		if healthCheckDiags != nil {
+			response.Diagnostics.Append(healthCheckDiags...)
+			return
+		}
+
+		opts.SetHealthCheck(healthCheck.generateOpts())
 	}
 
 	sdkTargetGroup, httpResponse, err := t.PubliccloudAPI.CreateTargetGroup(ctx).
@@ -362,10 +318,22 @@ func (t *targetGroupResource) Update(
 		return
 	}
 
-	opts, err := plan.generateUpdateOpts(ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
-		return
+	opts := publiccloud.NewUpdateTargetGroupOpts()
+	opts.SetName(plan.Name.ValueString())
+	opts.SetPort(plan.Port.ValueInt32())
+	if !plan.HealthCheck.IsNull() {
+		healthCheck := healthCheckResourceModel{}
+		healthCheckDiags := plan.HealthCheck.As(
+			ctx,
+			&healthCheck,
+			basetypes.ObjectAsOptions{},
+		)
+		if healthCheckDiags != nil {
+			response.Diagnostics.Append(healthCheckDiags...)
+			return
+		}
+
+		opts.SetHealthCheck(healthCheck.generateOpts())
 	}
 
 	sdkTargetGroup, httpResponse, err := t.PubliccloudAPI.

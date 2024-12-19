@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -30,84 +29,6 @@ type loadBalancerResourceModel struct {
 	Type      types.String `tfsdk:"type"`
 	Reference types.String `tfsdk:"reference"`
 	Contract  types.Object `tfsdk:"contract"`
-}
-
-func (l *loadBalancerResourceModel) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":        types.StringType,
-		"region":    types.StringType,
-		"type":      types.StringType,
-		"reference": types.StringType,
-		"contract": types.ObjectType{
-			AttrTypes: contractResourceModel{}.attributeTypes(),
-		},
-	}
-}
-
-func (l *loadBalancerResourceModel) GetLaunchLoadBalancerOpts(ctx context.Context) (
-	*publiccloud.LaunchLoadBalancerOpts,
-	error,
-) {
-	contract := contractResourceModel{}
-	contractDiags := l.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
-	if contractDiags != nil {
-		return nil, utils.ReturnError("GetLaunchLoadBalancerOpts", contractDiags)
-	}
-
-	contractType, err := publiccloud.NewContractTypeFromValue(contract.Type.ValueString())
-	if err != nil {
-		return nil, err
-	}
-
-	contractTerm, err := publiccloud.NewContractTermFromValue(contract.Term.ValueInt32())
-	if err != nil {
-		return nil, err
-	}
-
-	billingFrequency, err := publiccloud.NewBillingFrequencyFromValue(contract.BillingFrequency.ValueInt32())
-	if err != nil {
-		return nil, err
-	}
-
-	regionName, err := publiccloud.NewRegionNameFromValue(l.Region.ValueString())
-	if err != nil {
-		return nil, err
-	}
-
-	typeName, err := publiccloud.NewTypeNameFromValue(l.Type.ValueString())
-	if err != nil {
-		return nil, err
-	}
-
-	opts := publiccloud.NewLaunchLoadBalancerOpts(
-		*regionName,
-		*typeName,
-		*contractType,
-		*contractTerm,
-		*billingFrequency,
-	)
-
-	opts.Reference = utils.AdaptStringPointerValueToNullableString(l.Reference)
-
-	return opts, nil
-}
-
-func (l *loadBalancerResourceModel) GetUpdateLoadBalancerOpts() (
-	*publiccloud.UpdateLoadBalancerOpts,
-	error,
-) {
-	opts := publiccloud.NewUpdateLoadBalancerOpts()
-	opts.Reference = utils.AdaptStringPointerValueToNullableString(l.Reference)
-
-	if l.Type.ValueString() != "" {
-		instanceType, err := publiccloud.NewTypeNameFromValue(l.Type.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("GetUpdateLoadBalancerOpts: %w", err)
-		}
-		opts.Type = instanceType
-	}
-
-	return opts, nil
 }
 
 func adaptLoadBalancerDetailsToLoadBalancerResource(
@@ -251,11 +172,20 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	opts, err := plan.GetLaunchLoadBalancerOpts(ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	contract := contractResourceModel{}
+	contractDiags := plan.Contract.As(ctx, &contract, basetypes.ObjectAsOptions{})
+	if contractDiags != nil {
+		response.Diagnostics.Append(contractDiags...)
 		return
 	}
+	opts := publiccloud.NewLaunchLoadBalancerOpts(
+		publiccloud.RegionName(plan.Region.ValueString()),
+		publiccloud.TypeName(plan.Type.ValueString()),
+		publiccloud.ContractType(contract.Type.ValueString()),
+		publiccloud.ContractTerm(contract.Term.ValueInt32()),
+		publiccloud.BillingFrequency(contract.BillingFrequency.ValueInt32()),
+	)
+	opts.Reference = utils.AdaptStringPointerValueToNullableString(plan.Reference)
 
 	loadBalancer, httpResponse, err := l.PubliccloudAPI.LaunchLoadBalancer(ctx).
 		LaunchLoadBalancerOpts(*opts).
@@ -317,10 +247,10 @@ func (l *loadBalancerResource) Update(
 		return
 	}
 
-	opts, err := plan.GetUpdateLoadBalancerOpts()
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
-		return
+	opts := publiccloud.NewUpdateLoadBalancerOpts()
+	opts.Reference = utils.AdaptStringPointerValueToNullableString(plan.Reference)
+	if plan.Type.ValueString() != "" {
+		opts.SetType(publiccloud.TypeName(plan.Type.ValueString()))
 	}
 
 	loadBalancerDetails, httpResponse, err := l.PubliccloudAPI.

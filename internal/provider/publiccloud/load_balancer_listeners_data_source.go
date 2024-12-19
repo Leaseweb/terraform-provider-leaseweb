@@ -2,8 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -22,65 +20,8 @@ type loadBalancerListenersDataSourceModel struct {
 	Listeners      []loadBalancerListenerDataSourceModel `tfsdk:"listeners"`
 }
 
-func (l loadBalancerListenersDataSourceModel) generateRequest(
-	ctx context.Context,
-	api publiccloud.PubliccloudAPI,
-) publiccloud.ApiGetLoadBalancerListenerListRequest {
-	return api.GetLoadBalancerListenerList(ctx, l.LoadBalancerID.ValueString())
-}
-
-func adaptLoadBalancerListenersToLoadBalancerListenersDataSource(loadBalancerListeners []publiccloud.LoadBalancerListener) loadBalancerListenersDataSourceModel {
-	var listeners loadBalancerListenersDataSourceModel
-
-	for _, loadBalancerListener := range loadBalancerListeners {
-		listener := loadBalancerListenerDataSourceModel{
-			ID: basetypes.NewStringValue(loadBalancerListener.GetId()),
-		}
-		listeners.Listeners = append(listeners.Listeners, listener)
-	}
-
-	return listeners
-}
-
 type loadBalancerListenerDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
-}
-
-func getAllLoadBalancerListeners(request publiccloud.ApiGetLoadBalancerListenerListRequest) (
-	[]publiccloud.LoadBalancerListener,
-	*http.Response,
-	error,
-) {
-	var listeners []publiccloud.LoadBalancerListener
-	var offset *int32
-
-	for {
-		result, httpResponse, err := request.Execute()
-		if err != nil {
-			return nil, httpResponse, fmt.Errorf(
-				"getAllLoadBalancerListeners: %w",
-				err,
-			)
-		}
-
-		listeners = append(listeners, result.GetListeners()...)
-
-		metadata := result.GetMetadata()
-
-		offset = utils.NewOffset(
-			metadata.GetLimit(),
-			metadata.GetOffset(),
-			metadata.GetTotalCount(),
-		)
-
-		if offset == nil {
-			break
-		}
-
-		request = request.Offset(*offset)
-	}
-
-	return listeners, nil, nil
 }
 
 type loadBalancerListenersDataSource struct {
@@ -125,13 +66,40 @@ func (l *loadBalancerListenersDataSource) Read(
 		return
 	}
 
-	listeners, httpResponse, err := getAllLoadBalancerListeners(config.generateRequest(ctx, l.PubliccloudAPI))
-	if err != nil {
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
-		return
+	var loadBalancerListeners []publiccloud.LoadBalancerListener
+	var offset *int32
+	loadBalancerListenerRequest := l.PubliccloudAPI.GetLoadBalancerListenerList(ctx, config.LoadBalancerID.ValueString())
+	for {
+		result, httpResponse, err := loadBalancerListenerRequest.Execute()
+		if err != nil {
+			utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+			return
+		}
+
+		loadBalancerListeners = append(loadBalancerListeners, result.GetListeners()...)
+
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
+			break
+		}
+
+		loadBalancerListenerRequest = loadBalancerListenerRequest.Offset(*offset)
 	}
 
-	state := adaptLoadBalancerListenersToLoadBalancerListenersDataSource(listeners)
+	var state loadBalancerListenersDataSourceModel
+	for _, loadBalancerListener := range loadBalancerListeners {
+		listener := loadBalancerListenerDataSourceModel{
+			ID: basetypes.NewStringValue(loadBalancerListener.GetId()),
+		}
+		state.Listeners = append(state.Listeners, listener)
+	}
 	state.LoadBalancerID = basetypes.NewStringValue(config.LoadBalancerID.ValueString())
 
 	response.Diagnostics.Append(response.State.Set(ctx, &state)...)

@@ -21,11 +21,12 @@ type serverDataSource struct {
 type serverDataSourceModel struct {
 	Id                                 types.String `tfsdk:"id"`
 	AssetId                            types.String `tfsdk:"asset_id"`
-	SerialNumber                       types.String `tfsdk:"serial_number"`
 	ContractId                         types.String `tfsdk:"contract_id"`
-	RackId                             types.String `tfsdk:"rack_id"`
-	RackCapacity                       types.String `tfsdk:"rack_capacity"`
-	RackType                           types.String `tfsdk:"rack_type"`
+	CpuQuantity                        types.Int32  `tfsdk:"cpu_quantity"`
+	CpuType                            types.String `tfsdk:"cpu_type"`
+	InternalGateway                    types.String `tfsdk:"internal_gateway"`
+	InternalIp                         types.String `tfsdk:"internal_ip"`
+	InternalMac                        types.String `tfsdk:"internal_mac"`
 	IsAutomationFeatureAvailable       types.Bool   `tfsdk:"is_automation_feature_available"`
 	IsIpmiRebootFeatureAvailable       types.Bool   `tfsdk:"is_ipmi_reboot_feature_available"`
 	IsPowerCycleFeatureAvailable       types.Bool   `tfsdk:"is_power_cycle_feature_available"`
@@ -35,19 +36,18 @@ type serverDataSourceModel struct {
 	LocationSite                       types.String `tfsdk:"location_site"`
 	LocationSuite                      types.String `tfsdk:"location_suite"`
 	LocationUnit                       types.String `tfsdk:"location_unit"`
-	PublicMac                          types.String `tfsdk:"public_mac"`
-	PublicIp                           types.String `tfsdk:"public_ip"`
 	PublicGateway                      types.String `tfsdk:"public_gateway"`
-	InternalMac                        types.String `tfsdk:"internal_mac"`
-	InternalIp                         types.String `tfsdk:"internal_ip"`
-	InternalGateway                    types.String `tfsdk:"internal_gateway"`
-	RemoteMac                          types.String `tfsdk:"remote_mac"`
-	RemoteIp                           types.String `tfsdk:"remote_ip"`
-	RemoteGateway                      types.String `tfsdk:"remote_gateway"`
+	PublicIp                           types.String `tfsdk:"public_ip"`
+	PublicMac                          types.String `tfsdk:"public_mac"`
+	RackCapacity                       types.String `tfsdk:"rack_capacity"`
+	RackId                             types.String `tfsdk:"rack_id"`
+	RackType                           types.String `tfsdk:"rack_type"`
 	RamSize                            types.Int32  `tfsdk:"ram_size"`
 	RamUnit                            types.String `tfsdk:"ram_unit"`
-	CpuQuantity                        types.Int32  `tfsdk:"cpu_quantity"`
-	CpuType                            types.String `tfsdk:"cpu_type"`
+	RemoteGateway                      types.String `tfsdk:"remote_gateway"`
+	RemoteIp                           types.String `tfsdk:"remote_ip"`
+	RemoteMac                          types.String `tfsdk:"remote_mac"`
+	SerialNumber                       types.String `tfsdk:"serial_number"`
 }
 
 func (s *serverDataSource) Read(
@@ -149,11 +149,13 @@ func (s *serverDataSource) Read(
 			serverDataSourceModel{
 				Id:                                 types.StringValue(result.GetId()),
 				AssetId:                            types.StringValue(result.GetAssetId()),
-				SerialNumber:                       types.StringValue(result.GetSerialNumber()),
 				ContractId:                         types.StringPointerValue(contractId),
-				RackId:                             types.StringPointerValue(rackId),
-				RackCapacity:                       types.StringPointerValue(rackCapacity),
-				RackType:                           types.StringPointerValue(rackType),
+				CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
+				CpuType:                            types.StringPointerValue(cpuType),
+				InternalGateway:                    types.StringPointerValue(internalGateway),
+				InternalIp:                         types.StringPointerValue(internalIp),
+				InternalMac:                        types.StringPointerValue(internalMac),
+				SerialNumber:                       types.StringValue(result.GetSerialNumber()),
 				IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
 				IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
 				IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
@@ -163,19 +165,17 @@ func (s *serverDataSource) Read(
 				LocationSite:                       types.StringPointerValue(locationSite),
 				LocationSuite:                      types.StringPointerValue(locationSuite),
 				LocationUnit:                       types.StringPointerValue(locationUnit),
-				PublicMac:                          types.StringPointerValue(publicMac),
-				PublicIp:                           types.StringPointerValue(publicIp),
 				PublicGateway:                      types.StringPointerValue(publicGateway),
-				InternalMac:                        types.StringPointerValue(internalMac),
-				InternalIp:                         types.StringPointerValue(internalIp),
-				InternalGateway:                    types.StringPointerValue(internalGateway),
-				RemoteMac:                          types.StringPointerValue(remoteMac),
-				RemoteIp:                           types.StringPointerValue(remoteIp),
-				RemoteGateway:                      types.StringPointerValue(remoteGateway),
+				PublicIp:                           types.StringPointerValue(publicIp),
+				PublicMac:                          types.StringPointerValue(publicMac),
+				RackCapacity:                       types.StringPointerValue(rackCapacity),
+				RackId:                             types.StringPointerValue(rackId),
+				RackType:                           types.StringPointerValue(rackType),
 				RamSize:                            types.Int32PointerValue(ramSize),
 				RamUnit:                            types.StringPointerValue(ramUnit),
-				CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
-				CpuType:                            types.StringPointerValue(cpuType),
+				RemoteGateway:                      types.StringPointerValue(remoteGateway),
+				RemoteIp:                           types.StringPointerValue(remoteIp),
+				RemoteMac:                          types.StringPointerValue(remoteMac),
 			},
 		)...,
 	)

@@ -2,6 +2,7 @@ package publiccloud
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -23,16 +24,6 @@ var (
 type instanceDetailsErr struct {
 	err          error
 	httpResponse *http.Response
-}
-
-type instanceDetailsList []publiccloud.InstanceDetails
-
-func (inst instanceDetailsList) orderById() instanceDetailsList {
-	sort.Slice(inst, func(i, j int) bool {
-		return inst[i].Id < inst[j].Id
-	})
-
-	return inst
 }
 
 type contractDataSourceModel struct {
@@ -68,57 +59,12 @@ type instanceDataSourceModel struct {
 	Type                types.String            `tfsdk:"type"`
 }
 
-func adaptInstanceDetailsToInstanceDataSource(instanceDetails publiccloud.InstanceDetails) instanceDataSourceModel {
-	var ips []ipDataSourceModel
-	for _, ip := range instanceDetails.Ips {
-		ips = append(
-			ips,
-			ipDataSourceModel{
-				IP: basetypes.NewStringValue(ip.GetIp()),
-			},
-		)
-	}
-
-	instance := instanceDataSourceModel{
-		Contract:            adaptContractToContractDataSource(instanceDetails.GetContract()),
-		ID:                  basetypes.NewStringValue(instanceDetails.GetId()),
-		IPs:                 ips,
-		Image:               adaptImageToImageDataSource(instanceDetails.GetImage()),
-		MarketAppID:         basetypes.NewStringPointerValue(instanceDetails.MarketAppId.Get()),
-		RootDiskSize:        basetypes.NewInt32Value(instanceDetails.GetRootDiskSize()),
-		RootDiskStorageType: basetypes.NewStringValue(string(instanceDetails.GetRootDiskStorageType())),
-		Region:              basetypes.NewStringValue(string(instanceDetails.GetRegion())),
-		Reference:           basetypes.NewStringPointerValue(instanceDetails.Reference.Get()),
-		State:               basetypes.NewStringValue(string(instanceDetails.GetState())),
-		Type:                basetypes.NewStringValue(string(instanceDetails.GetType())),
-	}
-
-	sdkIso, _ := instanceDetails.GetIsoOk()
-	if sdkIso != nil {
-		iso := adaptIsoToISODataSource(*sdkIso)
-		instance.ISO = &iso
-	}
-
-	return instance
-}
-
 type ipDataSourceModel struct {
 	IP types.String `tfsdk:"ip"`
 }
 
 type instancesDataSourceModel struct {
 	Instances []instanceDataSourceModel `tfsdk:"instances"`
-}
-
-func adaptInstancesToInstancesDataSource(instanceDetailsList instanceDetailsList) instancesDataSourceModel {
-	var instances instancesDataSourceModel
-
-	for _, instanceDetails := range instanceDetailsList {
-		instance := adaptInstanceDetailsToInstanceDataSource(instanceDetails)
-		instances.Instances = append(instances.Instances, instance)
-	}
-
-	return instances
 }
 
 func NewInstancesDataSource() datasource.DataSource {
@@ -164,8 +110,15 @@ func (d *instancesDataSource) Read(
 		request = request.Offset(*offset)
 	}
 
+	//Get images once
+	images, httpResponse, err := getAllImages(ctx, d.PubliccloudAPI)
+	if err != nil {
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+		return
+	}
+
 	// Get instanceDetails for each instance
-	var instanceDetailsList instanceDetailsList
+	var instanceDetailsList []publiccloud.InstanceDetails
 	resultChan := make(chan publiccloud.InstanceDetails)
 	errorChan := make(chan instanceDetailsErr)
 	for _, instance := range instances {
@@ -194,12 +147,55 @@ func (d *instancesDataSource) Read(
 		}
 	}
 
-	resp.Diagnostics.Append(
-		resp.State.Set(
-			ctx,
-			adaptInstancesToInstancesDataSource(instanceDetailsList.orderById()),
-		)...,
-	)
+	var state instancesDataSourceModel
+
+	sort.Slice(instanceDetailsList, func(i, j int) bool {
+		return instanceDetailsList[i].Id < instanceDetailsList[j].Id
+	})
+	for _, instanceDetails := range instanceDetailsList {
+		var ips []ipDataSourceModel
+		for _, ip := range instanceDetails.Ips {
+			ips = append(
+				ips,
+				ipDataSourceModel{
+					IP: basetypes.NewStringValue(ip.GetIp()),
+				},
+			)
+		}
+
+		instance := instanceDataSourceModel{
+			Contract:            adaptContractToContractDataSource(instanceDetails.GetContract()),
+			ID:                  basetypes.NewStringValue(instanceDetails.GetId()),
+			IPs:                 ips,
+			MarketAppID:         basetypes.NewStringPointerValue(instanceDetails.MarketAppId.Get()),
+			RootDiskSize:        basetypes.NewInt32Value(instanceDetails.GetRootDiskSize()),
+			RootDiskStorageType: basetypes.NewStringValue(string(instanceDetails.GetRootDiskStorageType())),
+			Region:              basetypes.NewStringValue(string(instanceDetails.GetRegion())),
+			Reference:           basetypes.NewStringPointerValue(instanceDetails.Reference.Get()),
+			State:               basetypes.NewStringValue(string(instanceDetails.GetState())),
+			Type:                basetypes.NewStringValue(string(instanceDetails.GetType())),
+		}
+		imageDetails := images.findById(instanceDetails.Image.Id)
+		if imageDetails == nil {
+			utils.GeneralError(
+				&resp.Diagnostics,
+				ctx,
+				fmt.Errorf("imageDetails %s not found", instance.Image.ID),
+			)
+			return
+		}
+		instance.Image = adaptImageDetailsToImageDataSource(*imageDetails)
+
+		sdkIso, _ := instanceDetails.GetIsoOk()
+		if sdkIso != nil {
+			iso := adaptIsoToISODataSource(*sdkIso)
+			instance.ISO = &iso
+		}
+
+		state.Instances = append(state.Instances, instance)
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (d *instancesDataSource) Schema(

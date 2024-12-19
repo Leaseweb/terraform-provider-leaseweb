@@ -2,8 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -26,54 +24,11 @@ type isosDataSourceModel struct {
 	ISOs []isoDataSourceModel `tfsdk:"isos"`
 }
 
-func adaptIsosToISOsDataSource(sdkISOs []publiccloud.Iso) isosDataSourceModel {
-	var isos isosDataSourceModel
-
-	for _, iso := range sdkISOs {
-		isos.ISOs = append(isos.ISOs, adaptIsoToISODataSource(iso))
-	}
-
-	return isos
-}
-
 func adaptIsoToISODataSource(iso publiccloud.Iso) isoDataSourceModel {
 	return isoDataSourceModel{
 		ID:   basetypes.NewStringValue(iso.GetId()),
 		Name: basetypes.NewStringValue(iso.GetName()),
 	}
-}
-
-func getISOs(
-	ctx context.Context,
-	api publiccloud.PubliccloudAPI,
-) ([]publiccloud.Iso, *http.Response, error) {
-	var isos []publiccloud.Iso
-	var offset *int32
-
-	request := api.GetIsoList(ctx)
-
-	for {
-		result, httpResponse, err := request.Execute()
-		if err != nil {
-			return nil, httpResponse, fmt.Errorf("getISOs: %w", err)
-		}
-		isos = append(isos, result.Isos...)
-
-		metadata := result.GetMetadata()
-
-		offset = utils.NewOffset(
-			metadata.GetLimit(),
-			metadata.GetOffset(),
-			metadata.GetTotalCount(),
-		)
-		if offset == nil {
-			break
-		}
-
-		request = request.Offset(*offset)
-	}
-
-	return isos, nil, nil
 }
 
 type isosDataSource struct {
@@ -111,18 +66,37 @@ func (i *isosDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	ISOs, httpResponse, err := getISOs(ctx, i.PubliccloudAPI)
-	if err != nil {
-		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
-		return
+	var sdkISOs []publiccloud.Iso
+	var offset *int32
+	request := i.PubliccloudAPI.GetIsoList(ctx)
+	for {
+		result, httpResponse, err := request.Execute()
+		if err != nil {
+			utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+			return
+		}
+		sdkISOs = append(sdkISOs, result.Isos...)
+
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+		if offset == nil {
+			break
+		}
+
+		request = request.Offset(*offset)
 	}
 
-	resp.Diagnostics.Append(
-		resp.State.Set(
-			ctx,
-			adaptIsosToISOsDataSource(ISOs),
-		)...,
-	)
+	var isos isosDataSourceModel
+	for _, iso := range sdkISOs {
+		isos.ISOs = append(isos.ISOs, adaptIsoToISODataSource(iso))
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, isos)...)
 }
 
 func NewISOsDataSource() datasource.DataSource {

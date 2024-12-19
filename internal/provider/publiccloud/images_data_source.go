@@ -28,18 +28,23 @@ type imageModelDataSource struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-func adaptImageToImageDataSource(image publiccloud.Image) imageModelDataSource {
-	return imageModelDataSource{
-		ID:      basetypes.NewStringValue(image.GetId()),
-		Name:    basetypes.NewStringValue(image.GetName()),
-		Custom:  basetypes.NewBoolValue(image.GetCustom()),
-		Flavour: basetypes.NewStringValue(string(image.GetFlavour())),
-	}
+type imagesDataSourceModel struct {
+	Images []imageModelDataSource `tfsdk:"images"`
 }
 
-func adaptImageDetailsToImageDataSource(
-	imageDetails publiccloud.ImageDetails,
-) imageModelDataSource {
+type imageDetailsList []publiccloud.ImageDetails
+
+func (i imageDetailsList) findById(id string) *publiccloud.ImageDetails {
+	for _, image := range i {
+		if image.GetId() == id {
+			return &image
+		}
+	}
+
+	return nil
+}
+
+func adaptImageDetailsToImageDataSource(imageDetails publiccloud.ImageDetails) imageModelDataSource {
 	var marketApps []string
 	var storageTypes []string
 
@@ -63,26 +68,11 @@ func adaptImageDetailsToImageDataSource(
 	}
 }
 
-type imagesDataSourceModel struct {
-	Images []imageModelDataSource `tfsdk:"images"`
-}
-
-func adaptImagesToImagesDataSource(sdkImages []publiccloud.ImageDetails) imagesDataSourceModel {
-	var images imagesDataSourceModel
-
-	for _, imageDetails := range sdkImages {
-		image := adaptImageDetailsToImageDataSource(imageDetails)
-		images.Images = append(images.Images, image)
-	}
-
-	return images
-}
-
 func getAllImages(
 	ctx context.Context,
 	api publiccloud.PubliccloudAPI,
-) ([]publiccloud.ImageDetails, *http.Response, error) {
-	var images []publiccloud.ImageDetails
+) (imageDetailsList, *http.Response, error) {
+	var images imageDetailsList
 	var offset *int32
 
 	request := api.GetImageList(ctx)
@@ -175,15 +165,20 @@ func (i *imagesDataSource) Read(
 	response *datasource.ReadResponse,
 ) {
 	images, httpResponse, err := getAllImages(ctx, i.PubliccloudAPI)
-
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	response.Diagnostics.Append(
-		response.State.Set(ctx, adaptImagesToImagesDataSource(images))...,
-	)
+	var state imagesDataSourceModel
+	for _, imageDetails := range images {
+		state.Images = append(
+			state.Images,
+			adaptImageDetailsToImageDataSource(imageDetails),
+		)
+	}
+
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 func NewImagesDataSource() datasource.DataSource {
