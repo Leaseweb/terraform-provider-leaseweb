@@ -3039,3 +3039,68 @@ func TestAccPublicCloudInstanceIsoResource(t *testing.T) {
 		})
 	})
 }
+
+func TestAccDnsResourceRecordSetsDataSource(t *testing.T) {
+	t.Run("domain_name is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+        					data "leaseweb_dns_resource_record_sets" "test" {
+        					}`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"domain_name\" is required, but no definition was found",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("reading data succeeds", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `
+        					data "leaseweb_dns_resource_record_sets" "test" {
+								domain_name = "example.com"
+        					}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dns_resource_record_sets.test",
+							"resource_record_sets.#",
+							"13",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dns_resource_record_sets.test",
+							"resource_record_sets.0.name",
+							"example.com.",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dns_resource_record_sets.test",
+							"resource_record_sets.0.type",
+							"A",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dns_resource_record_sets.test",
+							"resource_record_sets.0.content.#",
+							"3",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dns_resource_record_sets.test",
+							"resource_record_sets.0.content.0",
+							"85.17.150.50",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_dns_resource_record_sets.test",
+							"resource_record_sets.0.ttl",
+							"300",
+						),
+					),
+				},
+			},
+		})
+	})
+}

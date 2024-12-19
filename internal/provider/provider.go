@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dedicatedserver"
+	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/dns"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/publiccloud"
 )
 
@@ -165,6 +166,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		publiccloud.NewLoadBalancerListenersDataSource,
 		publiccloud.NewTargetGroupsDataSource,
 		publiccloud.NewISOsDataSource,
+		dns.NewResourceRecordSetsDataSource,
 	}
 }
 
