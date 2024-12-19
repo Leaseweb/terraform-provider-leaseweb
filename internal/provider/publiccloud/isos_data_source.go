@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -78,16 +77,7 @@ func getISOs(
 }
 
 type isosDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *isosDataSource) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf("%s_%s", request.ProviderTypeName, i.name)
+	utils.DataSourceAPI
 }
 
 func (i *isosDataSource) Schema(
@@ -121,7 +111,7 @@ func (i *isosDataSource) Read(
 	_ datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	ISOs, httpResponse, err := getISOs(ctx, i.client)
+	ISOs, httpResponse, err := getISOs(ctx, i.PubliccloudAPI)
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
@@ -135,26 +125,10 @@ func (i *isosDataSource) Read(
 	)
 }
 
-func (i *isosDataSource) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewISOsDataSource() datasource.DataSource {
 	return &isosDataSource{
-		name: "public_cloud_isos",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "public_cloud_isos",
+		},
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -149,20 +148,7 @@ func imageSchemaAttributes() map[string]schema.Attribute {
 }
 
 type imagesDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *imagesDataSource) Metadata(
-	_ context.Context,
-	request datasource.MetadataRequest,
-	response *datasource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf(
-		"%s_%s",
-		request.ProviderTypeName,
-		i.name,
-	)
+	utils.DataSourceAPI
 }
 
 func (i *imagesDataSource) Schema(
@@ -188,7 +174,7 @@ func (i *imagesDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	images, httpResponse, err := getAllImages(ctx, i.client)
+	images, httpResponse, err := getAllImages(ctx, i.PubliccloudAPI)
 
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
@@ -200,26 +186,10 @@ func (i *imagesDataSource) Read(
 	)
 }
 
-func (i *imagesDataSource) Configure(
-	_ context.Context,
-	request datasource.ConfigureRequest,
-	response *datasource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewImagesDataSource() datasource.DataSource {
 	return &imagesDataSource{
-		name: "public_cloud_images",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "public_cloud_images",
+		},
 	}
 }

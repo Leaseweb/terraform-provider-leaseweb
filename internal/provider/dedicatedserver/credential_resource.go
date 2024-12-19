@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -22,8 +20,7 @@ var (
 )
 
 type credentialResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.ResourceAPI
 }
 
 type credentialResourceModel struct {
@@ -35,35 +32,10 @@ type credentialResourceModel struct {
 
 func NewCredentialResource() resource.Resource {
 	return &credentialResource{
-		name: "dedicated_server_credential",
+		ResourceAPI: utils.ResourceAPI{
+			Name: "dedicated_server_credential",
+		},
 	}
-}
-
-func (c *credentialResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
-}
-
-func (c *credentialResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	c.client = coreClient.DedicatedserverAPI
 }
 
 func (c *credentialResource) Schema(
@@ -121,7 +93,7 @@ func (c *credentialResource) Create(
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	)
-	request := c.client.CreateServerCredential(
+	request := c.DedicatedserverAPI.CreateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).CreateServerCredentialOpts(*opts)
@@ -155,7 +127,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.client.GetServerCredential(
+	request := c.DedicatedserverAPI.GetServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),
@@ -194,7 +166,7 @@ func (c *credentialResource) Update(
 	opts := dedicatedserver.NewUpdateServerCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.client.UpdateServerCredential(
+	request := c.DedicatedserverAPI.UpdateServerCredential(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
@@ -230,7 +202,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.client.DeleteServerCredential(
+	request := c.DedicatedserverAPI.DeleteServerCredential(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),

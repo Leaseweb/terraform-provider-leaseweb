@@ -2,13 +2,10 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -18,8 +15,7 @@ var (
 )
 
 type serversDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DataSourceAPI
 }
 
 type serversDataSourceModel struct {
@@ -33,33 +29,6 @@ type serversDataSourceModel struct {
 	PrivateNetworkEnabled types.String   `tfsdk:"private_network_enabled"`
 }
 
-func (s *serversDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	s.client = coreClient.DedicatedserverAPI
-}
-
-func (s *serversDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, s.name)
-}
-
 func (s *serversDataSource) Read(
 	ctx context.Context,
 	req datasource.ReadRequest,
@@ -68,7 +37,7 @@ func (s *serversDataSource) Read(
 	var config serversDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	// NOTE: we show only the latest 50 items.
-	request := s.client.GetServerList(ctx).Limit(50)
+	request := s.DedicatedserverAPI.GetServerList(ctx).Limit(50)
 
 	if !config.Reference.IsNull() && !config.Reference.IsUnknown() {
 		request = request.Reference(config.Reference.ValueString())
@@ -172,6 +141,8 @@ func (s *serversDataSource) Schema(
 
 func NewServersDataSource() datasource.DataSource {
 	return &serversDataSource{
-		name: "dedicated_servers",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "dedicated_servers",
+		},
 	}
 }

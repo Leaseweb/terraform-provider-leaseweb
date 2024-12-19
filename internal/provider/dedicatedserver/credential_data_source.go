@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -10,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -20,8 +18,7 @@ var (
 )
 
 type credentialDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DataSourceAPI
 }
 
 type credentialDataSourceModel struct {
@@ -29,33 +26,6 @@ type credentialDataSourceModel struct {
 	Username          types.String `tfsdk:"username"`
 	Password          types.String `tfsdk:"password"`
 	Type              types.String `tfsdk:"type"`
-}
-
-func (c *credentialDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	c.client = coreClient.DedicatedserverAPI
-}
-
-func (c *credentialDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
 func (c *credentialDataSource) Schema(
@@ -105,7 +75,7 @@ func (c *credentialDataSource) Read(
 	credType := dedicatedserver.CredentialType(config.Type.ValueString())
 	username := config.Username.ValueString()
 
-	credential, response, err := c.client.GetServerCredential(
+	credential, response, err := c.DedicatedserverAPI.GetServerCredential(
 		ctx,
 		serverID,
 		credType,
@@ -123,6 +93,8 @@ func (c *credentialDataSource) Read(
 
 func NewCredentialDataSource() datasource.DataSource {
 	return &credentialDataSource{
-		name: "dedicated_server_credential",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "dedicated_server_credential",
+		},
 	}
 }

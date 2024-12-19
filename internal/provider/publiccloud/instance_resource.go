@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -289,32 +288,14 @@ func adaptInstanceDetailsToInstanceResource(
 
 func NewInstanceResource() resource.Resource {
 	return &instanceResource{
-		name: "public_cloud_instance",
+		ResourceAPI: utils.ResourceAPI{
+			Name: "public_cloud_instance",
+		},
 	}
 }
 
 type instanceResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *instanceResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
+	utils.ResourceAPI
 }
 
 func (i *instanceResource) Create(
@@ -334,7 +315,7 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	instance, httpResponse, err := i.client.LaunchInstance(ctx).
+	instance, httpResponse, err := i.PubliccloudAPI.LaunchInstance(ctx).
 		LaunchInstanceOpts(*opts).
 		Execute()
 	if err != nil {
@@ -343,7 +324,7 @@ func (i *instanceResource) Create(
 	}
 
 	// Get ISO data from instanceDetails
-	instanceDetails, httpResponse, err := i.client.GetInstance(
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.GetInstance(
 		ctx,
 		instance.GetId(),
 	).Execute()
@@ -372,7 +353,7 @@ func (i *instanceResource) Delete(
 		return
 	}
 
-	httpResponse, err := i.client.TerminateInstance(
+	httpResponse, err := i.PubliccloudAPI.TerminateInstance(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -394,14 +375,6 @@ func (i *instanceResource) ImportState(
 	)
 }
 
-func (i *instanceResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
-}
-
 func (i *instanceResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
@@ -413,7 +386,7 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	instanceDetails, httpResponse, err := i.client.
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.
 		GetInstance(ctx, state.ID.ValueString()).
 		Execute()
 	if err != nil {
@@ -450,7 +423,7 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	instanceDetails, httpResponse, err := i.client.
+	instanceDetails, httpResponse, err := i.PubliccloudAPI.
 		UpdateInstance(ctx, plan.ID.ValueString()).
 		UpdateInstanceOpts(*opts).
 		Execute()

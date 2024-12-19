@@ -29,17 +29,6 @@ func ImportOnlyError(diags *diag.Diagnostics) {
 	diags.AddError("Resource can only be imported, not created.", "")
 }
 
-// ConfigError should be used in resource/data source Configure() functions to handle unexpected resource configure types.
-func ConfigError(diags *diag.Diagnostics, providerData any) {
-	diags.AddError(
-		"Unexpected Resource Configure Type",
-		fmt.Sprintf(
-			"Expected client.Client, got: %T. Please report this issue to the provider developers.",
-			providerData,
-		),
-	)
-}
-
 // UnexpectedImportIdentifierError should be used in Import() functions where the identifier is incorrect.
 func UnexpectedImportIdentifierError(diags *diag.Diagnostics, format string, got string) {
 	diags.AddError(

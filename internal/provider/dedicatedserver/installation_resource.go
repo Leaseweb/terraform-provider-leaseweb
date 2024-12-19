@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -19,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -30,13 +28,14 @@ var (
 
 func NewInstallationResource() resource.Resource {
 	return &installationResource{
-		name: "dedicated_server_installation",
+		ResourceAPI: utils.ResourceAPI{
+			Name: "dedicated_server_installation",
+		},
 	}
 }
 
 type installationResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.ResourceAPI
 }
 
 type installationResourceModel struct {
@@ -74,33 +73,6 @@ func (p partitionsResourceModel) attributeTypes() map[string]attr.Type {
 		"mountpoint": types.StringType,
 		"size":       types.StringType,
 	}
-}
-
-func (i *installationResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, i.name)
-}
-
-func (i *installationResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	i.client = coreClient.DedicatedserverAPI
 }
 
 func (i *installationResource) Schema(
@@ -360,7 +332,7 @@ func (i *installationResource) Create(
 	}
 
 	serverID := plan.DedicatedServerID.ValueString()
-	result, response, err := i.client.InstallOperatingSystem(ctx, serverID).
+	result, response, err := i.DedicatedserverAPI.InstallOperatingSystem(ctx, serverID).
 		InstallOperatingSystemOpts(*opts).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)
@@ -382,7 +354,11 @@ func (i *installationResource) Create(
 			Size:       types.StringValue(p.GetSize()),
 		}
 
-		partitionObj, diags := types.ObjectValueFrom(ctx, partition.attributeTypes(), partition)
+		partitionObj, diags := types.ObjectValueFrom(
+			ctx,
+			partition.attributeTypes(),
+			partition,
+		)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -392,7 +368,11 @@ func (i *installationResource) Create(
 	}
 
 	// Convert the slice of partition objects to a types.List and store it in the plan
-	partitionsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: partitionsResourceModel{}.attributeTypes()}, partitionsObjects)
+	partitionsList, diags := types.ListValueFrom(
+		ctx,
+		types.ObjectType{AttrTypes: partitionsResourceModel{}.attributeTypes()},
+		partitionsObjects,
+	)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

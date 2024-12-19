@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -10,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -20,8 +18,7 @@ var (
 )
 
 type controlPanelsDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DataSourceAPI
 }
 
 type controlPanelDataSourceModel struct {
@@ -32,33 +29,6 @@ type controlPanelDataSourceModel struct {
 type controlPanelsDataSourceModel struct {
 	ControlPanels     []controlPanelDataSourceModel `tfsdk:"control_panels"`
 	OperatingSystemId types.String                  `tfsdk:"operating_system_id"`
-}
-
-func (c *controlPanelsDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	c.client = coreClient.DedicatedserverAPI
-}
-
-func (c *controlPanelsDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, c.name)
 }
 
 func (c *controlPanelsDataSource) Read(
@@ -76,13 +46,13 @@ func (c *controlPanelsDataSource) Read(
 
 	// NOTE: we show only the latest 50 items.
 	if !config.OperatingSystemId.IsNull() && !config.OperatingSystemId.IsUnknown() {
-		request := c.client.GetControlPanelListByOperatingSystemId(
+		request := c.DedicatedserverAPI.GetControlPanelListByOperatingSystemId(
 			ctx,
 			config.OperatingSystemId.ValueString(),
 		).Limit(50)
 		result, response, err = request.Execute()
 	} else {
-		request := c.client.GetControlPanelList(ctx).Limit(50)
+		request := c.DedicatedserverAPI.GetControlPanelList(ctx).Limit(50)
 		result, response, err = request.Execute()
 	}
 
@@ -141,6 +111,8 @@ func (c *controlPanelsDataSource) Schema(
 
 func NewControlPanelsDataSource() datasource.DataSource {
 	return &controlPanelsDataSource{
-		name: "dedicated_server_control_panels",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "dedicated_server_control_panels",
+		},
 	}
 }

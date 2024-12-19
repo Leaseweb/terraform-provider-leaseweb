@@ -2,7 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sort"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -125,39 +123,14 @@ func adaptInstancesToInstancesDataSource(instanceDetailsList instanceDetailsList
 
 func NewInstancesDataSource() datasource.DataSource {
 	return &instancesDataSource{
-		name: "public_cloud_instances",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "public_cloud_instances",
+		},
 	}
 }
 
 type instancesDataSource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (d *instancesDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	d.client = coreClient.PubliccloudAPI
-}
-
-func (d *instancesDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.name)
+	utils.DataSourceAPI
 }
 
 func (d *instancesDataSource) Read(
@@ -169,7 +142,7 @@ func (d *instancesDataSource) Read(
 	var offset *int32
 
 	// Get instances
-	request := d.client.GetInstanceList(ctx)
+	request := d.PubliccloudAPI.GetInstanceList(ctx)
 	for {
 		result, httpResponse, err := request.Execute()
 		if err != nil {
@@ -197,7 +170,10 @@ func (d *instancesDataSource) Read(
 	errorChan := make(chan instanceDetailsErr)
 	for _, instance := range instances {
 		go func(id string) {
-			instanceDetails, httpResponse, err := d.client.GetInstance(ctx, id).Execute()
+			instanceDetails, httpResponse, err := d.PubliccloudAPI.GetInstance(
+				ctx,
+				id,
+			).Execute()
 			if err != nil {
 				errorChan <- instanceDetailsErr{
 					err:          err,

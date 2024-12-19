@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -22,8 +20,7 @@ var (
 )
 
 type notificationSettingDatatrafficResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.ResourceAPI
 }
 
 type notificationSettingDatatrafficResourceModel struct {
@@ -36,35 +33,10 @@ type notificationSettingDatatrafficResourceModel struct {
 
 func NewNotificationSettingDatatrafficResource() resource.Resource {
 	return &notificationSettingDatatrafficResource{
-		name: "dedicated_server_notification_setting_datatraffic",
+		ResourceAPI: utils.ResourceAPI{
+			Name: "dedicated_server_notification_setting_datatraffic",
+		},
 	}
-}
-
-func (n *notificationSettingDatatrafficResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, n.name)
-}
-
-func (n *notificationSettingDatatrafficResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	n.client = coreClient.DedicatedserverAPI
 }
 
 func (n *notificationSettingDatatrafficResource) Schema(
@@ -126,7 +98,7 @@ func (n *notificationSettingDatatrafficResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.client.CreateServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.CreateServerDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
@@ -161,7 +133,7 @@ func (n *notificationSettingDatatrafficResource) Read(
 		return
 	}
 
-	request := n.client.GetServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.GetServerDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),
@@ -202,7 +174,7 @@ func (n *notificationSettingDatatrafficResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.client.UpdateServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.UpdateServerDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerId.ValueString(),
 		plan.Id.ValueString(),
@@ -238,7 +210,7 @@ func (n *notificationSettingDatatrafficResource) Delete(
 		return
 	}
 
-	request := n.client.DeleteServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.DeleteServerDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerId.ValueString(),
 		state.Id.ValueString(),

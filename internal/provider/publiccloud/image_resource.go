@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -129,20 +128,7 @@ func getImage(
 }
 
 type imageResource struct {
-	name   string
-	client publiccloud.PubliccloudAPI
-}
-
-func (i *imageResource) Metadata(
-	_ context.Context,
-	request resource.MetadataRequest,
-	response *resource.MetadataResponse,
-) {
-	response.TypeName = fmt.Sprintf(
-		"%s_%s",
-		request.ProviderTypeName,
-		i.name,
-	)
+	utils.ResourceAPI
 }
 
 func (i *imageResource) Schema(
@@ -220,7 +206,7 @@ func (i *imageResource) Create(
 	}
 
 	opts := plan.getCreateImageOpts()
-	image, httpResponse, err := i.client.CreateImage(ctx).
+	image, httpResponse, err := i.PubliccloudAPI.CreateImage(ctx).
 		CreateImageOpts(opts).
 		Execute()
 	if err != nil {
@@ -253,7 +239,7 @@ func (i *imageResource) Read(
 	image, httpResponse, err := getImage(
 		currentState.ID.ValueString(),
 		ctx,
-		i.client,
+		i.PubliccloudAPI,
 	)
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
@@ -286,7 +272,7 @@ func (i *imageResource) Update(
 
 	opts := plan.getUpdateImageOpts()
 
-	imageDetails, httpResponse, err := i.client.UpdateImage(
+	imageDetails, httpResponse, err := i.PubliccloudAPI.UpdateImage(
 		ctx,
 		plan.ID.ValueString(),
 	).UpdateImageOpts(opts).Execute()
@@ -312,27 +298,10 @@ func (i *imageResource) Delete(
 ) {
 }
 
-func (i *imageResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-	if request.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&response.Diagnostics, request.ProviderData)
-		return
-	}
-
-	i.client = coreClient.PubliccloudAPI
-}
-
 func NewImageResource() resource.Resource {
 	return &imageResource{
-		name: "public_cloud_image",
+		ResourceAPI: utils.ResourceAPI{
+			Name: "public_cloud_image",
+		},
 	}
 }

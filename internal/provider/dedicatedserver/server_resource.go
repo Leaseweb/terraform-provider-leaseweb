@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -29,8 +28,7 @@ var (
 )
 
 type serverResource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.ResourceAPI
 }
 
 type serverResourceModel struct {
@@ -65,35 +63,10 @@ func (l locationResourceModel) attributeTypes() map[string]attr.Type {
 
 func NewServerResource() resource.Resource {
 	return &serverResource{
-		name: "dedicated_server",
+		ResourceAPI: utils.ResourceAPI{
+			Name: "dedicated_server",
+		},
 	}
-}
-
-func (s *serverResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, s.name)
-}
-
-func (s *serverResource) Configure(
-	_ context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	s.client = coreClient.DedicatedserverAPI
 }
 
 func (s *serverResource) Schema(
@@ -258,7 +231,7 @@ func (s *serverResource) Update(
 	// Updating reference
 	if !plan.Reference.IsNull() && !plan.Reference.IsUnknown() {
 		opts := dedicatedserver.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
-		response, err := s.client.UpdateServerReference(
+		response, err := s.DedicatedserverAPI.UpdateServerReference(
 			ctx,
 			state.ID.ValueString(),
 		).UpdateServerReferenceOpts(*opts).Execute()
@@ -272,14 +245,14 @@ func (s *serverResource) Update(
 	// Updating Power status
 	if !plan.PoweredOn.IsNull() && !plan.PoweredOn.IsUnknown() {
 		if plan.PoweredOn.ValueBool() {
-			request := s.client.PowerServerOn(ctx, state.ID.ValueString())
+			request := s.DedicatedserverAPI.PowerServerOn(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
 				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
-			request := s.client.PowerServerOff(ctx, state.ID.ValueString())
+			request := s.DedicatedserverAPI.PowerServerOff(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
 				utils.SdkError(ctx, &resp.Diagnostics, err, response)
@@ -294,7 +267,7 @@ func (s *serverResource) Update(
 	if !plan.ReverseLookup.IsNull() && !plan.ReverseLookup.IsUnknown() && isPublicIPExists {
 		opts := dedicatedserver.NewUpdateIpProfileOpts()
 		opts.ReverseLookup = plan.ReverseLookup.ValueStringPointer()
-		_, response, err := s.client.UpdateIpProfile(
+		_, response, err := s.DedicatedserverAPI.UpdateIpProfile(
 			ctx,
 			state.ID.ValueString(),
 			state.PublicIP.ValueString(),
@@ -309,7 +282,7 @@ func (s *serverResource) Update(
 	// Updating an IP null routing
 	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicIPNullRouted != state.PublicIPNullRouted && isPublicIPExists {
 		if plan.PublicIPNullRouted.ValueBool() {
-			_, response, err := s.client.NullIpRoute(
+			_, response, err := s.DedicatedserverAPI.NullIpRoute(
 				ctx,
 				state.ID.ValueString(),
 				state.PublicIP.ValueString(),
@@ -319,7 +292,7 @@ func (s *serverResource) Update(
 				return
 			}
 		} else {
-			_, response, err := s.client.RemoveNullIpRoute(
+			_, response, err := s.DedicatedserverAPI.RemoveNullIpRoute(
 				ctx,
 				state.ID.ValueString(),
 				state.PublicIP.ValueString(),
@@ -336,7 +309,7 @@ func (s *serverResource) Update(
 	if !plan.DHCPLease.IsNull() && !plan.DHCPLease.IsUnknown() {
 		if plan.DHCPLease.ValueString() != "" {
 			opts := dedicatedserver.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
-			response, err := s.client.CreateServerDhcpReservation(
+			response, err := s.DedicatedserverAPI.CreateServerDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
 			).CreateServerDhcpReservationOpts(*opts).Execute()
@@ -345,7 +318,7 @@ func (s *serverResource) Update(
 				return
 			}
 		} else {
-			response, err := s.client.DeleteServerDhcpReservation(
+			response, err := s.DedicatedserverAPI.DeleteServerDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
 			).Execute()
@@ -360,7 +333,7 @@ func (s *serverResource) Update(
 	// Updating network interface status
 	if !plan.PublicIPNullRouted.IsNull() && !plan.PublicIPNullRouted.IsUnknown() && plan.PublicNetworkInterfaceOpened != state.PublicNetworkInterfaceOpened {
 		if plan.PublicNetworkInterfaceOpened.ValueBool() {
-			response, err := s.client.OpenNetworkInterface(
+			response, err := s.DedicatedserverAPI.OpenNetworkInterface(
 				ctx,
 				state.ID.ValueString(),
 				dedicatedserver.NETWORKTYPEURL_PUBLIC,
@@ -370,7 +343,7 @@ func (s *serverResource) Update(
 				return
 			}
 		} else {
-			response, err := s.client.CloseNetworkInterface(
+			response, err := s.DedicatedserverAPI.CloseNetworkInterface(
 				ctx,
 				state.ID.ValueString(),
 				dedicatedserver.NETWORKTYPEURL_PUBLIC,
@@ -406,7 +379,10 @@ func (s *serverResource) getServer(
 	serverID string,
 ) (*serverResourceModel, *http.Response, error) {
 	// Getting server info
-	serverResult, serverResponse, err := s.client.GetServer(ctx, serverID).Execute()
+	serverResult, serverResponse, err := s.DedicatedserverAPI.GetServer(
+		ctx,
+		serverID,
+	).Execute()
 	if err != nil {
 		return nil, serverResponse, err
 	}
@@ -461,7 +437,7 @@ func (s *serverResource) getServer(
 	}
 
 	// Getting server power info
-	powerResult, powerResponse, err := s.client.GetServerPowerStatus(
+	powerResult, powerResponse, err := s.DedicatedserverAPI.GetServerPowerStatus(
 		ctx,
 		serverID,
 	).Execute()
@@ -475,7 +451,7 @@ func (s *serverResource) getServer(
 
 	// Getting server public network interface info
 	var publicNetworkOpened bool
-	networkRequest := s.client.GetNetworkInterface(
+	networkRequest := s.DedicatedserverAPI.GetNetworkInterface(
 		ctx,
 		serverID,
 		dedicatedserver.NETWORKTYPEURL_PUBLIC,
@@ -492,7 +468,7 @@ func (s *serverResource) getServer(
 	}
 
 	// Getting server DHCP info
-	dhcpResult, dhcpResponse, err := s.client.GetServerDhcpReservationList(
+	dhcpResult, dhcpResponse, err := s.DedicatedserverAPI.GetServerDhcpReservationList(
 		ctx,
 		serverID,
 	).Execute()
@@ -508,7 +484,7 @@ func (s *serverResource) getServer(
 	// Getting server public IP info
 	var reverseLookup string
 	if publicIP != "" {
-		ipResult, ipResponse, err := s.client.GetServerIp(
+		ipResult, ipResponse, err := s.DedicatedserverAPI.GetServerIp(
 			ctx,
 			serverID,
 			publicIP,

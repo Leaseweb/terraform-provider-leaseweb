@@ -2,13 +2,10 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -18,8 +15,7 @@ var (
 )
 
 type serverDataSource struct {
-	name   string
-	client dedicatedserver.DedicatedserverAPI
+	utils.DataSourceAPI
 }
 
 type serverDataSourceModel struct {
@@ -54,33 +50,6 @@ type serverDataSourceModel struct {
 	CpuType                            types.String `tfsdk:"cpu_type"`
 }
 
-func (s *serverDataSource) Configure(
-	_ context.Context,
-	req datasource.ConfigureRequest,
-	resp *datasource.ConfigureResponse,
-) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	coreClient, ok := req.ProviderData.(client.Client)
-
-	if !ok {
-		utils.ConfigError(&resp.Diagnostics, req.ProviderData)
-		return
-	}
-
-	s.client = coreClient.DedicatedserverAPI
-}
-
-func (s *serverDataSource) Metadata(
-	_ context.Context,
-	req datasource.MetadataRequest,
-	resp *datasource.MetadataResponse,
-) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, s.name)
-}
-
 func (s *serverDataSource) Read(
 	ctx context.Context,
 	req datasource.ReadRequest,
@@ -89,7 +58,7 @@ func (s *serverDataSource) Read(
 	var config serverDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := s.client.GetServer(ctx, config.Id.ValueString())
+	request := s.DedicatedserverAPI.GetServer(ctx, config.Id.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)
@@ -340,6 +309,8 @@ func (s *serverDataSource) Schema(
 
 func NewServerDataSource() datasource.DataSource {
 	return &serverDataSource{
-		name: "dedicated_server",
+		DataSourceAPI: utils.DataSourceAPI{
+			Name: "dedicated_server",
+		},
 	}
 }
