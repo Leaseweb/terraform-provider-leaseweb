@@ -33,5 +33,5 @@ data "leaseweb_dedicated_server_control_panels" "all" {}
 
 Read-Only:
 
-- `id` (String) Id of the control panel.
+- `id` (String) ID of the control panel.
 - `name` (String) Name of the control panel.

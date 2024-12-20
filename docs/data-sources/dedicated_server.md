@@ -28,7 +28,7 @@ data "leaseweb_dedicated_server" "srv" {
 
 ### Read-Only
 
-- `asset_id` (String) The Asset Id of the server.
+- `asset_id` (String) The Asset ID of the server.
 - `contract_id` (String) The unique identifier of the contract.
 - `cpu_quantity` (Number) The quantity of the cpu.
 - `cpu_type` (String) The type of the cpu.
@@ -48,7 +48,7 @@ data "leaseweb_dedicated_server" "srv" {
 - `public_ip` (String) Public ip address.
 - `public_mac` (String) Public mac address.
 - `rack_capacity` (String) The capacity of the rack.
-- `rack_id` (String) The Id of the rack.
+- `rack_id` (String) The ID of the rack.
 - `rack_type` (String) The type of the rack.
 - `ram_size` (Number) The size of the ram.
 - `ram_unit` (String) The unit of the ram.
