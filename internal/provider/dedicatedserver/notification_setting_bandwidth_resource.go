@@ -24,8 +24,8 @@ type notificationSettingBandwidthResource struct {
 }
 
 type notificationSettingBandwidthResourceModel struct {
-	Id                types.String `tfsdk:"id"`
-	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
+	ID                types.String `tfsdk:"id"`
+	DedicatedServerID types.String `tfsdk:"dedicated_server_id"`
 	Frequency         types.String `tfsdk:"frequency"`
 	Threshold         types.String `tfsdk:"threshold"`
 	Unit              types.String `tfsdk:"unit"`
@@ -100,7 +100,7 @@ func (n *notificationSettingBandwidthResource) Create(
 	)
 	request := n.DedicatedserverAPI.CreateServerBandwidthNotificationSetting(
 		ctx,
-		plan.DedicatedServerId.ValueString(),
+		plan.DedicatedServerID.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -112,11 +112,11 @@ func (n *notificationSettingBandwidthResource) Create(
 		resp.State.Set(
 			ctx,
 			notificationSettingBandwidthResourceModel{
-				Id:                types.StringValue(result.GetId()),
+				ID:                types.StringValue(result.GetId()),
 				Frequency:         types.StringValue(result.GetFrequency()),
 				Threshold:         types.StringValue(result.GetThreshold()),
 				Unit:              types.StringValue(result.GetUnit()),
-				DedicatedServerId: plan.DedicatedServerId,
+				DedicatedServerID: plan.DedicatedServerID,
 			},
 		)...,
 	)
@@ -135,8 +135,8 @@ func (n *notificationSettingBandwidthResource) Read(
 
 	request := n.DedicatedserverAPI.GetServerBandwidthNotificationSetting(
 		ctx,
-		state.DedicatedServerId.ValueString(),
-		state.Id.ValueString(),
+		state.DedicatedServerID.ValueString(),
+		state.ID.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -148,11 +148,11 @@ func (n *notificationSettingBandwidthResource) Read(
 		resp.State.Set(
 			ctx,
 			notificationSettingBandwidthResourceModel{
-				Id:                types.StringValue(result.GetId()),
+				ID:                types.StringValue(result.GetId()),
 				Frequency:         types.StringValue(result.GetFrequency()),
 				Threshold:         types.StringValue(result.GetThreshold()),
 				Unit:              types.StringValue(result.GetUnit()),
-				DedicatedServerId: state.DedicatedServerId,
+				DedicatedServerID: state.DedicatedServerID,
 			},
 		)...,
 	)
@@ -176,8 +176,8 @@ func (n *notificationSettingBandwidthResource) Update(
 	)
 	request := n.DedicatedserverAPI.UpdateServerBandwidthNotificationSetting(
 		ctx,
-		plan.DedicatedServerId.ValueString(),
-		plan.Id.ValueString(),
+		plan.DedicatedServerID.ValueString(),
+		plan.ID.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -189,8 +189,8 @@ func (n *notificationSettingBandwidthResource) Update(
 		resp.State.Set(
 			ctx,
 			notificationSettingBandwidthResourceModel{
-				Id:                plan.Id,
-				DedicatedServerId: plan.DedicatedServerId,
+				ID:                plan.ID,
+				DedicatedServerID: plan.DedicatedServerID,
 				Frequency:         types.StringValue(result.GetFrequency()),
 				Threshold:         types.StringValue(result.GetThreshold()),
 				Unit:              types.StringValue(result.GetUnit()),
@@ -212,8 +212,8 @@ func (n *notificationSettingBandwidthResource) Delete(
 
 	request := n.DedicatedserverAPI.DeleteServerBandwidthNotificationSetting(
 		ctx,
-		state.DedicatedServerId.ValueString(),
-		state.Id.ValueString(),
+		state.DedicatedServerID.ValueString(),
+		state.ID.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {

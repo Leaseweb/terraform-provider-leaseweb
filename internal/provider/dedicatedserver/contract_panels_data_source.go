@@ -22,7 +22,7 @@ type controlPanelsDataSource struct {
 }
 
 type controlPanelDataSourceModel struct {
-	Id   types.String `tfsdk:"id"`
+	ID   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
@@ -63,7 +63,7 @@ func (c *controlPanelsDataSource) Read(
 
 	for _, cp := range result.GetControlPanels() {
 		controlPanels = append(controlPanels, controlPanelDataSourceModel{
-			Id:   basetypes.NewStringValue(cp.GetId()),
+			ID:   basetypes.NewStringValue(cp.GetId()),
 			Name: basetypes.NewStringValue(cp.GetName()),
 		})
 	}
@@ -92,7 +92,7 @@ func (c *controlPanelsDataSource) Schema(
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:    true,
-							Description: "Id of the control panel.",
+							Description: "ID of the control panel.",
 						},
 						"name": schema.StringAttribute{
 							Computed:    true,

@@ -33,5 +33,5 @@ data "leaseweb_dedicated_server_operating_systems" "all" {}
 
 Read-Only:
 
-- `id` (String) Id of the operating system.
-- `name` (String) Id of the operating system.
+- `id` (String) ID of the operating system.
+- `name` (String) ID of the operating system.

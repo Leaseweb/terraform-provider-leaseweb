@@ -19,16 +19,16 @@ type serverDataSource struct {
 }
 
 type serverDataSourceModel struct {
-	Id                                 types.String `tfsdk:"id"`
-	AssetId                            types.String `tfsdk:"asset_id"`
-	ContractId                         types.String `tfsdk:"contract_id"`
-	CpuQuantity                        types.Int32  `tfsdk:"cpu_quantity"`
-	CpuType                            types.String `tfsdk:"cpu_type"`
+	ID                                 types.String `tfsdk:"id"`
+	AssetID                            types.String `tfsdk:"asset_id"`
+	ContractID                         types.String `tfsdk:"contract_id"`
+	CPUQuantity                        types.Int32  `tfsdk:"cpu_quantity"`
+	CPUType                            types.String `tfsdk:"cpu_type"`
 	InternalGateway                    types.String `tfsdk:"internal_gateway"`
-	InternalIp                         types.String `tfsdk:"internal_ip"`
-	InternalMac                        types.String `tfsdk:"internal_mac"`
+	InternalIP                         types.String `tfsdk:"internal_ip"`
+	InternalMAC                        types.String `tfsdk:"internal_mac"`
 	IsAutomationFeatureAvailable       types.Bool   `tfsdk:"is_automation_feature_available"`
-	IsIpmiRebootFeatureAvailable       types.Bool   `tfsdk:"is_ipmi_reboot_feature_available"`
+	IsIPMIRebootFeatureAvailable       types.Bool   `tfsdk:"is_ipmi_reboot_feature_available"`
 	IsPowerCycleFeatureAvailable       types.Bool   `tfsdk:"is_power_cycle_feature_available"`
 	IsPrivateNetworkFeatureAvailable   types.Bool   `tfsdk:"is_private_network_feature_available"`
 	IsRemoteManagementFeatureAvailable types.Bool   `tfsdk:"is_remote_management_feature_available"`
@@ -37,16 +37,16 @@ type serverDataSourceModel struct {
 	LocationSuite                      types.String `tfsdk:"location_suite"`
 	LocationUnit                       types.String `tfsdk:"location_unit"`
 	PublicGateway                      types.String `tfsdk:"public_gateway"`
-	PublicIp                           types.String `tfsdk:"public_ip"`
-	PublicMac                          types.String `tfsdk:"public_mac"`
+	PublicIP                           types.String `tfsdk:"public_ip"`
+	PublicMAC                          types.String `tfsdk:"public_mac"`
 	RackCapacity                       types.String `tfsdk:"rack_capacity"`
-	RackId                             types.String `tfsdk:"rack_id"`
+	RackID                             types.String `tfsdk:"rack_id"`
 	RackType                           types.String `tfsdk:"rack_type"`
-	RamSize                            types.Int32  `tfsdk:"ram_size"`
-	RamUnit                            types.String `tfsdk:"ram_unit"`
+	RAMSize                            types.Int32  `tfsdk:"ram_size"`
+	RAMUnit                            types.String `tfsdk:"ram_unit"`
 	RemoteGateway                      types.String `tfsdk:"remote_gateway"`
-	RemoteIp                           types.String `tfsdk:"remote_ip"`
-	RemoteMac                          types.String `tfsdk:"remote_mac"`
+	RemoteIP                           types.String `tfsdk:"remote_ip"`
+	RemoteMAC                          types.String `tfsdk:"remote_mac"`
 	SerialNumber                       types.String `tfsdk:"serial_number"`
 }
 
@@ -58,21 +58,21 @@ func (s *serverDataSource) Read(
 	var config serverDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-	request := s.DedicatedserverAPI.GetServer(ctx, config.Id.ValueString())
+	request := s.DedicatedserverAPI.GetServer(ctx, config.ID.ValueString())
 	result, response, err := request.Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
-	var contractId *string
+	var contractID *string
 	if contract, ok := result.GetContractOk(); ok {
-		contractId, _ = contract.GetIdOk()
+		contractID, _ = contract.GetIdOk()
 	}
 
-	var rackId, rackCapacity, rackType *string
+	var rackID, rackCapacity, rackType *string
 	if rack, ok := result.GetRackOk(); ok {
-		rackId, _ = rack.GetIdOk()
+		rackID, _ = rack.GetIdOk()
 		rackCapacity, _ = rack.GetCapacityOk()
 
 		if rt, ok := rack.GetTypeOk(); ok && rt != nil {
@@ -98,29 +98,29 @@ func (s *serverDataSource) Read(
 		locationUnit, _ = location.GetUnitOk()
 	}
 
-	var publicMac, publicIp, publicGateway *string
+	var publicMAC, publicIP, publicGateway *string
 	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
 		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
-			publicMac, _ = publicNetworkInterface.GetMacOk()
-			publicIp, _ = publicNetworkInterface.GetIpOk()
+			publicMAC, _ = publicNetworkInterface.GetMacOk()
+			publicIP, _ = publicNetworkInterface.GetIpOk()
 			publicGateway, _ = publicNetworkInterface.GetGatewayOk()
 		}
 	}
 
-	var internalMac, internalIp, internalGateway *string
+	var internalMAC, internalIP, internalGateway *string
 	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
 		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
-			internalMac, _ = internalNetworkInterface.GetMacOk()
-			internalIp, _ = internalNetworkInterface.GetIpOk()
+			internalMAC, _ = internalNetworkInterface.GetMacOk()
+			internalIP, _ = internalNetworkInterface.GetIpOk()
 			internalGateway, _ = internalNetworkInterface.GetGatewayOk()
 		}
 	}
 
-	var remoteMac, remoteIp, remoteGateway *string
+	var remoteMAC, remoteIP, remoteGateway *string
 	if networkInterfaces, ok := result.GetNetworkInterfacesOk(); ok {
 		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
-			remoteMac, _ = remoteNetworkInterface.GetMacOk()
-			remoteIp, _ = remoteNetworkInterface.GetIpOk()
+			remoteMAC, _ = remoteNetworkInterface.GetMacOk()
+			remoteIP, _ = remoteNetworkInterface.GetIpOk()
 			remoteGateway, _ = remoteNetworkInterface.GetGatewayOk()
 		}
 	}
@@ -147,17 +147,17 @@ func (s *serverDataSource) Read(
 		resp.State.Set(
 			ctx,
 			serverDataSourceModel{
-				Id:                                 types.StringValue(result.GetId()),
-				AssetId:                            types.StringValue(result.GetAssetId()),
-				ContractId:                         types.StringPointerValue(contractId),
-				CpuQuantity:                        types.Int32PointerValue(cpuQuantity),
-				CpuType:                            types.StringPointerValue(cpuType),
+				ID:                                 types.StringValue(result.GetId()),
+				AssetID:                            types.StringValue(result.GetAssetId()),
+				ContractID:                         types.StringPointerValue(contractID),
+				CPUQuantity:                        types.Int32PointerValue(cpuQuantity),
+				CPUType:                            types.StringPointerValue(cpuType),
 				InternalGateway:                    types.StringPointerValue(internalGateway),
-				InternalIp:                         types.StringPointerValue(internalIp),
-				InternalMac:                        types.StringPointerValue(internalMac),
+				InternalIP:                         types.StringPointerValue(internalIP),
+				InternalMAC:                        types.StringPointerValue(internalMAC),
 				SerialNumber:                       types.StringValue(result.GetSerialNumber()),
 				IsAutomationFeatureAvailable:       types.BoolPointerValue(automation),
-				IsIpmiRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
+				IsIPMIRebootFeatureAvailable:       types.BoolPointerValue(ipmiReboot),
 				IsPowerCycleFeatureAvailable:       types.BoolPointerValue(powerCycle),
 				IsPrivateNetworkFeatureAvailable:   types.BoolPointerValue(privateNetwork),
 				IsRemoteManagementFeatureAvailable: types.BoolPointerValue(remoteManagement),
@@ -166,16 +166,16 @@ func (s *serverDataSource) Read(
 				LocationSuite:                      types.StringPointerValue(locationSuite),
 				LocationUnit:                       types.StringPointerValue(locationUnit),
 				PublicGateway:                      types.StringPointerValue(publicGateway),
-				PublicIp:                           types.StringPointerValue(publicIp),
-				PublicMac:                          types.StringPointerValue(publicMac),
+				PublicIP:                           types.StringPointerValue(publicIP),
+				PublicMAC:                          types.StringPointerValue(publicMAC),
 				RackCapacity:                       types.StringPointerValue(rackCapacity),
-				RackId:                             types.StringPointerValue(rackId),
+				RackID:                             types.StringPointerValue(rackID),
 				RackType:                           types.StringPointerValue(rackType),
-				RamSize:                            types.Int32PointerValue(ramSize),
-				RamUnit:                            types.StringPointerValue(ramUnit),
+				RAMSize:                            types.Int32PointerValue(ramSize),
+				RAMUnit:                            types.StringPointerValue(ramUnit),
 				RemoteGateway:                      types.StringPointerValue(remoteGateway),
-				RemoteIp:                           types.StringPointerValue(remoteIp),
-				RemoteMac:                          types.StringPointerValue(remoteMac),
+				RemoteIP:                           types.StringPointerValue(remoteIP),
+				RemoteMAC:                          types.StringPointerValue(remoteMAC),
 			},
 		)...,
 	)
@@ -194,7 +194,7 @@ func (s *serverDataSource) Schema(
 			},
 			"asset_id": schema.StringAttribute{
 				Computed:    true,
-				Description: "The Asset Id of the server.",
+				Description: "The Asset ID of the server.",
 			},
 			"serial_number": schema.StringAttribute{
 				Computed:    true,
@@ -206,7 +206,7 @@ func (s *serverDataSource) Schema(
 			},
 			"rack_id": schema.StringAttribute{
 				Computed:    true,
-				Description: "The Id of the rack.",
+				Description: "The ID of the rack.",
 			},
 			"rack_capacity": schema.StringAttribute{
 				Computed:    true,

@@ -20,13 +20,13 @@ type operatingSystemsDataSource struct {
 }
 
 type operatingSystemDataSourceModel struct {
-	Id   types.String `tfsdk:"id"`
+	ID   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
 type operatingSystemsDataSourceModel struct {
 	OperatingSystems []operatingSystemDataSourceModel `tfsdk:"operating_systems"`
-	ControlPanelId   types.String                     `tfsdk:"control_panel_id"`
+	ControlPanelID   types.String                     `tfsdk:"control_panel_id"`
 }
 
 func (o *operatingSystemsDataSource) Read(
@@ -38,8 +38,8 @@ func (o *operatingSystemsDataSource) Read(
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	request := o.DedicatedserverAPI.GetOperatingSystemList(ctx)
-	if !config.ControlPanelId.IsNull() && !config.ControlPanelId.IsUnknown() {
-		request = request.ControlPanelId(config.ControlPanelId.ValueString())
+	if !config.ControlPanelID.IsNull() && !config.ControlPanelID.IsUnknown() {
+		request = request.ControlPanelId(config.ControlPanelID.ValueString())
 	}
 	// NOTE: we show only the latest 50 items.
 	result, response, err := request.Limit(50).Execute()
@@ -51,7 +51,7 @@ func (o *operatingSystemsDataSource) Read(
 	var operatingSystems []operatingSystemDataSourceModel
 	for _, os := range result.GetOperatingSystems() {
 		operatingSystems = append(operatingSystems, operatingSystemDataSourceModel{
-			Id:   basetypes.NewStringValue(os.GetId()),
+			ID:   basetypes.NewStringValue(os.GetId()),
 			Name: basetypes.NewStringValue(os.GetName()),
 		})
 	}
@@ -61,7 +61,7 @@ func (o *operatingSystemsDataSource) Read(
 			ctx,
 			operatingSystemsDataSourceModel{
 				OperatingSystems: operatingSystems,
-				ControlPanelId:   config.ControlPanelId,
+				ControlPanelID:   config.ControlPanelID,
 			},
 		)...,
 	)
@@ -80,11 +80,11 @@ func (o *operatingSystemsDataSource) Schema(
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:    true,
-							Description: "Id of the operating system.",
+							Description: "ID of the operating system.",
 						},
 						"name": schema.StringAttribute{
 							Computed:    true,
-							Description: "Id of the operating system.",
+							Description: "ID of the operating system.",
 						},
 					},
 				},

@@ -19,12 +19,12 @@ type serversDataSource struct {
 }
 
 type serversDataSourceModel struct {
-	Ids                   []types.String `tfsdk:"ids"`
+	IDs                   []types.String `tfsdk:"ids"`
 	Reference             types.String   `tfsdk:"reference"`
-	Ip                    types.String   `tfsdk:"ip"`
+	IP                    types.String   `tfsdk:"ip"`
 	MacAddress            types.String   `tfsdk:"mac_address"`
 	Site                  types.String   `tfsdk:"site"`
-	PrivateRackId         types.String   `tfsdk:"private_rack_id"`
+	PrivateRackID         types.String   `tfsdk:"private_rack_id"`
 	PrivateNetworkCapable types.String   `tfsdk:"private_network_capable"`
 	PrivateNetworkEnabled types.String   `tfsdk:"private_network_enabled"`
 }
@@ -43,8 +43,8 @@ func (s *serversDataSource) Read(
 		request = request.Reference(config.Reference.ValueString())
 	}
 
-	if !config.Ip.IsNull() && !config.Ip.IsUnknown() {
-		request = request.Ip(config.Ip.ValueString())
+	if !config.IP.IsNull() && !config.IP.IsUnknown() {
+		request = request.Ip(config.IP.ValueString())
 	}
 
 	if !config.MacAddress.IsNull() && !config.MacAddress.IsUnknown() {
@@ -55,8 +55,8 @@ func (s *serversDataSource) Read(
 		request = request.Site(config.Site.ValueString())
 	}
 
-	if !config.PrivateRackId.IsNull() && !config.PrivateRackId.IsUnknown() {
-		request = request.PrivateRackId(config.PrivateRackId.ValueString())
+	if !config.PrivateRackID.IsNull() && !config.PrivateRackID.IsUnknown() {
+		request = request.PrivateRackId(config.PrivateRackID.ValueString())
 	}
 
 	if !config.PrivateNetworkCapable.IsNull() && !config.PrivateNetworkCapable.IsUnknown() {
@@ -82,12 +82,12 @@ func (s *serversDataSource) Read(
 		resp.State.Set(
 			ctx,
 			serversDataSourceModel{
-				Ids:                   Ids,
+				IDs:                   Ids,
 				Reference:             config.Reference,
-				Ip:                    config.Ip,
+				IP:                    config.IP,
 				MacAddress:            config.MacAddress,
 				Site:                  config.Site,
-				PrivateRackId:         config.PrivateRackId,
+				PrivateRackID:         config.PrivateRackID,
 				PrivateNetworkCapable: config.PrivateNetworkCapable,
 				PrivateNetworkEnabled: config.PrivateNetworkEnabled,
 			},

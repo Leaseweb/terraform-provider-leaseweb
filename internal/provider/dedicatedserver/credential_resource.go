@@ -24,7 +24,7 @@ type credentialResource struct {
 }
 
 type credentialResourceModel struct {
-	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
+	DedicatedServerID types.String `tfsdk:"dedicated_server_id"`
 	Username          types.String `tfsdk:"username"`
 	Type              types.String `tfsdk:"type"`
 	Password          types.String `tfsdk:"password"`
@@ -95,7 +95,7 @@ func (c *credentialResource) Create(
 	)
 	request := c.DedicatedserverAPI.CreateServerCredential(
 		ctx,
-		plan.DedicatedServerId.ValueString(),
+		plan.DedicatedServerID.ValueString(),
 	).CreateServerCredentialOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -107,7 +107,7 @@ func (c *credentialResource) Create(
 		resp.State.Set(
 			ctx,
 			credentialResourceModel{
-				DedicatedServerId: plan.DedicatedServerId,
+				DedicatedServerID: plan.DedicatedServerID,
 				Type:              types.StringValue(string(result.GetType())),
 				Password:          types.StringValue(result.GetPassword()),
 				Username:          types.StringValue(result.GetUsername()),
@@ -129,7 +129,7 @@ func (c *credentialResource) Read(
 
 	request := c.DedicatedserverAPI.GetServerCredential(
 		ctx,
-		state.DedicatedServerId.ValueString(),
+		state.DedicatedServerID.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),
 		state.Username.ValueString(),
 	)
@@ -143,7 +143,7 @@ func (c *credentialResource) Read(
 		resp.State.Set(
 			ctx,
 			credentialResourceModel{
-				DedicatedServerId: state.DedicatedServerId,
+				DedicatedServerID: state.DedicatedServerID,
 				Type:              types.StringValue(string(result.GetType())),
 				Password:          types.StringValue(result.GetPassword()),
 				Username:          types.StringValue(result.GetUsername()),
@@ -168,7 +168,7 @@ func (c *credentialResource) Update(
 	)
 	request := c.DedicatedserverAPI.UpdateServerCredential(
 		ctx,
-		plan.DedicatedServerId.ValueString(),
+		plan.DedicatedServerID.ValueString(),
 		dedicatedserver.CredentialType(plan.Type.ValueString()),
 		plan.Username.ValueString(),
 	).UpdateServerCredentialOpts(*opts)
@@ -182,7 +182,7 @@ func (c *credentialResource) Update(
 		resp.State.Set(
 			ctx,
 			credentialResourceModel{
-				DedicatedServerId: plan.DedicatedServerId,
+				DedicatedServerID: plan.DedicatedServerID,
 				Type:              types.StringValue(string(result.GetType())),
 				Password:          types.StringValue(result.GetPassword()),
 				Username:          types.StringValue(result.GetUsername()),
@@ -204,7 +204,7 @@ func (c *credentialResource) Delete(
 
 	request := c.DedicatedserverAPI.DeleteServerCredential(
 		ctx,
-		state.DedicatedServerId.ValueString(),
+		state.DedicatedServerID.ValueString(),
 		dedicatedserver.CredentialType(state.Type.ValueString()),
 		state.Username.ValueString(),
 	)

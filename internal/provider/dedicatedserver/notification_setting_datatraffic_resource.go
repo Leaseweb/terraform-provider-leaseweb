@@ -24,8 +24,8 @@ type notificationSettingDatatrafficResource struct {
 }
 
 type notificationSettingDatatrafficResourceModel struct {
-	Id                types.String `tfsdk:"id"`
-	DedicatedServerId types.String `tfsdk:"dedicated_server_id"`
+	ID                types.String `tfsdk:"id"`
+	DedicatedServerID types.String `tfsdk:"dedicated_server_id"`
 	Frequency         types.String `tfsdk:"frequency"`
 	Threshold         types.String `tfsdk:"threshold"`
 	Unit              types.String `tfsdk:"unit"`
@@ -100,7 +100,7 @@ func (n *notificationSettingDatatrafficResource) Create(
 	)
 	request := n.DedicatedserverAPI.CreateServerDataTrafficNotificationSetting(
 		ctx,
-		plan.DedicatedServerId.ValueString(),
+		plan.DedicatedServerID.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -112,8 +112,8 @@ func (n *notificationSettingDatatrafficResource) Create(
 		resp.State.Set(
 			ctx,
 			notificationSettingDatatrafficResourceModel{
-				DedicatedServerId: plan.DedicatedServerId,
-				Id:                types.StringValue(result.GetId()),
+				DedicatedServerID: plan.DedicatedServerID,
+				ID:                types.StringValue(result.GetId()),
 				Frequency:         types.StringValue(result.GetFrequency()),
 				Threshold:         types.StringValue(result.GetThreshold()),
 				Unit:              types.StringValue(result.GetUnit()),
@@ -135,8 +135,8 @@ func (n *notificationSettingDatatrafficResource) Read(
 
 	request := n.DedicatedserverAPI.GetServerDataTrafficNotificationSetting(
 		ctx,
-		state.DedicatedServerId.ValueString(),
-		state.Id.ValueString(),
+		state.DedicatedServerID.ValueString(),
+		state.ID.ValueString(),
 	)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -148,8 +148,8 @@ func (n *notificationSettingDatatrafficResource) Read(
 		resp.State.Set(
 			ctx,
 			notificationSettingDatatrafficResourceModel{
-				DedicatedServerId: state.DedicatedServerId,
-				Id:                types.StringValue(result.GetId()),
+				DedicatedServerID: state.DedicatedServerID,
+				ID:                types.StringValue(result.GetId()),
 				Frequency:         types.StringValue(result.GetFrequency()),
 				Threshold:         types.StringValue(result.GetThreshold()),
 				Unit:              types.StringValue(result.GetUnit()),
@@ -176,8 +176,8 @@ func (n *notificationSettingDatatrafficResource) Update(
 	)
 	request := n.DedicatedserverAPI.UpdateServerDataTrafficNotificationSetting(
 		ctx,
-		plan.DedicatedServerId.ValueString(),
-		plan.Id.ValueString(),
+		plan.DedicatedServerID.ValueString(),
+		plan.ID.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
 	result, response, err := request.Execute()
 	if err != nil {
@@ -189,8 +189,8 @@ func (n *notificationSettingDatatrafficResource) Update(
 		resp.State.Set(
 			ctx,
 			notificationSettingDatatrafficResourceModel{
-				Id:                plan.Id,
-				DedicatedServerId: plan.DedicatedServerId,
+				ID:                plan.ID,
+				DedicatedServerID: plan.DedicatedServerID,
 				Frequency:         types.StringValue(result.GetFrequency()),
 				Threshold:         types.StringValue(result.GetThreshold()),
 				Unit:              types.StringValue(result.GetUnit()),
@@ -212,8 +212,8 @@ func (n *notificationSettingDatatrafficResource) Delete(
 
 	request := n.DedicatedserverAPI.DeleteServerDataTrafficNotificationSetting(
 		ctx,
-		state.DedicatedServerId.ValueString(),
-		state.Id.ValueString(),
+		state.DedicatedServerID.ValueString(),
+		state.ID.ValueString(),
 	)
 	response, err := request.Execute()
 	if err != nil {
