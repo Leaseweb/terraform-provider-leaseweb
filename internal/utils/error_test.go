@@ -158,7 +158,7 @@ func Test_mapErrorDetailsKey(t *testing.T) {
 	})
 	t.Run("keys with dots are normalize correctly", func(t *testing.T) {
 		want := "instance_id"
-		got := mapErrorDetailsKey("instance.Id")
+		got := mapErrorDetailsKey("instance.ID")
 		assert.Equal(t, want, got)
 	})
 }
