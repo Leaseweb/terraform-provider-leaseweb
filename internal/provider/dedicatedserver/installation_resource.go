@@ -67,14 +67,6 @@ type partitionsResourceModel struct {
 	Size       types.String `tfsdk:"size"`
 }
 
-func (p partitionsResourceModel) attributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"filesystem": types.StringType,
-		"mountpoint": types.StringType,
-		"size":       types.StringType,
-	}
-}
-
 func (i *installationResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
@@ -345,6 +337,12 @@ func (i *installationResource) Create(
 	plan.Timezone = types.StringValue(payload.GetTimezone())
 	plan.PowerCycle = types.BoolValue(payload.GetPowerCycle())
 
+	partitionAttributeTypes := map[string]attr.Type{
+		"filesystem": types.StringType,
+		"mountpoint": types.StringType,
+		"size":       types.StringType,
+	}
+
 	// Preparing and converting partitions into types.Object to store in the state
 	var partitionsObjects []attr.Value
 	for _, p := range payload.GetPartitions() {
@@ -356,7 +354,7 @@ func (i *installationResource) Create(
 
 		partitionObj, diags := types.ObjectValueFrom(
 			ctx,
-			partition.attributeTypes(),
+			partitionAttributeTypes,
 			partition,
 		)
 		if diags.HasError() {
@@ -370,7 +368,9 @@ func (i *installationResource) Create(
 	// Convert the slice of partition objects to a types.List and store it in the plan
 	partitionsList, diags := types.ListValueFrom(
 		ctx,
-		types.ObjectType{AttrTypes: partitionsResourceModel{}.attributeTypes()},
+		types.ObjectType{
+			AttrTypes: partitionAttributeTypes,
+		},
 		partitionsObjects,
 	)
 	if diags.HasError() {

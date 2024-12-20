@@ -8,23 +8,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_adaptImageToImageDataSource(t *testing.T) {
-	sdkImage := publiccloud.Image{
-		Id:      "imageId",
-		Name:    "name",
-		Custom:  true,
-		Flavour: "flavour",
-	}
+func Test_imageDetailsList_findById(t *testing.T) {
+	t.Run("image returned when found", func(t *testing.T) {
+		image := publiccloud.ImageDetails{Id: "id"}
+		list := imageDetailsList{image}
+		got := list.findById("id")
 
-	want := imageModelDataSource{
-		ID:      basetypes.NewStringValue("imageId"),
-		Name:    basetypes.NewStringValue("name"),
-		Custom:  basetypes.NewBoolValue(true),
-		Flavour: basetypes.NewStringValue("flavour"),
-	}
-	got := adaptImageToImageDataSource(sdkImage)
+		assert.Equal(t, image, *got)
+	})
 
-	assert.Equal(t, want, got)
+	t.Run("returns nil when nothing is found", func(t *testing.T) {
+		image := publiccloud.ImageDetails{Id: "id"}
+		list := imageDetailsList{image}
+		got := list.findById("tralala")
+
+		assert.Nil(t, got)
+	})
 }
 
 func Test_adaptImageDetailsToImageDataSource(t *testing.T) {
@@ -55,15 +54,4 @@ func Test_adaptImageDetailsToImageDataSource(t *testing.T) {
 	got := adaptImageDetailsToImageDataSource(sdkImageDetails)
 
 	assert.Equal(t, want, got)
-}
-
-func Test_adaptImagesToImagesDataSource(t *testing.T) {
-	sdkImages := []publiccloud.ImageDetails{
-		{Id: "id"},
-	}
-
-	got := adaptImagesToImagesDataSource(sdkImages)
-
-	assert.Len(t, got.Images, 1)
-	assert.Equal(t, "id", got.Images[0].ID.ValueString())
 }

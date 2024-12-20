@@ -4,35 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func Test_adaptImageToImageResource(t *testing.T) {
-	sdkImage := publiccloud.Image{
-		Id:      "imageId",
-		Name:    "name",
-		Custom:  true,
-		Flavour: "flavour",
-	}
-
-	emptyList, _ := basetypes.NewListValue(types.StringType, []attr.Value{})
-	want := imageResourceModel{
-		ID:           basetypes.NewStringValue("imageId"),
-		Name:         basetypes.NewStringValue("name"),
-		Custom:       basetypes.NewBoolValue(true),
-		Flavour:      basetypes.NewStringValue("flavour"),
-		MarketApps:   emptyList,
-		StorageTypes: emptyList,
-	}
-	got := adaptImageToImageResource(sdkImage)
-
-	assert.Equal(t, want, got)
-}
 
 func Test_adaptImageDetailsToImageResource(t *testing.T) {
 	state := publiccloud.IMAGESTATE_READY
@@ -77,30 +54,4 @@ func Test_adaptImageDetailsToImageResource(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, want, *got)
-}
-
-func Test_imageResourceModel_getUpdateImageOpts(t *testing.T) {
-	image := imageResourceModel{
-		Name: basetypes.NewStringValue("name"),
-	}
-	got := image.getUpdateImageOpts()
-
-	want := publiccloud.UpdateImageOpts{Name: "name"}
-
-	assert.Equal(t, want, got)
-}
-
-func Test_imageResourceModel_getCreateImageOpts(t *testing.T) {
-	image := imageResourceModel{
-		InstanceID: basetypes.NewStringValue("instanceId"),
-		Name:       basetypes.NewStringValue("name"),
-	}
-	got := image.getCreateImageOpts()
-
-	want := publiccloud.CreateImageOpts{
-		Name:       "name",
-		InstanceId: "instanceId",
-	}
-
-	assert.Equal(t, want, got)
 }

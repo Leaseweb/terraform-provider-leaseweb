@@ -2,7 +2,6 @@ package dedicatedserver
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -50,15 +49,6 @@ type locationResourceModel struct {
 	Site  types.String `tfsdk:"site"`
 	Suite types.String `tfsdk:"suite"`
 	Unit  types.String `tfsdk:"unit"`
-}
-
-func (l locationResourceModel) attributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"rack":  types.StringType,
-		"site":  types.StringType,
-		"suite": types.StringType,
-		"unit":  types.StringType,
-	}
 }
 
 func NewServerResource() resource.Resource {
@@ -181,13 +171,154 @@ func (s *serverResource) Read(
 		return
 	}
 
-	newState, response, err := s.getServer(ctx, state.ID.ValueString())
+	// Getting server info
+	server, httpResponse, err := s.DedicatedserverAPI.GetServer(
+		ctx,
+		state.ID.String(),
+	).Execute()
 	if err != nil {
-		utils.SdkError(ctx, &resp.Diagnostics, err, response)
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
+	var publicIP string
+	var publicIPNullRouted bool
+	if networkInterfaces, ok := server.GetNetworkInterfacesOk(); ok {
+		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
+			publicIPPart := strings.Split(publicNetworkInterface.GetIp(), "/")
+			ip := net.ParseIP(publicIPPart[0])
+			if ip != nil {
+				publicIP = ip.String()
+			}
+			publicIPNullRouted = publicNetworkInterface.GetNullRouted()
+		}
+	}
+
+	var reference string
+	if contract, ok := server.GetContractOk(); ok {
+		reference = contract.GetReference()
+	}
+
+	var internalMAC string
+	if networkInterfaces, ok := server.GetNetworkInterfacesOk(); ok {
+		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
+			internalMAC = internalNetworkInterface.GetMac()
+		}
+	}
+
+	var remoteManagementIP string
+	if networkInterfaces, ok := server.GetNetworkInterfacesOk(); ok {
+		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
+			remoteManagementIPPart := strings.Split(remoteNetworkInterface.GetIp(), "/")
+			ip := net.ParseIP(remoteManagementIPPart[0])
+			if ip != nil {
+				remoteManagementIP = ip.String()
+			}
+		}
+	}
+
+	serverLocation := server.GetLocation()
+	location, diags := types.ObjectValueFrom(
+		ctx,
+		map[string]attr.Type{
+			"rack":  types.StringType,
+			"site":  types.StringType,
+			"suite": types.StringType,
+			"unit":  types.StringType,
+		},
+		locationResourceModel{
+			Rack:  types.StringValue(serverLocation.GetRack()),
+			Site:  types.StringValue(serverLocation.GetSite()),
+			Suite: types.StringValue(serverLocation.GetSuite()),
+			Unit:  types.StringValue(serverLocation.GetUnit()),
+		},
+	)
+
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	// Getting server power info
+	getServerPowerStatusResult, httpResponse, err := s.DedicatedserverAPI.GetServerPowerStatus(
+		ctx,
+		state.ID.String(),
+	).Execute()
+	if err != nil {
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+		return
+	}
+
+	pdu := getServerPowerStatusResult.GetPdu()
+	ipmi := getServerPowerStatusResult.GetIpmi()
+	poweredOn := pdu.GetStatus() != "off" && ipmi.GetStatus() != "off"
+
+	// Getting server public network interface info
+	var publicNetworkOpened bool
+	operationNetworkInterface, httpResponse, err := s.DedicatedserverAPI.GetNetworkInterface(
+		ctx,
+		state.ID.String(),
+		dedicatedserver.NETWORKTYPEURL_PUBLIC,
+	).Execute()
+	if err != nil && httpResponse != nil && httpResponse.StatusCode != http.StatusNotFound {
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+		return
+	} else {
+		if operationNetworkInterface != nil {
+			if _, ok := operationNetworkInterface.GetStatusOk(); ok {
+				publicNetworkOpened = operationNetworkInterface.GetStatus() == "open"
+			}
+		}
+	}
+
+	// Getting server DHCP info
+	getServerDhcpReservationListResult, httpResponse, err := s.DedicatedserverAPI.GetServerDhcpReservationList(
+		ctx,
+		state.ID.String(),
+	).Execute()
+	if err != nil {
+		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+		return
+	}
+	var dhcpLease string
+	if len(getServerDhcpReservationListResult.GetLeases()) != 0 {
+		leases := getServerDhcpReservationListResult.GetLeases()
+		dhcpLease = leases[0].GetBootfile()
+	}
+
+	// Getting server public IP info
+	var reverseLookup string
+	if publicIP != "" {
+		ip, httpResponse, err := s.DedicatedserverAPI.GetServerIp(
+			ctx,
+			state.ID.String(),
+			publicIP,
+		).Execute()
+		if err != nil {
+			utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+			return
+		}
+		reverseLookup = ip.GetReverseLookup()
+	}
+
+	resp.Diagnostics.Append(
+		resp.State.Set(
+			ctx,
+			serverResourceModel{
+				ID:                           types.StringValue(server.GetId()),
+				Reference:                    types.StringValue(reference),
+				ReverseLookup:                types.StringValue(reverseLookup),
+				DHCPLease:                    types.StringValue(dhcpLease),
+				PoweredOn:                    types.BoolValue(poweredOn),
+				PublicNetworkInterfaceOpened: types.BoolValue(publicNetworkOpened),
+				PublicIPNullRouted:           types.BoolValue(publicIPNullRouted),
+				PublicIP:                     types.StringValue(publicIP),
+				RemoteManagementIP:           types.StringValue(remoteManagementIP),
+				InternalMAC:                  types.StringValue(internalMAC),
+				Location:                     location,
+			},
+		)...,
+	)
 }
 
 func (s *serverResource) ImportState(
@@ -201,14 +332,6 @@ func (s *serverResource) ImportState(
 		req,
 		resp,
 	)
-
-	state, response, err := s.getServer(ctx, req.ID)
-	if err != nil {
-		utils.SdkError(ctx, &resp.Diagnostics, err, response)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (s *serverResource) Update(
@@ -372,142 +495,4 @@ func (s *serverResource) Delete(
 	_ resource.DeleteRequest,
 	_ *resource.DeleteResponse,
 ) {
-}
-
-func (s *serverResource) getServer(
-	ctx context.Context,
-	serverID string,
-) (*serverResourceModel, *http.Response, error) {
-	// Getting server info
-	serverResult, serverResponse, err := s.DedicatedserverAPI.GetServer(
-		ctx,
-		serverID,
-	).Execute()
-	if err != nil {
-		return nil, serverResponse, err
-	}
-
-	var publicIP string
-	var publicIPNullRouted bool
-	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
-		if publicNetworkInterface, ok := networkInterfaces.GetPublicOk(); ok {
-			publicIPPart := strings.Split(publicNetworkInterface.GetIp(), "/")
-			ip := net.ParseIP(publicIPPart[0])
-			if ip != nil {
-				publicIP = ip.String()
-			}
-			publicIPNullRouted = publicNetworkInterface.GetNullRouted()
-		}
-	}
-
-	var reference string
-	if contract, ok := serverResult.GetContractOk(); ok {
-		reference = contract.GetReference()
-	}
-
-	var internalMAC string
-	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
-		if internalNetworkInterface, ok := networkInterfaces.GetInternalOk(); ok {
-			internalMAC = internalNetworkInterface.GetMac()
-		}
-	}
-
-	var remoteManagementIP string
-	if networkInterfaces, ok := serverResult.GetNetworkInterfacesOk(); ok {
-		if remoteNetworkInterface, ok := networkInterfaces.GetRemoteManagementOk(); ok {
-			remoteManagementIPPart := strings.Split(remoteNetworkInterface.GetIp(), "/")
-			ip := net.ParseIP(remoteManagementIPPart[0])
-			if ip != nil {
-				remoteManagementIP = ip.String()
-			}
-		}
-	}
-
-	serverLocation := serverResult.GetLocation()
-	l := locationResourceModel{
-		Rack:  types.StringValue(serverLocation.GetRack()),
-		Site:  types.StringValue(serverLocation.GetSite()),
-		Suite: types.StringValue(serverLocation.GetSuite()),
-		Unit:  types.StringValue(serverLocation.GetUnit()),
-	}
-	location, digs := types.ObjectValueFrom(ctx, l.attributeTypes(), l)
-
-	if digs.HasError() {
-		return nil, nil, fmt.Errorf("error reading dedicated server location with id: %q", serverID)
-	}
-
-	// Getting server power info
-	powerResult, powerResponse, err := s.DedicatedserverAPI.GetServerPowerStatus(
-		ctx,
-		serverID,
-	).Execute()
-	if err != nil {
-		return nil, powerResponse, err
-	}
-
-	pdu := powerResult.GetPdu()
-	ipmi := powerResult.GetIpmi()
-	poweredOn := pdu.GetStatus() != "off" && ipmi.GetStatus() != "off"
-
-	// Getting server public network interface info
-	var publicNetworkOpened bool
-	networkRequest := s.DedicatedserverAPI.GetNetworkInterface(
-		ctx,
-		serverID,
-		dedicatedserver.NETWORKTYPEURL_PUBLIC,
-	)
-	networkResult, networkResponse, err := networkRequest.Execute()
-	if err != nil && networkResponse != nil && networkResponse.StatusCode != http.StatusNotFound {
-		return nil, networkResponse, err
-	} else {
-		if networkResult != nil {
-			if _, ok := networkResult.GetStatusOk(); ok {
-				publicNetworkOpened = networkResult.GetStatus() == "open"
-			}
-		}
-	}
-
-	// Getting server DHCP info
-	dhcpResult, dhcpResponse, err := s.DedicatedserverAPI.GetServerDhcpReservationList(
-		ctx,
-		serverID,
-	).Execute()
-	if err != nil {
-		return nil, dhcpResponse, err
-	}
-	var dhcpLease string
-	if len(dhcpResult.GetLeases()) != 0 {
-		leases := dhcpResult.GetLeases()
-		dhcpLease = leases[0].GetBootfile()
-	}
-
-	// Getting server public IP info
-	var reverseLookup string
-	if publicIP != "" {
-		ipResult, ipResponse, err := s.DedicatedserverAPI.GetServerIp(
-			ctx,
-			serverID,
-			publicIP,
-		).Execute()
-		if err != nil {
-			return nil, ipResponse, err
-		}
-		reverseLookup = ipResult.GetReverseLookup()
-	}
-
-	dedicatedserverResource := serverResourceModel{
-		ID:                           types.StringValue(serverResult.GetId()),
-		Reference:                    types.StringValue(reference),
-		ReverseLookup:                types.StringValue(reverseLookup),
-		DHCPLease:                    types.StringValue(dhcpLease),
-		PoweredOn:                    types.BoolValue(poweredOn),
-		PublicNetworkInterfaceOpened: types.BoolValue(publicNetworkOpened),
-		PublicIPNullRouted:           types.BoolValue(publicIPNullRouted),
-		PublicIP:                     types.StringValue(publicIP),
-		RemoteManagementIP:           types.StringValue(remoteManagementIP),
-		InternalMAC:                  types.StringValue(internalMAC),
-		Location:                     location,
-	}
-
-	return &dedicatedserverResource, nil, nil
 }

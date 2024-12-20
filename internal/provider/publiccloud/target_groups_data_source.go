@@ -2,8 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -29,102 +27,12 @@ type targetGroupsDataSourceModel struct {
 	TargetGroups []targetGroupDataSourceModel `tfsdk:"target_groups"`
 }
 
-func (t targetGroupsDataSourceModel) generateRequest(
-	ctx context.Context,
-	api publiccloud.PubliccloudAPI,
-) (*publiccloud.ApiGetTargetGroupListRequest, error) {
-	funcName := "generateRequest"
-
-	request := api.GetTargetGroupList(ctx)
-	if !t.ID.IsNull() {
-		request = request.Id(t.ID.ValueString())
-	}
-	if !t.Name.IsNull() {
-		request = request.Name(t.Name.ValueString())
-	}
-	if !t.Protocol.IsNull() {
-		protocol, err := publiccloud.NewProtocolFromValue(t.Protocol.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", funcName, err)
-		}
-		request = request.Protocol(*protocol)
-	}
-	if !t.Port.IsNull() {
-		request = request.Port(t.Port.ValueInt32())
-	}
-	if !t.Region.IsNull() {
-		regionName, err := publiccloud.NewRegionNameFromValue(t.Region.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", funcName, err)
-		}
-		request = request.Region(*regionName)
-	}
-
-	return &request, nil
-}
-
-func adaptTargetGroupsToTargetGroupsDataSource(sdkTargetGroups []publiccloud.TargetGroup) targetGroupsDataSourceModel {
-	targetGroups := targetGroupsDataSourceModel{}
-	for _, targetGroup := range sdkTargetGroups {
-		targetGroups.TargetGroups = append(
-			targetGroups.TargetGroups,
-			adaptTargetGroupToTargetGroupDataSource(targetGroup),
-		)
-	}
-
-	return targetGroups
-}
-
 type targetGroupDataSourceModel struct {
 	ID       types.String `tfsdk:"id"`
 	Name     types.String `tfsdk:"name"`
 	Protocol types.String `tfsdk:"protocol"`
 	Port     types.Int32  `tfsdk:"port"`
 	Region   types.String `tfsdk:"region"`
-}
-
-func adaptTargetGroupToTargetGroupDataSource(targetGroup publiccloud.TargetGroup) targetGroupDataSourceModel {
-	return targetGroupDataSourceModel{
-		ID:       basetypes.NewStringValue(targetGroup.GetId()),
-		Name:     basetypes.NewStringValue(targetGroup.GetName()),
-		Protocol: basetypes.NewStringValue(string(targetGroup.GetProtocol())),
-		Port:     basetypes.NewInt32Value(targetGroup.GetPort()),
-		Region:   basetypes.NewStringValue(string(targetGroup.GetRegion())),
-	}
-}
-
-func getTargetGroups(request publiccloud.ApiGetTargetGroupListRequest) (
-	[]publiccloud.TargetGroup,
-	*http.Response,
-	error,
-) {
-	var targetGroups []publiccloud.TargetGroup
-	var offset *int32
-
-	for {
-		result, httpResponse, err := request.Execute()
-		if err != nil {
-			return nil, httpResponse, fmt.Errorf("getTargetGroups: %w", err)
-		}
-
-		targetGroups = append(targetGroups, result.GetTargetGroups()...)
-
-		metadata := result.GetMetadata()
-
-		offset = utils.NewOffset(
-			metadata.GetLimit(),
-			metadata.GetOffset(),
-			metadata.GetTotalCount(),
-		)
-
-		if offset == nil {
-			break
-		}
-
-		request = request.Offset(*offset)
-	}
-
-	return targetGroups, nil, nil
 }
 
 type targetGroupsDataSource struct {
@@ -209,27 +117,66 @@ func (t *targetGroupsDataSource) Read(
 		return
 	}
 
-	apiRequest, err := config.generateRequest(ctx, t.PubliccloudAPI)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
-		return
+	targetGroupsRequest := t.PubliccloudAPI.GetTargetGroupList(ctx)
+	if !config.ID.IsNull() {
+		targetGroupsRequest = targetGroupsRequest.Id(config.ID.ValueString())
+	}
+	if !config.Name.IsNull() {
+		targetGroupsRequest = targetGroupsRequest.Name(config.Name.ValueString())
+	}
+	if !config.Protocol.IsNull() {
+		targetGroupsRequest = targetGroupsRequest.Protocol(publiccloud.Protocol(config.Protocol.ValueString()))
+	}
+	if !config.Port.IsNull() {
+		targetGroupsRequest = targetGroupsRequest.Port(config.Port.ValueInt32())
+	}
+	if !config.Region.IsNull() {
+		targetGroupsRequest = targetGroupsRequest.Region(publiccloud.RegionName(config.Region.ValueString()))
+	}
+	var targetGroups []publiccloud.TargetGroup
+	var offset *int32
+	for {
+		result, httpResponse, err := targetGroupsRequest.Execute()
+		if err != nil {
+			utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+			return
+		}
+
+		targetGroups = append(targetGroups, result.GetTargetGroups()...)
+
+		metadata := result.GetMetadata()
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+		if offset == nil {
+			break
+		}
+
+		targetGroupsRequest = targetGroupsRequest.Offset(*offset)
 	}
 
-	targetGroups, httpResponse, err := getTargetGroups(*apiRequest)
-	if err != nil {
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
-		return
+	state := targetGroupsDataSourceModel{}
+	for _, targetGroup := range targetGroups {
+		state.TargetGroups = append(
+			state.TargetGroups,
+			targetGroupDataSourceModel{
+				ID:       basetypes.NewStringValue(targetGroup.GetId()),
+				Name:     basetypes.NewStringValue(targetGroup.GetName()),
+				Protocol: basetypes.NewStringValue(string(targetGroup.GetProtocol())),
+				Port:     basetypes.NewInt32Value(targetGroup.GetPort()),
+				Region:   basetypes.NewStringValue(string(targetGroup.GetRegion())),
+			},
+		)
 	}
-
-	state := adaptTargetGroupsToTargetGroupsDataSource(targetGroups)
 	state.ID = config.ID
 	state.Name = config.Name
 	state.Protocol = config.Protocol
 	state.Port = config.Port
 	state.Region = config.Region
 
-	diags := response.State.Set(ctx, &state)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, &state)...)
 }
 
 func NewTargetGroupsDataSource() datasource.DataSource {

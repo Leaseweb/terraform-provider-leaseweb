@@ -12,173 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_targetGroupResourceModel_generateCreateOpts(t *testing.T) {
-	t.Run("required fields are set", func(t *testing.T) {
-		targetGroup := targetGroupResourceModel{
-			Name:     basetypes.NewStringValue("Name"),
-			Protocol: basetypes.NewStringValue("HTTP"),
-			Port:     basetypes.NewInt32Value(80),
-			Region:   basetypes.NewStringValue("region"),
-		}
-
-		got, err := targetGroup.generateCreateOpts(context.TODO())
-
-		want := publiccloud.CreateTargetGroupOpts{
-			Name:     "Name",
-			Protocol: "HTTP",
-			Port:     80,
-			Region:   "region",
-		}
-
-		require.NoError(t, err)
-		assert.Equal(t, want, *got)
-	})
-
-	t.Run("optional fields are set", func(t *testing.T) {
-		healthCheckObject, _ := types.ObjectValueFrom(
-			context.TODO(),
-			healthCheckResourceModel{}.attributeTypes(),
-			healthCheckResourceModel{
-				Protocol: basetypes.NewStringValue("HTTP"),
-			},
-		)
-		targetGroup := targetGroupResourceModel{
-			HealthCheck: healthCheckObject,
-		}
-
-		got, err := targetGroup.generateCreateOpts(context.TODO())
-
-		want := publiccloud.CreateTargetGroupOpts{
-			HealthCheck: &publiccloud.HealthCheckOpts{
-				Protocol: publiccloud.Protocol("HTTP"),
-			},
-		}
-
-		require.NoError(t, err)
-		assert.Equal(t, want, *got)
-	})
-
-	t.Run("invalid healthCheck returns an error", func(t *testing.T) {
-		type dummy struct{}
-
-		healthCheckObject, _ := types.ObjectValueFrom(
-			context.TODO(),
-			map[string]attr.Type{},
-			dummy{},
-		)
-
-		targetGroup := targetGroupResourceModel{
-			HealthCheck: healthCheckObject,
-		}
-
-		_, err := targetGroup.generateCreateOpts(context.TODO())
-
-		require.Error(t, err)
-		require.ErrorContains(t, err, ".healthCheckResourceModel")
-	})
-}
-
-func Test_adaptHealthCheckToHealthCheckResource(t *testing.T) {
-	t.Run("required fields are set", func(t *testing.T) {
-		sdkHealthCheck := publiccloud.HealthCheck{
-			Protocol: publiccloud.PROTOCOL_HTTP,
-			Uri:      "/",
-			Port:     80,
-		}
-
-		got := adaptHealthCheckToHealthCheckResource(sdkHealthCheck)
-
-		want := healthCheckResourceModel{
-			Protocol: basetypes.NewStringValue("HTTP"),
-			URI:      basetypes.NewStringValue("/"),
-			Port:     basetypes.NewInt32Value(80),
-		}
-
-		assert.Equal(t, want, got)
-	})
-
-	t.Run("optional fields are set", func(t *testing.T) {
-		httpMethod := publiccloud.HTTPMETHOD_GET
-		host := "example.com"
-		sdkHealthCheck := publiccloud.HealthCheck{
-			Method: *publiccloud.NewNullableHttpMethod(&httpMethod),
-			Host:   *publiccloud.NewNullableString(&host),
-		}
-
-		got := adaptHealthCheckToHealthCheckResource(sdkHealthCheck)
-
-		want := healthCheckResourceModel{
-			Protocol: basetypes.NewStringValue(""),
-			URI:      basetypes.NewStringValue(""),
-			Port:     basetypes.NewInt32Value(0),
-			Method:   basetypes.NewStringValue("GET"),
-			Host:     basetypes.NewStringValue("example.com"),
-		}
-
-		assert.Equal(t, want, got)
-	})
-}
-
-func Test_targetGroupResourceModel_generateUpdateOpts(t *testing.T) {
-	t.Run("main fields are set", func(t *testing.T) {
-		targetGroup := targetGroupResourceModel{
-			Name:     basetypes.NewStringValue("Name"),
-			Protocol: basetypes.NewStringValue("HTTP"),
-			Port:     basetypes.NewInt32Value(80),
-			Region:   basetypes.NewStringValue("eu-west-2"),
-		}
-
-		got, err := targetGroup.generateUpdateOpts(context.TODO())
-
-		name := "Name"
-		port := int32(80)
-		want := publiccloud.UpdateTargetGroupOpts{
-			Name: &name,
-			Port: &port,
-		}
-
-		require.NoError(t, err)
-		assert.Equal(t, want, *got)
-	})
-
-	t.Run("invalid healthCheck returns an error", func(t *testing.T) {
-		type dummy struct{}
-
-		healthCheckObject, _ := types.ObjectValueFrom(
-			context.TODO(),
-			map[string]attr.Type{},
-			dummy{},
-		)
-
-		targetGroup := targetGroupResourceModel{
-			HealthCheck: healthCheckObject,
-		}
-
-		_, err := targetGroup.generateUpdateOpts(context.TODO())
-
-		require.Error(t, err)
-		require.ErrorContains(t, err, ".healthCheckResourceModel")
-	})
-
-	t.Run("healthCheck is set", func(t *testing.T) {
-		healthCheckObject, _ := types.ObjectValueFrom(
-			context.TODO(),
-			healthCheckResourceModel{}.attributeTypes(),
-			healthCheckResourceModel{
-				Protocol: basetypes.NewStringValue("HTTP"),
-			},
-		)
-		targetGroup := targetGroupResourceModel{
-			HealthCheck: healthCheckObject,
-		}
-
-		got, err := targetGroup.generateUpdateOpts(context.TODO())
-
-		require.NoError(t, err)
-		assert.Equal(t, publiccloud.PROTOCOL_HTTP, got.HealthCheck.Protocol)
-	})
-}
-
 func Test_healthCheckResourceModel_generateOpts(t *testing.T) {
 	t.Run("required fields are set", func(t *testing.T) {
 		healthCheck := healthCheckResourceModel{
@@ -237,12 +70,20 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 		)
 
 		want := targetGroupResourceModel{
-			ID:          basetypes.NewStringValue("ID"),
-			Name:        basetypes.NewStringValue("Name"),
-			Protocol:    basetypes.NewStringValue("HTTP"),
-			Port:        basetypes.NewInt32Value(80),
-			Region:      basetypes.NewStringValue("eu-central-1"),
-			HealthCheck: basetypes.NewObjectNull(healthCheckResourceModel{}.attributeTypes()),
+			ID:       basetypes.NewStringValue("ID"),
+			Name:     basetypes.NewStringValue("Name"),
+			Protocol: basetypes.NewStringValue("HTTP"),
+			Port:     basetypes.NewInt32Value(80),
+			Region:   basetypes.NewStringValue("eu-central-1"),
+			HealthCheck: basetypes.NewObjectNull(
+				map[string]attr.Type{
+					"protocol": types.StringType,
+					"method":   types.StringType,
+					"uri":      types.StringType,
+					"host":     types.StringType,
+					"port":     types.Int32Type,
+				},
+			),
 		}
 
 		require.NoError(t, err)

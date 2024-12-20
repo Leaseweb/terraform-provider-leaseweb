@@ -2,8 +2,6 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -29,69 +27,6 @@ type loadBalancerDataSourceModel struct {
 
 type loadBalancersDataSourceModel struct {
 	LoadBalancers []loadBalancerDataSourceModel `tfsdk:"load_balancers"`
-}
-
-func adaptLoadBalancerListItemToLoadBalancerDataSource(loadBalancerListItem publiccloud.LoadBalancerListItem) loadBalancerDataSourceModel {
-	var ips []ipDataSourceModel
-	for _, ip := range loadBalancerListItem.Ips {
-		ips = append(ips, ipDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
-	}
-
-	return loadBalancerDataSourceModel{
-		ID:        basetypes.NewStringValue(loadBalancerListItem.GetId()),
-		IPs:       ips,
-		Reference: basetypes.NewStringPointerValue(loadBalancerListItem.Reference.Get()),
-		Contract:  adaptContractToContractDataSource(loadBalancerListItem.GetContract()),
-		State:     basetypes.NewStringValue(string(loadBalancerListItem.GetState())),
-		Region:    basetypes.NewStringValue(string(loadBalancerListItem.GetRegion())),
-		Type:      basetypes.NewStringValue(string(loadBalancerListItem.GetType())),
-	}
-}
-
-func adaptLoadBalancersToLoadBalancersDataSource(sdkLoadBalancers []publiccloud.LoadBalancerListItem) loadBalancersDataSourceModel {
-	var loadBalancers loadBalancersDataSourceModel
-
-	for _, sdkLoadBalancerListItem := range sdkLoadBalancers {
-		loadBalancer := adaptLoadBalancerListItemToLoadBalancerDataSource(sdkLoadBalancerListItem)
-		loadBalancers.LoadBalancers = append(loadBalancers.LoadBalancers, loadBalancer)
-	}
-
-	return loadBalancers
-}
-
-func getAllLoadBalancers(
-	ctx context.Context,
-	api publiccloud.PubliccloudAPI,
-) ([]publiccloud.LoadBalancerListItem, *http.Response, error) {
-	var loadBalancers []publiccloud.LoadBalancerListItem
-	var offset *int32
-
-	request := api.GetLoadBalancerList(ctx)
-
-	for {
-		result, httpResponse, err := request.Execute()
-		if err != nil {
-			return nil, httpResponse, fmt.Errorf("getAllLoadBalancers: %w", err)
-		}
-
-		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
-
-		metadata := result.GetMetadata()
-
-		offset = utils.NewOffset(
-			metadata.GetLimit(),
-			metadata.GetOffset(),
-			metadata.GetTotalCount(),
-		)
-
-		if offset == nil {
-			break
-		}
-
-		request = request.Offset(*offset)
-	}
-
-	return loadBalancers, nil, nil
 }
 
 type loadBalancersDataSource struct {
@@ -166,21 +101,54 @@ func (l *loadBalancersDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	loadBalancers, httpResponse, err := getAllLoadBalancers(
-		ctx,
-		l.PubliccloudAPI,
-	)
-	if err != nil {
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
-		return
+	var loadBalancers []publiccloud.LoadBalancerListItem
+	var offset *int32
+
+	loadBalancerRequest := l.PubliccloudAPI.GetLoadBalancerList(ctx)
+	for {
+		result, httpResponse, err := loadBalancerRequest.Execute()
+		if err != nil {
+			utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+			return
+		}
+
+		loadBalancers = append(loadBalancers, result.GetLoadBalancers()...)
+
+		metadata := result.GetMetadata()
+
+		offset = utils.NewOffset(
+			metadata.GetLimit(),
+			metadata.GetOffset(),
+			metadata.GetTotalCount(),
+		)
+
+		if offset == nil {
+			break
+		}
+
+		loadBalancerRequest = loadBalancerRequest.Offset(*offset)
 	}
 
-	response.Diagnostics.Append(
-		response.State.Set(
-			ctx,
-			adaptLoadBalancersToLoadBalancersDataSource(loadBalancers),
-		)...,
-	)
+	var state loadBalancersDataSourceModel
+	for _, sdkLoadBalancer := range loadBalancers {
+		var ips []ipDataSourceModel
+		for _, ip := range sdkLoadBalancer.Ips {
+			ips = append(ips, ipDataSourceModel{IP: basetypes.NewStringValue(ip.GetIp())})
+		}
+
+		loadBalancer := loadBalancerDataSourceModel{
+			ID:        basetypes.NewStringValue(sdkLoadBalancer.GetId()),
+			IPs:       ips,
+			Reference: basetypes.NewStringPointerValue(sdkLoadBalancer.Reference.Get()),
+			Contract:  adaptContractToContractDataSource(sdkLoadBalancer.GetContract()),
+			State:     basetypes.NewStringValue(string(sdkLoadBalancer.GetState())),
+			Region:    basetypes.NewStringValue(string(sdkLoadBalancer.GetRegion())),
+			Type:      basetypes.NewStringValue(string(sdkLoadBalancer.GetType())),
+		}
+		state.LoadBalancers = append(state.LoadBalancers, loadBalancer)
+	}
+
+	response.Diagnostics.Append(response.State.Set(ctx, state)...)
 }
 
 func NewLoadBalancersDataSource() datasource.DataSource {

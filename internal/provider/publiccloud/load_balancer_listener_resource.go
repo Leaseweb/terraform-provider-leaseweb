@@ -51,14 +51,6 @@ type loadBalancerListenerCertificateResourceModel struct {
 	Chain       types.String `tfsdk:"chain"`
 }
 
-func (l loadBalancerListenerCertificateResourceModel) attributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"private_key": types.StringType,
-		"certificate": types.StringType,
-		"chain":       types.StringType,
-	}
-}
-
 func (l loadBalancerListenerCertificateResourceModel) generateSslCertificate() publiccloud.SslCertificate {
 	sslCertificate := publiccloud.NewSslCertificate(
 		l.PrivateKey.ValueString(),
@@ -71,20 +63,6 @@ func (l loadBalancerListenerCertificateResourceModel) generateSslCertificate() p
 	return *sslCertificate
 }
 
-func adaptSslCertificateToLoadBalancerListenerCertificateResource(sslCertificate publiccloud.SslCertificate) loadBalancerListenerCertificateResourceModel {
-	listener := loadBalancerListenerCertificateResourceModel{
-		PrivateKey:  basetypes.NewStringValue(sslCertificate.GetPrivateKey()),
-		Certificate: basetypes.NewStringValue(sslCertificate.GetCertificate()),
-	}
-
-	chain, _ := sslCertificate.GetChainOk()
-	if chain != nil && *chain != "" {
-		listener.Chain = basetypes.NewStringPointerValue(chain)
-	}
-
-	return listener
-}
-
 type loadBalancerListenerResourceModel struct {
 	ListenerID     types.String `tfsdk:"listener_id"`
 	LoadBalancerID types.String `tfsdk:"load_balancer_id"`
@@ -92,125 +70,6 @@ type loadBalancerListenerResourceModel struct {
 	Port           types.Int32  `tfsdk:"port"`
 	Certificate    types.Object `tfsdk:"certificate"`
 	DefaultRule    types.Object `tfsdk:"default_rule"`
-}
-
-func (l loadBalancerListenerResourceModel) generateLoadBalancerListenerCreateOpts(ctx context.Context) (
-	*publiccloud.LoadBalancerListenerCreateOpts,
-	error,
-) {
-	defaultRule := loadBalancerListenerDefaultRuleResourceModel{}
-	defaultRuleDiags := l.DefaultRule.As(ctx, &defaultRule, basetypes.ObjectAsOptions{})
-	if defaultRuleDiags != nil {
-		return nil, utils.ReturnError("generateLoadBalancerListenerCreateOpts", defaultRuleDiags)
-	}
-
-	opts := publiccloud.NewLoadBalancerListenerCreateOpts(
-		publiccloud.Protocol(l.Protocol.ValueString()),
-		l.Port.ValueInt32(),
-		defaultRule.generateLoadBalancerListenerDefaultRule(),
-	)
-
-	if !l.Certificate.IsNull() {
-		certificate := loadBalancerListenerCertificateResourceModel{}
-		certificateDiags := l.Certificate.As(ctx, &certificate, basetypes.ObjectAsOptions{})
-		if certificateDiags != nil {
-			return nil, utils.ReturnError("generateLoadBalancerListenerCreateOpts", certificateDiags)
-		}
-
-		opts.SetCertificate(certificate.generateSslCertificate())
-	}
-
-	return opts, nil
-}
-
-func (l loadBalancerListenerResourceModel) generateLoadBalancerListenerUpdateOpts(ctx context.Context) (
-	*publiccloud.LoadBalancerListenerOpts,
-	error,
-) {
-	opts := publiccloud.NewLoadBalancerListenerOpts()
-	opts.SetProtocol(publiccloud.Protocol(l.Protocol.ValueString()))
-	opts.SetPort(l.Port.ValueInt32())
-
-	if !l.Certificate.IsNull() {
-		certificate := loadBalancerListenerCertificateResourceModel{}
-		certificateDiags := l.Certificate.As(
-			ctx,
-			&certificate,
-			basetypes.ObjectAsOptions{},
-		)
-		if certificateDiags != nil {
-			return nil, utils.ReturnError(
-				"generateLoadBalancerListenerUpdateOpts",
-				certificateDiags,
-			)
-		}
-
-		opts.SetCertificate(certificate.generateSslCertificate())
-	}
-
-	if !l.DefaultRule.IsNull() {
-		defaultRule := loadBalancerListenerDefaultRuleResourceModel{}
-		defaultRuleDiags := l.DefaultRule.As(
-			ctx,
-			&defaultRule,
-			basetypes.ObjectAsOptions{},
-		)
-		if defaultRuleDiags != nil {
-			return nil, utils.ReturnError(
-				"generateLoadBalancerListenerUpdateOpts",
-				defaultRuleDiags,
-			)
-		}
-
-		opts.SetDefaultRule(defaultRule.generateLoadBalancerListenerDefaultRule())
-	}
-
-	return opts, nil
-}
-
-func adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(
-	loadBalancerListenerDetails publiccloud.LoadBalancerListenerDetails,
-	ctx context.Context,
-) (*loadBalancerListenerResourceModel, error) {
-	listener := loadBalancerListenerResourceModel{
-		ListenerID: basetypes.NewStringValue(loadBalancerListenerDetails.GetId()),
-		Protocol:   basetypes.NewStringValue(string(loadBalancerListenerDetails.GetProtocol())),
-		Port:       basetypes.NewInt32Value(loadBalancerListenerDetails.GetPort()),
-	}
-
-	if len(loadBalancerListenerDetails.SslCertificates) > 0 {
-		certificate, err := utils.AdaptSdkModelToResourceObject(
-			loadBalancerListenerDetails.SslCertificates[0],
-			loadBalancerListenerCertificateResourceModel{}.attributeTypes(),
-			ctx,
-			adaptSslCertificateToLoadBalancerListenerCertificateResource,
-		)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource: %w",
-				err,
-			)
-		}
-		listener.Certificate = certificate
-	}
-
-	if len(loadBalancerListenerDetails.Rules) > 0 {
-		defaultRule, err := utils.AdaptSdkModelToResourceObject(
-			loadBalancerListenerDetails.Rules[0],
-			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
-			ctx,
-			adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource,
-		)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource: %w",
-				err,
-			)
-		}
-		listener.DefaultRule = defaultRule
-	}
-
-	return &listener, nil
 }
 
 func adaptLoadBalancerListenerToLoadBalancerListenerResource(
@@ -324,10 +183,28 @@ func (l *loadBalancerListenerResource) Create(
 		return
 	}
 
-	opts, err := plan.generateLoadBalancerListenerCreateOpts(ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	defaultRule := loadBalancerListenerDefaultRuleResourceModel{}
+	defaultRuleDiags := plan.DefaultRule.As(ctx, &defaultRule, basetypes.ObjectAsOptions{})
+	if defaultRuleDiags != nil {
+		response.Diagnostics.Append(defaultRuleDiags...)
 		return
+	}
+
+	opts := publiccloud.NewLoadBalancerListenerCreateOpts(
+		publiccloud.Protocol(plan.Protocol.ValueString()),
+		plan.Port.ValueInt32(),
+		defaultRule.generateLoadBalancerListenerDefaultRule(),
+	)
+
+	if !plan.Certificate.IsNull() {
+		certificate := loadBalancerListenerCertificateResourceModel{}
+		certificateDiags := plan.Certificate.As(ctx, &certificate, basetypes.ObjectAsOptions{})
+		if certificateDiags != nil {
+			response.Diagnostics.Append(certificateDiags...)
+			return
+		}
+
+		opts.SetCertificate(certificate.generateSslCertificate())
 	}
 
 	loadBalancerListener, httpResponse, err := l.PubliccloudAPI.CreateLoadBalancerListener(
@@ -375,10 +252,53 @@ func (l *loadBalancerListenerResource) Read(
 		return
 	}
 
-	newState, err := adaptLoadBalancerListenerDetailsToLoadBalancerListenerResource(*loadBalancerListenerDetails, ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
-		return
+	newState := loadBalancerListenerResourceModel{
+		ListenerID: basetypes.NewStringValue(loadBalancerListenerDetails.GetId()),
+		Protocol:   basetypes.NewStringValue(string(loadBalancerListenerDetails.GetProtocol())),
+		Port:       basetypes.NewInt32Value(loadBalancerListenerDetails.GetPort()),
+	}
+	if len(loadBalancerListenerDetails.SslCertificates) > 0 {
+		certificate, err := utils.AdaptSdkModelToResourceObject(
+			loadBalancerListenerDetails.SslCertificates[0],
+			map[string]attr.Type{
+				"private_key": types.StringType,
+				"certificate": types.StringType,
+				"chain":       types.StringType,
+			},
+			ctx,
+			func(sslCertificate publiccloud.SslCertificate) loadBalancerListenerCertificateResourceModel {
+				listener := loadBalancerListenerCertificateResourceModel{
+					PrivateKey:  basetypes.NewStringValue(sslCertificate.GetPrivateKey()),
+					Certificate: basetypes.NewStringValue(sslCertificate.GetCertificate()),
+				}
+
+				chain, _ := sslCertificate.GetChainOk()
+				if chain != nil && *chain != "" {
+					listener.Chain = basetypes.NewStringPointerValue(chain)
+				}
+
+				return listener
+			},
+		)
+		if err != nil {
+			utils.GeneralError(&response.Diagnostics, ctx, err)
+			return
+		}
+		newState.Certificate = certificate
+	}
+
+	if len(loadBalancerListenerDetails.Rules) > 0 {
+		defaultRule, err := utils.AdaptSdkModelToResourceObject(
+			loadBalancerListenerDetails.Rules[0],
+			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
+			ctx,
+			adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource,
+		)
+		if err != nil {
+			utils.GeneralError(&response.Diagnostics, ctx, err)
+			return
+		}
+		newState.DefaultRule = defaultRule
 	}
 
 	newState.LoadBalancerID = state.LoadBalancerID
@@ -401,10 +321,38 @@ func (l *loadBalancerListenerResource) Update(
 		return
 	}
 
-	opts, err := plan.generateLoadBalancerListenerUpdateOpts(ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
-		return
+	opts := publiccloud.NewLoadBalancerListenerOpts()
+	opts.SetProtocol(publiccloud.Protocol(plan.Protocol.ValueString()))
+	opts.SetPort(plan.Port.ValueInt32())
+
+	if !plan.Certificate.IsNull() {
+		certificate := loadBalancerListenerCertificateResourceModel{}
+		certificateDiags := plan.Certificate.As(
+			ctx,
+			&certificate,
+			basetypes.ObjectAsOptions{},
+		)
+		if certificateDiags != nil {
+			response.Diagnostics.Append(certificateDiags...)
+			return
+		}
+
+		opts.SetCertificate(certificate.generateSslCertificate())
+	}
+
+	if !plan.DefaultRule.IsNull() {
+		defaultRule := loadBalancerListenerDefaultRuleResourceModel{}
+		defaultRuleDiags := plan.DefaultRule.As(
+			ctx,
+			&defaultRule,
+			basetypes.ObjectAsOptions{},
+		)
+		if defaultRuleDiags != nil {
+			response.Diagnostics.Append(defaultRuleDiags...)
+			return
+		}
+
+		opts.SetDefaultRule(defaultRule.generateLoadBalancerListenerDefaultRule())
 	}
 
 	loadBalancerListener, httpResponse, err := l.PubliccloudAPI.
