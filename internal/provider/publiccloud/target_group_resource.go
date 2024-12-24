@@ -2,11 +2,11 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -37,7 +37,8 @@ type targetGroupResourceModel struct {
 func adaptTargetGroupToTargetGroupResource(
 	sdkTargetGroup publiccloud.TargetGroup,
 	ctx context.Context,
-) (*targetGroupResourceModel, error) {
+	diags *diag.Diagnostics,
+) *targetGroupResourceModel {
 	targetGroup := targetGroupResourceModel{
 		ID:       basetypes.NewStringValue(sdkTargetGroup.GetId()),
 		Name:     basetypes.NewStringValue(sdkTargetGroup.GetName()),
@@ -48,7 +49,7 @@ func adaptTargetGroupToTargetGroupResource(
 
 	sdkHealthCheck, _ := sdkTargetGroup.GetHealthCheckOk()
 
-	healthCheck, err := utils.AdaptNullableSdkModelToResourceObject(
+	healthCheck := utils.AdaptNullableSdkModelToResourceObject(
 		sdkHealthCheck,
 		map[string]attr.Type{
 			"protocol": types.StringType,
@@ -73,13 +74,14 @@ func adaptTargetGroupToTargetGroupResource(
 
 			return healthCheck
 		},
+		diags,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	if diags.HasError() {
+		return nil
 	}
 	targetGroup.HealthCheck = healthCheck
 
-	return &targetGroup, nil
+	return &targetGroup
 }
 
 type healthCheckResourceModel struct {
@@ -264,12 +266,12 @@ func (t *targetGroupResource) Create(
 		return
 	}
 
-	targetGroup, err := adaptTargetGroupToTargetGroupResource(
+	targetGroup := adaptTargetGroupToTargetGroupResource(
 		*sdkTargetGroup,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -295,12 +297,12 @@ func (t *targetGroupResource) Read(
 		return
 	}
 
-	targetGroup, err := adaptTargetGroupToTargetGroupResource(
+	targetGroup := adaptTargetGroupToTargetGroupResource(
 		*sdkTargetGroup,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -345,12 +347,12 @@ func (t *targetGroupResource) Update(
 		return
 	}
 
-	targetGroup, err := adaptTargetGroupToTargetGroupResource(
+	targetGroup := adaptTargetGroupToTargetGroupResource(
 		*sdkTargetGroup,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
 		return
 	}
 

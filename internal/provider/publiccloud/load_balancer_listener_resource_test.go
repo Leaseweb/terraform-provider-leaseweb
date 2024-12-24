@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource(t *testing.T) {
@@ -31,9 +31,12 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			Port:     22,
 		}
 
-		got, err := adaptLoadBalancerListenerToLoadBalancerListenerResource(
+		diags := diag.Diagnostics{}
+
+		got := adaptLoadBalancerListenerToLoadBalancerListenerResource(
 			sdkLoadBalancerListener,
 			context.TODO(),
+			&diags,
 		)
 
 		want := loadBalancerListenerResourceModel{
@@ -42,7 +45,7 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			Port:       basetypes.NewInt32Value(22),
 		}
 
-		require.NoError(t, err)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, want, *got)
 	})
 
@@ -58,9 +61,12 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			},
 		}
 
-		got, err := adaptLoadBalancerListenerToLoadBalancerListenerResource(
+		diags := diag.Diagnostics{}
+
+		got := adaptLoadBalancerListenerToLoadBalancerListenerResource(
 			sdkLoadBalancerListener,
 			context.TODO(),
+			&diags,
 		)
 
 		want, _ := basetypes.NewObjectValueFrom(
@@ -71,7 +77,7 @@ func Test_adaptLoadBalancerListenerToLoadBalancerListenerResource(t *testing.T) 
 			},
 		)
 
-		require.NoError(t, err)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, want, got.DefaultRule)
 	})
 }

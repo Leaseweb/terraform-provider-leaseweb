@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
@@ -22,12 +22,15 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 			},
 		}
 
-		got, err := adaptLoadBalancerDetailsToLoadBalancerResource(
+		diags := diag.Diagnostics{}
+
+		got := adaptLoadBalancerDetailsToLoadBalancerResource(
 			loadBalancerDetails,
 			context.TODO(),
+			&diags,
 		)
 
-		require.NoError(t, err)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, "id", got.ID.ValueString())
 		assert.Equal(t, "region", got.Region.ValueString())
 		assert.Equal(t, "lsw.c3.2xlarge", got.Type.ValueString())
@@ -51,12 +54,15 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 			},
 		}
 
-		got, err := adaptLoadBalancerDetailsToLoadBalancerResource(
+		diags := diag.Diagnostics{}
+
+		got := adaptLoadBalancerDetailsToLoadBalancerResource(
 			loadBalancerDetails,
 			context.TODO(),
+			&diags,
 		)
 
-		require.NoError(t, err)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, "reference", got.Reference.ValueString())
 	})
 }
