@@ -157,8 +157,8 @@ func ReturnError(functionName string, diags diag.Diagnostics) error {
 func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {
 	var convertedTypes []string
 
-	for _, contractType := range types {
-		convertedTypes = append(convertedTypes, string(contractType))
+	for _, stringType := range types {
+		convertedTypes = append(convertedTypes, string(stringType))
 	}
 
 	return convertedTypes

@@ -15,6 +15,7 @@ import (
 )
 
 const defaultErrMsg = "An error has occurred in the program. Please consider opening an issue."
+const sdkErrSummary = "Unexpected API Error"
 
 // GeneralError should be called when general errors need to be handled.
 func GeneralError(diags *diag.Diagnostics, ctx context.Context, err error) {
@@ -48,148 +49,167 @@ func SdkError(
 	err error,
 	resp *http.Response,
 ) {
-	errorHandler := errorHandler{
-		ctx:     ctx,
-		diags:   diags,
-		summary: "Unexpected API Error",
-		err:     err,
-		resp:    resp,
+	// At a minimum diagnostics & error need to be set.
+	if diags == nil {
+		writeSDKLog("unable to record error details.", ctx)
+		log.Fatal(sdkErrSummary, defaultErrMsg)
 	}
-
-	errorHandler.report()
-}
-
-type errorResponse struct {
-	ErrorCode     string              `json:"errorCode,omitempty"`
-	ErrorMessage  string              `json:"errorMessage,omitempty"`
-	UserMessage   string              `json:"userMessage,omitempty"`
-	CorrelationId string              `json:"correlationId,omitempty"`
-	ErrorDetails  map[string][]string `json:"errorDetails,omitempty"`
-}
-
-type errorHandler struct {
-	summary string
-	resp    *http.Response
-	err     error
-	diags   *diag.Diagnostics
-	ctx     context.Context
-}
-
-func (e *errorHandler) report() {
-	if e.diags == nil {
-		e.writeLog("unable to record error details.")
-		log.Fatal(e.summary, defaultErrMsg)
-	}
-
-	if e.err == nil {
-		e.writeLog("No error detail found.")
-		e.writeOutput(defaultErrMsg)
+	if err == nil {
+		writeSDKLog("No error detail found.", ctx)
+		writeSDKOutput(defaultErrMsg, diags)
 		return
 	}
 
-	if e.resp != nil && e.resp.Body != nil && e.resp.StatusCode >= 400 {
-		e.handleHTTPError()
+	// Without a response we only need to handle the error.
+	if resp == nil {
+		writeSDKOutput(err.Error(), diags)
 		return
 	}
 
-	e.writeOutput(e.err.Error())
-}
-
-func (e *errorHandler) handleHTTPError() {
-	if e.resp.StatusCode == 504 {
-		e.writeLog(fmt.Sprintf("server response: %v", e.resp.Body))
-		e.writeOutput("The server took too long to respond.")
-		return
-	}
-
-	if e.resp.StatusCode == 404 {
-		e.writeLog(fmt.Sprintf("server response: %v", e.resp.Body))
-		e.writeOutput("Resource not found.")
-		return
-	}
-
+	// Handle the error response.
 	// Close response body with direct defer reference for clarity
 	defer func() {
-		if err := e.resp.Body.Close(); err != nil {
-			e.writeLog(fmt.Sprintf("error closing response body: %v", err))
+		if err := resp.Body.Close(); err != nil {
+			writeSDKLog(
+				fmt.Sprintf("error closing response body: %v", err),
+				ctx,
+			)
 		}
 	}()
 
-	e.writeLog(fmt.Sprintf("response body: %v", e.resp.Body))
-	var errorResponse errorResponse
-	if err := json.NewDecoder(e.resp.Body).Decode(&errorResponse); err != nil {
-		e.writeLog(fmt.Sprintf("error decoding HTTP response body: %v", err))
-		e.writeOutput(defaultErrMsg)
+	// For certain http responses we don't need to analyze the response body.
+	if resp.StatusCode == 504 {
+		writeSDKLog(fmt.Sprintf("server response: %v", resp.Body), ctx)
+		writeSDKOutput("The server took too long to respond.", diags)
+		return
+	}
+	if resp.StatusCode == 404 {
+		writeSDKLog(fmt.Sprintf("server response: %v", resp.Body), ctx)
+		writeSDKOutput("Resource not found.", diags)
 		return
 	}
 
-	e.processErrorResponse(errorResponse)
-}
+	// Always log the response body for debugging purposes.
+	writeSDKLog(fmt.Sprintf("response body: %v", resp.Body), ctx)
 
-// processErrorResponse checks for validation errors in ErrorDetails and handles them if present.
-func (e *errorHandler) processErrorResponse(errorResponse errorResponse) {
+	// Parse the response body. If it can't be parsed throw a general error.
+	var errorResponse struct {
+		ErrorDetails map[string]any `json:"errorDetails,omitempty"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+		writeSDKLog(
+			fmt.Sprintf("error decoding HTTP response body: %v", err),
+			ctx,
+		)
+		writeSDKOutput(defaultErrMsg, diags)
+		return
+	}
+
+	// Show returned errors to the end user.
+	unhandledErrorsExist := false
 	if len(errorResponse.ErrorDetails) > 0 {
-		e.handleValidationErrors(errorResponse)
-		if e.diags.HasError() {
+		for errorKey, errorCollections := range errorResponse.ErrorDetails {
+			// Generated a normalized error key that we can work with
+			var normalizedErrorKey string
+			// If the key contains dots, replace the dots with "_"
+			if strings.Contains(errorKey, ".") {
+				normalizedErrorKey = strings.ToLower(
+					strings.Replace(errorKey, ".", "_", -1),
+				)
+			}
+			// If no dots are found, assume camel case and separate the words with "_".
+			if normalizedErrorKey == "" {
+				m := regexp.MustCompile("[A-Z]")
+				res := m.ReplaceAllStringFunc(
+					errorKey,
+					func(s string) string {
+						return "_" + s
+					},
+				)
+				normalizedErrorKey = strings.ToLower(res)
+			}
+
+			// Get attribute path from normalized key.
+			mapKeys := strings.Split(normalizedErrorKey, "_")
+			attributePath := path.Root(mapKeys[0])
+			// Every element in the map goes one level deeper.
+			for _, mapKey := range mapKeys[1:] {
+				attributePath = attributePath.AtMapKey(mapKey)
+			}
+
+			// Handle string array errorCollections
+			stringErrorCollection, ok := errorCollections.([]interface{})
+			if ok {
+				if handleStringErrorCollection(diags, attributePath, stringErrorCollection) {
+					unhandledErrorsExist = true
+				}
+				continue
+			}
+
+			// Handle errorCollections that are a map of string arrays
+			errorMapCollection, ok := errorCollections.(map[string]interface{})
+			if ok {
+				for _, errorMap := range errorMapCollection {
+					stringErrorCollection, ok := errorMap.([]interface{})
+					if ok {
+						if handleStringErrorCollection(diags, attributePath, stringErrorCollection) {
+							unhandledErrorsExist = true
+						}
+						continue
+					}
+					unhandledErrorsExist = true
+				}
+				continue
+			}
+
+			unhandledErrorsExist = true
+		}
+	}
+
+	// Show general error if any part of the error response cannot be parsed.
+	if unhandledErrorsExist || !diags.HasError() {
+		jsonOutput, err := json.MarshalIndent(errorResponse, "", "  ")
+		if err != nil {
+			SdkError(
+				ctx,
+				diags,
+				fmt.Errorf("failed to format error response as JSON: %v", err),
+				nil,
+			)
 			return
 		}
+		GeneralError(diags, ctx, fmt.Errorf(string(jsonOutput), err))
 	}
-
-	// Attempt to convert errorResponse to JSON format for output
-	jsonOutput, err := json.MarshalIndent(errorResponse, "", "  ")
-	if err != nil {
-		e.writeLog(fmt.Sprintf(
-			"failed to format error response as JSON: %v",
-			err,
-		))
-		e.writeOutput(defaultErrMsg)
-		return
-	}
-
-	e.writeOutput(string(jsonOutput))
 }
 
-func (e *errorHandler) handleValidationErrors(errorResponse errorResponse) {
-	// Convert key returned from api to an attribute path.
-	// I.e.: []string{"image", "id"}.
-	for errorKey, errorDetailList := range errorResponse.ErrorDetails {
-		normalizedErrorKey := mapErrorDetailsKey(errorKey)
-		mapKeys := strings.Split(normalizedErrorKey, "_")
-		attributePath := path.Root(mapKeys[0])
+func writeSDKLog(details string, ctx context.Context) {
+	tflog.Debug(ctx, sdkErrSummary, map[string]any{"details": details})
+}
 
-		// Every element in the map goes one level deeper.
-		for _, mapKey := range mapKeys[1:] {
-			attributePath = attributePath.AtMapKey(mapKey)
+func writeSDKOutput(details string, diags *diag.Diagnostics) {
+	diags.AddError(sdkErrSummary, details)
+}
+
+func handleStringErrorCollection(
+	diags *diag.Diagnostics,
+	attributePath path.Path,
+	stringErrorCollection []interface{},
+) bool {
+	containsUnhandledErrors := false
+
+	for _, stringError := range stringErrorCollection {
+		parsedStringError, ok := stringError.(string)
+		if ok {
+			diags.AddAttributeError(
+				attributePath,
+				sdkErrSummary,
+				parsedStringError,
+			)
+			continue
 		}
 
-		// Each attribute can have multiple errors.
-		for _, errorDetail := range errorDetailList {
-			e.diags.AddAttributeError(attributePath, e.summary, errorDetail)
-		}
-	}
-}
-
-// `instanceId` & `instance.id` both become `instance_id`.
-func mapErrorDetailsKey(key string) string {
-	// Assume that the key has the format `contract.id`
-	//if any dots are found.
-	if strings.Contains(key, ".") {
-		return strings.ToLower(strings.Replace(key, ".", "_", -1))
+		containsUnhandledErrors = true
 	}
 
-	// If no dots are found, assume camel case.
-	m := regexp.MustCompile("[A-Z]")
-	res := m.ReplaceAllStringFunc(key, func(s string) string {
-		return "_" + s
-	})
-
-	return strings.ToLower(res)
-}
-
-func (e *errorHandler) writeLog(details string) {
-	tflog.Debug(e.ctx, e.summary, map[string]any{"details": details})
-}
-
-func (e *errorHandler) writeOutput(details string) {
-	e.diags.AddError(e.summary, details)
+	return containsUnhandledErrors
 }

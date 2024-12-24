@@ -3324,3 +3324,315 @@ func TestAccPublicCloudInstanceIsoResource(t *testing.T) {
 		})
 	})
 }
+
+func TestAccDNSResourceRecordSetResource(t *testing.T) {
+	t.Run("content is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"content\" is required, but no definition was found",
+					),
+				},
+			},
+		})
+	})
+	t.Run("content cannot be empty", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = []
+									domain_name = "example.com"
+									name = "name"
+									ttl = 3600
+									type = "A"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute content list must contain at least 1 elements, got: 0",
+					),
+				},
+			},
+		})
+	})
+	t.Run("content cannot contain null elements", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = [null]
+									domain_name = "example.com"
+									name = "name"
+									ttl = 3600
+									type = "A"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"This attribute contains a null value.",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("domain_name is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"domain_name\" is required, but no definition was found",
+					),
+				},
+			},
+		})
+	})
+	t.Run("domain_name cannot be empty", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = ["1.2.3.4"]
+									domain_name = ""
+									name = "name"
+									ttl = 3600
+									type = "A"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute domain_name string length must be at least 1, got: 0",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("name is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"name\" is required, but no definition was found",
+					),
+				},
+			},
+		})
+	})
+	t.Run("name cannot be empty", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = ["1.2.3.4"]
+									domain_name = "example.com"
+									name = ""
+									ttl = 3600
+									type = "A"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute name string length must be at least 1, got: 0",
+					),
+				},
+			},
+		})
+	})
+	t.Run("name must end with a dot", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = ["1.2.3.4"]
+									domain_name = "example.com"
+									name = "name"
+									ttl = 3600
+									type = "A"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute name must end in ., got: name",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("ttl is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"ttl\" is required, but no definition was found",
+					),
+				},
+			},
+		})
+	})
+	t.Run("ttl must be valid", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = ["1.2.3.4"]
+									domain_name = "example.com"
+									name = "example.com."
+									ttl = 123
+									type = "A"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute ttl value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("type is required", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"The argument \"type\" is required, but no definition was found",
+					),
+				},
+			},
+		})
+	})
+	t.Run("type must be valid", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						        resource "leaseweb_dns_resource_record_set" "test" {
+									content = ["1.2.3.4"]
+									domain_name = "example.com"
+									name = "example.com."
+									ttl = 3600
+									type = "tralala"
+						        }`,
+					ExpectError: regexp.MustCompile(
+						"Attribute type value must be one of:",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("can create/import/update/delete dns record set", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_dns_resource_record_set" "test" {
+						content = ["85.17.150.51", "85.17.150.52", "85.17.150.53"]
+						domain_name = "example.com"
+						name = "example.com."
+						ttl = 3600
+						type = "A"
+					}`,
+				},
+				// ImportState testing
+				{
+					ResourceName:                         "leaseweb_dns_resource_record_set.test",
+					ImportState:                          true,
+					ImportStateVerify:                    true,
+					ImportStateId:                        "example.com,example.com.,A",
+					ImportStateVerifyIdentifierAttribute: "domain_name",
+					ImportStateCheck: func(states []*terraform.InstanceState) error {
+						for _, state := range states {
+							if state.Attributes["domain_name"] != "example.com" || state.Attributes["name"] != "example.com." || state.Attributes["type"] != "A" {
+								return fmt.Errorf("%v", state.Attributes)
+							}
+						}
+
+						return nil
+					},
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_dns_resource_record_set" "test" {
+						content = ["85.17.150.51", "85.17.150.52", "85.17.150.53"]
+						domain_name = "example.com"
+						name = "example.com."
+						ttl = 3600
+						type = "A"
+					}`,
+				},
+				// Delete testing automatically occurs in TestCase
+			},
+		})
+	})
+
+	t.Run("updating name triggers replacement", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_dns_resource_record_set" "test" {
+						content = ["85.17.150.51", "85.17.150.52", "85.17.150.53"]
+						domain_name = "example.com"
+						name = "example.com."
+						ttl = 3600
+						type = "A"
+					}
+					`,
+				},
+				{
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(
+								"leaseweb_dns_resource_record_set.test",
+								plancheck.ResourceActionDestroyBeforeCreate,
+							),
+						},
+					},
+					// Ignore the inconsistent result as prism returns the old result.
+					ExpectError: regexp.MustCompile(
+						"Provider produced inconsistent result after apply",
+					),
+					Config: providerConfig + `
+					resource "leaseweb_dns_resource_record_set" "test" {
+						content = ["85.17.150.51", "85.17.150.52", "85.17.150.53"]
+						domain_name = "example.com"
+						name = "tralala."
+						ttl = 3600
+						type = "A"
+					}
+					`,
+				},
+			},
+		})
+	})
+}

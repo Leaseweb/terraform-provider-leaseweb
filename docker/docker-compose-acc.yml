@@ -21,6 +21,17 @@ services:
       - path: .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  prism_dns:
+    container_name: prism_dns
+    build:
+      dockerfile: prism/Dockerfile
+    command: >
+      mock -p 4010 --host 0.0.0.0
+      ${DNS_API_SPEC_URL}
+    env_file:
+      - path: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   prism-proxy:
     build:
       dockerfile: caddy/Dockerfile
