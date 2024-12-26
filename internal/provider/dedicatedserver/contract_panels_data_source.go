@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 

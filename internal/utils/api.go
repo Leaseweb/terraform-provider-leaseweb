@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dns"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dns"
+	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
 
