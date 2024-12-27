@@ -15,6 +15,11 @@ route /hosting/v2/* {
 	reverse_proxy prism_dns:4010
 }
 
+route /ipMgmt/v2/* {
+	uri strip_prefix /ipMgmt/v2
+	reverse_proxy prism_ipmgmt:4010
+}
+
 log {
     format console
 }

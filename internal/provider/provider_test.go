@@ -3389,3 +3389,310 @@ func TestAccDnsResourceRecordSetsDataSource(t *testing.T) {
 		})
 	})
 }
+
+func TestAccIPmgmtDataSource(t *testing.T) {
+	t.Run("data source works", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `data "leaseweb_ipmgmt_ips" "test" {}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.#",
+							"2",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.assigned_contract.id",
+							"5643634",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.equipment_id",
+							"1234",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.ip",
+							"192.0.2.1",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.null_routed",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.prefix_length",
+							"32",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.primary",
+							"true",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.reverse_lookup",
+							"mydomain1.example.com",
+						),
+
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.subnet.gateway",
+							"192.0.2.254",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.subnet.id",
+							"192.0.2.0_24",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.subnet.network_ip",
+							"192.0.2.0",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.subnet.prefix_length",
+							"24",
+						),
+
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.type",
+							"NORMAL_IP",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.unnulling_allowed",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_ips.test",
+							"ips.0.version",
+							"4",
+						),
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("can filter assigned_contract_ids", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							assigned_contract_ids = ["1", "2", "3"]
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter equipment_ids", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							equipment_ids = ["1", "2", "3"]
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter filtered_ips", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							filtered_ips = ["192.168.1.1", "192.168.1.2"]
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter from_ip", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							from_ip = "192.168.0.0"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter null_routed", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							null_routed = true
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter primary", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							primary = true
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter reverse_lookup", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							reverse_lookup = "mydomain1.example.com"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter subnet_id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							subnet_id = "1234"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter to_ip", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							to_ip = "192.168.255.255"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can sort", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							sort = ["ip"]
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter type", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							type = "NORMAL_IP"
+						}
+					`,
+				},
+			},
+		})
+	})
+	t.Run("inputting incorrect type throws error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							type = "tralala"
+						}
+					`,
+					ExpectError: regexp.MustCompile(
+						`Attribute type value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("can filter version", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							version = 6
+						}
+					`,
+				},
+			},
+		})
+	})
+	t.Run("inputting incorrect IP version throws error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_ips" "test" {
+							version = 65
+						}
+					`,
+					ExpectError: regexp.MustCompile(
+						`Attribute version value must be one of:`,
+					),
+				},
+			},
+		})
+	})
+}
