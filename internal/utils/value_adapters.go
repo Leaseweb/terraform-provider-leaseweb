@@ -127,8 +127,8 @@ func AdaptStringPointerValueToNullableString(value types.String) *string {
 func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {
 	var convertedTypes []string
 
-	for _, contractType := range types {
-		convertedTypes = append(convertedTypes, string(contractType))
+	for _, stringType := range types {
+		convertedTypes = append(convertedTypes, string(stringType))
 	}
 
 	return convertedTypes
