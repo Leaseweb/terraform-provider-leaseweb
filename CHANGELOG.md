@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.17.0...v1.18.0) (2024-12-30)
+
+
+### Features
+
+* implement resource record set resource ([8246aaa](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/8246aaa5f6fc2f4ced1e4c8159b935c919e38979))
+
 ## [1.17.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.16.0...v1.17.0) (2024-12-24)
 
 
@@ -67,7 +74,7 @@
 
 ## 1.11.0 (November 19, 2024)
 
-* feat(docs): let end user know which actions aren't supporetd by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
+* feat(docs): let end user know which actions aren't supported by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
 
 ## 1.10.0 (November 19, 2024)
 

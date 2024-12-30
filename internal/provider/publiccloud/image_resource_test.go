@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_adaptImageDetailsToImageResource(t *testing.T) {
@@ -37,6 +37,14 @@ func Test_adaptImageDetailsToImageResource(t *testing.T) {
 		[]string{"CENTRAL"},
 	)
 
+	diags := diag.Diagnostics{}
+
+	got := adaptImageDetailsToImageResource(
+		context.TODO(),
+		sdkImageDetails,
+		&diags,
+	)
+
 	want := imageResourceModel{
 		ID:           basetypes.NewStringValue("imageId"),
 		Name:         basetypes.NewStringValue("name"),
@@ -47,11 +55,7 @@ func Test_adaptImageDetailsToImageResource(t *testing.T) {
 		Flavour:      basetypes.NewStringValue("flavour"),
 		Region:       basetypes.NewStringValue("eu-west-3"),
 	}
-	got, err := adaptImageDetailsToImageResource(
-		context.TODO(),
-		sdkImageDetails,
-	)
 
-	require.NoError(t, err)
+	assert.False(t, diags.HasError())
 	assert.Equal(t, want, *got)
 }

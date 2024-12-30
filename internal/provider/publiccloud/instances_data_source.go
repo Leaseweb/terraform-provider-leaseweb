@@ -111,9 +111,8 @@ func (d *instancesDataSource) Read(
 	}
 
 	//Get images once
-	images, httpResponse, err := getAllImages(ctx, d.PubliccloudAPI)
-	if err != nil {
-		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
+	images := getAllImages(ctx, d.PubliccloudAPI, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

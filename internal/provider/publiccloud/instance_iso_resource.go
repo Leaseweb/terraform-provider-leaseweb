@@ -2,10 +2,9 @@ package publiccloud
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -21,17 +20,6 @@ var (
 	_ resource.ResourceWithConfigure   = &instanceISOResource{}
 	_ resource.ResourceWithImportState = &instanceISOResource{}
 )
-
-type invalidIDError struct {
-	supportedIDs []string
-}
-
-func (u invalidIDError) Error() string {
-	return fmt.Sprintf(
-		"Attribute id value must be one of: %q",
-		u.supportedIDs,
-	)
-}
 
 type instanceISOResourceModel struct {
 	DesiredID  types.String `tfsdk:"desired_id"`
@@ -123,19 +111,8 @@ func (i *instanceISOResource) Create(
 		return
 	}
 
-	state, httpResponse, err := updateISO(plan, i.PubliccloudAPI, ctx)
-	if err != nil {
-		var re invalidIDError
-		ok := errors.As(err, &re)
-		if ok {
-			response.Diagnostics.AddAttributeError(
-				path.Root("desired_id"),
-				"Invalid Attribute Value Match",
-				re.Error(),
-			)
-			return
-		}
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+	state := updateISO(plan, i.PubliccloudAPI, ctx, &response.Diagnostics)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -208,19 +185,8 @@ func (i *instanceISOResource) Update(
 	}
 
 	if plan.DesiredID.ValueString() != currentState.ID.ValueString() {
-		state, httpResponse, err := updateISO(plan, i.PubliccloudAPI, ctx)
-		if err != nil {
-			var re invalidIDError
-			ok := errors.As(err, &re)
-			if ok {
-				response.Diagnostics.AddAttributeError(
-					path.Root("desired_id"),
-					"Invalid Attribute Value Match",
-					re.Error(),
-				)
-				return
-			}
-			utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+		state := updateISO(plan, i.PubliccloudAPI, ctx, &response.Diagnostics)
+		if response.Diagnostics.HasError() {
 			return
 		}
 
@@ -241,9 +207,8 @@ func (i *instanceISOResource) Delete(
 	}
 
 	currentState.DesiredID = basetypes.NewStringPointerValue(nil)
-	state, httpResponse, err := updateISO(currentState, i.PubliccloudAPI, ctx)
-	if err != nil {
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+	state := updateISO(currentState, i.PubliccloudAPI, ctx, &response.Diagnostics)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -263,7 +228,8 @@ func updateISO(
 	iso instanceISOResourceModel,
 	api publiccloud.PubliccloudAPI,
 	ctx context.Context,
-) (*instanceISOResourceModel, *http.Response, error) {
+	diags *diag.Diagnostics,
+) *instanceISOResourceModel {
 	// If a new ISO is to be attached then check that the ID is valid
 	if !iso.DesiredID.IsNull() {
 		var supportedISOs []publiccloud.Iso
@@ -273,7 +239,8 @@ func updateISO(
 		for {
 			result, httpResponse, err := request.Execute()
 			if err != nil {
-				return nil, httpResponse, fmt.Errorf("updateISO: %v", err)
+				utils.SdkError(ctx, diags, err, httpResponse)
+				return nil
 			}
 
 			supportedISOs = append(supportedISOs, result.Isos...)
@@ -304,7 +271,15 @@ func updateISO(
 			for _, supportedISO := range supportedISOs {
 				supportedIDs = append(supportedIDs, supportedISO.GetId())
 			}
-			return nil, nil, invalidIDError{supportedIDs: supportedIDs}
+			diags.AddAttributeError(
+				path.Root("desired_id"),
+				"Invalid Attribute Value Match",
+				fmt.Sprintf(
+					"Attribute id value must be one of: %q",
+					supportedIDs,
+				),
+			)
+			return nil
 		}
 	}
 
@@ -313,7 +288,8 @@ func updateISO(
 		iso.InstanceID.ValueString(),
 	).Execute()
 	if err != nil {
-		return nil, httpResponse, fmt.Errorf("updateISO: %v", err)
+		utils.SdkError(ctx, diags, err, httpResponse)
+		return nil
 	}
 
 	// Detach current ISO if anything is attached
@@ -324,7 +300,8 @@ func updateISO(
 			iso.InstanceID.ValueString(),
 		).Execute()
 		if err != nil {
-			return nil, httpResponse, fmt.Errorf("updateISO: %v", err)
+			utils.SdkError(ctx, diags, err, httpResponse)
+			return nil
 		}
 
 		// If a detached ISO is the desired state then exit
@@ -334,7 +311,8 @@ func updateISO(
 				iso.InstanceID.ValueString(),
 			).Execute()
 			if err != nil {
-				return nil, httpResponse, fmt.Errorf("updateISO: %v", err)
+				utils.SdkError(ctx, diags, err, httpResponse)
+				return nil
 			}
 
 			isoSDK, _ = instanceDetails.GetIsoOk()
@@ -343,7 +321,7 @@ func updateISO(
 				instanceDetails.Id,
 				isoSDK,
 			)
-			return &updatedISO, nil, nil
+			return &updatedISO
 		}
 	}
 
@@ -354,7 +332,8 @@ func updateISO(
 	).AttachIsoOpts(*publiccloud.NewAttachIsoOpts(iso.DesiredID.ValueString())).
 		Execute()
 	if err != nil {
-		return nil, httpResponse, fmt.Errorf("updateISO: %v", err)
+		utils.SdkError(ctx, diags, err, httpResponse)
+		return nil
 	}
 
 	instanceDetails, httpResponse, err = api.GetInstance(
@@ -362,7 +341,8 @@ func updateISO(
 		iso.InstanceID.ValueString(),
 	).Execute()
 	if err != nil {
-		return nil, httpResponse, fmt.Errorf("updateISO: %v", err)
+		utils.SdkError(ctx, diags, err, httpResponse)
+		return nil
 	}
 
 	isoSDK, _ = instanceDetails.GetIsoOk()
@@ -371,5 +351,5 @@ func updateISO(
 		instanceDetails.Id,
 		isoSDK,
 	)
-	return &updatedISO, nil, nil
+	return &updatedISO
 }

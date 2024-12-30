@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_healthCheckResourceModel_generateOpts(t *testing.T) {
@@ -64,9 +64,12 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 			Region:   publiccloud.REGIONNAME_EU_CENTRAL_1,
 		}
 
-		got, err := adaptTargetGroupToTargetGroupResource(
+		diags := diag.Diagnostics{}
+
+		got := adaptTargetGroupToTargetGroupResource(
 			sdkTargetGroup,
 			context.TODO(),
+			&diags,
 		)
 
 		want := targetGroupResourceModel{
@@ -86,7 +89,7 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 			),
 		}
 
-		require.NoError(t, err)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, want, *got)
 	})
 
@@ -99,15 +102,18 @@ func Test_adaptTargetGroupToTargetGroupResource(t *testing.T) {
 			),
 		}
 
-		targetGroup, err := adaptTargetGroupToTargetGroupResource(
+		diags := diag.Diagnostics{}
+
+		targetGroup := adaptTargetGroupToTargetGroupResource(
 			sdkTargetGroup,
 			context.TODO(),
+			&diags,
 		)
 
 		got := healthCheckResourceModel{}
 		targetGroup.HealthCheck.As(context.TODO(), &got, basetypes.ObjectAsOptions{})
 
-		require.NoError(t, err)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, "HTTP", got.Protocol.ValueString())
 	})
 }

@@ -4,33 +4,34 @@
 
 Each package corresponds to a product group, i.e.: `publiccloud`
 
-## DataSources
+## Data Sources
 
-### DataSource files
+### Data Source files
 
-All code pertaining to dataSources, including models, belongs in the dataSource
+All code pertaining to Data Sources, including models, belongs in the dataSource
 file.
 The format for this file is `<ENDPOINT>_data_source.go`.
 For instances the filename would be `instances_data_source.go`
 
-### DataSource structs
+### Data Source structs
 
-DataSource structs should adhere to the following naming convention:
-`<NAME>DataSource`.
-For `instances` this would be `instancesDataSource`
+- Data Source structs should adhere to the following naming convention:
+`<NAME>DataSource`. For `instances` this would be `instancesDataSource`
+- Implement `utils.DataSourceAPI` in the struct to support `Metadata()`
+  & `Configuration()` functions.
 
-### DataSource models
+### Data Source models
 
-DataSource model structs should adhere to the following convention:
+Data Source model structs should adhere to the following convention:
 `<MODEL_NAME>DataSourceModel`.
 The `instances` data model would be named `instancesDataSourceModel`.
 
-#### DataSource adaptation functions
+#### Data Source adaptation functions
 
-Adapt functions to convert SDK models to dataSource models have the following
-naming convention: `adapt<SDK_MODEL_NAME>To<DATASOURCE_MODEL_NAME>DataSource`.
-The function to adapt an SDK Instance to an Instance Datasource would be
-named `adaptInstanceToInstanceDataSource`.
+Adapt functions to convert SDK models to Data Source models have the following
+naming convention: `adapt<SDK_MODEL_NAME>To<DataSource_MODEL_NAME>DataSource`.
+The function to adapt an SDK Instance to an Instance Data Source would be
+named `adaptInstanceToInstanceData Source`.
 
 ## Resources
 
@@ -43,9 +44,10 @@ For instances the filename would be `instance_resource.go`
 
 ### Resource structs
 
-Resource structs should adhere to the following naming convention:
-`<NAME>Resource`.
-For `instance` this would be `instanceResource`.
+- Resource structs should adhere to the following naming convention:
+`<NAME>Resource`. For `instance` this would be `instanceResource`.
+- Implement `utils.ResourceAPI` in the struct to support `Metadata()`
+& `Configuration()` functions.
 
 ### Resource models
 
@@ -62,28 +64,8 @@ named `adaptInstanceToInstanceResource`.
 
 ## Validators
 
-As validators are often shared between resource they belong in the `validators.go`
+As validators are often shared between resources, they belong in the `validators.go`
 file.
-
-## Configure
-
-If possible, map the SDK API as the client used by Terraform.
-
-```go
-func (i *imageResource) Configure(
-	_ context.Context,
-	request resource.ConfigureRequest,
-	response *resource.ConfigureResponse,
-) {
-  ...
-
-	coreClient, ok := request.ProviderData.(client.Client)
-
-  ...
-
-	i.client = coreClient.PublicCloudAPI
-}
-```
 
 ## SDK
 
@@ -115,8 +97,8 @@ the following resources & data sources do not adhere to the rules:
 
 Acceptance tests should be placed in [internal/provider/provider_test.go](internal/provider/provider_test.go).
 The test functions themselves must adhere to the
-`TestAcc<PRODUCT_NAME><END_POINT><TYPE>` format. An acceptance test for an
-Public Cloud instance resource should be called `TestAccPublicCloudInstanceResource` and a test for an
+`TestAcc<PRODUCT_NAME><END_POINT><TYPE>` format. An acceptance test for a
+Public Cloud instance resource should be called `TestAccPublicCloudInstanceResource` and a test for a
 Public Cloud instance data source should be called `TestAccPublicCloudInstanceDataSource`.
 
 ## Variables

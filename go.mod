@@ -8,10 +8,10 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v0.0.0-20241230095423-e1ad88be3188
-	github.com/leaseweb/leaseweb-go-sdk/dns v0.0.0-20241230095423-e1ad88be3188
-	github.com/leaseweb/leaseweb-go-sdk/ipmgmt v0.0.0-20241230095423-e1ad88be3188
-	github.com/leaseweb/leaseweb-go-sdk/publiccloud v0.0.0-20241230095423-e1ad88be3188
+	github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v0.0.0-20241230111213-3c3be0c1799d
+	github.com/leaseweb/leaseweb-go-sdk/dns v0.0.0-20241230111213-3c3be0c1799d
+	github.com/leaseweb/leaseweb-go-sdk/ipmgmt v0.0.0-20241230111213-3c3be0c1799d
+	github.com/leaseweb/leaseweb-go-sdk/publiccloud v0.0.0-20241230111213-3c3be0c1799d
 	github.com/stretchr/testify v1.10.0
 )
 
