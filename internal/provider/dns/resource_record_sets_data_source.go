@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithConfigure = &resourceRecordSet{}
+	_ datasource.DataSourceWithConfigure = &resourceRecordsSetsDataSource{}
 )
 
 type resourceRecordSetsDataSourceModel struct {
@@ -29,11 +29,11 @@ type resourceRecordSetDataSourceModel struct {
 	TTL        types.Int32  `tfsdk:"ttl"`
 }
 
-type resourceRecordSet struct {
+type resourceRecordsSetsDataSource struct {
 	utils.DataSourceAPI
 }
 
-func (r *resourceRecordSet) Schema(
+func (r *resourceRecordsSetsDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
 	response *datasource.SchemaResponse,
@@ -81,7 +81,7 @@ func (r *resourceRecordSet) Schema(
 	}
 }
 
-func (r *resourceRecordSet) Read(
+func (r *resourceRecordsSetsDataSource) Read(
 	ctx context.Context,
 	request datasource.ReadRequest,
 	response *datasource.ReadResponse,
@@ -124,7 +124,7 @@ func (r *resourceRecordSet) Read(
 }
 
 func NewResourceRecordSetsDataSource() datasource.DataSource {
-	return &resourceRecordSet{
+	return &resourceRecordsSetsDataSource{
 		DataSourceAPI: utils.DataSourceAPI{
 			Name: "dns_resource_record_sets",
 		},
