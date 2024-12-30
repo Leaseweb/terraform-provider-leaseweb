@@ -35,7 +35,7 @@ services:
   prism_ipmgmt:
     container_name: prism_ipmgmt
     build:
-      dockerfile: docker/prism/Dockerfile
+      dockerfile: prism/Dockerfile
     command: >
       mock -p 4010 --host 0.0.0.0
       ${IPMGMT_API_SPEC_URL}
