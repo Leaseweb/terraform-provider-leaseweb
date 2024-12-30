@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 

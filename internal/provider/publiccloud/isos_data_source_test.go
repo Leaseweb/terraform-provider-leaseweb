@@ -3,7 +3,7 @@ package publiccloud
 import (
 	"testing"
 
-	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/stretchr/testify/assert"
 )
 

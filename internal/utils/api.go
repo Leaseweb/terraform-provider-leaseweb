@@ -7,9 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dedicatedserver"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dns"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dns"
+	"github.com/leaseweb/leaseweb-go-sdk/ipmgmt"
+	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 )
 
@@ -47,6 +48,7 @@ type ResourceAPI struct {
 	PubliccloudAPI     publiccloud.PubliccloudAPI
 	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
 	DNSAPI             dns.DnsAPI
+	IPmgmtAPI          ipmgmt.IpmgmtAPI
 }
 
 func (p *ResourceAPI) Configure(
@@ -62,6 +64,7 @@ func (p *ResourceAPI) Configure(
 	p.PubliccloudAPI = coreClient.PubliccloudAPI
 	p.DedicatedserverAPI = coreClient.DedicatedserverAPI
 	p.DNSAPI = coreClient.DNSAPI
+	p.IPmgmtAPI = coreClient.IPmgmtAPI
 }
 
 func (p *ResourceAPI) Metadata(
@@ -78,6 +81,7 @@ type DataSourceAPI struct {
 	PubliccloudAPI     publiccloud.PubliccloudAPI
 	DedicatedserverAPI dedicatedserver.DedicatedserverAPI
 	DNSAPI             dns.DnsAPI
+	IPmgmtAPI          ipmgmt.IpmgmtAPI
 }
 
 func (d *DataSourceAPI) Configure(
@@ -93,6 +97,7 @@ func (d *DataSourceAPI) Configure(
 	d.DedicatedserverAPI = coreClient.DedicatedserverAPI
 	d.PubliccloudAPI = coreClient.PubliccloudAPI
 	d.DNSAPI = coreClient.DNSAPI
+	d.IPmgmtAPI = coreClient.IPmgmtAPI
 }
 
 func (d *DataSourceAPI) Metadata(

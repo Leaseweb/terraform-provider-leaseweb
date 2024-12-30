@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/v3/dns"
+	"github.com/leaseweb/leaseweb-go-sdk/dns"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
