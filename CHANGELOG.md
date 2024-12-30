@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.18.0...v1.19.0) (2024-12-30)
+
+
+### Features
+
+* implement ip resource ([7547b39](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/7547b391c31555077b18856f4b12f645f62e9f5d))
+
 ## [1.18.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.17.0...v1.18.0) (2024-12-30)
 
 
