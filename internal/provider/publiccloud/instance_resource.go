@@ -413,7 +413,7 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Can be either an Operating System or a UUID in case of a Custom Image ID." + warningError,
+						Description: "Can be either an Operating System or a UUID in case of a Custom Image ID. " + warningError,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
 						},
@@ -543,7 +543,7 @@ func (i *instanceResource) Schema(
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Market App ID that must be installed into the instance." + warningError,
+				Description: "Market App ID that must be installed into the instance. " + warningError,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},

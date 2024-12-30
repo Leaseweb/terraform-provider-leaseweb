@@ -67,7 +67,7 @@
 
 ## 1.11.0 (November 19, 2024)
 
-* feat(docs): let end user know which actions aren't supporetd by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
+* feat(docs): let end user know which actions aren't supported by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
 
 ## 1.10.0 (November 19, 2024)
 
