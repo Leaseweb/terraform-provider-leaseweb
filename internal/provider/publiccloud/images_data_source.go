@@ -2,11 +2,10 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
@@ -71,7 +70,8 @@ func adaptImageDetailsToImageDataSource(imageDetails publiccloud.ImageDetails) i
 func getAllImages(
 	ctx context.Context,
 	api publiccloud.PubliccloudAPI,
-) (imageDetailsList, *http.Response, error) {
+	diags *diag.Diagnostics,
+) imageDetailsList {
 	var images imageDetailsList
 	var offset *int32
 
@@ -80,7 +80,8 @@ func getAllImages(
 	for {
 		result, httpResponse, err := request.Execute()
 		if err != nil {
-			return nil, httpResponse, fmt.Errorf("getAllImages: %w", err)
+			utils.SdkError(ctx, diags, err, httpResponse)
+			return nil
 		}
 
 		images = append(images, result.GetImages()...)
@@ -100,7 +101,7 @@ func getAllImages(
 		request = request.Offset(*offset)
 	}
 
-	return images, nil, nil
+	return images
 }
 
 func imageSchemaAttributes() map[string]schema.Attribute {
@@ -164,9 +165,8 @@ func (i *imagesDataSource) Read(
 	_ datasource.ReadRequest,
 	response *datasource.ReadResponse,
 ) {
-	images, httpResponse, err := getAllImages(ctx, i.PubliccloudAPI)
-	if err != nil {
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+	images := getAllImages(ctx, i.PubliccloudAPI, &response.Diagnostics)
+	if response.Diagnostics.HasError() {
 		return
 	}
 

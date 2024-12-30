@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -75,7 +76,8 @@ type instanceResourceModel struct {
 func adaptInstanceDetailsToInstanceResource(
 	instanceDetails publiccloud.InstanceDetails,
 	ctx context.Context,
-) (*instanceResourceModel, error) {
+	diags *diag.Diagnostics,
+) *instanceResourceModel {
 	instance := instanceResourceModel{
 		ID:                  basetypes.NewStringValue(instanceDetails.GetId()),
 		Region:              basetypes.NewStringValue(string(instanceDetails.GetRegion())),
@@ -87,7 +89,7 @@ func adaptInstanceDetailsToInstanceResource(
 		MarketAppID:         basetypes.NewStringPointerValue(instanceDetails.MarketAppId.Get()),
 	}
 
-	image, err := utils.AdaptSdkModelToResourceObject(
+	image := utils.AdaptSdkModelToResourceObject(
 		instanceDetails.Image,
 		map[string]attr.Type{
 			"id":            types.StringType,
@@ -113,13 +115,14 @@ func adaptInstanceDetailsToInstanceResource(
 				StorageTypes: emptyList,
 			}
 		},
+		diags,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	if diags.HasError() {
+		return nil
 	}
 	instance.Image = image
 
-	ips, err := utils.AdaptSdkModelsToListValue(
+	ips := utils.AdaptSdkModelsToListValue(
 		instanceDetails.Ips,
 		map[string]attr.Type{
 			"reverse_lookup": types.StringType,
@@ -128,25 +131,27 @@ func adaptInstanceDetailsToInstanceResource(
 		},
 		ctx,
 		adaptIpDetailsToIPResource,
+		diags,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	if diags.HasError() {
+		return nil
 	}
 	instance.IPs = ips
 
-	contract, err := utils.AdaptSdkModelToResourceObject(
+	contract := utils.AdaptSdkModelToResourceObject(
 		instanceDetails.Contract,
 		contractResourceModel{}.attributeTypes(),
 		ctx,
 		adaptContractToContractResource,
+		diags,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	if diags.HasError() {
+		return nil
 	}
 	instance.Contract = contract
 
 	sdkIso, _ := instanceDetails.GetIsoOk()
-	iso, err := utils.AdaptNullableSdkModelToResourceObject(
+	iso := utils.AdaptNullableSdkModelToResourceObject(
 		sdkIso,
 		map[string]attr.Type{
 			"id":   types.StringType,
@@ -159,13 +164,14 @@ func adaptInstanceDetailsToInstanceResource(
 				Name: basetypes.NewStringValue(iso.GetName()),
 			}
 		},
+		diags,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptInstanceToInstanceResource: %w", err)
+	if diags.HasError() {
+		return nil
 	}
 	instance.ISO = iso
 
-	return &instance, nil
+	return &instance
 }
 
 func NewInstanceResource() resource.Resource {
@@ -236,9 +242,12 @@ func (i *instanceResource) Create(
 		return
 	}
 
-	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
-	if err != nil {
-		utils.GeneralError(&resp.Diagnostics, ctx, err)
+	state := adaptInstanceDetailsToInstanceResource(
+		*instanceDetails,
+		ctx,
+		&resp.Diagnostics,
+	)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -297,12 +306,12 @@ func (i *instanceResource) Read(
 		return
 	}
 
-	newState, err := adaptInstanceDetailsToInstanceResource(
+	newState := adaptInstanceDetailsToInstanceResource(
 		*instanceDetails,
 		ctx,
+		&resp.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&resp.Diagnostics, ctx, err)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -355,9 +364,12 @@ func (i *instanceResource) Update(
 		return
 	}
 
-	state, err := adaptInstanceDetailsToInstanceResource(*instanceDetails, ctx)
-	if err != nil {
-		utils.GeneralError(&resp.Diagnostics, ctx, err)
+	state := adaptInstanceDetailsToInstanceResource(
+		*instanceDetails,
+		ctx,
+		&resp.Diagnostics,
+	)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -413,7 +425,7 @@ func (i *instanceResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Required:    true,
-						Description: "Can be either an Operating System or a UUID in case of a Custom Image ID." + warningError,
+						Description: "Can be either an Operating System or a UUID in case of a Custom Image ID. " + warningError,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
 						},
@@ -543,7 +555,7 @@ func (i *instanceResource) Schema(
 			"market_app_id": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Market App ID that must be installed into the instance." + warningError,
+				Description: "Market App ID that must be installed into the instance. " + warningError,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},

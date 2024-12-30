@@ -2,12 +2,12 @@ package publiccloud
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -75,7 +75,8 @@ type loadBalancerListenerResourceModel struct {
 func adaptLoadBalancerListenerToLoadBalancerListenerResource(
 	loadBalancerListener publiccloud.LoadBalancerListener,
 	ctx context.Context,
-) (*loadBalancerListenerResourceModel, error) {
+	diags *diag.Diagnostics,
+) *loadBalancerListenerResourceModel {
 	listener := loadBalancerListenerResourceModel{
 		ListenerID: basetypes.NewStringValue(loadBalancerListener.GetId()),
 		Protocol:   basetypes.NewStringValue(string(loadBalancerListener.Protocol)),
@@ -83,22 +84,20 @@ func adaptLoadBalancerListenerToLoadBalancerListenerResource(
 	}
 
 	if len(loadBalancerListener.Rules) > 0 {
-		defaultRule, err := utils.AdaptSdkModelToResourceObject(
+		defaultRule := utils.AdaptSdkModelToResourceObject(
 			loadBalancerListener.Rules[0],
 			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
 			ctx,
 			adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource,
+			diags,
 		)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"adaptLoadBalancerListenerToLoadBalancerListenerResource: %w",
-				err,
-			)
+		if diags.HasError() {
+			return nil
 		}
 		listener.DefaultRule = defaultRule
 	}
 
-	return &listener, nil
+	return &listener
 }
 
 type loadBalancerListenerResource struct {
@@ -216,12 +215,12 @@ func (l *loadBalancerListenerResource) Create(
 		return
 	}
 
-	state, err := adaptLoadBalancerListenerToLoadBalancerListenerResource(
+	state := adaptLoadBalancerListenerToLoadBalancerListenerResource(
 		*loadBalancerListener,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -258,7 +257,7 @@ func (l *loadBalancerListenerResource) Read(
 		Port:       basetypes.NewInt32Value(loadBalancerListenerDetails.GetPort()),
 	}
 	if len(loadBalancerListenerDetails.SslCertificates) > 0 {
-		certificate, err := utils.AdaptSdkModelToResourceObject(
+		certificate := utils.AdaptSdkModelToResourceObject(
 			loadBalancerListenerDetails.SslCertificates[0],
 			map[string]attr.Type{
 				"private_key": types.StringType,
@@ -279,23 +278,23 @@ func (l *loadBalancerListenerResource) Read(
 
 				return listener
 			},
+			&response.Diagnostics,
 		)
-		if err != nil {
-			utils.GeneralError(&response.Diagnostics, ctx, err)
+		if response.Diagnostics.HasError() {
 			return
 		}
 		newState.Certificate = certificate
 	}
 
 	if len(loadBalancerListenerDetails.Rules) > 0 {
-		defaultRule, err := utils.AdaptSdkModelToResourceObject(
+		defaultRule := utils.AdaptSdkModelToResourceObject(
 			loadBalancerListenerDetails.Rules[0],
 			loadBalancerListenerDefaultRuleResourceModel{}.attributeTypes(),
 			ctx,
 			adaptLoadBalancerListenerRuleToLoadBalancerListenerDefaultRuleResource,
+			&response.Diagnostics,
 		)
-		if err != nil {
-			utils.GeneralError(&response.Diagnostics, ctx, err)
+		if response.Diagnostics.HasError() {
 			return
 		}
 		newState.DefaultRule = defaultRule
@@ -368,12 +367,12 @@ func (l *loadBalancerListenerResource) Update(
 		return
 	}
 
-	state, err := adaptLoadBalancerListenerToLoadBalancerListenerResource(
+	state := adaptLoadBalancerListenerToLoadBalancerListenerResource(
 		*loadBalancerListener,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -33,23 +34,26 @@ type imageResourceModel struct {
 func adaptImageDetailsToImageResource(
 	ctx context.Context,
 	imageDetails publiccloud.ImageDetails,
-) (*imageResourceModel, error) {
-	marketApps, diags := basetypes.NewListValueFrom(
+	diags *diag.Diagnostics,
+) *imageResourceModel {
+	marketApps, marketAppsDiags := basetypes.NewListValueFrom(
 		ctx,
 		basetypes.StringType{},
 		imageDetails.MarketApps,
 	)
-	if diags.HasError() {
-		return nil, fmt.Errorf(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
+	if marketAppsDiags.HasError() {
+		diags.Append(marketAppsDiags...)
+		return nil
 	}
 
-	storageTypes, diags := basetypes.NewListValueFrom(
+	storageTypes, storageTypesDiags := basetypes.NewListValueFrom(
 		ctx,
 		basetypes.StringType{},
 		imageDetails.StorageTypes,
 	)
-	if diags.HasError() {
-		return nil, fmt.Errorf(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
+	if storageTypesDiags.HasError() {
+		diags.Append(storageTypesDiags...)
+		return nil
 	}
 
 	image := imageResourceModel{
@@ -63,7 +67,7 @@ func adaptImageDetailsToImageResource(
 		Region:       basetypes.NewStringValue(string(imageDetails.GetRegion())),
 	}
 
-	return &image, nil
+	return &image
 }
 
 type imageResource struct {
@@ -145,16 +149,24 @@ func (i *imageResource) Create(
 	}
 
 	imageDetails, httpResponse, err := i.PubliccloudAPI.CreateImage(ctx).
-		CreateImageOpts(*publiccloud.NewCreateImageOpts(plan.Name.ValueString(), plan.InstanceID.ValueString())).
+		CreateImageOpts(
+			*publiccloud.NewCreateImageOpts(
+				plan.Name.ValueString(),
+				plan.InstanceID.ValueString(),
+			),
+		).
 		Execute()
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
 
-	state, err := adaptImageDetailsToImageResource(ctx, *imageDetails)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	state := adaptImageDetailsToImageResource(
+		ctx,
+		*imageDetails,
+		&response.Diagnostics,
+	)
+	if response.Diagnostics.HasError() {
 		return
 	}
 	// instanceId has to be set manually as it isn't returned from the API
@@ -174,9 +186,8 @@ func (i *imageResource) Read(
 		return
 	}
 
-	images, httpResponse, err := getAllImages(ctx, i.PubliccloudAPI)
-	if err != nil {
-		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
+	images := getAllImages(ctx, i.PubliccloudAPI, &response.Diagnostics)
+	if response.Diagnostics.HasError() {
 		return
 	}
 	imageDetails := images.findById(currentState.ID.ValueString())
@@ -184,14 +195,20 @@ func (i *imageResource) Read(
 		utils.GeneralError(
 			&response.Diagnostics,
 			ctx,
-			fmt.Errorf("imageDetails  %s not found", currentState.ID.ValueString()),
+			fmt.Errorf(
+				"imageDetails  %s not found",
+				currentState.ID.ValueString(),
+			),
 		)
 		return
 	}
 
-	state, err := adaptImageDetailsToImageResource(ctx, *imageDetails)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	state := adaptImageDetailsToImageResource(
+		ctx,
+		*imageDetails,
+		&response.Diagnostics,
+	)
+	if response.Diagnostics.HasError() {
 		return
 	}
 	// instanceId has to be set manually as it isn't returned from the API
@@ -221,9 +238,12 @@ func (i *imageResource) Update(
 		return
 	}
 
-	state, err := adaptImageDetailsToImageResource(ctx, *imageDetails)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	state := adaptImageDetailsToImageResource(
+		ctx,
+		*imageDetails,
+		&response.Diagnostics,
+	)
+	if response.Diagnostics.HasError() {
 		return
 	}
 

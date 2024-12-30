@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -42,26 +41,21 @@ func AdaptSdkModelToResourceObject[T any, U any](
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
 	generateResourceObject func(sdkModel T) U,
-) (basetypes.ObjectValue, error) {
+	diags *diag.Diagnostics,
+) basetypes.ObjectValue {
 	resourceObject := generateResourceObject(sdkModel)
 
-	objectValue, diags := types.ObjectValueFrom(
+	objectValue, objectDiags := types.ObjectValueFrom(
 		ctx,
 		attributeTypes,
 		resourceObject,
 	)
-	if diags.HasError() {
-		for _, v := range diags {
-			return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-				"unable to convert sdk sdkModel to resource: %q %q",
-				v.Summary(),
-				v.Detail(),
-			)
-		}
-
+	if objectDiags.HasError() {
+		diags.Append(objectDiags...)
+		return types.ObjectUnknown(attributeTypes)
 	}
 
-	return objectValue, nil
+	return objectValue
 }
 
 // AdaptNullableSdkModelToResourceObject converts a nullable sdk model to a Terraform resource object.
@@ -70,30 +64,25 @@ func AdaptNullableSdkModelToResourceObject[T interface{}, U interface{}](
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
 	generateResourceObject func(sdkModel T) U,
-) (basetypes.ObjectValue, error) {
+	diags *diag.Diagnostics,
+) basetypes.ObjectValue {
 	if sdkModel == nil {
-		return basetypes.NewObjectNull(attributeTypes), nil
+		return basetypes.NewObjectNull(attributeTypes)
 	}
 
 	resourceObject := generateResourceObject(*sdkModel)
 
-	objectValue, diags := types.ObjectValueFrom(
+	objectValue, objectDiags := types.ObjectValueFrom(
 		ctx,
 		attributeTypes,
 		resourceObject,
 	)
-	if diags.HasError() {
-		for _, v := range diags {
-			return types.ObjectUnknown(attributeTypes), fmt.Errorf(
-				"unable to convert sdk sdkModel to resource: %q %q",
-				v.Summary(),
-				v.Detail(),
-			)
-		}
-
+	if objectDiags.HasError() {
+		diags.Append(objectDiags...)
+		return types.ObjectUnknown(attributeTypes)
 	}
 
-	return objectValue, nil
+	return objectValue
 }
 
 // AdaptSdkModelsToListValue converts a sdk model array to a Terraform
@@ -103,31 +92,26 @@ func AdaptSdkModelsToListValue[T any, U any](
 	attributeTypes map[string]attr.Type,
 	ctx context.Context,
 	generateModel func(sdkModel T) U,
-) (basetypes.ListValue, error) {
+	diags *diag.Diagnostics,
+) basetypes.ListValue {
 	var listValues []U
 
 	for _, value := range sdkModels {
 		listValues = append(listValues, generateModel(value))
 	}
 
-	listObject, diags := types.ListValueFrom(
+	listObject, listDiags := types.ListValueFrom(
 		ctx,
 		types.ObjectType{AttrTypes: attributeTypes},
 		listValues,
 	)
 
-	if diags.HasError() {
-		for _, v := range diags {
-			return types.ListUnknown(
-					types.ObjectType{AttrTypes: attributeTypes}), fmt.Errorf(
-					"unable to convert sdk model to resource: %q %q",
-					v.Summary(),
-					v.Detail(),
-				)
-		}
+	if listDiags.HasError() {
+		diags.Append(listDiags...)
+		return types.ListUnknown(types.ObjectType{AttrTypes: attributeTypes})
 	}
 
-	return listObject, nil
+	return listObject
 }
 
 // AdaptStringPointerValueToNullableString converts a Terraform
@@ -138,20 +122,6 @@ func AdaptStringPointerValueToNullableString(value types.String) *string {
 	}
 
 	return value.ValueStringPointer()
-}
-
-// ReturnError returns the first diagnostics error as a golang Error.
-func ReturnError(functionName string, diags diag.Diagnostics) error {
-	for _, diagError := range diags {
-		return fmt.Errorf(
-			"%s: %q %q",
-			functionName,
-			diagError.Summary(),
-			diagError.Detail(),
-		)
-	}
-
-	return nil
 }
 
 func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
@@ -63,9 +64,15 @@ func Test_adaptInstanceDetailsToInstanceResource(t *testing.T) {
 		Iso: *publiccloud.NewNullableIso(&isoSdk),
 	}
 
-	got, err := adaptInstanceDetailsToInstanceResource(instance, context.TODO())
+	diags := diag.Diagnostics{}
 
-	require.NoError(t, err)
+	got := adaptInstanceDetailsToInstanceResource(
+		instance,
+		context.TODO(),
+		&diags,
+	)
+
+	require.False(t, diags.HasError())
 
 	assert.Equal(t, "id", got.ID.ValueString())
 	assert.Equal(t, "region", got.Region.ValueString())

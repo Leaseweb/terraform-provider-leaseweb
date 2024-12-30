@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -34,7 +35,8 @@ type loadBalancerResourceModel struct {
 func adaptLoadBalancerDetailsToLoadBalancerResource(
 	loadBalancerDetails publiccloud.LoadBalancerDetails,
 	ctx context.Context,
-) (*loadBalancerResourceModel, error) {
+	diags *diag.Diagnostics,
+) *loadBalancerResourceModel {
 	loadBalancer := loadBalancerResourceModel{
 		ID:        basetypes.NewStringValue(loadBalancerDetails.GetId()),
 		Region:    basetypes.NewStringValue(string(loadBalancerDetails.GetRegion())),
@@ -42,18 +44,19 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 		Reference: basetypes.NewStringPointerValue(loadBalancerDetails.Reference.Get()),
 	}
 
-	contract, err := utils.AdaptSdkModelToResourceObject(
+	contract := utils.AdaptSdkModelToResourceObject(
 		loadBalancerDetails.Contract,
 		contractResourceModel{}.attributeTypes(),
 		ctx,
 		adaptContractToContractResource,
+		diags,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("adaptLoadBalancerDetailsToLoadBalancerResource: %w", err)
+	if diags.HasError() {
+		return nil
 	}
 	loadBalancer.Contract = contract
 
-	return &loadBalancer, nil
+	return &loadBalancer
 }
 
 type loadBalancerResource struct {
@@ -196,12 +199,12 @@ func (l *loadBalancerResource) Create(
 		return
 	}
 
-	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
+	state := adaptLoadBalancerDetailsToLoadBalancerResource(
 		*loadBalancer,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -227,9 +230,12 @@ func (l *loadBalancerResource) Read(
 		return
 	}
 
-	newState, err := adaptLoadBalancerDetailsToLoadBalancerResource(*loadBalancerDetails, ctx)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	newState := adaptLoadBalancerDetailsToLoadBalancerResource(
+		*loadBalancerDetails,
+		ctx,
+		&response.Diagnostics,
+	)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -261,12 +267,13 @@ func (l *loadBalancerResource) Update(
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
 		return
 	}
-	state, err := adaptLoadBalancerDetailsToLoadBalancerResource(
+	state := adaptLoadBalancerDetailsToLoadBalancerResource(
 		*loadBalancerDetails,
 		ctx,
+		&response.Diagnostics,
 	)
-	if err != nil {
-		utils.GeneralError(&response.Diagnostics, ctx, err)
+	if response.Diagnostics.HasError() {
+		return
 	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, state)...)

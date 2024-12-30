@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.16.0...v1.17.0) (2024-12-24)
+
+
+### Features
+
+* implement dns resource record sets data source ([9214c36](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/9214c361d8151940974b0480b32f59f5d2ac3663))
+
 ## [1.16.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.15.0...v1.16.0) (2024-12-12)
 
 
@@ -60,7 +67,7 @@
 
 ## 1.11.0 (November 19, 2024)
 
-* feat(docs): let end user know which actions aren't supporetd by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
+* feat(docs): let end user know which actions aren't supported by @alrayyes in https://github.com/Leaseweb/terraform-provider-leaseweb/pull/161
 
 ## 1.10.0 (November 19, 2024)
 
