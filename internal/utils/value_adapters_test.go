@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/leaseweb/leaseweb-go-sdk/v3/publiccloud"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestAdaptInt32PointerValueToNullableInt32(t *testing.T) {
@@ -96,31 +95,37 @@ func TestAdaptDomainEntityToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
-		got, err := AdaptSdkModelToResourceObject(
+		diags := diag.Diagnostics{}
+
+		got := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{},
 			context.TODO(),
 			func(entity mockDomainEntity) (model mockModel) {
 				return mockModel{}
 			},
+			&diags,
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		require.Error(t, err)
-		require.ErrorContains(t, err, "Value Conversion Error")
+		assert.Len(t, diags.Errors(), 1)
+		assert.Equal(t, "Value Conversion Error", diags.Errors()[0].Summary())
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
-		got, diags := AdaptSdkModelToResourceObject(
+		diags := diag.Diagnostics{}
+
+		got := AdaptSdkModelToResourceObject(
 			entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
 			func(entity mockDomainEntity) mockModel {
 				return mockModel{Value: "tralala"}
 			},
+			&diags,
 		)
 
-		require.NoError(t, diags)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
 	})
 }
@@ -131,16 +136,19 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"slice can successfully be converted into a ListValue",
 		func(t *testing.T) {
-			got, diags := AdaptSdkModelsToListValue(
+			diags := diag.Diagnostics{}
+
+			got := AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{"value": types.StringType},
 				context.TODO(),
 				func(entity mockDomainEntity) mockModel {
 					return mockModel{Value: "tralala"}
 				},
+				&diags,
 			)
 
-			require.NoError(t, diags)
+			assert.False(t, diags.HasError())
 			assert.Len(t, got.Elements(), 1)
 			assert.JSONEq(
 				t,
@@ -153,17 +161,19 @@ func TestAdaptDomainSliceToListValue(t *testing.T) {
 	t.Run(
 		"error is returned if passed attributeTypes are incorrect",
 		func(t *testing.T) {
-			_, err := AdaptSdkModelsToListValue(
+			diags := diag.Diagnostics{}
+			_ = AdaptSdkModelsToListValue(
 				[]mockDomainEntity{entity},
 				map[string]attr.Type{},
 				context.TODO(),
 				func(entity mockDomainEntity) mockModel {
 					return mockModel{Value: "tralala"}
 				},
+				&diags,
 			)
 
-			require.Error(t, err)
-			require.ErrorContains(t, err, "Value Conversion Error")
+			assert.Len(t, diags.Errors(), 1)
+			assert.Equal(t, "Value Conversion Error", diags.Errors()[0].Summary())
 		},
 	)
 }
@@ -208,7 +218,7 @@ func ExampleAdaptSdkModelToResourceObject() {
 		Id types.String `tfsdk:"id"`
 	}
 
-	resourceModel, _ := AdaptSdkModelToResourceObject(
+	resourceModel := AdaptSdkModelToResourceObject(
 		publiccloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
@@ -219,6 +229,7 @@ func ExampleAdaptSdkModelToResourceObject() {
 				Id: basetypes.NewStringValue(image.Id),
 			}
 		},
+		&diag.Diagnostics{},
 	)
 
 	fmt.Println(resourceModel)
@@ -230,7 +241,7 @@ func ExampleAdaptSdkModelsToListValue() {
 		Ip types.String `tfsdk:"ip"`
 	}
 
-	listValue, _ := AdaptSdkModelsToListValue(
+	listValue := AdaptSdkModelsToListValue(
 		[]publiccloud.Ip{{Ip: "1.2.3.4"}},
 		map[string]attr.Type{
 			"ip": types.StringType,
@@ -241,31 +252,11 @@ func ExampleAdaptSdkModelsToListValue() {
 				Ip: basetypes.NewStringValue(ip.Ip),
 			}
 		},
+		&diag.Diagnostics{},
 	)
 
 	fmt.Println(listValue)
 	// Output: [{"ip":"1.2.3.4"}]
-}
-
-func TestReturnError(t *testing.T) {
-	t.Run("diagnostics contain errors", func(t *testing.T) {
-		diags := diag.Diagnostics{}
-		diags.AddError("summary", "detail")
-
-		got := ReturnError("functionName", diags)
-		want := `functionName: "summary" "detail"`
-
-		require.Error(t, got)
-		assert.Equal(t, want, got.Error())
-	})
-
-	t.Run("diagnostics do not contain errors", func(t *testing.T) {
-		diags := diag.Diagnostics{}
-
-		got := ReturnError("functionName", diags)
-
-		require.NoError(t, got)
-	})
 }
 
 func ExampleAdaptStringPointerValueToNullableString() {
@@ -285,16 +276,6 @@ func ExampleAdaptStringPointerValueToNullableString_second() {
 
 	fmt.Println(convertedValue)
 	// Output: <nil>
-}
-
-func ExampleReturnError() {
-	diags := diag.Diagnostics{}
-	diags.AddError("summary", "detail")
-
-	returnedErrors := ReturnError("functionName", diags)
-
-	fmt.Println(returnedErrors)
-	// Output:  functionName: "summary" "detail"
 }
 
 func TestAdaptStringTypeArrayToStringArray(t *testing.T) {
@@ -348,45 +329,53 @@ func TestAdaptNullableSdkModelToResourceObject(t *testing.T) {
 	entity := mockDomainEntity{}
 
 	t.Run("attributeTypes are incorrect", func(t *testing.T) {
-		got, err := AdaptNullableSdkModelToResourceObject(
+		diags := diag.Diagnostics{}
+
+		got := AdaptNullableSdkModelToResourceObject(
 			&entity,
 			map[string]attr.Type{},
 			context.TODO(),
 			func(entity mockDomainEntity) (model mockModel) {
 				return mockModel{}
 			},
+			&diags,
 		)
 
 		assert.Equal(t, types.ObjectUnknown(map[string]attr.Type{}), got)
-		require.Error(t, err)
-		require.ErrorContains(t, err, "Value Conversion Error")
+		assert.Len(t, diags.Errors(), 1)
+		assert.Equal(t, "Value Conversion Error", diags.Errors()[0].Summary())
 	})
 
 	t.Run("sdkModel is processed properly", func(t *testing.T) {
-		got, diags := AdaptNullableSdkModelToResourceObject(
+		diags := diag.Diagnostics{}
+		got := AdaptNullableSdkModelToResourceObject(
 			&entity,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
 			func(entity mockDomainEntity) mockModel {
 				return mockModel{Value: "tralala"}
 			},
+			&diags,
 		)
 
-		require.NoError(t, diags)
+		assert.False(t, diags.HasError())
 		assert.Equal(t, "\"tralala\"", got.Attributes()["value"].String())
 	})
 
 	t.Run("passing nil returns a Null object", func(t *testing.T) {
-		got, diags := AdaptNullableSdkModelToResourceObject(
+		diags := diag.Diagnostics{}
+
+		got := AdaptNullableSdkModelToResourceObject(
 			nil,
 			map[string]attr.Type{"value": types.StringType},
 			context.TODO(),
 			func(entity mockDomainEntity) mockModel {
 				return mockModel{Value: "tralala"}
 			},
+			&diags,
 		)
 
-		require.NoError(t, diags)
+		assert.False(t, diags.HasError())
 		assert.True(t, got.IsNull())
 	})
 }
@@ -396,7 +385,7 @@ func ExampleAdaptNullableSdkModelToResourceObject() {
 		Id types.String `tfsdk:"id"`
 	}
 
-	resourceModel, _ := AdaptNullableSdkModelToResourceObject(
+	resourceModel := AdaptNullableSdkModelToResourceObject(
 		&publiccloud.Image{Id: "imageId"},
 		map[string]attr.Type{
 			"id": types.StringType,
@@ -407,6 +396,7 @@ func ExampleAdaptNullableSdkModelToResourceObject() {
 				Id: basetypes.NewStringValue(image.Id),
 			}
 		},
+		&diag.Diagnostics{},
 	)
 
 	fmt.Println(resourceModel)
@@ -418,7 +408,7 @@ func ExampleAdaptNullableSdkModelToResourceObject_second() {
 		Id types.String `tfsdk:"id"`
 	}
 
-	resourceModel, _ := AdaptNullableSdkModelToResourceObject(
+	resourceModel := AdaptNullableSdkModelToResourceObject(
 		nil,
 		map[string]attr.Type{
 			"id": types.StringType,
@@ -429,6 +419,7 @@ func ExampleAdaptNullableSdkModelToResourceObject_second() {
 				Id: basetypes.NewStringValue(image.Id),
 			}
 		},
+		&diag.Diagnostics{},
 	)
 
 	fmt.Println(resourceModel)
