@@ -3390,8 +3390,6 @@ func TestAccDnsResourceRecordSetsDataSource(t *testing.T) {
 	})
 }
 
-
-
 func TestAccDNSResourceRecordSetResource(t *testing.T) {
 	t.Run("content is required", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
