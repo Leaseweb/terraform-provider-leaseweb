@@ -188,5 +188,6 @@ func (p *leasewebProvider) Resources(_ context.Context) []func() resource.Resour
 		publiccloud.NewIPResource,
 		publiccloud.NewInstanceIsoResource,
 		dns.NewResourceRecordSetsResource,
+		ipmgmt.NewIPResource,
 	}
 }

@@ -4008,3 +4008,130 @@ func TestAccIPmgmtDataSource(t *testing.T) {
 		})
 	})
 }
+
+func TestIPMgmtIPResourceResource(t *testing.T) {
+	t.Run("creating a new IP throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_ip" "test" {
+					  ip = "1.2.3.4"
+					}
+					`,
+					ExpectError: regexp.MustCompile(
+						"Resource can only be imported, not created.",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("imports and updates an IP", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// ImportState testing
+				{
+					Config: providerConfig + `
+					  resource "leaseweb_ipmgmt_ip" "test" {
+					    ip    = "192.0.2.1"
+					  }
+					  `,
+					ResourceName:                         "leaseweb_ipmgmt_ip.test",
+					ImportState:                          true,
+					ImportStatePersist:                   true,
+					ImportStateId:                        "192.0.2.1",
+					ImportStateVerifyIdentifierAttribute: "ip",
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+						resource "leaseweb_ipmgmt_ip" "test" {
+						    ip    = "192.0.2.1"
+						}
+					`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"assigned_contract.id",
+							"5643634",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"equipment_id",
+							"1234",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"ip",
+							"192.0.2.1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"null_level",
+							"0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"null_routed",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"prefix_length",
+							"32",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"primary",
+							"true",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"reverse_lookup",
+							"mydomain1.example.com",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"subnet.gateway",
+							"192.0.2.254",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"subnet.id",
+							"192.0.2.0_24",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"subnet.network_ip",
+							"192.0.2.0",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"subnet.prefix_length",
+							"24",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"type",
+							"NORMAL_IP",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"unnulling_allowed",
+							"false",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_ip.test",
+							"version",
+							"4",
+						),
+					),
+				},
+			},
+			// Delete testing automatically occurs in TestCase
+		})
+	})
+}
