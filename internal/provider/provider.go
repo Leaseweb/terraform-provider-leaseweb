@@ -169,6 +169,7 @@ func (p *leasewebProvider) DataSources(_ context.Context) []func() datasource.Da
 		publiccloud.NewISOsDataSource,
 		dns.NewResourceRecordSetsDataSource,
 		ipmgmt.NewIPsDataSource,
+		ipmgmt.NewNullRouteHistoryDataSource,
 	}
 }
 
