@@ -15,6 +15,10 @@ import (
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
+var (
+	_ datasource.DataSourceWithConfigure = &ipsDataSource{}
+)
+
 type ipsDataSourceModel struct {
 	AssignedContractIDs []string     `tfsdk:"assigned_contract_ids"`
 	EquipmentIDs        []string     `tfsdk:"equipment_ids"`
@@ -57,10 +61,6 @@ type subnetDataSourceModel struct {
 	NetworkIP    types.String `tfsdk:"network_ip"`
 	PrefixLength types.Int32  `tfsdk:"prefix_length"`
 }
-
-var (
-	_ datasource.DataSourceWithConfigure = &ipsDataSource{}
-)
 
 type ipsDataSource struct{ utils.DataSourceAPI }
 

@@ -3702,7 +3702,7 @@ func TestAccDNSResourceRecordSetResource(t *testing.T) {
 	})
 }
 
-func TestAccIPmgmtDataSource(t *testing.T) {
+func TestAccIPmgmtIpsDataSource(t *testing.T) {
 	t.Run("data source works", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -4132,6 +4132,226 @@ func TestIPMgmtIPResourceResource(t *testing.T) {
 				},
 			},
 			// Delete testing automatically occurs in TestCase
+		})
+	})
+}
+func TestAccIPmgmtNullRouteHistoryDataSource(t *testing.T) {
+	t.Run("data source works", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Read testing
+				{
+					Config: providerConfig + `data "leaseweb_ipmgmt_null_route_history" "test" {}`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.#",
+							"2",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.assigned_contract.id",
+							"123456",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.automatic_unnulling_at",
+							"2015-06-28 13:00:00 +0000 UTC",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.comment",
+							"This IP is evil",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.equipment_id",
+							"456",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.id",
+							"4534536",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.ip",
+							"192.0.2.1",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.nulled_at",
+							"2015-06-28 12:00:00 +0000 UTC",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.nulled_by",
+							"john.doe@example.com",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.null_level",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"data.leaseweb_ipmgmt_null_route_history.test",
+							"nullroutes.0.ticket_id",
+							"188612",
+						),
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("can filter contract_id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							contract_id = "123"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter equipment_id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							equipment_id = "123"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter from_date", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							from_date = "2022-12-02"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter from_ip", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							from_ip = "123"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter nulled_by", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							nulled_by = "john@example.com"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can sort", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							sort = ["ip"]
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter ticket_id", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							ticket_id = "1234"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter to_date", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							to_date = "2022-12-02"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter to_ip", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							to_ip = "123"
+						}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("can filter unnulled_by", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+						data "leaseweb_ipmgmt_null_route_history" "test" {
+							unnulled_by = "john@example.com"
+						}
+					`,
+				},
+			},
 		})
 	})
 }
