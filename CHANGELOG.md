@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.19.0...v1.20.0) (2024-12-31)
+
+
+### Features
+
+* implement null route history data source ([1c2df56](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/1c2df56ec8b1f3e1e9e1d0b47ce71c7cd287101d))
+
 ## [1.19.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.18.0...v1.19.0) (2024-12-30)
 
 
