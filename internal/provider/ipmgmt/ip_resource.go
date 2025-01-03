@@ -95,10 +95,6 @@ func adaptIPToIPResourceModel(
 	}
 }
 
-type assignedContractResourceModel struct {
-	ID types.String `tfsdk:"id"`
-}
-
 type subnetResourceModel struct {
 	Gateway      types.String `tfsdk:"gateway"`
 	ID           types.String `tfsdk:"id"`
