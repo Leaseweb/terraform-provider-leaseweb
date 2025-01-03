@@ -88,7 +88,6 @@ func (l *loadBalancerResource) Schema(
 	)
 
 	response.Schema = schema.Schema{
-		Description: utils.BetaDescription,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
