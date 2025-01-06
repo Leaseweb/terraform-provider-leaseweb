@@ -43,6 +43,10 @@ require (
 	github.com/hashicorp/terraform-registry-address v0.2.3 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
+	github.com/leaseweb/leaseweb-go-sdk v1.5.0 // indirect
+	github.com/leaseweb/leaseweb-go-sdk/abuse v0.0.0-20241230095423-e1ad88be3188 // indirect
+	github.com/leaseweb/leaseweb-go-sdk/aggregationpack v0.0.0-20241230095423-e1ad88be3188 // indirect
+	github.com/leaseweb/leaseweb-go-sdk/invoice v0.0.0-20241230095423-e1ad88be3188 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect

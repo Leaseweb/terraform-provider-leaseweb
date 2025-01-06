@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -112,14 +114,19 @@ func (n nullRouteResource) Schema(
 			"id": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "IP address or IP address with prefixLength {ip}_{prefix}. If prefixLength is not given, then we assume 32 (for IPv4) or 128 (for IPv6). PrefixLength is mandatory for IP range, for example, the IPv6 address range with prefixLength = 112",
+				Description: "Null route ID",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"ip": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "IP address",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-
 			"assigned_contract": schema.SingleNestedAttribute{
 				Description: "An explanation about the purpose of this instance",
 				Computed:    true,
@@ -286,7 +293,7 @@ func (n nullRouteResource) Update(
 		return
 	}
 
-	if plan.ID.IsNull() {
+	if plan.ID.IsNull() || plan.ID.IsUnknown() {
 		response.Diagnostics.AddAttributeError(
 			path.Root("id"),
 			"Attribute not set",
@@ -296,7 +303,7 @@ func (n nullRouteResource) Update(
 	}
 
 	opts := ipmgmt.NewUpdateNullRouteOpts()
-	if !plan.AutomaticUnnullingAt.IsNull() {
+	if !plan.AutomaticUnnullingAt.IsNull() && !plan.AutomaticUnnullingAt.IsUnknown() {
 		automatedUnnullingAt, err := time.Parse(
 			"2006-01-02 15:04:05 -0700 MST",
 			plan.AutomaticUnnullingAt.ValueString(),
@@ -307,15 +314,15 @@ func (n nullRouteResource) Update(
 		}
 		opts.SetAutomatedUnnullingAt(automatedUnnullingAt)
 	}
-	if !plan.Comment.IsNull() {
+	if !plan.Comment.IsNull() && !plan.Comment.IsUnknown() {
 		opts.SetComment(plan.Comment.ValueString())
 	}
-	if !plan.TicketID.IsNull() {
+	if !plan.TicketID.IsNull() && !plan.TicketID.IsUnknown() {
 		opts.SetTicketId(plan.TicketID.ValueString())
 	}
 	nullRoutedIP, httpResponse, err := n.IPmgmtAPI.UpdateNullRoute(
 		ctx,
-		plan.IP.ValueString(),
+		plan.ID.ValueString(),
 	).UpdateNullRouteOpts(*opts).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
@@ -345,18 +352,18 @@ func (n nullRouteResource) Delete(
 		return
 	}
 
-	if state.ID.IsNull() {
+	if state.IP.IsNull() || state.IP.IsUnknown() {
 		response.Diagnostics.AddAttributeError(
-			path.Root("id"),
+			path.Root("ip"),
 			"Attribute not set",
-			"Attribute id value must be set to delete a null route",
+			"Attribute ip value must be set to delete a null route",
 		)
 		return
 	}
 
 	httpResponse, err := n.IPmgmtAPI.RemoveIPNullRoute(
 		ctx,
-		state.ID.ValueString(),
+		state.IP.ValueString(),
 	).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &response.Diagnostics, err, httpResponse)
