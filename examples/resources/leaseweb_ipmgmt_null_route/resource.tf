@@ -5,7 +5,7 @@ resource "leaseweb_ipmgmt_null_route" "nr" {
 
 # Update comment for a null route history
 resource "leaseweb_ipmgmt_null_route" "nr" {
-  id      = "123456"
+  ip      = "127.0.0.1"
   comment = "this is comment"
 }
 
