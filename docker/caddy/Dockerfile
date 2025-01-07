@@ -1,1 +1,1 @@
-FROM caddy:2.8-alpine@sha256:e97e0e3f8f51be708a9d5fadbbd75e3398c22fc0eecd4b26d48561e3f7daa9eb
+FROM caddy:2.8-alpine@sha256:fea55ae5ce2e5c07dd3d592cc34862504075d55d505d731cdc2a3f051d70d39c
