@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.20.0...v1.20.1) (2025-01-10)
+
+
+### Bug Fixes
+
+* import dedicated server ([#257](https://github.com/Leaseweb/terraform-provider-leaseweb/issues/257)) ([55cf551](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/55cf5516a2fd07249c0b294d703001bf79331268))
+
 ## [1.20.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.19.0...v1.20.0) (2024-12-31)
 
 
