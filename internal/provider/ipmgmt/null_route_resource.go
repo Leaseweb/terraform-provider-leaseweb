@@ -194,7 +194,7 @@ func (n nullRouteResource) Create(
 		return
 	}
 
-	if plan.IP.IsNull() || plan.IP.IsUnknown() {
+	if utils.AdaptStringPointerValueToNullableString(plan.IP) == nil {
 		response.Diagnostics.AddAttributeError(
 			path.Root("ip"),
 			"Attribute not set",
@@ -215,12 +215,10 @@ func (n nullRouteResource) Create(
 		}
 		opts.SetAutomatedUnnullingAt(automatedUnnullingAt)
 	}
-	if !plan.Comment.IsNull() && !plan.Comment.IsUnknown() {
-		opts.SetComment(plan.Comment.ValueString())
-	}
-	if !plan.TicketID.IsNull() && !plan.TicketID.IsUnknown() {
-		opts.SetTicketId(plan.TicketID.ValueString())
-	}
+
+	opts.Comment = utils.AdaptStringPointerValueToNullableString(plan.Comment)
+	opts.TicketId = utils.AdaptStringPointerValueToNullableString(plan.TicketID)
+
 	nullRoutedIP, httpResponse, err := n.IPmgmtAPI.NullRouteIP(
 		ctx,
 		plan.IP.ValueString(),
