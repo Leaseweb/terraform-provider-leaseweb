@@ -67,7 +67,7 @@ func (s *serverResource) Schema(
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Required:    true,
+				Computed:    true,
 				Description: "The unique identifier of the server.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -170,11 +170,10 @@ func (s *serverResource) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	// Getting server info
 	server, httpResponse, err := s.DedicatedserverAPI.GetServer(
 		ctx,
-		state.ID.String(),
+		state.ID.ValueString(),
 	).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
@@ -242,7 +241,7 @@ func (s *serverResource) Read(
 	// Getting server power info
 	getServerPowerStatusResult, httpResponse, err := s.DedicatedserverAPI.GetServerPowerStatus(
 		ctx,
-		state.ID.String(),
+		state.ID.ValueString(),
 	).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
@@ -257,7 +256,7 @@ func (s *serverResource) Read(
 	var publicNetworkOpened bool
 	operationNetworkInterface, httpResponse, err := s.DedicatedserverAPI.GetNetworkInterface(
 		ctx,
-		state.ID.String(),
+		state.ID.ValueString(),
 		dedicatedserver.NETWORKTYPEURL_PUBLIC,
 	).Execute()
 	if err != nil && httpResponse != nil && httpResponse.StatusCode != http.StatusNotFound {
@@ -274,7 +273,7 @@ func (s *serverResource) Read(
 	// Getting server DHCP info
 	getServerDhcpReservationListResult, httpResponse, err := s.DedicatedserverAPI.GetServerDhcpReservationList(
 		ctx,
-		state.ID.String(),
+		state.ID.ValueString(),
 	).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, httpResponse)
@@ -291,7 +290,7 @@ func (s *serverResource) Read(
 	if publicIP != "" {
 		ip, httpResponse, err := s.DedicatedserverAPI.GetServerIp(
 			ctx,
-			state.ID.String(),
+			state.ID.ValueString(),
 			publicIP,
 		).Execute()
 		if err != nil {

@@ -2886,7 +2886,6 @@ func TestAccDedicatedServerResource(t *testing.T) {
 				{
 					Config: providerConfig + `
 					  resource "leaseweb_dedicated_server" "test" {
-					    id    = "12345"
 					  }
 					  `,
 					ResourceName:       "leaseweb_dedicated_server.test",
@@ -2898,10 +2897,14 @@ func TestAccDedicatedServerResource(t *testing.T) {
 				{
 					Config: providerConfig + `
 					  resource "leaseweb_dedicated_server" "test" {
-					    id    = "12345"
 					  }
 					  `,
 					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_dedicated_server.test",
+							"id",
+							"12345",
+						),
 						resource.TestCheckResourceAttr(
 							"leaseweb_dedicated_server.test",
 							"reference",
@@ -2981,7 +2984,7 @@ func TestAccDedicatedServerResource(t *testing.T) {
 				{
 					Config: providerConfig + `
 					resource "leaseweb_dedicated_server" "test" {
-					  id    = "12345"
+					  reference    = "ref"
 					}
 					`,
 					ExpectError: regexp.MustCompile(
