@@ -4253,3 +4253,244 @@ func TestAccIPmgmtNullRouteHistoryDataSource(t *testing.T) {
 		})
 	})
 }
+
+func TestAccIpmgmtNullRouteResource(t *testing.T) {
+	t.Run("creates and updates a null route", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				// Create and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+					  ip = "192.0.2.1"
+					}
+					`,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"id",
+							"4534536",
+						),
+
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"assigned_contract.id",
+							"123456",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"automatic_unnulling_at",
+							"2015-06-25 11:13:00 +0000 UTC",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"comment",
+							"This IP is evil",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"equipment_id",
+							"456",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"nulled_at",
+							"2015-06-28 12:00:00 +0000 UTC",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"nulled_by",
+							"john.doe@example.com",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"null_level",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_ipmgmt_null_route.test",
+							"ticket_id",
+							"188612",
+						),
+					),
+				},
+				// ImportState testing
+				{
+					ResourceName:      "leaseweb_ipmgmt_null_route.test",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				// Update and Read testing
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						id = "4534536"
+					}
+					`,
+				},
+			},
+
+			// Delete testing automatically occurs in TestCase
+		})
+	})
+
+	t.Run("invalid automatic_nulling_at throws an error", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						automatic_unnulling_at = "tralala"
+					}
+					`,
+					ExpectError: regexp.MustCompile(
+						"Attribute automatic_unnulling_at must be specified using the RFC3339 format",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("ip must be set when creating a null route", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+					}
+					`,
+					ExpectError: regexp.MustCompile(
+						"Attribute ip value must be set to create a null route",
+					),
+				},
+			},
+		})
+	})
+
+	t.Run(
+		"automatic_unnulling_at can be set when creating a null route",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						automatic_unnulling_at = "2015-06-25 11:13:00 +0000 UTC"
+					}
+					`,
+					},
+				},
+			})
+		},
+	)
+
+	t.Run("comment can be set when creating a null route", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						comment = "This IP is evil"
+					}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("ticket_id can be set when creating a null route", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						ticket_id = "188612"
+					}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run(
+		"automatic_unnulling_at can be set when updating a null route",
+		func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+					}
+					`,
+					},
+					{
+						Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						automatic_unnulling_at = "2015-06-25 11:13:00 +0000 UTC"
+					}
+					`,
+					},
+				},
+			})
+		},
+	)
+
+	t.Run("comment can be set when updating a null route", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+					}
+					`,
+				},
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						comment = "This IP is evil"
+					}
+					`,
+				},
+			},
+		})
+	})
+
+	t.Run("ticket_id can be set when updating a null route", func(t *testing.T) {
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+					}
+					`,
+				},
+				{
+					Config: providerConfig + `
+					resource "leaseweb_ipmgmt_null_route" "test" {
+						ip = "192.0.2.1"
+						ticket_id = "188612"
+					}
+					`,
+				},
+			},
+		})
+	})
+}
