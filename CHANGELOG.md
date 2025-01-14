@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.20.1...v1.21.0) (2025-01-14)
+
+
+### Features
+
+* add null route IP resource ([#247](https://github.com/Leaseweb/terraform-provider-leaseweb/issues/247)) ([b616987](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/b61698729bf8c9bd50a45a851c136dee00652bdd))
+
 ## [1.20.1](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.20.0...v1.20.1) (2025-01-10)
 
 
