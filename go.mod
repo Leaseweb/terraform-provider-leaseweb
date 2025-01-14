@@ -8,10 +8,10 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v0.0.0-20250108092627-2b29c0ffdbaf
-	github.com/leaseweb/leaseweb-go-sdk/dns v0.0.0-20250108092627-2b29c0ffdbaf
-	github.com/leaseweb/leaseweb-go-sdk/ipmgmt v0.0.0-20250108092627-2b29c0ffdbaf
-	github.com/leaseweb/leaseweb-go-sdk/publiccloud v0.0.0-20250108092627-2b29c0ffdbaf
+	github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v0.0.0-20250114131155-6968b39e2798
+	github.com/leaseweb/leaseweb-go-sdk/dns v0.0.0-20241230111213-3c3be0c1799d
+	github.com/leaseweb/leaseweb-go-sdk/ipmgmt v0.0.0-20241230111213-3c3be0c1799d
+	github.com/leaseweb/leaseweb-go-sdk/publiccloud v0.0.0-20241230111213-3c3be0c1799d
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -43,10 +43,6 @@ require (
 	github.com/hashicorp/terraform-registry-address v0.2.3 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
-	github.com/leaseweb/leaseweb-go-sdk v1.5.0 // indirect
-	github.com/leaseweb/leaseweb-go-sdk/abuse v0.0.0-20241230095423-e1ad88be3188 // indirect
-	github.com/leaseweb/leaseweb-go-sdk/aggregationpack v0.0.0-20241230095423-e1ad88be3188 // indirect
-	github.com/leaseweb/leaseweb-go-sdk/invoice v0.0.0-20241230095423-e1ad88be3188 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
