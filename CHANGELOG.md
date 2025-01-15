@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.2](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.21.1...v1.21.2) (2025-01-15)
+
+
+### Bug Fixes
+
+* pin sdk version ([#264](https://github.com/Leaseweb/terraform-provider-leaseweb/issues/264)) ([34e3719](https://github.com/Leaseweb/terraform-provider-leaseweb/commit/34e37197f8b7417b52616e51be8c16f373e40321))
+
 ## [1.21.0](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.20.1...v1.21.0) (2025-01-14)
 
 
