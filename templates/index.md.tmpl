@@ -1,0 +1,31 @@
+---
+page_title: "{{ .RenderedProviderName }} Provider"
+subcategory: ""
+description: |-
+  The provider to manage Leaseweb resources
+---
+
+# {{ .RenderedProviderName }} Provider
+
+The {{ .RenderedProviderName }} provider is used to interact with the many
+resources supported by Leaseweb. The provider needs to be configured with the
+proper credentials before it can be used.
+
+## Example Usage
+
+{{ tffile "examples/provider/provider.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Multiple accounts
+
+The token necessary for the configuration of the provider is linked to a
+particular account. In case you want to manage within a single configuration
+resources from different accounts, you'll need to use aliases and the
+[provider meta-argument](https://www.terraform.io/language/meta-arguments/resource-provider)
+in your resources.
+
+{{ tffile "examples/provider/multiple_providers.tf" }}
+
+The token are hardcoded in this example for simplicity, you should use
+[input variables](https://www.terraform.io/language/values/variables) instead.
