@@ -78,7 +78,7 @@ func (d *credentialDataSource) Read(
 		return
 	}
 
-	credential, response, err := d.PubliccloudAPI.GetInstanceCredential(
+	credential, response, err := d.PubliccloudAPI.GetCredential(
 		ctx,
 		config.InstanceID.ValueString(),
 		publiccloud.CredentialType(config.Type.ValueString()),

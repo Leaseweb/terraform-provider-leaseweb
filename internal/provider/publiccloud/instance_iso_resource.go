@@ -295,7 +295,7 @@ func updateISO(
 	// Detach current ISO if anything is attached
 	isoSDK, _ := instanceDetails.GetIsoOk()
 	if isoSDK != nil {
-		httpResponse, err = api.DetachInstanceISO(
+		httpResponse, err = api.DetachIso(
 			ctx,
 			iso.InstanceID.ValueString(),
 		).Execute()
@@ -326,7 +326,7 @@ func updateISO(
 	}
 
 	// Attach new ISO
-	httpResponse, err = api.AttachInstanceISO(
+	httpResponse, err = api.AttachIso(
 		ctx,
 		iso.InstanceID.ValueString(),
 	).AttachIsoOpts(*publiccloud.NewAttachIsoOpts(iso.DesiredID.ValueString())).

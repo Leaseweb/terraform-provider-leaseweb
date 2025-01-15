@@ -102,7 +102,7 @@ func (c *credentialResource) Create(
 		plan.Username.ValueString(),
 		plan.Password.ValueString(),
 	)
-	request := c.PubliccloudAPI.StoreInstanceCredential(
+	request := c.PubliccloudAPI.StoreCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 	).StoreCredentialOpts(*opts)
@@ -136,7 +136,7 @@ func (c *credentialResource) Read(
 		return
 	}
 
-	request := c.PubliccloudAPI.GetInstanceCredential(
+	request := c.PubliccloudAPI.GetCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		publiccloud.CredentialType(state.Type.ValueString()),
@@ -175,7 +175,7 @@ func (c *credentialResource) Update(
 	opts := publiccloud.NewUpdateCredentialOpts(
 		plan.Password.ValueString(),
 	)
-	request := c.PubliccloudAPI.UpdateInstanceCredential(
+	request := c.PubliccloudAPI.UpdateCredential(
 		ctx,
 		plan.InstanceID.ValueString(),
 		publiccloud.CredentialType(plan.Type.ValueString()),
@@ -211,7 +211,7 @@ func (c *credentialResource) Delete(
 		return
 	}
 
-	request := c.PubliccloudAPI.DeleteInstanceCredential(
+	request := c.PubliccloudAPI.DeleteCredential(
 		ctx,
 		state.InstanceID.ValueString(),
 		publiccloud.CredentialType(state.Type.ValueString()),
