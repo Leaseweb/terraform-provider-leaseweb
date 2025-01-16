@@ -25,7 +25,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/LeaseWeb/leaseweb",
+		Address: "registry.terraform.io/leaseweb/leaseweb",
 		Debug:   debug,
 	}
 
