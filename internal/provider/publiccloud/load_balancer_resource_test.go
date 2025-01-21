@@ -66,3 +66,36 @@ func Test_adaptLoadBalancerDetailsToLoadBalancerResource(t *testing.T) {
 		assert.Equal(t, "reference", got.Reference.ValueString())
 	})
 }
+
+func Test_adaptIpDetailsToLoadBalancerIPResource(t *testing.T) {
+	t.Run("is set properly when reverseLookup is set", func(t *testing.T) {
+		reverseLookup := "example.com"
+		sdkIpDetails := publiccloud.IpDetails{
+			Ip:            "127.0.0.1",
+			ReverseLookup: *publiccloud.NewNullableString(&reverseLookup),
+		}
+
+		want := loadBalancerIPResourceModel{
+			IP:            basetypes.NewStringValue("127.0.0.1"),
+			ReverseLookup: basetypes.NewStringPointerValue(&reverseLookup),
+		}
+		got := adaptIpDetailsToLoadBalancerIPResource(sdkIpDetails)
+
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("is set properly when reverseLookup is null", func(t *testing.T) {
+		sdkIpDetails := publiccloud.IpDetails{
+			Ip:            "127.0.0.1",
+			ReverseLookup: *publiccloud.NewNullableString(nil),
+		}
+
+		want := loadBalancerIPResourceModel{
+			IP:            basetypes.NewStringValue("127.0.0.1"),
+			ReverseLookup: basetypes.NewStringPointerValue(nil),
+		}
+		got := adaptIpDetailsToLoadBalancerIPResource(sdkIpDetails)
+
+		assert.Equal(t, want, got)
+	})
+}

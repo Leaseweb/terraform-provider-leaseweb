@@ -123,6 +123,7 @@ resource "leaseweb_public_cloud_load_balancer" "example" {
 ### Read-Only
 
 - `id` (String) The load balancer unique identifier
+- `ips` (Attributes List) (see [below for nested schema](#nestedatt--ips))
 
 <a id="nestedatt--contract"></a>
 ### Nested Schema for `contract`
@@ -147,6 +148,16 @@ Read-Only:
 
 - `ends_at` (String)
 - `state` (String)
+
+
+<a id="nestedatt--ips"></a>
+### Nested Schema for `ips`
+
+Read-Only:
+
+- `ip` (String)
+- `load_balancer_id` (String)
+- `reverse_lookup` (String)
 
 ## Import
 
