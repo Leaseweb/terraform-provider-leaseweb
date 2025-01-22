@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.21.2...v1.22.0) (2025-01-22)
+
+
+### Features
+
+* add ips to load balancer resource ([#276](https://github.com/leaseweb/terraform-provider-leaseweb/issues/276)) ([bb4c6d7](https://github.com/leaseweb/terraform-provider-leaseweb/commit/bb4c6d7fbc23f034f38bfd373d22245fbdb550aa))
+
 ## [1.21.2](https://github.com/Leaseweb/terraform-provider-leaseweb/compare/v1.21.1...v1.21.2) (2025-01-15)
 
 
