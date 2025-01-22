@@ -1801,6 +1801,16 @@ func TestAccPublicCloudLoadBalancerResource(t *testing.T) {
 							"contract.state",
 							"ACTIVE",
 						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"ips.#",
+							"1",
+						),
+						resource.TestCheckResourceAttr(
+							"leaseweb_public_cloud_load_balancer.test",
+							"ips.0.ip",
+							"85.99.99.99",
+						),
 					),
 				},
 				// ImportState testing

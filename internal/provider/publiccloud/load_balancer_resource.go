@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,12 +25,19 @@ var (
 	_ resource.ResourceWithImportState = &loadBalancerResource{}
 )
 
+type loadBalancerIPResourceModel struct {
+	ReverseLookup  types.String `tfsdk:"reverse_lookup"`
+	LoadBalancerID types.String `tfsdk:"load_balancer_id"`
+	IP             types.String `tfsdk:"ip"`
+}
+
 type loadBalancerResourceModel struct {
 	ID        types.String `tfsdk:"id"`
 	Region    types.String `tfsdk:"region"`
 	Type      types.String `tfsdk:"type"`
 	Reference types.String `tfsdk:"reference"`
 	Contract  types.Object `tfsdk:"contract"`
+	IPs       types.List   `tfsdk:"ips"`
 }
 
 func adaptLoadBalancerDetailsToLoadBalancerResource(
@@ -56,7 +64,31 @@ func adaptLoadBalancerDetailsToLoadBalancerResource(
 	}
 	loadBalancer.Contract = contract
 
+	ips := utils.AdaptSdkModelsToListValue(
+		loadBalancerDetails.Ips,
+		map[string]attr.Type{
+			"reverse_lookup":   types.StringType,
+			"load_balancer_id": types.StringType,
+			"ip":               types.StringType,
+		},
+		ctx,
+		adaptIpDetailsToLoadBalancerIPResource,
+		diags,
+	)
+	if diags.HasError() {
+		return nil
+	}
+	loadBalancer.IPs = ips
+
 	return &loadBalancer
+}
+
+func adaptIpDetailsToLoadBalancerIPResource(ipDetails publiccloud.IpDetails) loadBalancerIPResourceModel {
+	reverseLookup, _ := ipDetails.GetReverseLookupOk()
+	return loadBalancerIPResourceModel{
+		ReverseLookup: basetypes.NewStringPointerValue(reverseLookup),
+		IP:            basetypes.NewStringValue(ipDetails.GetIp()),
+	}
 }
 
 type loadBalancerResource struct {
@@ -101,6 +133,20 @@ func (l *loadBalancerResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Description: "An identifying name you can refer to the load balancer",
+			},
+			"ips": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"ip": schema.StringAttribute{Computed: true},
+						"load_balancer_id": schema.StringAttribute{
+							Computed: true,
+						},
+						"reverse_lookup": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
 			},
 			"contract": schema.SingleNestedAttribute{
 				Required: true,
