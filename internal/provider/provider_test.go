@@ -1418,7 +1418,10 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 							device = "SATA2TB"
 							hostname = "example.com"
 							password = "password"
-							post_install_script = "c2NyaXB0LnNo"
+							post_install_script = <<-EOS
+								#!/bin/sh
+								apt install nginx -y -qq
+							EOS
 							power_cycle = true
 							ssh_keys = ["tralala"]
 							timezone = "UTC"
@@ -1454,6 +1457,11 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 								"leaseweb_dedicated_server_installation.test",
 								"id",
 								"bcf2bedf-8450-4b22-86a8-f30aeb3a38f9",
+							),
+							resource.TestCheckResourceAttr(
+								"leaseweb_dedicated_server_installation.test",
+								"post_install_script",
+								"#!/bin/sh\napt install nginx -y -qq\n",
 							),
 						),
 					},

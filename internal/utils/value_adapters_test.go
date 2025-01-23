@@ -425,3 +425,15 @@ func ExampleAdaptNullableSdkModelToResourceObject_second() {
 	fmt.Println(resourceModel)
 	// Output: <null>
 }
+
+func TestAdaptStringToNullableString(t *testing.T) {
+	t.Run("returns nil when value is empty", func(t *testing.T) {
+		assert.Nil(t, AdaptStringValueToNullableString(""))
+	})
+
+	t.Run("returns pointer when value is set", func(t *testing.T) {
+		value := "tralala"
+
+		assert.Equal(t, &value, AdaptStringValueToNullableString(value))
+	})
+}
