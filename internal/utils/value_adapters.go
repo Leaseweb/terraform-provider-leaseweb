@@ -124,6 +124,14 @@ func AdaptStringPointerValueToNullableString(value types.String) *string {
 	return value.ValueStringPointer()
 }
 
+func AdaptStringValueToNullableString(value string) *string {
+	if value == "" {
+		return nil
+	}
+
+	return &value
+}
+
 func AdaptStringTypeArrayToStringArray[T ~string](types []T) []string {
 	var convertedTypes []string
 

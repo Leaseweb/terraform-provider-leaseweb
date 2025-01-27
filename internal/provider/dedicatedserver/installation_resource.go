@@ -2,6 +2,7 @@ package dedicatedserver
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -203,7 +204,7 @@ func (i *installationResource) Schema(
 				},
 			},
 			"post_install_script": schema.StringAttribute{
-				Description: "Base64 Encoded string containing a valid bash script to be run right after the installation",
+				Description: "A valid bash script to run right after the installation.",
 				Optional:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -315,7 +316,7 @@ func (i *installationResource) Create(
 	opts.Hostname = utils.AdaptStringPointerValueToNullableString(plan.Hostname)
 	opts.Partitions = partitions
 	opts.Password = utils.AdaptStringPointerValueToNullableString(plan.Password)
-	opts.PostInstallScript = utils.AdaptStringPointerValueToNullableString(plan.PostInstallScript)
+	opts.PostInstallScript = utils.AdaptStringValueToNullableString(base64.StdEncoding.EncodeToString([]byte(strings.TrimSpace(plan.PostInstallScript.ValueString()))))
 	opts.PowerCycle = utils.AdaptBoolPointerValueToNullableBool(plan.PowerCycle)
 	opts.Raid = raid
 	opts.Timezone = utils.AdaptStringPointerValueToNullableString(plan.Timezone)
