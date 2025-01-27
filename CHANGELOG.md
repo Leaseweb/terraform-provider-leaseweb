@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.22.0...v1.23.0) (2025-01-27)
+
+
+### Features
+
+* revert post_install_script in dedicated server installation to accept bash script ([#280](https://github.com/leaseweb/terraform-provider-leaseweb/issues/280)) ([10ceace](https://github.com/leaseweb/terraform-provider-leaseweb/commit/10ceace5c7da8a28d7ef38e75c35143f636a8078))
+
 ## [1.22.0](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.21.2...v1.22.0) (2025-01-22)
 
 
