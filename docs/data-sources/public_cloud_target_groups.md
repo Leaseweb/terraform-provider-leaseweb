@@ -62,6 +62,7 @@ data "leaseweb_public_target_groups" "example5" {
   - *us-west-1*
   - *eu-west-2*
   - *ca-central-1*
+  - *ap-northeast-1*
 
 ### Read-Only
 

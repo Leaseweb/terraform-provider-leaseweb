@@ -45,6 +45,7 @@ resource "leaseweb_public_cloud_instance" "example" {
   - *us-west-1*
   - *eu-west-2*
   - *ca-central-1*
+  - *ap-northeast-1*
 - `root_disk_storage_type` (String) The root disk's storage type. Can be *LOCAL* or *CENTRAL*. **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created.
 - `type` (String) **WARNING!** Changing this value once running will cause this instance to be destroyed and a new one to be created. Valid options are 
   - *lsw.m3.large*
