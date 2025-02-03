@@ -71,6 +71,7 @@ resource "leaseweb_public_cloud_target_group" "example" {
   - *us-west-1*
   - *eu-west-2*
   - *ca-central-1*
+  - *ap-northeast-1*
 
 **WARNING!** Changing this value once running will cause this target group to be destroyed and a new one to be created.
 

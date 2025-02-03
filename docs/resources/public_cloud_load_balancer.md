@@ -40,6 +40,7 @@ resource "leaseweb_public_cloud_load_balancer" "example" {
   - *us-west-1*
   - *eu-west-2*
   - *ca-central-1*
+  - *ap-northeast-1*
 - `type` (String) **WARNING!** Changing this value once running will cause this loadbalancer to be destroyed and a new one to be created. Valid options are 
   - *lsw.m3.large*
   - *lsw.m3.xlarge*
