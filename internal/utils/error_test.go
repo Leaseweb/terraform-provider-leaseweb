@@ -25,7 +25,7 @@ func TestSdkError(t *testing.T) {
 		SdkError(context.TODO(), &diags, nil, &httpResponse)
 
 		assert.Len(t, diags.Errors(), 1)
-		assert.Equal(t, sdkErrSummary, diags.Errors()[0].Summary())
+		assert.Equal(t, errTitle, diags.Errors()[0].Summary())
 		assert.Equal(
 			t,
 			"An error has occurred in the program. Please consider opening an issue.",
@@ -64,7 +64,7 @@ func TestSdkError(t *testing.T) {
 		want := diag.Diagnostics{}
 		want.AddAttributeError(
 			attributePath,
-			sdkErrSummary,
+			errTitle,
 			"the name is invalid",
 		)
 		assert.Equal(t, want, diags.Errors())
@@ -73,7 +73,7 @@ func TestSdkError(t *testing.T) {
 	t.Run("handles regular HTTP error response", func(t *testing.T) {
 		diags := diag.Diagnostics{}
 		httpResponse := http.Response{
-			StatusCode: 500,
+			StatusCode: 404,
 			Body: io.NopCloser(
 				bytes.NewReader(
 					[]byte(`
@@ -96,7 +96,7 @@ func TestSdkError(t *testing.T) {
 
 		assert.Len(t, diags.Errors(), 1)
 		assert.Equal(t, "Unexpected Error", diags.Errors()[0].Summary())
-		assert.Equal(t, defaultErrMsg, diags.Errors()[0].Detail())
+		assert.Equal(t, "Resource not found.", diags.Errors()[0].Detail())
 	})
 
 	t.Run("sets default error if error is nil", func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestSdkError(t *testing.T) {
 		SdkError(context.TODO(), &diags, nil, nil)
 
 		want := diag.Diagnostics{}
-		want.AddError(sdkErrSummary, defaultErrMsg)
+		want.AddError(errTitle, defaultErrMsg)
 
 		assert.Equal(t, want, diags)
 	})
@@ -127,7 +127,7 @@ func TestSdkError(t *testing.T) {
 
 			want := diag.Diagnostics{}
 			want.AddError(
-				sdkErrSummary,
+				errTitle,
 				"The server took too long to respond.",
 			)
 
@@ -150,7 +150,7 @@ func TestSdkError(t *testing.T) {
 			)
 
 			want := diag.Diagnostics{}
-			want.AddError(sdkErrSummary, defaultErrMsg)
+			want.AddError(errTitle, defaultErrMsg)
 
 			assert.Equal(t, want, diags)
 		},
@@ -172,7 +172,7 @@ func TestSdkError(t *testing.T) {
 			)
 
 			want := diag.Diagnostics{}
-			want.AddError(sdkErrSummary, "Resource not found.")
+			want.AddError(errTitle, "Resource not found.")
 
 			assert.Equal(t, want, diags)
 		},
@@ -201,8 +201,8 @@ func TestSdkError(t *testing.T) {
 
 		attributePath := path.Root("attribute")
 		want := diag.Diagnostics{}
-		want.AddAttributeError(attributePath, sdkErrSummary, "error1")
-		want.AddAttributeError(attributePath, sdkErrSummary, "error2")
+		want.AddAttributeError(attributePath, errTitle, "error1")
+		want.AddAttributeError(attributePath, errTitle, "error2")
 		assert.Equal(t, want, diags.Errors())
 	})
 
@@ -229,8 +229,8 @@ func TestSdkError(t *testing.T) {
 
 		attributePath := path.Root("attribute").AtMapKey("id")
 		want := diag.Diagnostics{}
-		want.AddAttributeError(attributePath, sdkErrSummary, "error1")
-		want.AddAttributeError(attributePath, sdkErrSummary, "error2")
+		want.AddAttributeError(attributePath, errTitle, "error1")
+		want.AddAttributeError(attributePath, errTitle, "error2")
 		assert.Equal(t, want, diags.Errors())
 	})
 
@@ -257,7 +257,7 @@ func TestSdkError(t *testing.T) {
 
 		attributePath := path.Root("attribute").AtMapKey("id")
 		want := diag.Diagnostics{}
-		want.AddAttributeError(attributePath, sdkErrSummary, "error")
+		want.AddAttributeError(attributePath, errTitle, "error")
 		assert.Equal(t, want, diags.Errors())
 	})
 
@@ -284,7 +284,7 @@ func TestSdkError(t *testing.T) {
 
 		attributePath := path.Root("attribute").AtMapKey("id")
 		want := diag.Diagnostics{}
-		want.AddAttributeError(attributePath, sdkErrSummary, "error")
+		want.AddAttributeError(attributePath, errTitle, "error")
 		assert.Equal(t, want, diags.Errors())
 	})
 
@@ -299,7 +299,7 @@ func TestSdkError(t *testing.T) {
 		)
 
 		want := diag.Diagnostics{}
-		want.AddError(sdkErrSummary, "tralala")
+		want.AddError(errTitle, "tralala")
 		assert.Equal(t, want, diags)
 	})
 
@@ -332,7 +332,7 @@ func TestSdkError(t *testing.T) {
 
 		attributePath := path.Root("attribute")
 		want := diag.Diagnostics{}
-		want.AddAttributeError(attributePath, sdkErrSummary, "error")
+		want.AddAttributeError(attributePath, errTitle, "error")
 		assert.Equal(t, want, diags.Errors())
 	})
 
@@ -352,7 +352,7 @@ func TestSdkError(t *testing.T) {
 						{
 		              		"correlationId": "correlationId",
 		              		"errorCode": "errorCode",
-		              		"errorMessage": "errorMessage",
+		              		"errorMessage": "Error details doesn't have correct content to show validation error. Let's show this message to user.",
 							"errorDetails":  {
 								"attribute": 26
 							}
@@ -364,7 +364,7 @@ func TestSdkError(t *testing.T) {
 			)
 
 			want := diag.Diagnostics{}
-			want.AddError("Unexpected Error", defaultErrMsg)
+			want.AddError("Unexpected Error", "Error details doesn't have correct content to show validation error. Let's show this message to user.")
 			assert.Equal(t, want, diags.Errors())
 		},
 	)
@@ -385,7 +385,7 @@ func TestSdkError(t *testing.T) {
 						{
 		              		"correlationId": "correlationId",
 		              		"errorCode": "errorCode",
-		              		"errorMessage": "errorMessage",
+		              		"errorMessage": "Error details doesn't have correct content to show validation error. Let's show this message to user.",
 							"errorDetails":  {
 								"attribute": [26]
 							}
@@ -397,7 +397,7 @@ func TestSdkError(t *testing.T) {
 			)
 
 			want := diag.Diagnostics{}
-			want.AddError("Unexpected Error", defaultErrMsg)
+			want.AddError("Unexpected Error", "Error details doesn't have correct content to show validation error. Let's show this message to user.")
 			assert.Equal(t, want, diags.Errors())
 		},
 	)
@@ -418,7 +418,7 @@ func TestSdkError(t *testing.T) {
 						{
 		              		"correlationId": "correlationId",
 		              		"errorCode": "errorCode",
-		              		"errorMessage": "errorMessage",
+		              		"errorMessage": "Error details doesn't have correct content to show validation error. Let's show this message to user.",
 							"errorDetails":  {
 								"attribute": {
 									"0": [26]
@@ -432,7 +432,7 @@ func TestSdkError(t *testing.T) {
 			)
 
 			want := diag.Diagnostics{}
-			want.AddError("Unexpected Error", defaultErrMsg)
+			want.AddError("Unexpected Error", "Error details doesn't have correct content to show validation error. Let's show this message to user.")
 			assert.Equal(t, want, diags.Errors())
 		},
 	)
@@ -453,7 +453,7 @@ func TestSdkError(t *testing.T) {
 						{
 		              		"correlationId": "correlationId",
 		              		"errorCode": "errorCode",
-		              		"errorMessage": "errorMessage",
+		              		"errorMessage": "Error details doesn't have correct content to show validation error. Let's show this message to user.",
 							"errorDetails":  {
 								"attribute": {
 									"0": 26
@@ -467,7 +467,94 @@ func TestSdkError(t *testing.T) {
 			)
 
 			want := diag.Diagnostics{}
-			want.AddError("Unexpected Error", defaultErrMsg)
+			want.AddError("Unexpected Error", "Error details doesn't have correct content to show validation error. Let's show this message to user.")
+			assert.Equal(t, want, diags.Errors())
+		},
+	)
+
+	t.Run("error message is set during unauthorized",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			SdkError(
+				context.TODO(),
+				&diags,
+				errors.New(""),
+				&http.Response{
+					Body: io.NopCloser(
+						bytes.NewReader(
+							[]byte(`
+						{
+							"correlationId": "correlationId",
+		              		"errorCode": "401",
+		              		"errorMessage": "Unauthorized"
+		            	}`,
+							),
+						),
+					),
+				},
+			)
+
+			want := diag.Diagnostics{}
+			want.AddError("Unexpected Error", "Unauthorized")
+			assert.Equal(t, want, diags.Errors())
+		},
+	)
+
+	t.Run("error message is set during resource unavilable",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			SdkError(
+				context.TODO(),
+				&diags,
+				errors.New(""),
+				&http.Response{
+					Body: io.NopCloser(
+						bytes.NewReader(
+							[]byte(`
+						{
+							"correlationId": "correlationId",
+		              		"errorCode": "401",
+		              		"errorMessage": "Access to the requested resource is forbidden."
+		            	}`,
+							),
+						),
+					),
+				},
+			)
+
+			want := diag.Diagnostics{}
+			want.AddError("Unexpected Error", "Access to the requested resource is forbidden.")
+			assert.Equal(t, want, diags.Errors())
+		},
+	)
+
+	t.Run("error message is set during the input is not valid",
+		func(t *testing.T) {
+			diags := diag.Diagnostics{}
+
+			SdkError(
+				context.TODO(),
+				&diags,
+				errors.New(""),
+				&http.Response{
+					Body: io.NopCloser(
+						bytes.NewReader(
+							[]byte(`
+						{
+							"correlationId": "correlationId",
+		              		"errorCode": "400",
+		              		"errorMessage": "hostname is not a valid hostname"
+		            	}`,
+							),
+						),
+					),
+				},
+			)
+
+			want := diag.Diagnostics{}
+			want.AddError("Unexpected Error", "hostname is not a valid hostname")
 			assert.Equal(t, want, diags.Errors())
 		},
 	)
@@ -497,7 +584,7 @@ func ExampleSdkError() {
 	SdkError(context.TODO(), &diags, errors.New("error content"), &httpResponse)
 
 	fmt.Println(diags.Errors())
-	// Output: [{{the name is invalid Unexpected API Error} {[name]}}]
+	// Output: [{{the name is invalid Unexpected Error} {[name]}}]
 }
 
 func TestGeneralError(t *testing.T) {
@@ -566,10 +653,10 @@ func ExampleUnexpectedImportIdentifierError() {
 func Test_writeSDKOutput(t *testing.T) {
 	diags := diag.Diagnostics{}
 
-	writeSDKOutput("tralala", &diags)
+	reportError("tralala", &diags)
 
 	assert.Len(t, diags.Errors(), 1)
-	assert.Equal(t, sdkErrSummary, diags.Errors()[0].Summary())
+	assert.Equal(t, errTitle, diags.Errors()[0].Summary())
 	assert.Equal(t, "tralala", diags.Errors()[0].Detail())
 }
 
@@ -581,7 +668,7 @@ func Test_handleStringErrorCollection(t *testing.T) {
 
 		assert.False(t, got)
 		assert.Len(t, diags.Errors(), 1)
-		assert.Equal(t, sdkErrSummary, diags.Errors()[0].Summary())
+		assert.Equal(t, errTitle, diags.Errors()[0].Summary())
 		assert.Equal(t, "error", diags.Errors()[0].Detail())
 	})
 
