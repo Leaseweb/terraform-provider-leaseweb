@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.23.1...v1.24.0) (2025-02-10)
+
+
+### Features
+
+* wait until installation jobs finished ([#298](https://github.com/leaseweb/terraform-provider-leaseweb/issues/298)) ([44af5ea](https://github.com/leaseweb/terraform-provider-leaseweb/commit/44af5ea619b946d6637402e752b39ca9fb5d8601))
+
 ## [1.23.1](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.23.0...v1.23.1) (2025-02-07)
 
 
