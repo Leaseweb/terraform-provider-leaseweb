@@ -11,6 +11,8 @@ github.com/apparentlymart/go-textseg/v15 v15.0.0 h1:uYvfpb3DyLSCGWnctWKGj857c6ew
 github.com/apparentlymart/go-textseg/v15 v15.0.0/go.mod h1:K8XmNZdhEBkdlyDdvbmmsvpAG721bKi0joRfFdHIWJ4=
 github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZlaQsNA=
 github.com/bufbuild/protocompile v0.4.0/go.mod h1:3v93+mbWn/v3xzN+31nwkJfrEpAUwp+BagBSZWx+TP8=
+github.com/cenkalti/backoff/v5 v5.0.1 h1:kGZdCHH1+eW+Yd0wftimjMuhg9zidDvNF5aGdnkkb+U=
+github.com/cenkalti/backoff/v5 v5.0.1/go.mod h1:rkhZdG3JZukswDf7f0cwqPNk4K0sa+F97BxZthm/crw=
 github.com/cloudflare/circl v1.3.7 h1:qlCDlTPz2n9fu58M0Nh1J/JzcFpfgkFHHX3O35r5vcU=
 github.com/cloudflare/circl v1.3.7/go.mod h1:sRTcRWXGLrKw6yIGJ+l7amYJFfAXbZG0kBSc8r4zxgA=
 github.com/cyphar/filepath-securejoin v0.2.4 h1:Ugdm7cg7i6ZK6x3xDF1oEu1nfkyfH53EtKeQYTC3kyg=
@@ -110,8 +112,8 @@ github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v1.0.0 h1:nq2CxL9GL0PW6yxHY0+QM4KpYnFchWINF7uJ586qcmA=
-github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v1.0.0/go.mod h1:8c8VAxXnjCxuUEss0Unrd5NB9o7oAkOPeORCs58y76s=
+github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2 v2.0.2 h1:WYJMnr0UNeb8v5wVfDqVNQXcfpTGbUMXVufARi/MV90=
+github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2 v2.0.2/go.mod h1:D/dX8az1mr8VKxIRL1jrg6wR+vReaF45kp06R2VnvmA=
 github.com/leaseweb/leaseweb-go-sdk/dns v1.1.0 h1:Ev5xjXlYunGV+cjY2eem5TuC3OXCFujY8Efk/n0YcME=
 github.com/leaseweb/leaseweb-go-sdk/dns v1.1.0/go.mod h1:ntxqh2fT7XDwjPLNsWtq6tTjwjL/75llxnbzEZvvzIo=
 github.com/leaseweb/leaseweb-go-sdk/ipmgmt v1.0.0 h1:R+ZC7t3vtAoeRxSH3KcsR8vNF5NgaXy606vobn++cdU=

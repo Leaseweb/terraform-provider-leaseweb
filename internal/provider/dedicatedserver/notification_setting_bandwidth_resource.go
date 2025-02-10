@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -98,7 +98,7 @@ func (n *notificationSettingBandwidthResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.DedicatedserverAPI.CreateServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.CreateBandwidthNotificationSetting(
 		ctx,
 		plan.DedicatedServerID.ValueString(),
 	).BandwidthNotificationSettingOpts(*opts)
@@ -133,7 +133,7 @@ func (n *notificationSettingBandwidthResource) Read(
 		return
 	}
 
-	request := n.DedicatedserverAPI.GetServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.GetBandwidthNotificationSetting(
 		ctx,
 		state.DedicatedServerID.ValueString(),
 		state.ID.ValueString(),
@@ -174,7 +174,7 @@ func (n *notificationSettingBandwidthResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.DedicatedserverAPI.UpdateServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.UpdateBandwidthNotificationSetting(
 		ctx,
 		plan.DedicatedServerID.ValueString(),
 		plan.ID.ValueString(),
@@ -210,7 +210,7 @@ func (n *notificationSettingBandwidthResource) Delete(
 		return
 	}
 
-	request := n.DedicatedserverAPI.DeleteServerBandwidthNotificationSetting(
+	request := n.DedicatedserverAPI.DeleteBandwidthNotificationSetting(
 		ctx,
 		state.DedicatedServerID.ValueString(),
 		state.ID.ValueString(),

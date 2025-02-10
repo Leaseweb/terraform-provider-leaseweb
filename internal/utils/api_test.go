@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2"
 	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/provider/client"
 	"github.com/stretchr/testify/assert"

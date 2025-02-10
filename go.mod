@@ -3,12 +3,13 @@ module github.com/leaseweb/terraform-provider-leaseweb
 go 1.23.4
 
 require (
+	github.com/cenkalti/backoff/v5 v5.0.1
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.16.0
 	github.com/hashicorp/terraform-plugin-go v0.26.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/leaseweb/leaseweb-go-sdk/dedicatedserver v1.0.0
+	github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2 v2.0.2
 	github.com/leaseweb/leaseweb-go-sdk/dns v1.1.0
 	github.com/leaseweb/leaseweb-go-sdk/ipmgmt v1.0.0
 	github.com/leaseweb/leaseweb-go-sdk/publiccloud v0.0.2

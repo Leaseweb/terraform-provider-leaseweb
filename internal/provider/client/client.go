@@ -2,7 +2,7 @@
 package client
 
 import (
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2"
 	"github.com/leaseweb/leaseweb-go-sdk/dns"
 	"github.com/leaseweb/leaseweb-go-sdk/ipmgmt"
 	"github.com/leaseweb/leaseweb-go-sdk/publiccloud"
