@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.1](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.23.0...v1.23.1) (2025-02-07)
+
+
+### Bug Fixes
+
+* **logging:** log errorMessage for unauthorized and relevant errors ([#291](https://github.com/leaseweb/terraform-provider-leaseweb/issues/291)) ([8753148](https://github.com/leaseweb/terraform-provider-leaseweb/commit/8753148597824a1745fcfaa76da52d8d2cbb6168))
+
 ## [1.23.0](https://github.com/leaseweb/terraform-provider-leaseweb/compare/v1.22.0...v1.23.0) (2025-01-27)
 
 
