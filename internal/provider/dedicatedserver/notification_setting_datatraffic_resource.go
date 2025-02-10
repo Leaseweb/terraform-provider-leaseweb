@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -98,7 +98,7 @@ func (n *notificationSettingDatatrafficResource) Create(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.DedicatedserverAPI.CreateServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.CreateDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerID.ValueString(),
 	).DataTrafficNotificationSettingOpts(*opts)
@@ -133,7 +133,7 @@ func (n *notificationSettingDatatrafficResource) Read(
 		return
 	}
 
-	request := n.DedicatedserverAPI.GetServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.GetDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerID.ValueString(),
 		state.ID.ValueString(),
@@ -174,7 +174,7 @@ func (n *notificationSettingDatatrafficResource) Update(
 		plan.Threshold.ValueString(),
 		plan.Unit.ValueString(),
 	)
-	request := n.DedicatedserverAPI.UpdateServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.UpdateDataTrafficNotificationSetting(
 		ctx,
 		plan.DedicatedServerID.ValueString(),
 		plan.ID.ValueString(),
@@ -210,7 +210,7 @@ func (n *notificationSettingDatatrafficResource) Delete(
 		return
 	}
 
-	request := n.DedicatedserverAPI.DeleteServerDataTrafficNotificationSetting(
+	request := n.DedicatedserverAPI.DeleteDataTrafficNotificationSetting(
 		ctx,
 		state.DedicatedServerID.ValueString(),
 		state.ID.ValueString(),

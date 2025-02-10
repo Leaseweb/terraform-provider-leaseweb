@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -239,7 +239,7 @@ func (s *serverResource) Read(
 	}
 
 	// Getting server power info
-	getServerPowerStatusResult, httpResponse, err := s.DedicatedserverAPI.GetServerPowerStatus(
+	getServerPowerStatusResult, httpResponse, err := s.DedicatedserverAPI.GetPowerStatus(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -271,7 +271,7 @@ func (s *serverResource) Read(
 	}
 
 	// Getting server DHCP info
-	getServerDhcpReservationListResult, httpResponse, err := s.DedicatedserverAPI.GetServerDhcpReservationList(
+	getServerDhcpReservationListResult, httpResponse, err := s.DedicatedserverAPI.GetDhcpReservationList(
 		ctx,
 		state.ID.ValueString(),
 	).Execute()
@@ -288,7 +288,7 @@ func (s *serverResource) Read(
 	// Getting server public IP info
 	var reverseLookup string
 	if publicIP != "" {
-		ip, httpResponse, err := s.DedicatedserverAPI.GetServerIp(
+		ip, httpResponse, err := s.DedicatedserverAPI.GetIp(
 			ctx,
 			state.ID.ValueString(),
 			publicIP,
@@ -352,11 +352,11 @@ func (s *serverResource) Update(
 
 	// Updating reference
 	if !plan.Reference.IsNull() && !plan.Reference.IsUnknown() {
-		opts := dedicatedserver.NewUpdateServerReferenceOpts(plan.Reference.ValueString())
-		response, err := s.DedicatedserverAPI.UpdateServerReference(
+		opts := dedicatedserver.NewUpdateReferenceOpts(plan.Reference.ValueString())
+		response, err := s.DedicatedserverAPI.UpdateReference(
 			ctx,
 			state.ID.ValueString(),
-		).UpdateServerReferenceOpts(*opts).Execute()
+		).UpdateReferenceOpts(*opts).Execute()
 		if err != nil {
 			utils.SdkError(ctx, &resp.Diagnostics, err, response)
 			return
@@ -367,14 +367,14 @@ func (s *serverResource) Update(
 	// Updating Power status
 	if !plan.PoweredOn.IsNull() && !plan.PoweredOn.IsUnknown() {
 		if plan.PoweredOn.ValueBool() {
-			request := s.DedicatedserverAPI.PowerServerOn(ctx, state.ID.ValueString())
+			request := s.DedicatedserverAPI.PowerOn(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
 				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
-			request := s.DedicatedserverAPI.PowerServerOff(ctx, state.ID.ValueString())
+			request := s.DedicatedserverAPI.PowerOff(ctx, state.ID.ValueString())
 			response, err := request.Execute()
 			if err != nil {
 				utils.SdkError(ctx, &resp.Diagnostics, err, response)
@@ -430,17 +430,17 @@ func (s *serverResource) Update(
 	// Updating dhcp lease
 	if !plan.DHCPLease.IsNull() && !plan.DHCPLease.IsUnknown() {
 		if plan.DHCPLease.ValueString() != "" {
-			opts := dedicatedserver.NewCreateServerDhcpReservationOpts(plan.DHCPLease.ValueString())
-			response, err := s.DedicatedserverAPI.CreateServerDhcpReservation(
+			opts := dedicatedserver.NewCreateDhcpReservationOpts(plan.DHCPLease.ValueString())
+			response, err := s.DedicatedserverAPI.CreateDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
-			).CreateServerDhcpReservationOpts(*opts).Execute()
+			).CreateDhcpReservationOpts(*opts).Execute()
 			if err != nil {
 				utils.SdkError(ctx, &resp.Diagnostics, err, response)
 				return
 			}
 		} else {
-			response, err := s.DedicatedserverAPI.DeleteServerDhcpReservation(
+			response, err := s.DedicatedserverAPI.DeleteDhcpReservation(
 				ctx,
 				state.ID.ValueString(),
 			).Execute()

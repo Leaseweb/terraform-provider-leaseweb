@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/cenkalti/backoff/v5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver"
+	"github.com/leaseweb/leaseweb-go-sdk/dedicatedserver/v2"
 	"github.com/leaseweb/terraform-provider-leaseweb/internal/utils"
 )
 
@@ -380,7 +381,32 @@ func (i *installationResource) Create(
 	}
 	plan.Partitions = partitionsList
 
+	pollJobStatus := func() (string, error) {
+		return getJobStatus(serverID, result.GetUuid(), i, ctx, resp)
+	}
+
+	_, err = backoff.Retry(context.TODO(), pollJobStatus, backoff.WithBackOff(backoff.NewExponentialBackOff()))
+	if err != nil {
+		utils.GeneralError(&resp.Diagnostics, ctx, err)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func getJobStatus(serverID string, jobID string, i *installationResource, ctx context.Context, resp *resource.CreateResponse) (string, error) {
+	request := i.DedicatedserverAPI.GetJob(ctx, serverID, jobID)
+
+	result, response, err := request.Execute()
+	if err != nil {
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
+	}
+
+	status := result.GetStatus()
+	if status != "FINISHED" {
+		return "", backoff.RetryAfter(30)
+	}
+
+	return status, nil
 }
 
 func (i *installationResource) Read(
