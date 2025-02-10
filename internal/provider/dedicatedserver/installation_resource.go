@@ -393,8 +393,8 @@ func (i *installationResource) Create(
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func getJobStatus(serverID string, jobId string, i *installationResource, ctx context.Context, resp *resource.CreateResponse) (string, error) {
-	request := i.DedicatedserverAPI.GetJob(ctx, serverID, jobId)
+func getJobStatus(serverID string, jobID string, i *installationResource, ctx context.Context, resp *resource.CreateResponse) (string, error) {
+	request := i.DedicatedserverAPI.GetJob(ctx, serverID, jobID)
 
 	result, response, err := request.Execute()
 	if err != nil {
