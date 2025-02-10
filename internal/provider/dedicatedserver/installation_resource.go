@@ -398,7 +398,6 @@ func getJobStatus(serverID string, jobId string, i *installationResource, ctx co
 
 	result, response, err := request.Execute()
 	if err != nil {
-		utils.GeneralError(&resp.Diagnostics, ctx, err)
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 	}
 
