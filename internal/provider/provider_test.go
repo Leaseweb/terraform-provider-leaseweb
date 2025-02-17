@@ -1465,6 +1465,14 @@ func TestAccDedicatedServerInstallationResource(t *testing.T) {
 							),
 						),
 					},
+					{
+						ResourceName:                         "leaseweb_dedicated_server_installation.test",
+						ImportState:                          true,
+						ImportStateVerify:                    true,
+						ImportStateId:                        "12345",
+						ImportStateVerifyIdentifierAttribute: "dedicated_server_id",
+						ImportStateVerifyIgnore:              []string{"callback_url", "control_panel_id", "hostname", "password", "ssh_keys", "post_install_script", "raid"},
+					},
 				},
 			})
 		})

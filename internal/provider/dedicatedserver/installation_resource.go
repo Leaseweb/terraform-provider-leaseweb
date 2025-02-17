@@ -3,12 +3,17 @@ package dedicatedserver
 import (
 	"context"
 	"encoding/base64"
+	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -24,8 +29,8 @@ import (
 )
 
 var (
-	_ resource.Resource              = &installationResource{}
-	_ resource.ResourceWithConfigure = &installationResource{}
+	_ resource.ResourceWithConfigure   = &installationResource{}
+	_ resource.ResourceWithImportState = &installationResource{}
 )
 
 func NewInstallationResource() resource.Resource {
@@ -326,18 +331,140 @@ func (i *installationResource) Create(
 	}
 
 	serverID := plan.DedicatedServerID.ValueString()
-	result, response, err := i.DedicatedserverAPI.InstallOperatingSystem(ctx, serverID).
+	job, response, err := i.DedicatedserverAPI.InstallOperatingSystem(ctx, serverID).
 		InstallOperatingSystemOpts(*opts).Execute()
 	if err != nil {
 		utils.SdkError(ctx, &resp.Diagnostics, err, response)
 		return
 	}
 
-	payload := result.GetPayload()
-	plan.ID = types.StringValue(result.GetUuid())
-	plan.Device = types.StringValue(payload.GetDevice())
-	plan.Timezone = types.StringValue(payload.GetTimezone())
-	plan.PowerCycle = types.BoolValue(payload.GetPowerCycle())
+	err = i.waitForJobCompletion(serverID, job.GetUuid(), ctx, resp)
+	if err != nil {
+		utils.ReportError(err.Error(), &resp.Diagnostics)
+		return
+	}
+
+	diags := i.syncResourceModelWithSDK(&plan, *job, ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func (i *installationResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("dedicated_server_id"), req, resp)
+}
+
+func (i *installationResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
+	var state installationResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	serverID := state.DedicatedServerID.ValueString()
+
+	result, response, err := i.DedicatedserverAPI.GetJobList(ctx, serverID).
+		Offset(0).Limit(1).Type_("install").Status("FINISHED").Execute()
+
+	if err != nil {
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
+		return
+	}
+
+	jobs := result.GetJobs()
+
+	if len(jobs) == 0 {
+		utils.ReportError(fmt.Sprintf("No installation jobs found for server %s", serverID), &resp.Diagnostics)
+		return
+	}
+
+	diags := i.syncResourceModelWithSDK(&state, jobs[0], ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func (i *installationResource) Update(
+	_ context.Context,
+	_ resource.UpdateRequest,
+	_ *resource.UpdateResponse,
+) {
+}
+
+func (i *installationResource) Delete(
+	_ context.Context,
+	_ resource.DeleteRequest,
+	_ *resource.DeleteResponse,
+) {
+}
+
+// isJobFinished checks if the job status is "FINISHED".
+func (i *installationResource) isJobFinished(serverID, jobID string, ctx context.Context, resp *resource.CreateResponse) bool {
+	// Fetch the job status
+	result, response, err := i.DedicatedserverAPI.GetJob(ctx, serverID, jobID).Execute()
+	if err != nil {
+		utils.SdkError(ctx, &resp.Diagnostics, err, response)
+		return false // Return false indicating the status couldn't be fetched
+	}
+
+	// Return true if the job status is finished
+	return result.GetStatus() == "FINISHED"
+}
+
+// waitForJobCompletion handles polling with retry and timeout.
+func (i *installationResource) waitForJobCompletion(serverID, jobID string, ctx context.Context, resp *resource.CreateResponse) error {
+	// Create a constant backoff with a 30-second retry interval
+	bo := backoff.NewConstantBackOff(30 * time.Second)
+
+	// Set the retry limit to 120 retries (60 minutes total)
+	retryCount := 0
+	maxRetries := 120
+
+	// Start polling and retrying
+	for {
+		if retryCount >= maxRetries {
+			return errors.New("timed out waiting for job to finish after 60 minutes")
+		}
+
+		// Call the function to check if the job is finished
+		if i.isJobFinished(serverID, jobID, ctx, resp) {
+			// Job is finished, exit the loop
+			return nil
+		}
+
+		// Sleep for the backoff interval before retrying
+		time.Sleep(bo.NextBackOff())
+		retryCount++
+	}
+}
+
+func (i *installationResource) syncResourceModelWithSDK(
+	state *installationResourceModel,
+	job dedicatedserver.ServerJob,
+	ctx context.Context,
+) diag.Diagnostics {
+	var diags diag.Diagnostics
+	payload := job.GetPayload()
+	state.ID = types.StringValue(job.GetUuid())
+	state.Device = types.StringValue(payload.GetDevice())
+	state.OperatingSystemID = types.StringValue(payload.GetOperatingSystemId())
+	state.PowerCycle = types.BoolValue(payload.GetPowerCycle())
+	state.Timezone = types.StringValue(payload.GetTimezone())
 
 	partitionAttributeTypes := map[string]attr.Type{
 		"filesystem": types.StringType,
@@ -354,78 +481,23 @@ func (i *installationResource) Create(
 			Size:       types.StringValue(p.GetSize()),
 		}
 
-		partitionObj, diags := types.ObjectValueFrom(
-			ctx,
-			partitionAttributeTypes,
-			partition,
-		)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-
+		partitionObj, partitionDiags := types.ObjectValueFrom(ctx, partitionAttributeTypes, partition)
+		diags.Append(partitionDiags...)
 		partitionsObjects = append(partitionsObjects, partitionObj)
 	}
 
 	// Convert the slice of partition objects to a types.List and store it in the plan
-	partitionsList, diags := types.ListValueFrom(
-		ctx,
-		types.ObjectType{
-			AttrTypes: partitionAttributeTypes,
-		},
-		partitionsObjects,
-	)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	plan.Partitions = partitionsList
+	partitionsList, listDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: partitionAttributeTypes}, partitionsObjects)
+	diags.Append(listDiags...)
+	state.Partitions = partitionsList
 
-	pollJobStatus := func() (string, error) {
-		return getJobStatus(serverID, result.GetUuid(), i, ctx, resp)
+	if state.Raid.IsNull() || state.Raid.IsUnknown() {
+		state.Raid = types.ObjectNull(map[string]attr.Type{
+			"level":           types.Int64Type,
+			"number_of_disks": types.Int64Type,
+			"type":            types.StringType,
+		})
 	}
 
-	_, err = backoff.Retry(context.TODO(), pollJobStatus, backoff.WithBackOff(backoff.NewExponentialBackOff()))
-	if err != nil {
-		utils.GeneralError(&resp.Diagnostics, ctx, err)
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-}
-
-func getJobStatus(serverID string, jobID string, i *installationResource, ctx context.Context, resp *resource.CreateResponse) (string, error) {
-	request := i.DedicatedserverAPI.GetJob(ctx, serverID, jobID)
-
-	result, response, err := request.Execute()
-	if err != nil {
-		utils.SdkError(ctx, &resp.Diagnostics, err, response)
-	}
-
-	status := result.GetStatus()
-	if status != "FINISHED" {
-		return "", backoff.RetryAfter(30)
-	}
-
-	return status, nil
-}
-
-func (i *installationResource) Read(
-	_ context.Context,
-	_ resource.ReadRequest,
-	_ *resource.ReadResponse,
-) {
-}
-
-func (i *installationResource) Update(
-	_ context.Context,
-	_ resource.UpdateRequest,
-	_ *resource.UpdateResponse,
-) {
-}
-
-func (i *installationResource) Delete(
-	_ context.Context,
-	_ resource.DeleteRequest,
-	_ *resource.DeleteResponse,
-) {
+	return diags
 }
