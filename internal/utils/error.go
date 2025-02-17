@@ -22,7 +22,7 @@ func GeneralError(diags *diag.Diagnostics, ctx context.Context, err error) {
 	if err != nil {
 		logDebug(err.Error(), ctx)
 	}
-	reportError(defaultErrMsg, diags)
+	ReportError(defaultErrMsg, diags)
 }
 
 // ImportOnlyError should be used in resource Read() functions for resources that can only be imported.
@@ -57,13 +57,13 @@ func SdkError(
 
 	if err == nil {
 		logDebug("No error detail found.", ctx)
-		reportError(defaultErrMsg, diags)
+		ReportError(defaultErrMsg, diags)
 		return
 	}
 
 	// Without a response we only need to handle the error.
 	if resp == nil {
-		reportError(err.Error(), diags)
+		ReportError(err.Error(), diags)
 		return
 	}
 
@@ -81,12 +81,12 @@ func SdkError(
 	// For certain http responses we don't need to analyze the response body.
 	if resp.StatusCode == 504 {
 		logDebug(fmt.Sprintf("server response: %v", resp.Body), ctx)
-		reportError("The server took too long to respond.", diags)
+		ReportError("The server took too long to respond.", diags)
 		return
 	}
 	if resp.StatusCode == 404 {
 		logDebug(fmt.Sprintf("server response: %v", resp.Body), ctx)
-		reportError("Resource not found.", diags)
+		ReportError("Resource not found.", diags)
 		return
 	}
 
@@ -103,7 +103,7 @@ func SdkError(
 			fmt.Sprintf("error decoding HTTP response body: %v", err),
 			ctx,
 		)
-		reportError(defaultErrMsg, diags)
+		ReportError(defaultErrMsg, diags)
 		return
 	}
 
@@ -116,7 +116,7 @@ func SdkError(
 	}
 
 	if len(errorResponse.ErrorMessage) > 0 {
-		reportError(errorResponse.ErrorMessage, diags)
+		ReportError(errorResponse.ErrorMessage, diags)
 		return
 	}
 
@@ -190,7 +190,7 @@ func logDebug(details string, ctx context.Context) {
 	tflog.Debug(ctx, fmt.Sprintf("Details: %v", details))
 }
 
-func reportError(details string, diags *diag.Diagnostics) {
+func ReportError(details string, diags *diag.Diagnostics) {
 	diags.AddError(errTitle, details)
 }
 
