@@ -653,7 +653,7 @@ func ExampleUnexpectedImportIdentifierError() {
 func Test_writeSDKOutput(t *testing.T) {
 	diags := diag.Diagnostics{}
 
-	reportError("tralala", &diags)
+	ReportError("tralala", &diags)
 
 	assert.Len(t, diags.Errors(), 1)
 	assert.Equal(t, errTitle, diags.Errors()[0].Summary())

@@ -85,3 +85,11 @@ Optional:
   - *HW*
   - *SW*
   - *NONE*
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import leaseweb_dedicated_server_installation.test 12345678
+```
